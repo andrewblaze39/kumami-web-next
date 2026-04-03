@@ -1,0 +1,335 @@
+/* Base Styles */
+:root {
+  --warning-color: #ffc107;
+  --warning-bg: rgba(255, 193, 7, 0.1);
+  --primary-color: #00c2c7;
+  --secondary-color: #40e0d0;
+  --accent-color: #7fffd4;
+  --dark-bg: #000000;
+  --text-light: #ffffff;
+  --gradient-2: linear-gradient(to right, #3a7a7a, #96edd6);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: "Lato", sans-serif;
+  line-height: 1.6;
+  background: var(--dark-bg);
+  color: var(--text-light);
+  min-height: 100vh;
+  letter-spacing: 0.2px;
+}
+
+.dark-main {
+  background: var(--dark-bg);
+}
+
+/* Navbar spacing */
+.nav-bg-b {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  background-color: #000 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+}
+
+body {
+  padding-top: 0 !important;
+}
+
+/* Hero Section */
+.hero-inner {
+  background-image: url("/homepage-hero-background.jpg");
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  position: relative;
+}
+
+.hero-content {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-top: 30px;
+  text-align: center;
+}
+
+.hero-logo {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.kumami-logo {
+  height: 60px;
+  width: auto;
+  display: block;
+}
+
+.hero-capsule {
+  margin-bottom: 1rem;
+}
+
+.capsule-text {
+  background: rgba(150, 237, 214, 0.25);
+  border: 1px solid rgba(150, 237, 214, 0.4);
+  padding: 4px 20px;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  color: #96EDD6;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.hero-main-title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+  line-height: 1.2;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #96EDD6 0%, #6FCF97 50%, #96EDD6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.white-text {
+  color: #ffffff;
+}
+
+.hero-description {
+  max-width: 500px;
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin-bottom: 0.8rem;
+  margin-top: 0.5rem;
+  margin-left: auto;
+  margin-right: auto;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center !important;
+  hyphens: none !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  -webkit-hyphens: none !important;
+  -ms-hyphens: none !important;
+}
+
+.hero-buttons {
+  margin-top: 0;
+}
+
+.btn-outline {
+  display: inline-block;
+  padding: 4px 24px;
+  border: 1px solid rgba(150, 237, 214, 0.4);
+  background: rgba(78, 129, 119, 0.4);
+  color: #B3F5E8;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+  background: rgba(78, 129, 119, 0.6);
+  border-color: rgba(150, 237, 214, 0.6);
+  color: #B3F5E8;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* Hero Section */
+.hero-section {
+  min-height: 100vh;
+  position: relative;
+}
+
+.hero-inner {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding-bottom: 120px;
+}
+
+.hero-content {
+  padding-bottom: 0;
+}
+
+/* Partners Section */
+.partners-section {
+  padding: 30px 0;
+  background: #000;
+}
+
+.partners-section .container {
+  max-width: 1200px;
+}
+
+.section-title,
+.contact-title {
+  text-align: center;
+  margin-bottom: 20px;
+  color: var(--text-color);
+  font-size: 1.8em;
+}
+
+.partners-grid {
+  margin-top: 1.5rem;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+}
+
+.partner-item {
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.partner-card {
+  text-align: center;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.partner-card:hover {
+  transform: translateY(-3px);
+}
+
+.partner-card img {
+  max-width: 100%;
+  height: auto;
+  max-height: 72px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  filter: brightness(0.9);
+}
+
+.partner-card:hover img {
+  transform: scale(1.05);
+  filter: brightness(1);
+}
+
+/* Ecosystem Section */
+.dg-service2 {
+  padding: 100px 0;
+}
+
+.ecosystem-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  height: 100%;
+}
+
+.ecosystem-link:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+.common-heading-2 h2 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  color: var(--text-light);
+}
+
+#ecosystem .common-heading-2 h2 {
+  color: #40e0d0;
+  font-weight: bold;
+}
+
+.s-block {
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  height: 90%;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.nn-card-set {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+}
+
+.s-block:hover {
+  transform: translateY(-10px);
+  background: rgba(0, 194, 199, 0.1);
+}
+
+.s-card-icon {
+  margin-bottom: 1rem;
+}
+
+.s-card-icon img {
+  height: 60px;
+  width: auto;
+}
+
+.nn-card-set h4 {
+  font-size: 1.2rem;
+  margin: 1rem 0;
+  color: var(--text-light);
+}
+
+.nn-card-set p {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .hero-inner {
+    background-image: url("/homepage-hero-background.jpg");
+  }
+
+  .hero-content {
+    justify-content: flex-start;
+    padding-top: 20px;
+    text-align: center;
+  }
+
+  .kumami-logo {
+    height: 40px;
+  }
+
+  .capsule-text {
+    font-size: 0.8rem;
+    padding: 3px 16px;
+  }
+
+  .hero-main-title {
+    font-size: 2.4rem;
+  }
+
+  .hero-description {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-inner {
+    background-image: url("/homepage-hero-background.jpg");
+    background-position: center center;
+  }
+}

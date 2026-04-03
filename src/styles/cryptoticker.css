@@ -1,0 +1,155 @@
+.crypto-ticker-loading {
+  background-color: #101010;
+  color: #888;
+  text-align: center;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid #222;
+  border-bottom: 1px solid #222;
+  position: fixed;
+  top: 87px;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  z-index: 1500;
+}
+
+.crypto-ticker-loading::after {
+  content: "";
+  position: absolute;
+  left: -100%;
+  width: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00c2c7, transparent);
+  animation: loading-animation 2s infinite;
+}
+
+@keyframes loading-animation {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.crypto-ticker {
+  background-color: #101010;
+  color: white;
+  padding: 10px 0;
+  overflow: hidden;
+  width: 100%;
+  position: fixed;
+  top: 87px; /* Position right below the navbar */
+  left: 0;
+  right: 0;
+  border-top: 1px solid #222;
+  border-bottom: 1px solid #222;
+  z-index: 1500;
+}
+
+.ticker-container {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  } /* Only move half way */
+}
+
+.ticker-scroll {
+  display: inline-flex;
+  animation: scroll 60s linear infinite; /* Doubled the animation time to slow it down */
+  white-space: nowrap;
+  will-change: transform;
+  width: fit-content;
+}
+
+/* Duplicate the content for seamless looping */
+.ticker-content {
+  display: flex;
+  padding-right: 20px;
+}
+
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 10px;
+}
+
+.crypto-logo {
+  width: 22px;
+  height: 22px;
+  margin-right: 5px;
+  object-fit: contain;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 2px;
+}
+
+.crypto-name {
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.crypto-price {
+  margin-right: 5px;
+  transition: color 0.3s ease;
+  min-width: 80px;
+  display: inline-block;
+  text-align: right;
+  color: white; /* Explicit default color */
+}
+
+.price-flash-up {
+  color: #00ff00 !important; /* Bright green */
+}
+
+.price-flash-down {
+  color: #ff0000 !important; /* Bright red */
+}
+
+.crypto-change {
+  min-width: 60px;
+  display: inline-block;
+  text-align: right;
+}
+
+.crypto-change.positive {
+  color: #00c2c7;
+}
+
+.crypto-change.negative {
+  color: #ff4a68;
+}
+
+.divider {
+  margin: 0 15px;
+  opacity: 0.5;
+}
+
+@keyframes ticker-scroll {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@media (max-width: 768px) {
+  .ticker-scroll {
+    animation-duration: 60s;
+  }
+}
