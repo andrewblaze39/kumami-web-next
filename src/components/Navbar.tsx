@@ -2,8 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { sendEmailVerification } from 'firebase/auth';
+import { doc, getDoc } from '@firebase/firestore';
+import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/contexts/NotificationContext';
+
+interface UserData {
+  isPremium?: boolean;
+  role?: string;
+  [key: string]: any;
+}
 
 const Navbar = () => {
   const { currentUser, logout } = useAuth();
@@ -14,13 +23,32 @@ const Navbar = () => {
     markAllAsRead,
     addNotification,
   } = useNotifications();
-  
-  const [userData, setUserData] = useState(null);
+
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [companyDropdownOpen, setCompanyDropdownOpen] = useState(false);
   const [educationDropdownOpen, setEducationDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
+
+  // Fetch user data including premium status
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!currentUser) {
+        setUserData(null);
+        return;
+      }
+      try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+          setUserData(userDoc.data() as UserData);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+    fetchUserData();
+  }, [currentUser]);
 
   // Get user initials for avatar
   const getUserInitials = () => {
@@ -71,6 +99,14 @@ const Navbar = () => {
     setProfileDropdownOpen(false);
   };
 
+  const isAdminRole = userData &&
+    (userData.role === "superadmin" ||
+      userData.role === "admin" ||
+      userData.role === "newsresearchadmin" ||
+      userData.role === "gamesadmin" ||
+      userData.role === "marketanalysisadmin" ||
+      userData.role === "newsdrafter");
+
   return (
     <nav className="w-full bg-black py-4 px-6 flex items-center justify-between fixed top-0 left-0 right-0 z-[2000]">
       {/* Logo & Menu */}
@@ -90,10 +126,10 @@ const Navbar = () => {
               onClick={toggleCompanyDropdown}
             >
               Company
-              <svg 
-                className={`w-4 h-4 transition-transform duration-200 ${companyDropdownOpen ? 'rotate-180' : ''}`} 
-                fill="none" 
-                viewBox="0 0 24 24" 
+              <svg
+                className={`w-4 h-4 transition-transform duration-200 ${companyDropdownOpen ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
                 stroke="currentColor"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -135,10 +171,10 @@ const Navbar = () => {
               onClick={toggleEducationDropdown}
             >
               Education
-              <svg 
-                className={`w-4 h-4 transition-transform duration-200 ${educationDropdownOpen ? 'rotate-180' : ''}`} 
-                fill="none" 
-                viewBox="0 0 24 24" 
+              <svg
+                className={`w-4 h-4 transition-transform duration-200 ${educationDropdownOpen ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
                 stroke="currentColor"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -229,138 +265,344 @@ const Navbar = () => {
       <div className="hidden md:block">
         {currentUser ? (
           <div className="flex items-center gap-6">
-            {/* Notification bell */}
-            <div className="relative">
-              <button
-                onClick={toggleNotificationDropdown}
-                className="text-[#48C6EF] text-xl cursor-pointer hover:text-[#96EDD6] transition focus:outline-none bg-transparent border-none p-1 relative"
-              >
-                <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-                  <path
-                    d="M12 22c1.1 0 2-.9 2-2h-4a2 2 0 002 2zm6-6V11c0-3.07-1.63-5.64-5-6.32V4a1 1 0 10-2 0v.68C7.63 5.36 6 7.92 6 11v5l-1.29 1.29A1 1 0 006 19h12a1 1 0 00.71-1.71L18 16z"
-                    fill="currentColor"
-                  />
-                </svg>
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
+            {userData?.isPremium ? (
+              <>
+                {/* Pro Dashboard button for premium users */}
+                <Link
+                  href="/pro"
+                  className="bg-[#aafafc] text-[#102425] font-bold rounded-full px-6 py-2 text-base shadow hover:bg-[#96EDD6] transition no-underline"
+                >
+                  Kumami Pro Dashboard
+                </Link>
+
+                {/* Admin link if admin */}
+                {isAdminRole && (
+                  <Link
+                    href="/admin"
+                    className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 rounded transition no-underline"
+                  >
+                    Admin Dashboard
+                  </Link>
                 )}
-              </button>
-              {/* Notification Dropdown */}
-              {notificationDropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 w-80 rounded-md shadow-lg bg-[#102425] ring-1 ring-black ring-opacity-5 z-[9999]">
-                  <div className="py-2">
-                    <div className="px-4 py-2 border-b border-gray-600 flex items-center justify-between">
-                      <h3 className="text-white font-semibold text-sm">
-                        Notifications
-                      </h3>
-                      {notifications.length > 0 && (
+
+                {/* Bell notification with dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={toggleNotificationDropdown}
+                    onBlur={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        setTimeout(() => setNotificationDropdownOpen(false), 150);
+                      }
+                    }}
+                    className="text-[#48C6EF] text-xl cursor-pointer hover:text-[#96EDD6] transition focus:outline-none bg-transparent border-none p-1 relative"
+                  >
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
+                      <path
+                        d="M12 22c1.1 0 2-.9 2-2h-4a2 2 0 002 2zm6-6V11c0-3.07-1.63-5.64-5-6.32V4a1 1 0 10-2 0v.68C7.63 5.36 6 7.92 6 11v5l-1.29 1.29A1 1 0 006 19h12a1 1 0 00.71-1.71L18 16z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
+                  </button>
+                  {/* Notification Dropdown */}
+                  {notificationDropdownOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-80 rounded-md shadow-lg bg-[#102425] ring-1 ring-black ring-opacity-5 z-[9999]">
+                      <div className="py-2">
+                        <div className="px-4 py-2 border-b border-gray-600 flex items-center justify-between">
+                          <h3 className="text-white font-semibold text-sm">
+                            Notifications
+                          </h3>
+                          {notifications.length > 0 && (
+                            <button
+                              onClick={() => {
+                                markAllAsRead().catch((error) => {
+                                  console.error("Error marking all as read:", error);
+                                });
+                              }}
+                              className="text-[#48C6EF] text-xs hover:text-[#96EDD6] transition"
+                            >
+                              Mark all read
+                            </button>
+                          )}
+                        </div>
+                        <div className="max-h-80 overflow-y-auto">
+                          {notifications.length === 0 ? (
+                            <div className="px-4 py-8 text-center">
+                              <p className="text-gray-400 text-sm">
+                                No notifications
+                              </p>
+                            </div>
+                          ) : (
+                            notifications.map((notification) => (
+                              <div
+                                key={notification.id}
+                                onClick={() => markAsRead(notification.id)}
+                                className={`px-4 py-3 hover:bg-[#0a1a1b] cursor-pointer border-b border-gray-700 last:border-b-0 ${
+                                  !notification.read ? "bg-[#0a1a1b]/30" : ""
+                                }`}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div
+                                    className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                                      !notification.read
+                                        ? "bg-[#48C6EF]"
+                                        : "bg-gray-400"
+                                    }`}
+                                  ></div>
+                                  <div className="flex-1">
+                                    {notification.title && (
+                                      <p className="text-white text-sm font-medium mb-1">
+                                        {notification.title}
+                                      </p>
+                                    )}
+                                    <p className="text-white text-sm">
+                                      {notification.message}
+                                    </p>
+                                    <p className="text-gray-400 text-xs mt-1">
+                                      {notification.timestamp instanceof Date
+                                        ? notification.timestamp.toLocaleString()
+                                        : notification.timestamp
+                                            ?.toDate()
+                                            .toLocaleString()}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Avatar with Pro Badge - RIGHTMOST */}
+                <div className="relative flex flex-col items-center">
+                  <button
+                    onClick={toggleProfileDropdown}
+                    onBlur={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        setTimeout(() => setProfileDropdownOpen(false), 150);
+                      }
+                    }}
+                    className="bg-white text-[#102425] font-bold rounded-full w-10 h-10 flex items-center justify-center text-lg shadow focus:outline-none hover:bg-gray-100 transition"
+                  >
+                    {getUserInitials()}
+                  </button>
+                  <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-[#48C6EF] text-white text-xs font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                    Pro
+                  </div>
+                  {profileDropdownOpen && (
+                    <div className="absolute right-0 top-full mt-3 w-48 rounded-md shadow-lg bg-[#102425] ring-1 ring-black ring-opacity-5 z-[9999]">
+                      <div className="py-1">
+                        <Link
+                          href="/profile"
+                          className="block px-4 py-2 text-sm text-white hover:bg-[#0a1a1b] hover:text-[#aafafc] active:text-[#aafafc] no-underline w-full"
+                          onClick={() => setProfileDropdownOpen(false)}
+                        >
+                          Profile
+                        </Link>
                         <button
                           onClick={() => {
-                            markAllAsRead().catch((error) => {
-                              console.error("Error marking all as read:", error);
-                            });
+                            handleLogout();
+                            setProfileDropdownOpen(false);
                           }}
-                          className="text-[#48C6EF] text-xs hover:text-[#96EDD6] transition"
+                          className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-[#0a1a1b] hover:text-[#aafafc] active:text-[#aafafc] bg-transparent border-none cursor-pointer"
                         >
-                          Mark all read
+                          Log Out
                         </button>
-                      )}
+                      </div>
                     </div>
-                    <div className="max-h-80 overflow-y-auto">
-                      {notifications.length === 0 ? (
-                        <div className="px-4 py-8 text-center">
-                          <p className="text-gray-400 text-sm">
-                            No notifications
-                          </p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Admin link if admin */}
+                {isAdminRole && (
+                  <Link
+                    href="/admin"
+                    className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 rounded transition no-underline"
+                  >
+                    Admin Dashboard
+                  </Link>
+                )}
+
+                {/* Bell notification with dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={toggleNotificationDropdown}
+                    onBlur={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        setTimeout(() => setNotificationDropdownOpen(false), 150);
+                      }
+                    }}
+                    className="text-white text-xl cursor-pointer hover:text-[#aafafc] transition focus:outline-none bg-transparent border-none p-1 relative"
+                  >
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
+                      <path
+                        d="M12 22c1.1 0 2-.9 2-2h-4a2 2 0 002 2zm6-6V11c0-3.07-1.63-5.64-5-6.32V4a1 1 0 10-2 0v.68C7.63 5.36 6 7.92 6 11v5l-1.29 1.29A1 1 0 006 19h12a1 1 0 00.71-1.71L18 16z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
+                  </button>
+                  {/* Notification Dropdown */}
+                  {notificationDropdownOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-80 rounded-md shadow-lg bg-[#102425] ring-1 ring-black ring-opacity-5 z-[9999]">
+                      <div className="py-2">
+                        <div className="px-4 py-2 border-b border-gray-600 flex items-center justify-between">
+                          <h3 className="text-white font-semibold text-sm">
+                            Notifications
+                          </h3>
+                          {notifications.length > 0 && (
+                            <button
+                              onClick={() => {
+                                markAllAsRead().catch((error) => {
+                                  console.error("Error marking all as read:", error);
+                                });
+                              }}
+                              className="text-[#48C6EF] text-xs hover:text-[#96EDD6] transition"
+                            >
+                              Mark all read
+                            </button>
+                          )}
                         </div>
-                      ) : (
-                        notifications.map((notification) => (
-                          <div
-                            key={notification.id}
-                            onClick={() => markAsRead(notification.id)}
-                            className={`px-4 py-3 hover:bg-[#0a1a1b] cursor-pointer border-b border-gray-700 last:border-b-0 ${
-                              !notification.read ? "bg-[#0a1a1b]/30" : ""
-                            }`}
-                          >
-                            <div className="flex items-start gap-3">
-                              <div
-                                className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                                  !notification.read
-                                    ? "bg-[#48C6EF]"
-                                    : "bg-gray-400"
-                                }`}
-                              ></div>
-                              <div className="flex-1">
-                                {notification.title && (
-                                  <p className="text-white text-sm font-medium mb-1">
-                                    {notification.title}
-                                  </p>
-                                )}
-                                <p className="text-white text-sm">
-                                  {notification.message}
-                                </p>
-                                <p className="text-gray-400 text-xs mt-1">
-                                  {notification.timestamp instanceof Date
-                                    ? notification.timestamp.toLocaleString()
-                                    : notification.timestamp
-                                        ?.toDate()
-                                        .toLocaleString()}
-                                </p>
-                              </div>
+                        <div className="max-h-80 overflow-y-auto">
+                          {notifications.length === 0 ? (
+                            <div className="px-4 py-8 text-center">
+                              <p className="text-gray-400 text-sm">
+                                No notifications
+                              </p>
                             </div>
-                          </div>
-                        ))
-                      )}
+                          ) : (
+                            notifications.map((notification) => (
+                              <div
+                                key={notification.id}
+                                onClick={() => markAsRead(notification.id)}
+                                className={`px-4 py-3 hover:bg-[#0a1a1b] cursor-pointer border-b border-gray-700 last:border-b-0 ${
+                                  !notification.read ? "bg-[#0a1a1b]/30" : ""
+                                }`}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div
+                                    className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                                      !notification.read
+                                        ? "bg-[#48C6EF]"
+                                        : "bg-gray-400"
+                                    }`}
+                                  ></div>
+                                  <div className="flex-1">
+                                    {notification.title && (
+                                      <p className="text-white text-sm font-medium mb-1">
+                                        {notification.title}
+                                      </p>
+                                    )}
+                                    <p className="text-white text-sm">
+                                      {notification.message}
+                                    </p>
+                                    <p className="text-gray-400 text-xs mt-1">
+                                      {notification.timestamp instanceof Date
+                                        ? notification.timestamp.toLocaleString()
+                                        : notification.timestamp
+                                            ?.toDate()
+                                            .toLocaleString()}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {/* Subscription button */}
-            <Link
-              href="/subscribe"
-              className="bg-[#aafafc] text-[#102425] font-bold rounded-full px-6 py-2 text-base shadow hover:bg-[#96EDD6] transition no-underline"
-            >
-              Get Kumami Pro
-            </Link>
+                {/* Subscription button - only for non-premium users */}
+                <Link
+                  href="/subscribe"
+                  className="bg-[#aafafc] text-[#102425] font-bold rounded-full px-6 py-2 text-base shadow hover:bg-[#96EDD6] transition no-underline"
+                >
+                  Get Kumami Pro
+                </Link>
 
-            {/* Avatar with Dropdown */}
-            <div className="relative flex flex-col items-center">
+                {/* Avatar with Free Badge and Dropdown - RIGHTMOST */}
+                <div className="relative flex flex-col items-center">
+                  <button
+                    onClick={toggleProfileDropdown}
+                    onBlur={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        setTimeout(() => setProfileDropdownOpen(false), 150);
+                      }
+                    }}
+                    className="bg-white text-[#102425] font-bold rounded-full w-10 h-10 flex items-center justify-center text-lg shadow focus:outline-none hover:bg-gray-100 transition"
+                  >
+                    {getUserInitials()}
+                  </button>
+                  <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-gray-500 text-white text-xs font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                    Free
+                  </div>
+                  {profileDropdownOpen && (
+                    <div className="absolute right-0 top-full mt-3 w-48 rounded-md shadow-lg bg-[#102425] ring-1 ring-black ring-opacity-5 z-[9999]">
+                      <div className="py-1">
+                        <Link
+                          href="/profile"
+                          className="block px-4 py-2 text-sm text-white hover:bg-[#0a1a1b] hover:text-[#aafafc] active:text-[#aafafc] no-underline w-full"
+                          onClick={() => setProfileDropdownOpen(false)}
+                        >
+                          Profile
+                        </Link>
+                        <button
+                          onClick={() => {
+                            handleLogout();
+                            setProfileDropdownOpen(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-[#0a1a1b] hover:text-[#aafafc] active:text-[#aafafc] bg-transparent border-none cursor-pointer"
+                        >
+                          Log Out
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* Email verification reminder */}
+            {!currentUser.emailVerified && (
               <button
-                onClick={toggleProfileDropdown}
-                className="bg-white text-[#102425] font-bold rounded-full w-10 h-10 flex items-center justify-center text-lg shadow focus:outline-none hover:bg-gray-100 transition"
+                onClick={() => {
+                  sendEmailVerification(currentUser)
+                    .then(() => alert("Verification email sent!"))
+                    .catch((error: any) => alert(error.message));
+                }}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white text-sm px-3 py-1 rounded transition flex items-center"
               >
-                {getUserInitials()}
+                <svg
+                  className="h-4 w-4 mr-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+                Verify Email
               </button>
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-gray-500 text-white text-xs font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
-                Free
-              </div>
-              {profileDropdownOpen && (
-                <div className="absolute right-0 top-full mt-3 w-48 rounded-md shadow-lg bg-[#102425] ring-1 ring-black ring-opacity-5 z-[9999]">
-                  <div className="py-1">
-                    <Link
-                      href="/profile"
-                      className="block px-4 py-2 text-sm text-white hover:bg-[#0a1a1b] hover:text-[#aafafc] active:text-[#aafafc] no-underline w-full"
-                      onClick={() => setProfileDropdownOpen(false)}
-                    >
-                      Profile
-                    </Link>
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setProfileDropdownOpen(false);
-                      }}
-                      className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-[#0a1a1b] hover:text-[#aafafc] active:text-[#aafafc] bg-transparent border-none cursor-pointer"
-                    >
-                      Log Out
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         ) : (
           <div className="flex items-center gap-4">
@@ -436,10 +678,10 @@ const Navbar = () => {
                   className="flex items-center w-full text-left cursor-pointer hover:text-[#aafafc] active:text-[#aafafc] transition bg-transparent border-none py-1 px-1 text-white text-xl font-normal focus:outline-none"
                 >
                   Education
-                  <svg 
-                    className={`w-4 h-4 ml-2 transition-transform duration-200 ${educationDropdownOpen ? 'rotate-180' : ''}`} 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
+                  <svg
+                    className={`w-4 h-4 ml-2 transition-transform duration-200 ${educationDropdownOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

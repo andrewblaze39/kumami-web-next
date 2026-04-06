@@ -41,23 +41,23 @@ const ecosystemItems = [
 
 export default function EcosystemSection() {
   return (
-    <section className="dg-service2 pt130" id="ecosystem" style={{ background: '#000', paddingBottom: '20px' }}>
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-lg-8">
+    <section className="dg-service2 pt130 pb-20" id="ecosystem" style={{ background: '#000' }}>
+      <div className="max-w-screen-xl mx-auto px-4">
+        <div className="flex flex-wrap justify-center">
+          <div className="lg:w-2/3 w-full">
             <div className="common-heading-2 text-center">
               <h2 className="mb30">Kumami World Ecosystem</h2>
             </div>
           </div>
         </div>
-        <div className="row upset ovr-bg1 ho-gdnt">
+        <div className="flex flex-wrap upset ovr-bg1 ho-gdnt">
           {ecosystemItems.map((item, index) => (
-            <div key={index} className="col-lg-2 col-sm-6 mt30">
+            <div key={index} className="w-full sm:w-1/2 lg:w-1/6 mt30">
               <Link href={item.path} className="ecosystem-link">
                 <div className="s-block up-hor ovr-base">
                   <div className="nn-card-set">
                     <div className="s-card-icon">
-                      <img src={item.icon} alt={item.title} className="img-fluid" />
+                      <img src={item.icon} alt={item.title} className="max-w-full h-auto" />
                     </div>
                     <h4>{item.title}</h4>
                     <p>{item.description}</p>
