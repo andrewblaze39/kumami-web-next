@@ -12,7 +12,7 @@
   border-top: 1px solid #222;
   border-bottom: 1px solid #222;
   position: fixed;
-  top: 87px;
+  top: 72px;
   left: 0;
   right: 0;
   overflow: hidden;
@@ -45,7 +45,7 @@
   overflow: hidden;
   width: 100%;
   position: fixed;
-  top: 87px; /* Position right below the navbar */
+  top: 72px; /* Position right below the navbar */
   left: 0;
   right: 0;
   border-top: 1px solid #222;

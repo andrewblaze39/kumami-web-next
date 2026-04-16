@@ -1,0 +1,97 @@
+'use client';
+
+import { ReactNode } from 'react';
+import { PieChart, Pie, Cell } from 'recharts';
+
+const CHART_COLORS = [
+  '#96EDD6',
+  '#82ca9d',
+  '#66d1c1',
+  '#4db6ac',
+  '#26a69a',
+  '#1f9e89',
+  '#18a999',
+];
+
+interface DonutChartDataItem {
+  name: string;
+  value: number;
+}
+
+interface DonutChartProps {
+  width?: number;
+  height?: number;
+  data?: DonutChartDataItem[];
+  innerRadius?: number;
+  outerRadius?: number;
+  children?: ReactNode;
+  highlightIndex?: number | null;
+  dimOpacity?: number;
+  cornerRadius?: number;
+  noAnimation?: boolean;
+}
+
+export default function DonutChart({
+  width = 480,
+  height = 480,
+  data = [],
+  innerRadius = 190,
+  outerRadius = 228,
+  children,
+  highlightIndex = null,
+  dimOpacity = 0.25,
+  cornerRadius = 4,
+  noAnimation = false,
+}: DonutChartProps) {
+  return (
+    <div style={{ position: 'relative', width, height }}>
+      <PieChart width={width} height={height}>
+        <Pie
+          data={data}
+          dataKey="value"
+          nameKey="name"
+          cx="50%"
+          cy="50%"
+          innerRadius={innerRadius}
+          outerRadius={outerRadius}
+          label={false}
+          labelLine={false}
+          legendType="none"
+          paddingAngle={3}
+          cornerRadius={cornerRadius}
+          isAnimationActive={!noAnimation}
+        >
+          {data.map((_, index) => (
+            <Cell
+              key={`slice-${index}`}
+              fill={CHART_COLORS[index % CHART_COLORS.length]}
+              stroke={CHART_COLORS[index % CHART_COLORS.length]}
+              fillOpacity={
+                highlightIndex === null || highlightIndex === undefined
+                  ? 1
+                  : index === highlightIndex
+                  ? 1
+                  : dimOpacity
+              }
+              strokeOpacity={
+                highlightIndex === null || highlightIndex === undefined
+                  ? 1
+                  : index === highlightIndex
+                  ? 1
+                  : dimOpacity
+              }
+            />
+          ))}
+        </Pie>
+      </PieChart>
+      {children ? (
+        <div
+          className="absolute inset-0 grid place-items-center"
+          style={{ pointerEvents: 'none' }}
+        >
+          {children}
+        </div>
+      ) : null}
+    </div>
+  );
+}
