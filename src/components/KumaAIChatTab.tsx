@@ -334,7 +334,7 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
       const { getApp } = await import('firebase/app');
       const auth = getAuth(getApp());
       const idToken = await auth.currentUser?.getIdToken();
-      await fetch('/api/intents', {
+      await fetch('https://us-central1-kumami-6df47.cloudfunctions.net/api/api/intents', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
