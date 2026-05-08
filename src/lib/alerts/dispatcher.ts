@@ -58,12 +58,12 @@ export async function dispatchAlchemyActivity(db: Firestore, payload: AlchemyPay
           id: msgRef.id,
           role: 'bot',
           message: `🚨 **Alert: ${label}**\n\n${direction === 'IN' ? '📥 Received' : '📤 Sent'} **${act.value?.toFixed(4) ?? '?'} ${act.asset ?? 'ETH'}** on ${chain.toUpperCase()}\n\nTx: \`${act.hash.slice(0, 10)}...\``,
-          buttons: [[
+          buttons: [
             { label: '🔗 View Tx', intentId: 'view_tx', args: { hash: act.hash, chain } },
             { label: '👛 View Wallet', intentId: 'view_wallet', args: { address } },
             { label: '🔇 Mute 1h', intentId: 'mute_1h', args: { address } },
             { label: '🔕 Unwatch', intentId: 'unwatch_wallet', args: { address } },
-          ]],
+          ],
           buttonsUsed: false,
           timestamp: FieldValue.serverTimestamp(),
         });

@@ -15,10 +15,8 @@ export async function bootstrapTrackerBot(db: Firestore, userId: string) {
     role: 'bot',
     message: "👋 Hey! I'm **Tracker Bot**.\n\nI watch Ethereum wallets and alert you when they move — just like Telegram whale bots, but right here.\n\nWhat would you like to do?",
     buttons: [
-      [
-        { label: '➕ Add wallet', intentId: 'add_wallet', args: {} },
-        { label: '🐋 Browse whales', intentId: 'browse_whales', args: {} },
-      ],
+      { label: '➕ Add wallet', intentId: 'add_wallet', args: {} },
+      { label: '🐋 Browse whales', intentId: 'browse_whales', args: {} },
     ],
     buttonsUsed: false,
     timestamp: FieldValue.serverTimestamp(),

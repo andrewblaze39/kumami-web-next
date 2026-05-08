@@ -17,6 +17,7 @@ import {
   MessageCircle,
   Video,
   UserCog,
+  Map,
   PlusCircle,
   Edit,
   Home,
@@ -383,6 +384,9 @@ export default function AdminLayoutClient({ children }: { children: ReactNode })
                   Administration
                 </div>
               )}
+              <NavItem href="/admin/roadmap" icon={Map} isCollapsed={isCollapsed} isActive={checkActive('/admin/roadmap')}>
+                Roadmap
+              </NavItem>
               <NavItem href="/admin/role-management" icon={UserCog} isCollapsed={isCollapsed} isActive={checkActive('/admin/role-management')}>
                 Role Management
               </NavItem>

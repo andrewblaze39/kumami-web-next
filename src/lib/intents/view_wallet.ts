@@ -25,9 +25,9 @@ export async function handleViewWallet(
       title: `${address.slice(0, 6)}...${address.slice(-4)}`,
       rows,
     },
-    buttons: [[
+    buttons: [
       { label: '👀 Watch', intentId: 'watch_wallet', args: { address } },
-    ]],
+    ],
     buttonsUsed: false,
     timestamp: FieldValue.serverTimestamp(),
   });

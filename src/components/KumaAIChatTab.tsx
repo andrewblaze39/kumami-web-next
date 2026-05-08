@@ -16,7 +16,7 @@ import {
   getDocs,
   serverTimestamp,
 } from 'firebase/firestore';
-import { Send, Plus, Trash2, MessageCircle, Bell, ChevronLeft, Lock } from 'lucide-react';
+import { Send, Plus, Trash2, MessageCircle, ChevronLeft, Lock } from 'lucide-react';
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 const globalStyles = `
@@ -74,6 +74,7 @@ interface ChatRoom {
   type: 'system' | 'user';
   isDefault: boolean;
   canDelete: boolean;
+  hidden?: boolean;
   lastMessage?: string;
   lastMessageAt?: FirestoreTimestamp | null;
   createdAt?: FirestoreTimestamp | null;
@@ -101,23 +102,15 @@ interface ChatMessage {
     title: string;
     rows: { key: string; value: string }[];
   };
-  buttons?: ButtonAction[][];  // array of button rows, each row is array of buttons
+  buttons?: ButtonAction[];
   buttonsUsed?: boolean;       // true after any button in this message was clicked
 }
 
 // ─── Default rooms ───────────────────────────────────────────────────────────
 const DEFAULT_ROOMS: Omit<ChatRoom, 'createdAt' | 'lastMessage' | 'lastMessageAt'>[] = [
   {
-    id: 'smart-money-alerts',
-    name: 'Smart Money Alerts',
-    icon: '\uD83D\uDD14',
-    type: 'system',
-    isDefault: true,
-    canDelete: false,
-  },
-  {
     id: 'tracker-bot',
-    name: 'Tracker Bot 🐋',
+    name: 'Crypto Address Tracker',
     icon: '🐋',
     type: 'system',
     isDefault: false,
@@ -206,107 +199,9 @@ function SimpleMarkdown({ text, className }: { text: string; className?: string 
   );
 }
 
-// ─── SmartMoneyAlertsPanel ───────────────────────────────────────────────────
-function SmartMoneyAlertsPanel({
-  room,
-  userId,
-}: {
-  room: ChatRoom;
-  userId: string;
-}) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!userId || !room) return;
-    const messagesRef = collection(db, 'users', userId, 'chatrooms', room.id, 'messages');
-    const q = query(messagesRef, orderBy('timestamp', 'asc'), limit(100));
-    const unsub = onSnapshot(q, (snapshot) => {
-      setMessages(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as ChatMessage)));
-    });
-    return () => unsub();
-  }, [userId, room]);
-
-  useEffect(() => {
-    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-  }, [messages.length]);
-
-  return (
-    <div className="flex flex-col kuma-scroll" style={{ height: '100%', background: '#0a0a0f' }}>
-      {/* Header */}
-      <div
-        style={{
-          padding: '14px 20px',
-          borderBottom: '1px solid rgba(245,158,11,0.2)',
-          background: 'rgba(245,158,11,0.04)',
-          flexShrink: 0,
-        }}
-      >
-        <div className="flex items-center gap-2.5">
-          <span className="text-lg">{'\uD83D\uDD14'}</span>
-          <div>
-            <p className="font-bold text-sm text-amber-500 m-0 tracking-wide">
-              Smart Money Alerts
-            </p>
-            <p className="text-[11px] text-amber-500/50 m-0">
-              Read-only — system alerts from Kuma AI
-            </p>
-          </div>
-          <div
-            className="kuma-pulse-amber ml-auto"
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              background: '#f59e0b',
-              boxShadow: '0 0 6px rgba(245,158,11,0.6)',
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Messages */}
-      <div className="kuma-scroll flex-1 overflow-y-auto p-4 pb-2">
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-amber-500/40 text-center px-6 py-10">
-            <Bell className="w-10 h-10 mb-3 opacity-50" />
-            <p className="text-[13px]">
-              Alerts will appear here when Kuma AI detects smart money movement
-            </p>
-          </div>
-        ) : (
-          messages.map((msg, idx) => (
-            <div
-              key={msg.id || idx}
-              className="mb-2.5 p-3 rounded-[10px]"
-              style={{
-                borderLeft: '3px solid #f59e0b',
-                background: 'rgba(245,158,11,0.06)',
-                border: '1px solid rgba(245,158,11,0.15)',
-                borderLeftWidth: 3,
-                borderLeftColor: '#f59e0b',
-              }}
-            >
-              <div className="text-[13px] text-white leading-relaxed">
-                <SimpleMarkdown
-                  text={msg.message || msg.content || ''}
-                  className="kuma-md"
-                />
-              </div>
-              <span className="text-[10px] text-amber-500/45 mt-1.5 block">
-                {formatTime(msg.timestamp as FirestoreTimestamp | null)}
-              </span>
-            </div>
-          ))
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-    </div>
-  );
-}
-
 // ─── TrackerBotPanel ──────────────────────────────────────────────────────────
 function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
+  const { currentUser } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loadingIntent, setLoadingIntent] = useState<string | null>(null);
@@ -323,24 +218,22 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
   }, [userId, room]);
 
   useEffect(() => {
-    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
   }, [messages.length]);
 
-  const handleIntent = async (msgId: string, intentId: string, args: Record<string, string>) => {
+  const handleIntent = async (msgId: string, intentId: string, args: Record<string, string>, buttonIndex = 0) => {
     if (loadingIntent) return;
-    setLoadingIntent(`${msgId}-${intentId}`);
+    setLoadingIntent(`${msgId}-${intentId}-${buttonIndex}`);
     try {
-      const { getAuth } = await import('firebase/auth');
-      const { getApp } = await import('firebase/app');
-      const auth = getAuth(getApp());
-      const idToken = await auth.currentUser?.getIdToken();
+      const idToken = await currentUser?.getIdToken();
+      console.log('[handleIntent] currentUser:', currentUser?.uid ?? 'null', '| hasToken:', !!idToken);
       await fetch('/api/intents', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
         },
-        body: JSON.stringify({ intentId, args, roomId: room.id }),
+        body: JSON.stringify({ intentId, args, roomId: room.id, sourceMsgId: msgId }),
       });
     } catch (err) {
       console.error('Intent error:', err);
@@ -369,7 +262,7 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
         <div className="flex items-center gap-2.5">
           <span className="text-lg">🐋</span>
           <div>
-            <p className="font-bold text-sm m-0 tracking-wide" style={{ color: WHALE_BLUE }}>Tracker Bot</p>
+            <p className="font-bold text-sm m-0 tracking-wide" style={{ color: WHALE_BLUE }}>Crypto Address Tracker</p>
             <p className="text-[11px] m-0" style={{ color: `${WHALE_BLUE}80` }}>Real-time wallet alerts · ETH · Base · Arb</p>
           </div>
           <div className="kuma-pulse-amber ml-auto" style={{ width: 8, height: 8, borderRadius: '50%', background: WHALE_BLUE, boxShadow: `0 0 6px ${WHALE_BLUE}99` }} />
@@ -381,7 +274,7 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-6 py-10" style={{ color: `${WHALE_BLUE}60` }}>
             <span className="text-4xl mb-3">🐋</span>
-            <p className="text-[13px]">Tracker Bot is ready. Add a wallet to get started.</p>
+            <p className="text-[13px]">Crypto Address Tracker is ready. Add a wallet to get started.</p>
           </div>
         ) : (
           messages.map((msg, idx) => (
@@ -411,33 +304,29 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
 
               {/* Button rows */}
               {msg.buttons && msg.buttons.length > 0 && !msg.buttonsUsed && (
-                <div className="mt-1.5 space-y-1">
-                  {msg.buttons.map((row, ri) => (
-                    <div key={ri} className="flex gap-1.5 flex-wrap">
-                      {row.map((btn) => {
-                        const loadKey = `${msg.id}-${btn.intentId}`;
-                        const isLoading = loadingIntent === loadKey;
-                        return (
-                          <button
-                            key={btn.intentId}
-                            onClick={() => handleIntent(msg.id, btn.intentId, btn.args)}
-                            disabled={!!loadingIntent}
-                            className="px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all disabled:opacity-50"
-                            style={{
-                              background: isLoading ? `${WHALE_BLUE}30` : `rgba(14,165,233,0.12)`,
-                              border: `1px solid rgba(14,165,233,0.35)`,
-                              color: WHALE_BLUE,
-                              cursor: loadingIntent ? 'not-allowed' : 'pointer',
-                            }}
-                            onMouseEnter={e => { if (!loadingIntent) (e.currentTarget as HTMLButtonElement).style.background = `rgba(14,165,233,0.22)` }}
-                            onMouseLeave={e => { if (!loadingIntent) (e.currentTarget as HTMLButtonElement).style.background = `rgba(14,165,233,0.12)` }}
-                          >
-                            {isLoading ? '...' : btn.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ))}
+                <div className="mt-1.5 flex gap-1.5 flex-wrap">
+                  {msg.buttons.map((btn, bi) => {
+                    const loadKey = `${msg.id}-${btn.intentId}-${bi}`;
+                    const isLoading = loadingIntent === loadKey;
+                    return (
+                      <button
+                        key={`${btn.intentId}-${bi}`}
+                        onClick={() => handleIntent(msg.id, btn.intentId, btn.args, bi)}
+                        disabled={!!loadingIntent}
+                        className="px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all disabled:opacity-50"
+                        style={{
+                          background: isLoading ? `${WHALE_BLUE}30` : `rgba(14,165,233,0.12)`,
+                          border: `1px solid rgba(14,165,233,0.35)`,
+                          color: WHALE_BLUE,
+                          cursor: loadingIntent ? 'not-allowed' : 'pointer',
+                        }}
+                        onMouseEnter={e => { if (!loadingIntent) (e.currentTarget as HTMLButtonElement).style.background = `rgba(14,165,233,0.22)` }}
+                        onMouseLeave={e => { if (!loadingIntent) (e.currentTarget as HTMLButtonElement).style.background = `rgba(14,165,233,0.12)` }}
+                      >
+                        {isLoading ? '...' : btn.label}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
               {msg.buttonsUsed && msg.buttons && msg.buttons.length > 0 && (
@@ -522,9 +411,6 @@ function ChatPanel({ room, userId }: { room: ChatRoom; userId: string }) {
   useEffect(() => {
     setTimeout(() => {
       inputRef.current?.focus();
-      if (messagesContainerRef.current) {
-        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-      }
     }, 50);
   }, [room]);
 
@@ -1016,7 +902,7 @@ export default function KumaAIChatTab() {
       await deleteDoc(doc(db, 'users', userId, 'chatrooms', roomId));
 
       if (selectedRoomId === roomId) {
-        setSelectedRoomId('smart-money-alerts');
+        setSelectedRoomId('tracker-bot');
       }
     } catch (err) {
       console.error('Error deleting room:', err);
@@ -1077,7 +963,7 @@ export default function KumaAIChatTab() {
       {/* Room list */}
       <div className="kuma-scroll flex-1 overflow-y-auto p-3 pt-3">
         {/* System rooms */}
-        {systemRooms.map((room) => {
+        {systemRooms.filter(r => !r.hidden).map((room) => {
           const isTrackerBot = room.id === 'tracker-bot';
           const accent = isTrackerBot ? '#0ea5e9' : '#f59e0b';
           const accentRgb = isTrackerBot ? '14,165,233' : '245,158,11';
@@ -1225,9 +1111,7 @@ export default function KumaAIChatTab() {
       >
         <ChatSidebar />
         <div className="flex-1 overflow-hidden h-full">
-          {selectedRoom?.id === 'smart-money-alerts' ? (
-            <SmartMoneyAlertsPanel room={selectedRoom} userId={userId!} />
-          ) : selectedRoom?.id === 'tracker-bot' ? (
+          {selectedRoom?.id === 'tracker-bot' ? (
             <TrackerBotPanel room={selectedRoom} userId={userId!} />
           ) : selectedRoom ? (
             <ChatPanel room={selectedRoom} userId={userId!} />
@@ -1267,9 +1151,7 @@ export default function KumaAIChatTab() {
               All Rooms
             </button>
             <div className="flex-1 overflow-hidden">
-              {selectedRoom?.id === 'smart-money-alerts' ? (
-                <SmartMoneyAlertsPanel room={selectedRoom} userId={userId!} />
-              ) : selectedRoom?.id === 'tracker-bot' ? (
+              {selectedRoom?.id === 'tracker-bot' ? (
                 <TrackerBotPanel room={selectedRoom} userId={userId!} />
               ) : selectedRoom ? (
                 <ChatPanel room={selectedRoom} userId={userId!} />

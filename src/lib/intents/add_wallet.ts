@@ -26,11 +26,12 @@ export async function handleAddWallet(
     role: 'bot',
     message: card ? 'Here\'s a summary of this wallet:' : `Could not fetch data for \`${address}\`. It may be invalid.`,
     ...(card ? { card } : {}),
-    buttons: card ? [[
+    buttons: card ? [
       { label: '👀 Watch', intentId: 'watch_wallet', args: { address } },
       { label: '📋 View Txs', intentId: 'view_wallet', args: { address } },
+      { label: '💰 Holdings', intentId: 'holdings', args: { address } },
       { label: '✕ Cancel', intentId: 'dismiss', args: { msgId: msgRef.id } },
-    ]] : [],
+    ] : [],
     buttonsUsed: false,
     timestamp: FieldValue.serverTimestamp(),
   });

@@ -29,9 +29,9 @@ export async function handleFollowWhale(
     id: msgRef.id,
     role: 'bot',
     message: `✅ Now following **${label || address.slice(0, 10) + '...'}**. You'll get alerts when this wallet moves above $100.`,
-    buttons: [[
+    buttons: [
       { label: '🔕 Unfollow', intentId: 'unwatch_wallet', args: { address } },
-    ]],
+    ],
     buttonsUsed: false,
     timestamp: FieldValue.serverTimestamp(),
   });

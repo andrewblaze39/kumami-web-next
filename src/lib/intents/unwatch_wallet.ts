@@ -20,7 +20,11 @@ export async function handleUnwatchWallet(
     id: msgRef.id,
     role: 'bot',
     message: `🔕 Stopped watching \`${address.slice(0, 6)}...${address.slice(-4)}\`. You won't receive alerts for this wallet anymore.`,
-    buttons: [],
+    buttons: [
+      { label: '➕ Add wallet', intentId: 'add_wallet', args: {} },
+      { label: '🐋 Browse whales', intentId: 'browse_whales', args: {} },
+    ],
+    buttonsUsed: false,
     timestamp: FieldValue.serverTimestamp(),
   });
 }

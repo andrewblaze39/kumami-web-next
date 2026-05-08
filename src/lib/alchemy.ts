@@ -60,6 +60,9 @@ export async function getWalletSummary(address: string, chains: Chain[] = ['eth'
     })
   );
 
+  results.forEach((r, i) => {
+    if (r.status === 'rejected') console.error(`[alchemy] ${chains[i]} failed:`, r.reason);
+  });
   return results
     .filter((r): r is PromiseFulfilledResult<WalletSummaryChain> => r.status === 'fulfilled')
     .map(r => r.value);

@@ -480,6 +480,8 @@ body {
   color: var(--text-light);
   min-height: 100vh;
   letter-spacing: 0.2px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .dark-main {

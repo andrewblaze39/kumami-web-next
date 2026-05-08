@@ -2,13 +2,13 @@ import './globals.css'
 import '../styles/globals.css'
 import '../styles/App.css'
 import '../styles/cryptoticker.css'
-import { Inter } from 'next/font/google'
+import { Lato } from 'next/font/google'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 import Navbar from '@/components/Navbar'
 import CryptoTicker from '@/components/CryptoTicker'
 
-const inter = Inter({ subsets: ['latin'] })
+const lato = Lato({ subsets: ['latin'], weight: ['300', '400', '700', '900'] })
 
 export const metadata = {
   title: 'Kumami World — Innovation Redefined',
@@ -22,7 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} dark-main`}>
+      <body className={`${lato.className} dark-main`}>
         <AuthProvider>
           <NotificationProvider>
             <Navbar />

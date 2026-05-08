@@ -26,21 +26,16 @@ export async function handleWatchWallet(
   // Register with Alchemy Notify
   await registerAddressOnChain(address, chains);
 
-  // Mark previous message buttons as used
-  if (args.msgId) {
-    await db.collection('users').doc(userId).collection('chatrooms').doc(roomId).collection('messages').doc(args.msgId).update({ buttonsUsed: true });
-  }
-
   // Confirm message
   const msgRef = db.collection('users').doc(userId).collection('chatrooms').doc(roomId).collection('messages').doc();
   await msgRef.set({
     id: msgRef.id,
     role: 'bot',
     message: `✅ Now watching \`${address.slice(0, 6)}...${address.slice(-4)}\` on ETH, Base, and Arb.\n\nYou'll get alerts here for transactions above **$100**. Use the buttons below to adjust.`,
-    buttons: [[
-      { label: '🔔 Change threshold', intentId: 'set_threshold', args: { address } },
+    buttons: [
+      { label: '🎚️ Change threshold', intentId: 'set_threshold', args: { address } },
       { label: '🔕 Unwatch', intentId: 'unwatch_wallet', args: { address } },
-    ]],
+    ],
     buttonsUsed: false,
     timestamp: FieldValue.serverTimestamp(),
   });

@@ -18,7 +18,10 @@ export async function handleMute1h(
     id: msgRef.id,
     role: 'bot',
     message: `🔇 Muted alerts for \`${address.slice(0, 6)}...${address.slice(-4)}\` for 1 hour. Alerts resume at ${muteUntil.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`,
-    buttons: [],
+    buttons: [
+      { label: '🔕 Unwatch', intentId: 'unwatch_wallet', args: { address } },
+    ],
+    buttonsUsed: false,
     timestamp: FieldValue.serverTimestamp(),
   });
 }
