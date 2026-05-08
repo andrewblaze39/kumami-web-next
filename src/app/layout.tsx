@@ -11,8 +11,29 @@ import CryptoTicker from '@/components/CryptoTicker'
 const lato = Lato({ subsets: ['latin'], weight: ['300', '400', '700', '900'] })
 
 export const metadata = {
-  title: 'Kumami World — Innovation Redefined',
-  description: 'Kumami World is a Web3 ecosystem combining crypto intelligence, education, and community.',
+  title: 'Kumami World — Where Web3 Finally Makes Sense',
+  description: 'Where Web3 finally makes sense. Kumami World is your all-in-one platform for crypto intelligence, Web3 education, gaming, and community.',
+  openGraph: {
+    title: 'Kumami World — Where Web3 Finally Makes Sense',
+    description: 'Where Web3 finally makes sense. Kumami World is your all-in-one platform for crypto intelligence, Web3 education, gaming, and community.',
+    url: 'https://kumami.world',
+    siteName: 'Kumami World',
+    images: [
+      {
+        url: '/logo kumami final.png',
+        width: 1200,
+        height: 630,
+        alt: 'Kumami World',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Kumami World — Where Web3 Finally Makes Sense',
+    description: 'Where Web3 finally makes sense.',
+    images: ['/logo kumami final.png'],
+  },
 }
 
 export default function RootLayout({

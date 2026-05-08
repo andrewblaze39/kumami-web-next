@@ -6,6 +6,7 @@ import { db } from '@/lib/firebase';
 import {
   collection,
   doc,
+  getDoc,
   setDoc,
   onSnapshot,
   deleteDoc,
@@ -818,6 +819,23 @@ export default function KumaAIChatTab() {
     if (!userId) return;
 
     const ensureDefaults = async () => {
+      // Clean up removed rooms
+      const removedRooms = ['smart-money-alerts'];
+      for (const roomId of removedRooms) {
+        const roomRef = doc(db, 'users', userId, 'chatrooms', roomId);
+        const roomSnap = await getDoc(roomRef);
+        if (roomSnap.exists()) {
+          const messagesRef = collection(db, 'users', userId, 'chatrooms', roomId, 'messages');
+          const msgSnap = await getDocs(messagesRef);
+          if (msgSnap.size > 0) {
+            const batch = writeBatch(db);
+            msgSnap.docs.forEach((d) => batch.delete(d.ref));
+            await batch.commit();
+          }
+          await deleteDoc(roomRef);
+        }
+      }
+
       for (const room of DEFAULT_ROOMS) {
         const roomRef = doc(db, 'users', userId, 'chatrooms', room.id);
         await setDoc(
