@@ -446,7 +446,7 @@ function ChatPanel({ room, userId }: { room: ChatRoom; userId: string }) {
     setIsTyping(true);
 
     try {
-      const response = await fetch('https://api-h4o777ecua-uc.a.run.app/api/chat', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
