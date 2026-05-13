@@ -209,6 +209,7 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
   const [loadingIntent, setLoadingIntent] = useState<string | null>(null);
   const [activeModal, setActiveModal] = useState<'add_wallet' | 'whales' | 'watchlist' | null>(null);
   const [input, setInput] = useState('');
+  const [watchlist, setWatchlist] = useState<{ id: string; address: string; label: string; chains: string[] }[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const handleAddWallet = async () => {
@@ -236,6 +237,15 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
   useEffect(() => {
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
   }, [messages.length]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const watchlistRef = collection(db, 'users', userId, 'watchlist');
+    const unsub = onSnapshot(watchlistRef, (snap) => {
+      setWatchlist(snap.docs.map(d => ({ id: d.id, ...d.data() } as { id: string; address: string; label: string; chains: string[] })));
+    });
+    return () => unsub();
+  }, [userId]);
 
   const handleIntent = async (msgId: string, intentId: string, args: Record<string, string>, buttonIndex = 0) => {
     if (loadingIntent) return;
@@ -428,6 +438,52 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
           >
             🐋 Show whale wallets
           </button>
+        </div>
+      )}
+
+      {/* Watchlist panel */}
+      {activeModal === 'watchlist' && (
+        <div
+          className="shrink-0 kuma-scroll overflow-y-auto"
+          style={{
+            maxHeight: 220,
+            padding: '12px 16px',
+            borderTop: `1px solid rgba(14,165,233,0.2)`,
+            background: 'rgba(14,165,233,0.04)',
+          }}
+        >
+          <p className="text-[11px] font-semibold mb-2 m-0" style={{ color: WHALE_BLUE }}>
+            Watching {watchlist.length}/20 wallets
+          </p>
+          {watchlist.length === 0 ? (
+            <p className="text-[11px] text-white/30">No wallets yet. Add one above.</p>
+          ) : (
+            watchlist.map((w) => (
+              <div
+                key={w.id}
+                className="flex items-center justify-between py-1.5"
+                style={{ borderBottom: `1px solid rgba(14,165,233,0.08)` }}
+              >
+                <div>
+                  <p className="text-[12px] text-white m-0">{w.label || `${w.address.slice(0, 6)}...${w.address.slice(-4)}`}</p>
+                  <p className="text-[10px] m-0" style={{ color: `${WHALE_BLUE}60` }}>{(w.chains || []).join(' · ')}</p>
+                </div>
+                <button
+                  onClick={() => handleIntent(w.id, 'unwatch_wallet', { address: w.address })}
+                  disabled={!!loadingIntent}
+                  className="px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all disabled:opacity-50"
+                  style={{
+                    background: 'rgba(239,68,68,0.1)',
+                    border: '1px solid rgba(239,68,68,0.25)',
+                    color: 'rgba(239,68,68,0.8)',
+                    cursor: loadingIntent ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  Unwatch
+                </button>
+              </div>
+            ))
+          )}
         </div>
       )}
     </div>
