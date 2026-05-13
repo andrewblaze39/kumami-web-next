@@ -208,7 +208,20 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loadingIntent, setLoadingIntent] = useState<string | null>(null);
   const [activeModal, setActiveModal] = useState<'add_wallet' | 'whales' | 'watchlist' | null>(null);
+  const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const handleAddWallet = async () => {
+    const trimmed = input.trim();
+    if (!trimmed) return;
+    if (!/^(0x[a-fA-F0-9]{40}|.+\.eth)$/.test(trimmed)) {
+      alert('Please enter a valid 0x address or ENS name');
+      return;
+    }
+    setInput('');
+    setActiveModal(null);
+    await handleIntent('input', 'add_wallet', { address: trimmed });
+  };
 
   useEffect(() => {
     if (!userId || !room) return;
@@ -352,6 +365,42 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Add Wallet panel */}
+      {activeModal === 'add_wallet' && (
+        <div
+          className="shrink-0"
+          style={{
+            padding: '12px 16px',
+            borderTop: `1px solid rgba(14,165,233,0.2)`,
+            background: 'rgba(14,165,233,0.04)',
+          }}
+        >
+          <p className="text-[11px] font-semibold mb-2 m-0" style={{ color: WHALE_BLUE }}>Add a wallet to watch</p>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleAddWallet(); if (e.key === 'Escape') setActiveModal(null); }}
+              placeholder="Paste 0x address or ENS name..."
+              autoFocus
+              className="flex-1 rounded-xl px-4 py-2.5 text-[13px] text-white outline-none transition-all"
+              style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid rgba(14,165,233,0.2)` }}
+              onFocus={e => { e.target.style.borderColor = 'rgba(14,165,233,0.6)'; e.target.style.boxShadow = '0 0 0 3px rgba(14,165,233,0.08)'; }}
+              onBlur={e => { e.target.style.borderColor = 'rgba(14,165,233,0.2)'; e.target.style.boxShadow = 'none'; }}
+            />
+            <button
+              onClick={handleAddWallet}
+              disabled={!input.trim()}
+              className="w-[42px] h-[42px] rounded-xl flex items-center justify-center shrink-0 transition-all disabled:opacity-45 disabled:cursor-not-allowed"
+              style={{ background: 'linear-gradient(135deg, #0ea5e9, #0284c7)', border: 'none' }}
+            >
+              <Send className="w-4 h-4 text-white" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
