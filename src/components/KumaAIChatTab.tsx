@@ -207,7 +207,8 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
   const { currentUser } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loadingIntent, setLoadingIntent] = useState<string | null>(null);
-  const [activeModal, setActiveModal] = useState<'add_wallet' | 'whales' | 'watchlist' | null>(null);
+  const [activeModal, setActiveModal] = useState<'add_wallet' | 'whales' | null>(null);
+  const [openSettingsId, setOpenSettingsId] = useState<string | null>(null);
   const [input, setInput] = useState('');
   const [watchlist, setWatchlist] = useState<{ id: string; address: string; label: string; chains: string[] }[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -283,7 +284,6 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
             {[
               { label: '➕ Add Wallet', key: 'add_wallet' as const },
               { label: '🐋 Whales', key: 'whales' as const },
-              { label: '📋 Watchlist', key: 'watchlist' as const },
             ].map(({ label, key }) => (
               <button
                 key={key}
@@ -303,76 +303,151 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
         </div>
       </div>
 
-      {/* Alerts feed */}
-      <div className="kuma-scroll flex-1 overflow-y-auto p-3 space-y-2">
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center px-6 py-10" style={{ color: `${WHALE_BLUE}60` }}>
-            <span className="text-4xl mb-3">🐋</span>
-            <p className="text-[13px]">No alerts yet. Add a wallet to get started.</p>
-          </div>
+      {/* Watchlist control panel — always visible */}
+      <div
+        className="shrink-0 kuma-scroll overflow-y-auto"
+        style={{
+          maxHeight: 180,
+          padding: '10px 14px',
+          borderBottom: `1px solid rgba(14,165,233,0.12)`,
+          background: 'rgba(14,165,233,0.03)',
+        }}
+      >
+        <p className="m-0 mb-2" style={{ color: `${WHALE_BLUE}66`, fontSize: 9, letterSpacing: '0.08em', fontWeight: 600 }}>
+          WATCHING {watchlist.length}/20
+        </p>
+        {watchlist.length === 0 ? (
+          <p className="text-[11px] m-0" style={{ color: 'rgba(255,255,255,0.3)' }}>
+            No wallets yet. Use ➕ Add Wallet above.
+          </p>
         ) : (
-          messages.map((msg, idx) => (
-            <div
-              key={msg.id || idx}
-              className="rounded-[10px] p-3"
-              style={{
-                background: 'rgba(14,165,233,0.05)',
-                border: `1px solid rgba(14,165,233,0.15)`,
-                borderLeft: `3px solid ${WHALE_BLUE}`,
-              }}
-            >
-              {/* Card block */}
-              {msg.card && (
-                <div className="mb-2 p-2 rounded-[6px]" style={{ background: 'rgba(14,165,233,0.08)', border: `1px solid rgba(14,165,233,0.2)` }}>
-                  <p className="text-[11px] font-bold m-0 mb-1" style={{ color: WHALE_BLUE }}>{msg.card.title}</p>
-                  {msg.card.rows.map((row, ri) => (
-                    <div key={ri} className="flex justify-between text-[10px] py-0.5">
-                      <span className="text-white/50">{row.key}</span>
-                      <span className="text-white font-medium">{row.value}</span>
-                    </div>
-                  ))}
+          watchlist.map((w) => {
+            const isOpen = openSettingsId === w.id;
+            const displayName = w.label || `${w.address.slice(0, 6)}...${w.address.slice(-4)}`;
+            const chainsLabel = (w.chains || []).join(' · ');
+            return (
+              <div
+                key={w.id}
+                className="rounded-[8px] mb-1.5"
+                style={{
+                  background: isOpen ? 'rgba(14,165,233,0.07)' : 'rgba(14,165,233,0.04)',
+                  border: `1px solid rgba(14,165,233,${isOpen ? '0.2' : '0.1'})`,
+                  padding: '8px 10px',
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-semibold" style={{ color: isOpen ? WHALE_BLUE : `${WHALE_BLUE}B3`, fontSize: 11 }}>
+                      {displayName}
+                    </span>
+                    {chainsLabel && (
+                      <span className="ml-1.5" style={{ color: 'rgba(255,255,255,0.3)', fontSize: 9 }}>
+                        {chainsLabel}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setOpenSettingsId(isOpen ? null : w.id)}
+                    className="rounded-[5px] px-2 py-0.5 text-[9px] font-semibold transition-all"
+                    style={{
+                      background: isOpen ? 'rgba(14,165,233,0.2)' : 'rgba(14,165,233,0.08)',
+                      border: `1px solid rgba(14,165,233,${isOpen ? '0.4' : '0.2'})`,
+                      color: isOpen ? WHALE_BLUE : `${WHALE_BLUE}99`,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    ⚙ Settings {isOpen ? '▴' : '▾'}
+                  </button>
                 </div>
-              )}
-              {/* Message text */}
-              <div className="text-[12px] text-white/80 leading-relaxed">
-                <SimpleMarkdown text={msg.message || msg.content || ''} className="kuma-md" />
+                {isOpen && (
+                  <div
+                    className="flex gap-1.5 flex-wrap mt-2 pt-2"
+                    style={{ borderTop: `1px solid rgba(14,165,233,0.12)` }}
+                  >
+                    <button
+                      onClick={() => { handleIntent(w.id, 'set_threshold', { address: w.address }); setOpenSettingsId(null); }}
+                      disabled={!!loadingIntent}
+                      className="rounded-[5px] px-2 py-0.5 text-[9px] font-semibold transition-all disabled:opacity-50"
+                      style={{
+                        background: 'rgba(14,165,233,0.08)',
+                        border: '1px solid rgba(14,165,233,0.2)',
+                        color: WHALE_BLUE,
+                        cursor: loadingIntent ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      🔔 Threshold
+                    </button>
+                    <button
+                      onClick={() => { handleIntent(w.id, 'mute_1h', { address: w.address }); setOpenSettingsId(null); }}
+                      disabled={!!loadingIntent}
+                      className="rounded-[5px] px-2 py-0.5 text-[9px] font-semibold transition-all disabled:opacity-50"
+                      style={{
+                        background: 'rgba(14,165,233,0.08)',
+                        border: '1px solid rgba(14,165,233,0.2)',
+                        color: WHALE_BLUE,
+                        cursor: loadingIntent ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      🔕 Mute 1h
+                    </button>
+                    <button
+                      onClick={() => { handleIntent(w.id, 'unwatch_wallet', { address: w.address }); setOpenSettingsId(null); }}
+                      disabled={!!loadingIntent}
+                      className="rounded-[5px] px-2 py-0.5 text-[9px] font-semibold transition-all disabled:opacity-50"
+                      style={{
+                        background: 'rgba(239,68,68,0.08)',
+                        border: '1px solid rgba(239,68,68,0.2)',
+                        color: 'rgba(239,68,68,0.8)',
+                        cursor: loadingIntent ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      ✕ Unwatch
+                    </button>
+                  </div>
+                )}
               </div>
-              {/* Inline action buttons */}
-              {msg.buttons && msg.buttons.length > 0 && !msg.buttonsUsed && (
-                <div className="mt-2 flex gap-1.5 flex-wrap">
-                  {msg.buttons.map((btn, bi) => {
-                    const loadKey = `${msg.id}-${btn.intentId}-${bi}`;
-                    const isLoading = loadingIntent === loadKey;
-                    return (
-                      <button
-                        key={`${btn.intentId}-${bi}`}
-                        onClick={() => handleIntent(msg.id, btn.intentId, btn.args, bi)}
-                        disabled={!!loadingIntent}
-                        className="px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all disabled:opacity-50"
-                        style={{
-                          background: isLoading ? `${WHALE_BLUE}20` : `rgba(14,165,233,0.1)`,
-                          border: `1px solid rgba(14,165,233,0.25)`,
-                          color: WHALE_BLUE,
-                          cursor: loadingIntent ? 'not-allowed' : 'pointer',
-                        }}
-                        onMouseEnter={e => { if (!loadingIntent) (e.currentTarget as HTMLButtonElement).style.background = `rgba(14,165,233,0.2)` }}
-                        onMouseLeave={e => { if (!loadingIntent) (e.currentTarget as HTMLButtonElement).style.background = `rgba(14,165,233,0.1)` }}
-                      >
-                        {isLoading ? '...' : btn.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-              {msg.buttonsUsed && msg.buttons && msg.buttons.length > 0 && (
-                <p className="text-[10px] mt-1" style={{ color: `${WHALE_BLUE}40` }}>✓ Action taken</p>
-              )}
-              <span className="text-[9px] mt-1 block" style={{ color: `${WHALE_BLUE}40` }}>
-                {formatTime(msg.timestamp as FirestoreTimestamp | null)}
-              </span>
-            </div>
-          ))
+            );
+          })
         )}
+      </div>
+
+      {/* Alerts feed — read-only */}
+      <div className="kuma-scroll flex-1 overflow-y-auto p-3">
+        <p className="m-0 mb-2" style={{ color: `${WHALE_BLUE}66`, fontSize: 9, letterSpacing: '0.08em', fontWeight: 600 }}>
+          LIVE ALERTS
+        </p>
+        {(() => {
+          const alertMessages = messages.filter(
+            (msg) => (!msg.buttons || msg.buttons.length === 0) && !msg.card
+          );
+          return alertMessages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center px-6" style={{ color: `${WHALE_BLUE}60` }}>
+              <span className="text-4xl mb-3">🐋</span>
+              <p className="text-[13px]">Alerts will appear here when your watched wallets move.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {alertMessages.map((msg, idx) => (
+                <div
+                  key={msg.id || idx}
+                  className="rounded-[10px] p-3"
+                  style={{
+                    background: 'rgba(14,165,233,0.05)',
+                    border: `1px solid rgba(14,165,233,0.15)`,
+                    borderLeft: `3px solid ${WHALE_BLUE}`,
+                  }}
+                >
+                  <div className="text-[12px] text-white/80 leading-relaxed">
+                    <SimpleMarkdown text={msg.message || msg.content || ''} className="kuma-md" />
+                  </div>
+                  <span className="text-[9px] mt-1 block" style={{ color: `${WHALE_BLUE}40` }}>
+                    {formatTime(msg.timestamp as FirestoreTimestamp | null)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
         <div ref={messagesEndRef} />
       </div>
 
@@ -441,51 +516,6 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
         </div>
       )}
 
-      {/* Watchlist panel */}
-      {activeModal === 'watchlist' && (
-        <div
-          className="shrink-0 kuma-scroll overflow-y-auto"
-          style={{
-            maxHeight: 220,
-            padding: '12px 16px',
-            borderTop: `1px solid rgba(14,165,233,0.2)`,
-            background: 'rgba(14,165,233,0.04)',
-          }}
-        >
-          <p className="text-[11px] font-semibold mb-2 m-0" style={{ color: WHALE_BLUE }}>
-            Watching {watchlist.length}/20 wallets
-          </p>
-          {watchlist.length === 0 ? (
-            <p className="text-[11px] text-white/30">No wallets yet. Add one above.</p>
-          ) : (
-            watchlist.map((w) => (
-              <div
-                key={w.id}
-                className="flex items-center justify-between py-1.5"
-                style={{ borderBottom: `1px solid rgba(14,165,233,0.08)` }}
-              >
-                <div>
-                  <p className="text-[12px] text-white m-0">{w.label || `${w.address.slice(0, 6)}...${w.address.slice(-4)}`}</p>
-                  <p className="text-[10px] m-0" style={{ color: `${WHALE_BLUE}60` }}>{(w.chains || []).join(' · ')}</p>
-                </div>
-                <button
-                  onClick={() => { if (!w.address) return; handleIntent(w.id, 'unwatch_wallet', { address: w.address }); }}
-                  disabled={!!loadingIntent}
-                  className="px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all disabled:opacity-50"
-                  style={{
-                    background: 'rgba(239,68,68,0.1)',
-                    border: '1px solid rgba(239,68,68,0.25)',
-                    color: 'rgba(239,68,68,0.8)',
-                    cursor: loadingIntent ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  Unwatch
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-      )}
     </div>
   );
 }
