@@ -206,7 +206,6 @@ const WHALE_BLUE = '#0ea5e9';
 function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
   const { currentUser } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
   const [loadingIntent, setLoadingIntent] = useState<string | null>(null);
   const [activeModal, setActiveModal] = useState<'add_wallet' | 'whales' | 'watchlist' | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -246,17 +245,6 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
     }
   };
 
-  const handleAddWallet = async () => {
-    const trimmed = input.trim();
-    if (!trimmed) return;
-    if (!/^(0x[a-fA-F0-9]{40}|.+\.eth)$/.test(trimmed)) {
-      alert('Please enter a valid 0x address or ENS name');
-      return;
-    }
-    setInput('');
-    await handleIntent('input', 'add_wallet', { address: trimmed });
-  };
-
   return (
     <div className="flex flex-col kuma-scroll" style={{ height: '100%', background: '#0a0a0f' }}>
       {/* Header */}
@@ -292,42 +280,43 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="kuma-scroll flex-1 overflow-y-auto p-4 pb-2 space-y-3">
+      {/* Alerts feed */}
+      <div className="kuma-scroll flex-1 overflow-y-auto p-3 space-y-2">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-6 py-10" style={{ color: `${WHALE_BLUE}60` }}>
             <span className="text-4xl mb-3">🐋</span>
-            <p className="text-[13px]">Crypto Address Tracker is ready. Add a wallet to get started.</p>
+            <p className="text-[13px]">No alerts yet. Add a wallet to get started.</p>
           </div>
         ) : (
           messages.map((msg, idx) => (
-            <div key={msg.id || idx}>
-              {/* Message bubble */}
-              <div className="p-3 rounded-[12px]" style={{ background: 'rgba(14,165,233,0.06)', border: `1px solid rgba(14,165,233,0.18)`, borderLeft: `3px solid ${WHALE_BLUE}` }}>
-                {/* Card block */}
-                {msg.card && (
-                  <div className="mb-2 p-2.5 rounded-[8px]" style={{ background: 'rgba(14,165,233,0.1)', border: `1px solid rgba(14,165,233,0.25)` }}>
-                    <p className="text-xs font-bold m-0 mb-1.5" style={{ color: WHALE_BLUE }}>{msg.card.title}</p>
-                    {msg.card.rows.map((row, ri) => (
-                      <div key={ri} className="flex justify-between text-[11px] py-0.5">
-                        <span className="text-white/50">{row.key}</span>
-                        <span className="text-white font-medium">{row.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {/* Text */}
-                <div className="text-[13px] text-white leading-relaxed">
-                  <SimpleMarkdown text={msg.message || msg.content || ''} className="kuma-md" />
+            <div
+              key={msg.id || idx}
+              className="rounded-[10px] p-3"
+              style={{
+                background: 'rgba(14,165,233,0.05)',
+                border: `1px solid rgba(14,165,233,0.15)`,
+                borderLeft: `3px solid ${WHALE_BLUE}`,
+              }}
+            >
+              {/* Card block */}
+              {msg.card && (
+                <div className="mb-2 p-2 rounded-[6px]" style={{ background: 'rgba(14,165,233,0.08)', border: `1px solid rgba(14,165,233,0.2)` }}>
+                  <p className="text-[11px] font-bold m-0 mb-1" style={{ color: WHALE_BLUE }}>{msg.card.title}</p>
+                  {msg.card.rows.map((row, ri) => (
+                    <div key={ri} className="flex justify-between text-[10px] py-0.5">
+                      <span className="text-white/50">{row.key}</span>
+                      <span className="text-white font-medium">{row.value}</span>
+                    </div>
+                  ))}
                 </div>
-                <span className="text-[10px] mt-1.5 block" style={{ color: `${WHALE_BLUE}50` }}>
-                  {formatTime(msg.timestamp as FirestoreTimestamp | null)}
-                </span>
+              )}
+              {/* Message text */}
+              <div className="text-[12px] text-white/80 leading-relaxed">
+                <SimpleMarkdown text={msg.message || msg.content || ''} className="kuma-md" />
               </div>
-
-              {/* Button rows */}
+              {/* Inline action buttons */}
               {msg.buttons && msg.buttons.length > 0 && !msg.buttonsUsed && (
-                <div className="mt-1.5 flex gap-1.5 flex-wrap">
+                <div className="mt-2 flex gap-1.5 flex-wrap">
                   {msg.buttons.map((btn, bi) => {
                     const loadKey = `${msg.id}-${btn.intentId}-${bi}`;
                     const isLoading = loadingIntent === loadKey;
@@ -336,15 +325,15 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
                         key={`${btn.intentId}-${bi}`}
                         onClick={() => handleIntent(msg.id, btn.intentId, btn.args, bi)}
                         disabled={!!loadingIntent}
-                        className="px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all disabled:opacity-50"
+                        className="px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all disabled:opacity-50"
                         style={{
-                          background: isLoading ? `${WHALE_BLUE}30` : `rgba(14,165,233,0.12)`,
-                          border: `1px solid rgba(14,165,233,0.35)`,
+                          background: isLoading ? `${WHALE_BLUE}20` : `rgba(14,165,233,0.1)`,
+                          border: `1px solid rgba(14,165,233,0.25)`,
                           color: WHALE_BLUE,
                           cursor: loadingIntent ? 'not-allowed' : 'pointer',
                         }}
-                        onMouseEnter={e => { if (!loadingIntent) (e.currentTarget as HTMLButtonElement).style.background = `rgba(14,165,233,0.22)` }}
-                        onMouseLeave={e => { if (!loadingIntent) (e.currentTarget as HTMLButtonElement).style.background = `rgba(14,165,233,0.12)` }}
+                        onMouseEnter={e => { if (!loadingIntent) (e.currentTarget as HTMLButtonElement).style.background = `rgba(14,165,233,0.2)` }}
+                        onMouseLeave={e => { if (!loadingIntent) (e.currentTarget as HTMLButtonElement).style.background = `rgba(14,165,233,0.1)` }}
                       >
                         {isLoading ? '...' : btn.label}
                       </button>
@@ -353,37 +342,15 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
                 </div>
               )}
               {msg.buttonsUsed && msg.buttons && msg.buttons.length > 0 && (
-                <p className="text-[10px] mt-1 ml-1" style={{ color: `${WHALE_BLUE}40` }}>✓ Action taken</p>
+                <p className="text-[10px] mt-1" style={{ color: `${WHALE_BLUE}40` }}>✓ Action taken</p>
               )}
+              <span className="text-[9px] mt-1 block" style={{ color: `${WHALE_BLUE}40` }}>
+                {formatTime(msg.timestamp as FirestoreTimestamp | null)}
+              </span>
             </div>
           ))
         )}
         <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input */}
-      <div className="shrink-0" style={{ padding: '12px 16px', borderTop: `1px solid rgba(14,165,233,0.12)`, background: 'rgba(255,255,255,0.02)' }}>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') handleAddWallet(); }}
-            placeholder="Paste 0x address or ENS name..."
-            className="flex-1 rounded-xl px-4 py-2.5 text-[13px] text-white outline-none transition-all"
-            style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid rgba(14,165,233,0.2)` }}
-            onFocus={e => { e.target.style.borderColor = 'rgba(14,165,233,0.6)'; e.target.style.boxShadow = '0 0 0 3px rgba(14,165,233,0.08)'; }}
-            onBlur={e => { e.target.style.borderColor = 'rgba(14,165,233,0.2)'; e.target.style.boxShadow = 'none'; }}
-          />
-          <button
-            onClick={handleAddWallet}
-            disabled={!input.trim()}
-            className="w-[42px] h-[42px] rounded-xl flex items-center justify-center shrink-0 transition-all disabled:opacity-45 disabled:cursor-not-allowed"
-            style={{ background: 'linear-gradient(135deg, #0ea5e9, #0284c7)', border: 'none' }}
-          >
-            <Send className="w-4 h-4 text-white" />
-          </button>
-        </div>
       </div>
     </div>
   );
