@@ -200,6 +200,8 @@ function SimpleMarkdown({ text, className }: { text: string; className?: string 
   );
 }
 
+const WHALE_BLUE = '#0ea5e9';
+
 // ─── TrackerBotPanel ──────────────────────────────────────────────────────────
 function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
   const { currentUser } = useAuth();
@@ -255,8 +257,6 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
     await handleIntent('input', 'add_wallet', { address: trimmed });
   };
 
-  const WHALE_BLUE = '#0ea5e9';
-
   return (
     <div className="flex flex-col kuma-scroll" style={{ height: '100%', background: '#0a0a0f' }}>
       {/* Header */}
@@ -267,6 +267,7 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
             <p className="font-bold text-sm m-0 tracking-wide" style={{ color: WHALE_BLUE }}>Crypto Address Tracker</p>
             <p className="text-[11px] m-0" style={{ color: `${WHALE_BLUE}80` }}>Real-time wallet alerts · ETH · Base · Arb</p>
           </div>
+          <div className="kuma-pulse-amber" style={{ width: 7, height: 7, borderRadius: '50%', background: WHALE_BLUE, boxShadow: `0 0 6px ${WHALE_BLUE}99`, flexShrink: 0 }} />
           <div className="flex items-center gap-1.5 shrink-0">
             {[
               { label: '➕ Add Wallet', key: 'add_wallet' as const },
