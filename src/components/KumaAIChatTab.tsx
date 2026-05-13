@@ -206,6 +206,7 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loadingIntent, setLoadingIntent] = useState<string | null>(null);
+  const [activeModal, setActiveModal] = useState<'add_wallet' | 'whales' | 'watchlist' | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -259,14 +260,34 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
   return (
     <div className="flex flex-col kuma-scroll" style={{ height: '100%', background: '#0a0a0f' }}>
       {/* Header */}
-      <div style={{ padding: '14px 20px', borderBottom: `1px solid rgba(14,165,233,0.2)`, background: 'rgba(14,165,233,0.04)', flexShrink: 0 }}>
+      <div style={{ padding: '12px 16px', borderBottom: `1px solid rgba(14,165,233,0.2)`, background: 'rgba(14,165,233,0.04)', flexShrink: 0 }}>
         <div className="flex items-center gap-2.5">
           <span className="text-lg">🐋</span>
-          <div>
+          <div className="flex-1 min-w-0">
             <p className="font-bold text-sm m-0 tracking-wide" style={{ color: WHALE_BLUE }}>Crypto Address Tracker</p>
             <p className="text-[11px] m-0" style={{ color: `${WHALE_BLUE}80` }}>Real-time wallet alerts · ETH · Base · Arb</p>
           </div>
-          <div className="kuma-pulse-amber ml-auto" style={{ width: 8, height: 8, borderRadius: '50%', background: WHALE_BLUE, boxShadow: `0 0 6px ${WHALE_BLUE}99` }} />
+          <div className="flex items-center gap-1.5 shrink-0">
+            {[
+              { label: '➕ Add Wallet', key: 'add_wallet' as const },
+              { label: '🐋 Whales', key: 'whales' as const },
+              { label: '📋 Watchlist', key: 'watchlist' as const },
+            ].map(({ label, key }) => (
+              <button
+                key={key}
+                onClick={() => setActiveModal(activeModal === key ? null : key)}
+                className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all"
+                style={{
+                  background: activeModal === key ? `rgba(14,165,233,0.25)` : `rgba(14,165,233,0.1)`,
+                  border: `1px solid rgba(14,165,233,${activeModal === key ? '0.5' : '0.25'})`,
+                  color: WHALE_BLUE,
+                  cursor: 'pointer',
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
