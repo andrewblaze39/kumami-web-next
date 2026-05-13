@@ -469,7 +469,7 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
                   <p className="text-[10px] m-0" style={{ color: `${WHALE_BLUE}60` }}>{(w.chains || []).join(' · ')}</p>
                 </div>
                 <button
-                  onClick={() => handleIntent(w.id, 'unwatch_wallet', { address: w.address })}
+                  onClick={() => { if (!w.address) return; handleIntent(w.id, 'unwatch_wallet', { address: w.address }); }}
                   disabled={!!loadingIntent}
                   className="px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all disabled:opacity-50"
                   style={{
