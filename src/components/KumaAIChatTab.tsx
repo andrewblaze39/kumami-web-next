@@ -401,6 +401,35 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
           </div>
         </div>
       )}
+
+      {/* Whales panel */}
+      {activeModal === 'whales' && (
+        <div
+          className="shrink-0"
+          style={{
+            padding: '12px 16px',
+            borderTop: `1px solid rgba(14,165,233,0.2)`,
+            background: 'rgba(14,165,233,0.04)',
+          }}
+        >
+          <p className="text-[11px] font-semibold mb-2 m-0" style={{ color: WHALE_BLUE }}>Browse curated whale wallets</p>
+          <button
+            onClick={async () => {
+              setActiveModal(null);
+              await handleIntent('whales-btn', 'browse_whales', { page: '0' });
+            }}
+            className="px-4 py-2 rounded-xl text-[12px] font-semibold transition-all"
+            style={{
+              background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
+              border: 'none',
+              color: '#fff',
+              cursor: 'pointer',
+            }}
+          >
+            🐋 Show whale wallets
+          </button>
+        </div>
+      )}
     </div>
   );
 }
