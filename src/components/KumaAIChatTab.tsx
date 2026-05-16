@@ -105,6 +105,16 @@ interface ChatMessage {
   };
   buttons?: ButtonAction[];
   buttonsUsed?: boolean;       // true after any button in this message was clicked
+  alertData?: {
+    direction: 'IN' | 'OUT';
+    amount: string;
+    asset: string;
+    chainName: string;
+    counterparty: string | null;
+    usdValue: number;
+    txHash: string | null;
+    address: string;
+  };
 }
 
 interface WalletStats {
@@ -555,12 +565,56 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
                     borderLeft: `3px solid ${WHALE_BLUE}`,
                   }}
                 >
-                  <div className="text-[12px] text-white/80 leading-relaxed">
-                    <SimpleMarkdown text={msg.message || msg.content || ''} className="kuma-md" />
-                  </div>
-                  <span className="text-[9px] mt-1 block" style={{ color: `${WHALE_BLUE}40` }}>
-                    {formatTime(msg.timestamp as FirestoreTimestamp | null)}
-                  </span>
+                  {msg.alertData ? (
+                    <>
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="m-0 text-[11px] font-bold" style={{ color: WHALE_BLUE }}>
+                            {msg.alertData.direction === 'IN' ? '📥 Received' : '📤 Sent'}{' '}
+                            <span className="text-white">{msg.alertData.amount} {msg.alertData.asset}</span>
+                            <span style={{ color: `${WHALE_BLUE}80`, fontWeight: 400 }}> on {msg.alertData.chainName.toUpperCase()}</span>
+                          </p>
+                          {msg.alertData.counterparty && (
+                            <p className="m-0 mt-0.5 text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                              {msg.alertData.direction === 'IN' ? 'From' : 'To'}: {msg.alertData.counterparty.slice(0, 6)}...{msg.alertData.counterparty.slice(-4)}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right shrink-0">
+                          {msg.alertData.usdValue > 0 && (
+                            <p className="m-0 text-[11px] font-semibold" style={{ color: WHALE_BLUE }}>~${msg.alertData.usdValue.toLocaleString()}</p>
+                          )}
+                          <p className="m-0 text-[9px]" style={{ color: `${WHALE_BLUE}40` }}>{formatTime(msg.timestamp as FirestoreTimestamp | null)}</p>
+                        </div>
+                      </div>
+                      {msg.alertData.txHash && (() => {
+                        const explorerUrls: Record<string, string> = {
+                          eth: `https://etherscan.io/tx/${msg.alertData!.txHash}`,
+                          base: `https://basescan.org/tx/${msg.alertData!.txHash}`,
+                          arb: `https://arbiscan.io/tx/${msg.alertData!.txHash}`,
+                        };
+                        const url = explorerUrls[msg.alertData!.chainName];
+                        return url ? (
+                          <div className="mt-1.5 flex gap-2">
+                            <a href={url} target="_blank" rel="noopener noreferrer"
+                              className="rounded-[4px] px-1.5 py-0.5 text-[8px] font-semibold"
+                              style={{ background: 'rgba(14,165,233,0.08)', border: '1px solid rgba(14,165,233,0.15)', color: `${WHALE_BLUE}80`, textDecoration: 'none' }}>
+                              ↗ Explorer
+                            </a>
+                          </div>
+                        ) : null;
+                      })()}
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-[12px] text-white/80 leading-relaxed">
+                        <SimpleMarkdown text={msg.message || msg.content || ''} className="kuma-md" />
+                      </div>
+                      <span className="text-[9px] mt-1 block" style={{ color: `${WHALE_BLUE}40` }}>
+                        {formatTime(msg.timestamp as FirestoreTimestamp | null)}
+                      </span>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
