@@ -13,21 +13,30 @@ export async function handleMute1h(
   args: { address: string; duration?: string }
 ) {
   const { address } = args;
+  const normalizedAddress = address.toLowerCase();
   const minutes = DURATION_MINUTES[args.duration ?? '1h'] ?? 60;
   const muteUntil = new Date(Date.now() + minutes * 60 * 1000);
   const label = args.duration ?? '1h';
 
   const watchlistRef = db.collection('users').doc(userId).collection('watchlist');
-  const snap = await watchlistRef.where('address', '==', address.toLowerCase()).get();
-  await Promise.all(snap.docs.map(d => d.ref.update({ muteUntil })));
+  const snap = await watchlistRef.where('address', '==', normalizedAddress).get();
 
   const msgRef = db.collection('users').doc(userId).collection('chatrooms').doc(roomId).collection('messages').doc();
+
+  if (snap.empty) {
+    await msgRef.set({
+      id: msgRef.id, role: 'bot',
+      message: `⚠️ Wallet \`${address.slice(0, 6)}...${address.slice(-4)}\` is not in your watchlist.`,
+      buttons: [], buttonsUsed: false, timestamp: FieldValue.serverTimestamp(),
+    });
+    return;
+  }
+
+  await Promise.all(snap.docs.map(d => d.ref.update({ muteUntil })));
+
   await msgRef.set({
-    id: msgRef.id,
-    role: 'bot',
+    id: msgRef.id, role: 'bot',
     message: `🔇 Muted \`${address.slice(0, 6)}...${address.slice(-4)}\` for ${label}. Alerts resume at ${muteUntil.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`,
-    buttons: [],
-    buttonsUsed: false,
-    timestamp: FieldValue.serverTimestamp(),
+    buttons: [], buttonsUsed: false, timestamp: FieldValue.serverTimestamp(),
   });
 }
