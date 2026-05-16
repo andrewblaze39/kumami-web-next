@@ -238,6 +238,7 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
   const [openSettingsId, setOpenSettingsId] = useState<string | null>(null);
   const [input, setInput] = useState('');
   const [watchlist, setWatchlist] = useState<{ id: string; address: string; label: string; chains: string[] }[]>([]);
+  const [selectedChains, setSelectedChains] = useState<('eth' | 'base' | 'arb')[]>(['eth', 'base', 'arb']);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [walletStats, setWalletStats] = useState<Record<string, WalletStats>>({});
   const [loadingStats, setLoadingStats] = useState<Record<string, boolean>>({});
@@ -252,7 +253,7 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
     }
     setInput('');
     setActiveModal(null);
-    await handleIntent('input', 'watch_wallet', { address: trimmed });
+    await handleIntent('input', 'watch_wallet', { address: trimmed, chains: selectedChains.join(',') });
   };
 
   useEffect(() => {
@@ -600,6 +601,25 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
             >
               <Send className="w-4 h-4 text-white" />
             </button>
+          </div>
+          <div className="flex gap-1.5 mt-2">
+            {(['eth', 'base', 'arb'] as const).map(chain => {
+              const active = selectedChains.includes(chain);
+              return (
+                <button
+                  key={chain}
+                  onClick={() => setSelectedChains(prev =>
+                    active
+                      ? prev.length > 1 ? prev.filter(c => c !== chain) : prev
+                      : [...prev, chain]
+                  )}
+                  className="rounded-[5px] px-2.5 py-1 text-[10px] font-semibold transition-all"
+                  style={{ background: active ? 'rgba(14,165,233,0.2)' : 'rgba(14,165,233,0.06)', border: `1px solid rgba(14,165,233,${active ? '0.5' : '0.2'})`, color: active ? WHALE_BLUE : `${WHALE_BLUE}60`, cursor: 'pointer' }}
+                >
+                  {active ? '✓ ' : ''}{chain.toUpperCase()}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
