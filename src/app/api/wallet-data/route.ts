@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     ]);
 
     const nonZero = (tokenResult.tokenBalances ?? []).filter(
-      t => t.tokenBalance && t.tokenBalance !== '0x0000000000000000000000000000000000000000000000000000000000000000'
+      t => t.tokenBalance && BigInt(t.tokenBalance) !== BigInt(0)
     ).slice(0, 5);
 
     const metadataResults = await Promise.allSettled(
