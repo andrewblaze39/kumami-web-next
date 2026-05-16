@@ -11,6 +11,7 @@ import { handleDismiss } from '@/lib/intents/dismiss';
 import { handleSetThreshold } from '@/lib/intents/set_threshold';
 import { handleHoldings } from '@/lib/intents/holdings';
 import { handleViewTx } from '@/lib/intents/view_tx';
+import { handleUpdateChains } from '@/lib/intents/update_chains';
 
 export async function POST(req: NextRequest) {
   // Verify Firebase ID token
@@ -61,6 +62,9 @@ export async function POST(req: NextRequest) {
       case 'set_threshold':
         await handleSetThreshold(db, userId, roomId, args);
         break;
+      case 'update_chains':
+        await handleUpdateChains(db, userId, roomId, args);
+        break;
       case 'holdings':
         await handleHoldings(db, userId, roomId, args);
         break;
@@ -70,10 +74,14 @@ export async function POST(req: NextRequest) {
       default:
         return NextResponse.json({ error: `Unknown intent: ${intentId}` }, { status: 400 });
     }
-    // Mark the source message's buttons as used so they can't be clicked again
+    // Mark the source message's buttons as used (no-op if msgId isn't a real message)
     if (sourceMsgId) {
-      await db.collection('users').doc(userId).collection('chatrooms').doc(roomId)
-        .collection('messages').doc(sourceMsgId).update({ buttonsUsed: true });
+      try {
+        await db.collection('users').doc(userId).collection('chatrooms').doc(roomId)
+          .collection('messages').doc(sourceMsgId).update({ buttonsUsed: true });
+      } catch {
+        // sourceMsgId may be a watchlist ID or synthetic — not a real message, ignore
+      }
     }
     return NextResponse.json({ ok: true });
   } catch (err) {
