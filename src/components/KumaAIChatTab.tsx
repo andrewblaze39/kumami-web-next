@@ -107,6 +107,11 @@ interface ChatMessage {
   buttonsUsed?: boolean;       // true after any button in this message was clicked
 }
 
+interface WalletStats {
+  summary: { chain: string; ethBalance: string; nftCount: number; recentTxCount: number }[];
+  holdings: { symbol: string; balance: string }[];
+}
+
 // ─── Default rooms ───────────────────────────────────────────────────────────
 const DEFAULT_ROOMS: Omit<ChatRoom, 'createdAt' | 'lastMessage' | 'lastMessageAt'>[] = [
   {
@@ -212,6 +217,9 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
   const [input, setInput] = useState('');
   const [watchlist, setWatchlist] = useState<{ id: string; address: string; label: string; chains: string[] }[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [walletStats, setWalletStats] = useState<Record<string, WalletStats>>({});
+  const [loadingStats, setLoadingStats] = useState<Record<string, boolean>>({});
+  const [openDetailId, setOpenDetailId] = useState<string | null>(null);
 
   const handleAddWallet = async () => {
     const trimmed = input.trim();
@@ -222,7 +230,7 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
     }
     setInput('');
     setActiveModal(null);
-    await handleIntent('input', 'add_wallet', { address: trimmed });
+    await handleIntent('input', 'watch_wallet', { address: trimmed });
   };
 
   useEffect(() => {
@@ -248,6 +256,11 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
     return () => unsub();
   }, [userId]);
 
+  useEffect(() => {
+    watchlist.forEach(w => { fetchWalletStats(w.address); });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchlist.map(w => w.address).join(',')]);
+
   const handleIntent = async (msgId: string, intentId: string, args: Record<string, string>, buttonIndex = 0) => {
     if (loadingIntent) return;
     setLoadingIntent(`${msgId}-${intentId}-${buttonIndex}`);
@@ -266,6 +279,25 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
       console.error('Intent error:', err);
     } finally {
       setLoadingIntent(null);
+    }
+  };
+
+  const fetchWalletStats = async (address: string): Promise<void> => {
+    if (walletStats[address] || loadingStats[address]) return;
+    setLoadingStats(prev => ({ ...prev, [address]: true }));
+    try {
+      const idToken = await currentUser?.getIdToken();
+      const res = await fetch(`/api/wallet-data?address=${encodeURIComponent(address)}`, {
+        headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
+      });
+      if (res.ok) {
+        const data: WalletStats = await res.json();
+        setWalletStats(prev => ({ ...prev, [address]: data }));
+      }
+    } catch (err) {
+      console.error('[wallet-data] fetch failed:', err);
+    } finally {
+      setLoadingStats(prev => ({ ...prev, [address]: false }));
     }
   };
 
@@ -972,20 +1004,24 @@ export default function KumaAIChatTab() {
     if (!userId) return;
 
     const ensureDefaults = async () => {
-      // Clean up removed rooms
+      // Clean up removed rooms (best-effort — may fail if rules deny delete)
       const removedRooms = ['smart-money-alerts'];
       for (const roomId of removedRooms) {
-        const roomRef = doc(db, 'users', userId, 'chatrooms', roomId);
-        const roomSnap = await getDoc(roomRef);
-        if (roomSnap.exists()) {
-          const messagesRef = collection(db, 'users', userId, 'chatrooms', roomId, 'messages');
-          const msgSnap = await getDocs(messagesRef);
-          if (msgSnap.size > 0) {
-            const batch = writeBatch(db);
-            msgSnap.docs.forEach((d) => batch.delete(d.ref));
-            await batch.commit();
+        try {
+          const roomRef = doc(db, 'users', userId, 'chatrooms', roomId);
+          const roomSnap = await getDoc(roomRef);
+          if (roomSnap.exists()) {
+            const messagesRef = collection(db, 'users', userId, 'chatrooms', roomId, 'messages');
+            const msgSnap = await getDocs(messagesRef);
+            if (msgSnap.size > 0) {
+              const batch = writeBatch(db);
+              msgSnap.docs.forEach((d) => batch.delete(d.ref));
+              await batch.commit();
+            }
+            await deleteDoc(roomRef);
           }
-          await deleteDoc(roomRef);
+        } catch (e) {
+          console.warn(`[ensureDefaults] could not clean up ${roomId}:`, e);
         }
       }
 
