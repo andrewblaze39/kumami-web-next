@@ -247,7 +247,7 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
   const [activeModal, setActiveModal] = useState<'add_wallet' | 'whales' | null>(null);
   const [openSettingsId, setOpenSettingsId] = useState<string | null>(null);
   const [input, setInput] = useState('');
-  const [watchlist, setWatchlist] = useState<{ id: string; address: string; label: string; chains: string[] }[]>([]);
+  const [watchlist, setWatchlist] = useState<{ id: string; address: string; label: string; chains: string[]; minUsd?: number }[]>([]);
   const [selectedChains, setSelectedChains] = useState<('eth' | 'base' | 'arb')[]>(['eth', 'base', 'arb']);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [walletStats, setWalletStats] = useState<Record<string, WalletStats>>({});
@@ -284,7 +284,7 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
     if (!userId) return;
     const watchlistRef = collection(db, 'users', userId, 'watchlist');
     const unsub = onSnapshot(watchlistRef, (snap) => {
-      setWatchlist(snap.docs.map(d => ({ id: d.id, ...d.data() } as { id: string; address: string; label: string; chains: string[] })));
+      setWatchlist(snap.docs.map(d => ({ id: d.id, address: d.data().address, label: d.data().label, chains: d.data().chains, minUsd: d.data().minUsd ?? 100 })));
     });
     return () => unsub();
   }, [userId]);
@@ -506,7 +506,7 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
                     <ThresholdInput
                       address={w.address}
                       watchId={w.id}
-                      defaultValue={100}
+                      defaultValue={w.minUsd ?? 100}
                       onSave={(val) => handleIntent(w.id, 'set_threshold', { address: w.address, value: String(val) })}
                       disabled={!!loadingIntent}
                     />
