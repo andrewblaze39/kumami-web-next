@@ -9,7 +9,7 @@ import { TokenBalanceType } from 'alchemy-sdk';
  */
 function formatTokenBalance(rawHex: string, decimals: number): string {
   const raw = BigInt(rawHex);
-  const divisor = BigInt(10 ** decimals);
+  const divisor = BigInt(10) ** BigInt(decimals);
   const whole = raw / divisor;
   const remainder = raw % divisor;
   const fracStr = remainder.toString().padStart(decimals, '0').slice(0, 4);
