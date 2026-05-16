@@ -207,6 +207,28 @@ function SimpleMarkdown({ text, className }: { text: string; className?: string 
 
 const WHALE_BLUE = '#0ea5e9';
 
+function ThresholdInput({ address, watchId, defaultValue, onSave, disabled }: {
+  address: string; watchId: string; defaultValue: number;
+  onSave: (val: number) => void; disabled: boolean;
+}) {
+  const [val, setVal] = useState(String(defaultValue));
+  return (
+    <div className="flex items-center gap-1" style={{ background: 'rgba(14,165,233,0.05)', border: '1px solid rgba(14,165,233,0.2)', borderRadius: 5, padding: '2px 6px' }}>
+      <span style={{ color: `${WHALE_BLUE}60`, fontSize: 9 }}>🔔 $</span>
+      <input
+        type="number"
+        value={val}
+        onChange={e => setVal(e.target.value)}
+        onBlur={() => { const n = parseInt(val, 10); if (!isNaN(n) && n >= 0) onSave(n); }}
+        onKeyDown={e => { if (e.key === 'Enter') { const n = parseInt(val, 10); if (!isNaN(n) && n >= 0) onSave(n); } }}
+        disabled={disabled}
+        className="text-white outline-none"
+        style={{ background: 'none', border: 'none', width: 40, fontSize: 9, textAlign: 'center' }}
+      />
+    </div>
+  );
+}
+
 // ─── TrackerBotPanel ──────────────────────────────────────────────────────────
 function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
   const { currentUser } = useAuth();
@@ -338,100 +360,163 @@ function TrackerBotPanel({ room, userId }: { room: ChatRoom; userId: string }) {
       {/* Watchlist control panel — always visible */}
       <div
         className="shrink-0 kuma-scroll overflow-y-auto"
-        style={{
-          maxHeight: 180,
-          padding: '10px 14px',
-          borderBottom: `1px solid rgba(14,165,233,0.12)`,
-          background: 'rgba(14,165,233,0.03)',
-        }}
+        style={{ maxHeight: 220, padding: '10px 14px', borderBottom: `1px solid rgba(14,165,233,0.12)`, background: 'rgba(14,165,233,0.03)' }}
       >
         <p className="m-0 mb-2" style={{ color: `${WHALE_BLUE}66`, fontSize: 9, letterSpacing: '0.08em', fontWeight: 600 }}>
           WATCHING {watchlist.length}/20
         </p>
         {watchlist.length === 0 ? (
-          <p className="text-[11px] m-0" style={{ color: 'rgba(255,255,255,0.3)' }}>
-            No wallets yet. Use ➕ Add Wallet above.
-          </p>
+          <p className="text-[11px] m-0" style={{ color: 'rgba(255,255,255,0.3)' }}>No wallets yet. Use ➕ Add Wallet above.</p>
         ) : (
           watchlist.map((w) => {
-            const isOpen = openSettingsId === w.id;
+            const isSettingsOpen = openSettingsId === w.id;
+            const isDetailOpen = openDetailId === w.id;
             const displayName = w.label || `${w.address.slice(0, 6)}...${w.address.slice(-4)}`;
             const chainsLabel = (w.chains || []).join(' · ');
+            const stats = walletStats[w.address];
+            const isLoadingStats = loadingStats[w.address];
+            const ethChain = stats?.summary.find(s => s.chain === 'eth');
+
             return (
-              <div
-                key={w.id}
-                className="rounded-[8px] mb-1.5"
-                style={{
-                  background: isOpen ? 'rgba(14,165,233,0.07)' : 'rgba(14,165,233,0.04)',
-                  border: `1px solid rgba(14,165,233,${isOpen ? '0.2' : '0.1'})`,
-                  padding: '8px 10px',
-                }}
-              >
+              <div key={w.id} className="rounded-[8px] mb-1.5" style={{ background: isSettingsOpen || isDetailOpen ? 'rgba(14,165,233,0.07)' : 'rgba(14,165,233,0.04)', border: `1px solid rgba(14,165,233,${isSettingsOpen || isDetailOpen ? '0.2' : '0.1'})`, padding: '8px 10px' }}>
+                {/* Header row */}
                 <div className="flex items-center justify-between">
-                  <div>
-                    <span className="font-semibold" style={{ color: isOpen ? WHALE_BLUE : `${WHALE_BLUE}B3`, fontSize: 11 }}>
-                      {displayName}
-                    </span>
-                    {chainsLabel && (
-                      <span className="ml-1.5" style={{ color: 'rgba(255,255,255,0.3)', fontSize: 9 }}>
-                        {chainsLabel}
-                      </span>
-                    )}
-                  </div>
                   <button
-                    onClick={() => setOpenSettingsId(isOpen ? null : w.id)}
-                    className="rounded-[5px] px-2 py-0.5 text-[9px] font-semibold transition-all"
-                    style={{
-                      background: isOpen ? 'rgba(14,165,233,0.2)' : 'rgba(14,165,233,0.08)',
-                      border: `1px solid rgba(14,165,233,${isOpen ? '0.4' : '0.2'})`,
-                      color: isOpen ? WHALE_BLUE : `${WHALE_BLUE}99`,
-                      cursor: 'pointer',
-                    }}
+                    onClick={() => { setOpenDetailId(isDetailOpen ? null : w.id); setOpenSettingsId(null); if (!walletStats[w.address]) fetchWalletStats(w.address); }}
+                    className="text-left flex items-center gap-1.5"
+                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                   >
-                    ⚙ Settings {isOpen ? '▴' : '▾'}
+                    <span className="font-semibold" style={{ color: isDetailOpen ? WHALE_BLUE : `${WHALE_BLUE}B3`, fontSize: 11 }}>{displayName}</span>
+                    {chainsLabel && <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 9 }}>{chainsLabel}</span>}
+                    <span style={{ color: `${WHALE_BLUE}60`, fontSize: 9 }}>{isDetailOpen ? '▴' : '▾'}</span>
+                  </button>
+                  <button
+                    onClick={() => { setOpenSettingsId(isSettingsOpen ? null : w.id); setOpenDetailId(null); }}
+                    className="rounded-[5px] px-2 py-0.5 text-[9px] font-semibold transition-all"
+                    style={{ background: isSettingsOpen ? 'rgba(14,165,233,0.2)' : 'rgba(14,165,233,0.08)', border: `1px solid rgba(14,165,233,${isSettingsOpen ? '0.4' : '0.2'})`, color: isSettingsOpen ? WHALE_BLUE : `${WHALE_BLUE}99`, cursor: 'pointer' }}
+                  >
+                    ⚙ {isSettingsOpen ? '▴' : '▾'}
                   </button>
                 </div>
-                {isOpen && (
-                  <div
-                    className="flex gap-1.5 flex-wrap mt-2 pt-2"
-                    style={{ borderTop: `1px solid rgba(14,165,233,0.12)` }}
-                  >
-                    <button
-                      onClick={() => { handleIntent(w.id, 'set_threshold', { address: w.address }); setOpenSettingsId(null); }}
+
+                {/* Inline stats bar */}
+                {!isDetailOpen && !isSettingsOpen && (
+                  <div className="flex gap-2 mt-1.5" style={{ opacity: isLoadingStats ? 0.4 : 1 }}>
+                    {isLoadingStats ? (
+                      <span style={{ color: `${WHALE_BLUE}60`, fontSize: 9 }}>Loading...</span>
+                    ) : stats ? (
+                      <>
+                        <span style={{ color: `${WHALE_BLUE}80`, fontSize: 9 }}>⬡ {ethChain?.ethBalance ?? '—'}</span>
+                        {stats.holdings.slice(0, 2).map(h => (
+                          <span key={h.symbol} style={{ color: 'rgba(255,255,255,0.35)', fontSize: 9 }}>{h.symbol}</span>
+                        ))}
+                        {ethChain && <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 9 }}>{ethChain.nftCount} NFTs</span>}
+                      </>
+                    ) : null}
+                  </div>
+                )}
+
+                {/* Detail drawer */}
+                {isDetailOpen && (
+                  <div className="mt-2 pt-2" style={{ borderTop: `1px solid rgba(14,165,233,0.12)` }}>
+                    {isLoadingStats ? (
+                      <p style={{ color: `${WHALE_BLUE}60`, fontSize: 10, margin: 0 }}>Loading wallet data...</p>
+                    ) : stats ? (
+                      <>
+                        {/* Per-chain breakdown */}
+                        <div className="flex gap-1.5 mb-2">
+                          {stats.summary.map(s => (
+                            <div key={s.chain} className="flex-1 rounded-[5px] p-1.5 text-center" style={{ background: 'rgba(14,165,233,0.06)', border: '1px solid rgba(14,165,233,0.1)' }}>
+                              <p className="m-0 font-bold" style={{ color: `${WHALE_BLUE}80`, fontSize: 8 }}>{s.chain.toUpperCase()}</p>
+                              <p className="m-0 font-semibold text-white" style={{ fontSize: 10 }}>{s.ethBalance}</p>
+                              <p className="m-0" style={{ color: 'rgba(255,255,255,0.3)', fontSize: 8 }}>{s.nftCount} NFTs · {s.recentTxCount} txs</p>
+                            </div>
+                          ))}
+                        </div>
+                        {/* Top holdings */}
+                        {stats.holdings.length > 0 && (
+                          <>
+                            <p className="m-0 mb-1" style={{ color: `${WHALE_BLUE}50`, fontSize: 8, letterSpacing: '0.06em', fontWeight: 600 }}>TOP HOLDINGS</p>
+                            {stats.holdings.map(h => (
+                              <div key={h.symbol} className="flex justify-between py-0.5">
+                                <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: 600 }}>{h.symbol}</span>
+                                <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 10 }}>{h.balance}</span>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                        {/* Etherscan links */}
+                        <div className="flex gap-2 mt-2">
+                          {[
+                            { chain: 'eth', label: 'Etherscan', url: `https://etherscan.io/address/${w.address}` },
+                            { chain: 'base', label: 'Basescan', url: `https://basescan.org/address/${w.address}` },
+                            { chain: 'arb', label: 'Arbiscan', url: `https://arbiscan.io/address/${w.address}` },
+                          ].filter(l => (w.chains || []).includes(l.chain)).map(l => (
+                            <a key={l.chain} href={l.url} target="_blank" rel="noopener noreferrer"
+                              className="rounded-[4px] px-1.5 py-0.5 text-[8px] font-semibold"
+                              style={{ background: 'rgba(14,165,233,0.08)', border: '1px solid rgba(14,165,233,0.15)', color: `${WHALE_BLUE}80`, textDecoration: 'none' }}>
+                              ↗ {l.label}
+                            </a>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, margin: 0 }}>Could not load wallet data.</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Settings row */}
+                {isSettingsOpen && (
+                  <div className="mt-2 pt-2 flex gap-1.5 flex-wrap items-center" style={{ borderTop: `1px solid rgba(14,165,233,0.12)` }}>
+                    {/* Chain toggles */}
+                    {(['eth', 'base', 'arb'] as const).map(chain => {
+                      const active = (w.chains || []).includes(chain);
+                      return (
+                        <button
+                          key={chain}
+                          onClick={() => {
+                            const current: string[] = w.chains || [];
+                            const next = active
+                              ? current.filter(c => c !== chain)
+                              : [...current, chain];
+                            if (next.length === 0) return;
+                            handleIntent(w.id, 'update_chains', { address: w.address, chains: next.join(',') });
+                          }}
+                          disabled={!!loadingIntent}
+                          className="rounded-[4px] px-1.5 py-0.5 text-[9px] font-semibold transition-all disabled:opacity-50"
+                          style={{ background: active ? 'rgba(14,165,233,0.2)' : 'rgba(14,165,233,0.04)', border: `1px solid rgba(14,165,233,${active ? '0.4' : '0.15'})`, color: active ? WHALE_BLUE : `${WHALE_BLUE}60`, cursor: 'pointer' }}
+                        >
+                          {active ? '✓' : ''} {chain.toUpperCase()}
+                        </button>
+                      );
+                    })}
+                    {/* Threshold input */}
+                    <ThresholdInput
+                      address={w.address}
+                      watchId={w.id}
+                      defaultValue={100}
+                      onSave={(val) => handleIntent(w.id, 'set_threshold', { address: w.address, value: String(val) })}
                       disabled={!!loadingIntent}
-                      className="rounded-[5px] px-2 py-0.5 text-[9px] font-semibold transition-all disabled:opacity-50"
-                      style={{
-                        background: 'rgba(14,165,233,0.08)',
-                        border: '1px solid rgba(14,165,233,0.2)',
-                        color: WHALE_BLUE,
-                        cursor: loadingIntent ? 'not-allowed' : 'pointer',
-                      }}
-                    >
-                      🔔 Threshold
-                    </button>
-                    <button
-                      onClick={() => { handleIntent(w.id, 'mute_1h', { address: w.address }); setOpenSettingsId(null); }}
-                      disabled={!!loadingIntent}
-                      className="rounded-[5px] px-2 py-0.5 text-[9px] font-semibold transition-all disabled:opacity-50"
-                      style={{
-                        background: 'rgba(14,165,233,0.08)',
-                        border: '1px solid rgba(14,165,233,0.2)',
-                        color: WHALE_BLUE,
-                        cursor: loadingIntent ? 'not-allowed' : 'pointer',
-                      }}
-                    >
-                      🔕 Mute 1h
-                    </button>
+                    />
+                    {/* Mute buttons */}
+                    {(['1h', '4h', '24h'] as const).map(dur => (
+                      <button
+                        key={dur}
+                        onClick={() => { handleIntent(w.id, 'mute_1h', { address: w.address, duration: dur }); setOpenSettingsId(null); }}
+                        disabled={!!loadingIntent}
+                        className="rounded-[5px] px-2 py-0.5 text-[9px] font-semibold disabled:opacity-50"
+                        style={{ background: 'rgba(14,165,233,0.08)', border: '1px solid rgba(14,165,233,0.2)', color: `${WHALE_BLUE}99`, cursor: 'pointer' }}
+                      >
+                        🔕 {dur}
+                      </button>
+                    ))}
+                    {/* Unwatch */}
                     <button
                       onClick={() => { handleIntent(w.id, 'unwatch_wallet', { address: w.address }); setOpenSettingsId(null); }}
                       disabled={!!loadingIntent}
-                      className="rounded-[5px] px-2 py-0.5 text-[9px] font-semibold transition-all disabled:opacity-50"
-                      style={{
-                        background: 'rgba(239,68,68,0.08)',
-                        border: '1px solid rgba(239,68,68,0.2)',
-                        color: 'rgba(239,68,68,0.8)',
-                        cursor: loadingIntent ? 'not-allowed' : 'pointer',
-                      }}
+                      className="rounded-[5px] px-2 py-0.5 text-[9px] font-semibold disabled:opacity-50"
+                      style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: 'rgba(239,68,68,0.8)', cursor: 'pointer' }}
                     >
                       ✕ Unwatch
                     </button>
