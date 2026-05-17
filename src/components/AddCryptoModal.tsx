@@ -259,7 +259,7 @@ export default function AddCryptoModal({
             className="text-lg font-medium"
             style={{ color: isCustomCoin ? '#96EDD6' : 'white' }}
           >
-            Custom coin
+            Custom asset
           </div>
         </div>
         <div className="mx-4 border-b border-white/10" />
@@ -450,7 +450,7 @@ export default function AddCryptoModal({
       )}
 
       <div className="flex flex-col">
-        <p className="text-sm font-semibold text-white mb-1">Coin chosen</p>
+        <p className="text-sm font-semibold text-white mb-1">Asset selected</p>
         <div
           className="rounded-xl"
           style={{
@@ -494,7 +494,7 @@ export default function AddCryptoModal({
               </div>
             </div>
           ) : (
-            <div className="text-white/50 text-center py-4">No coin selected</div>
+            <div className="text-white/50 text-center py-4">No asset selected</div>
           )}
         </div>
       </div>
@@ -698,7 +698,7 @@ export default function AddCryptoModal({
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#96EDD6]" />
                   <input
                     type="text"
-                    placeholder="Search coin here"
+                    placeholder="Search assets..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-9 pr-4 py-3 rounded-xl text-white placeholder-white/40 placeholder:font-light placeholder:italic placeholder:tracking-tight focus:outline-none transition-colors h-11"

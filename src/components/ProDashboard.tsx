@@ -467,14 +467,14 @@ function PortfolioTab() {
           </div>
           <h3 className="text-xl font-bold text-white mb-1">Your portfolio is empty</h3>
           <p className="text-white/50 text-sm mb-4 text-center max-w-xs">
-            Add coins to start tracking your portfolio.
+            Add assets to start tracking your portfolio.
           </p>
           <button
             onClick={() => setIsModalOpen(true)}
             className="px-5 py-2.5 rounded-xl font-bold text-sm"
             style={{ background: '#96EDD6', color: '#0a0a0f' }}
           >
-            Add Your First Coin
+            Add Your First Asset
           </button>
         </div>
       )}
