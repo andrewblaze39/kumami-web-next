@@ -696,7 +696,7 @@ export default function ProDashboard() {
             className="fixed inset-0 z-[1600] bg-black/60"
             onClick={() => setSidebarOpen(false)}
           />
-          <div className="fixed top-[112px] left-0 bottom-0 z-[1700] w-72" style={{ background: '#0a0a0f' }}>
+          <div className="fixed left-0 bottom-0 z-[1700] w-72" style={{ top: 'var(--header-h)', background: '#0a0a0f' }}>
             <Sidebar
               selectedTab={selectedTab}
               onTabChange={setSelectedTab}
@@ -711,8 +711,9 @@ export default function ProDashboard() {
       <div className="flex-1 flex flex-col min-h-screen overflow-auto">
         {/* Mobile top bar */}
         <div
-          className="flex md:hidden items-center gap-3 px-4 py-3 sticky top-0 z-[1550]"
+          className="flex md:hidden items-center gap-3 px-4 py-3 sticky z-[1499]"
           style={{
+            top: 'var(--header-h)',
             background: '#0a0a0f',
             borderBottom: '1px solid rgba(150,237,214,0.1)',
           }}

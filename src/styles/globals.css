@@ -2,7 +2,7 @@
 :root {
   /* Layout: fixed header heights — update these if Navbar or CryptoTicker size changes */
   --navbar-h: 72px;
-  --ticker-h: 46px;
+  --ticker-h: 48px;
   --header-h: calc(var(--navbar-h) + var(--ticker-h));
 
   --warning-color: #ffc107;
