@@ -1,0 +1,26 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const params = new URLSearchParams({
+    vs_currency: searchParams.get('vs_currency') ?? 'usd',
+    order: searchParams.get('order') ?? 'market_cap_desc',
+    per_page: searchParams.get('per_page') ?? '100',
+    page: searchParams.get('page') ?? '1',
+    sparkline: 'false',
+  });
+
+  const response = await fetch(
+    `https://api.coingecko.com/api/v3/coins/markets?${params}`,
+    { next: { revalidate: 60 } }
+  );
+
+  if (!response.ok) {
+    return NextResponse.json({ error: `CoinGecko error: ${response.status}` }, { status: response.status });
+  }
+
+  const data = await response.json();
+  return NextResponse.json(data, {
+    headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=30' },
+  });
+}

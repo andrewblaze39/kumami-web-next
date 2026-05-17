@@ -179,9 +179,7 @@ function PortfolioTab() {
     try {
       setIsPriceLoading(true);
       setPriceError(null);
-      const response = await fetch(
-        'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false'
-      );
+      const response = await fetch('/api/coingecko/markets?per_page=100&page=1');
       if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
       const data = await response.json();
       const pricesMap: Record<string, MarketPriceEntry> = {};
@@ -495,7 +493,7 @@ function PortfolioTab() {
                 >
                   {/* Logo */}
                   <img
-                    src={item.logo || cryptoLogos[item.name] || ''}
+                    src={item.logo || cryptoLogos[item.name] || undefined}
                     alt={item.name}
                     className="w-9 h-9 rounded-full object-cover"
                   />
