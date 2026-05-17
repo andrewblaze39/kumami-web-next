@@ -303,144 +303,102 @@ function PortfolioTab() {
 
   return (
     <>
-      {/* Hero card — Total balance | Kuma | Donut */}
+      {/* Hero card */}
       <div
         style={{
           background: 'linear-gradient(180deg, rgba(150,237,214,0.06), rgba(255,255,255,0.02))',
           border: '1px solid rgba(150,237,214,0.18)',
           borderRadius: 18,
           padding: '22px',
-          display: 'grid',
-          gridTemplateColumns: portfolio.length > 0 ? 'minmax(0,1fr) minmax(0,1fr) auto' : '1fr',
-          gap: 18,
-          alignItems: 'center',
-          marginBottom: 20,
+          marginBottom: 16,
         }}
-        className="max-lg:!grid-cols-1 max-lg:!gap-3"
       >
-        {/* Balance + actions */}
-        <div>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 800,
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.40)',
-              marginBottom: 6,
-            }}
-          >
-            Total balance
-          </div>
-          <div
-            style={{
-              fontSize: 42,
-              fontWeight: 800,
-              color: '#fff',
-              fontFamily: 'ui-monospace, Menlo, monospace',
-              letterSpacing: '-0.02em',
-              lineHeight: 1,
-            }}
-            className="max-lg:!text-[34px]"
-          >
-            ${formattedInt}
-            {fracPart !== '00' && (
-              <span style={{ fontSize: 24, opacity: 0.6 }}>.{fracPart}</span>
-            )}
-          </div>
-          <div
-            className="flex items-center gap-2 mt-2"
-            style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)' }}
-          >
-            <span
-              className={cn(
-                'flex items-center gap-1 font-bold text-sm',
-                isIncrease ? 'text-green-400' : 'text-red-400'
+        {/* Top row: balance (left) + donut (right, always) */}
+        <div className="flex items-center gap-4">
+          {/* Balance block */}
+          <div className="flex-1 min-w-0">
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.40)', marginBottom: 6 }}>
+              Total balance
+            </div>
+            <div
+              style={{ fontWeight: 800, color: '#fff', fontFamily: 'ui-monospace, Menlo, monospace', letterSpacing: '-0.02em', lineHeight: 1 }}
+              className="text-[28px] sm:text-[42px]"
+            >
+              ${formattedInt}
+              {fracPart !== '00' && (
+                <span className="text-[18px] sm:text-[24px]" style={{ opacity: 0.6 }}>.{fracPart}</span>
               )}
-            >
-              <Triangle
-                size={8}
-                fill="currentColor"
-                className={cn(!isIncrease && 'rotate-180')}
-              />
-              {increaseInPercent}%
-            </span>
-            <span
-              style={{
-                fontFamily: 'ui-monospace, Menlo, monospace',
-                fontWeight: 700,
-                color: isIncrease ? '#4ade80' : '#f87171',
-              }}
-            >
-              {isIncrease ? '+' : '-'}${formattedDeltaValue}
-            </span>
-            <span style={{ color: 'rgba(255,255,255,0.40)' }}>· last 24h</span>
+            </div>
+            <div className="flex items-center gap-2 mt-2 flex-wrap" style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)' }}>
+              <span className={cn('flex items-center gap-1 font-bold text-xs', isIncrease ? 'text-green-400' : 'text-red-400')}>
+                <Triangle size={7} fill="currentColor" className={cn(!isIncrease && 'rotate-180')} />
+                {increaseInPercent}%
+              </span>
+              <span style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontWeight: 700, fontSize: 12, color: isIncrease ? '#4ade80' : '#f87171' }}>
+                {isIncrease ? '+' : '-'}${formattedDeltaValue}
+              </span>
+              <span className="hidden sm:inline" style={{ color: 'rgba(255,255,255,0.40)', fontSize: 12 }}>· last 24h</span>
+            </div>
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="inline-flex items-center gap-1 rounded-xl font-semibold"
+                style={{ background: '#96EDD6', color: '#0a0a0f', padding: '8px 12px', fontSize: 13, boxShadow: '0 0 16px rgba(150,237,214,0.3)' }}
+              >
+                <CirclePlus size={14} />
+                <span className="hidden sm:inline">Add Asset</span>
+                <span className="sm:hidden">Add</span>
+              </button>
+              <button
+                onClick={fetchMarketPrices}
+                disabled={isPriceLoading}
+                className="inline-flex items-center gap-1 rounded-xl font-semibold disabled:opacity-50"
+                style={{ background: 'rgba(255,255,255,0.04)', color: '#96EDD6', border: '1px solid rgba(150,237,214,0.3)', padding: '8px 12px', fontSize: 13 }}
+              >
+                <RefreshCw size={13} className={isPriceLoading ? 'animate-spin' : ''} />
+                <span className="hidden sm:inline">{isPriceLoading ? 'Updating…' : 'Refresh'}</span>
+              </button>
+              {priceError && <span className="text-xs text-red-400 self-center">Failed</span>}
+            </div>
           </div>
-          <div className="flex gap-2 mt-4">
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl font-semibold text-sm"
-              style={{
-                background: '#96EDD6',
-                color: '#0a0a0f',
-                padding: '10px 18px',
-                boxShadow: '0 0 16px rgba(150,237,214,0.3)',
-              }}
-            >
-              <CirclePlus size={16} /> Add Asset
-            </button>
-            <button
-              onClick={fetchMarketPrices}
-              disabled={isPriceLoading}
-              className="inline-flex items-center gap-1.5 rounded-xl font-semibold text-sm disabled:opacity-50"
-              style={{
-                background: 'rgba(255,255,255,0.04)',
-                color: '#96EDD6',
-                border: '1px solid rgba(150,237,214,0.3)',
-                padding: '10px 18px',
-              }}
-            >
-              <RefreshCw size={14} className={isPriceLoading ? 'animate-spin' : ''} />
-              {isPriceLoading ? 'Updating…' : 'Refresh'}
-            </button>
-            {priceError && <span className="text-xs text-red-400 self-center">Price update failed</span>}
-          </div>
+
+          {/* Donut — visible on all sizes, compact on mobile */}
+          {portfolio.length > 0 && (
+            <div className="shrink-0">
+              <div className="lg:hidden">
+                <DonutChart width={110} height={110} innerRadius={38} outerRadius={52} data={portfolio} colors={coinColors} noAnimation>
+                  <div className="flex flex-col items-center justify-center">
+                    <span className="text-[9px] font-bold text-white/50">Total</span>
+                    <span className="text-[11px] font-black text-white">${formattedInt}</span>
+                  </div>
+                </DonutChart>
+              </div>
+              <div className="hidden lg:block">
+                <DonutChart width={150} height={150} innerRadius={54} outerRadius={70} data={portfolio} colors={coinColors}>
+                  <div className="flex flex-col items-center justify-center">
+                    <span className="text-xs font-bold text-white/60">Total</span>
+                    <span className="text-sm font-black text-white">${formattedInt}</span>
+                  </div>
+                </DonutChart>
+              </div>
+            </div>
+          )}
+
+          {/* Kuma — desktop middle column only */}
+          {portfolio.length > 0 && (
+            <div className="hidden lg:flex justify-center">
+              <KumaInline phase={1} />
+            </div>
+          )}
         </div>
 
-        {/* Kuma mascot — middle column, desktop only */}
+        {/* Kuma — mobile, below the balance row */}
         {portfolio.length > 0 && (
-          <div className="hidden lg:flex justify-center">
+          <div className="lg:hidden mt-3">
             <KumaInline phase={1} />
-          </div>
-        )}
-
-        {/* Donut chart — right column, desktop only */}
-        {portfolio.length > 0 && (
-          <div className="hidden lg:block">
-            <DonutChart width={150} height={150} innerRadius={54} outerRadius={70} data={portfolio} colors={coinColors}>
-              <div className="flex flex-col items-center justify-center">
-                <span className="text-xs font-bold text-white/60">Total</span>
-                <span className="text-sm font-black text-white">${formattedInt}</span>
-              </div>
-            </DonutChart>
           </div>
         )}
       </div>
-
-      {/* Mobile-only: donut + Kuma row */}
-      {portfolio.length > 0 && (
-        <div className="lg:hidden flex items-center gap-3 mb-5">
-          <DonutChart width={110} height={110} innerRadius={38} outerRadius={52} data={portfolio} colors={coinColors} noAnimation>
-            <div className="flex flex-col items-center justify-center">
-              <span className="text-[9px] font-bold text-white/50">Total</span>
-              <span className="text-xs font-black text-white">${formattedInt}</span>
-            </div>
-          </DonutChart>
-          <div className="flex-1 min-w-0">
-            <KumaInline phase={1} />
-          </div>
-        </div>
-      )}
 
       {/* Empty state */}
       {portfolio.length === 0 && (
