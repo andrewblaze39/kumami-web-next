@@ -2,6 +2,7 @@
 :root {
   /* Navbar height — update if Navbar padding/logo size changes */
   --navbar-h: 72px;
+  --ticker-h: 44px;
 
   --warning-color: #ffc107;
   --warning-bg: rgba(255, 193, 7, 0.1);
