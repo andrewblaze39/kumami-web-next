@@ -1,15 +1,17 @@
 .crypto-ticker-loading {
   background-color: #101010;
   color: #888;
+  text-align: center;
+  padding: 10px;
   font-size: 14px;
   font-weight: 500;
-  height: var(--ticker-h);
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-top: 1px solid #222;
   border-bottom: 1px solid #222;
-  position: fixed;
+  position: sticky;
   top: var(--navbar-h);
   left: 0;
   right: 0;
@@ -39,12 +41,10 @@
 .crypto-ticker {
   background-color: #101010;
   color: white;
+  padding: 10px 0;
   overflow: hidden;
   width: 100%;
-  height: var(--ticker-h);
-  display: flex;
-  align-items: center;
-  position: fixed;
+  position: sticky;
   top: var(--navbar-h);
   left: 0;
   right: 0;
@@ -70,7 +70,6 @@
 
 .ticker-scroll {
   display: inline-flex;
-  vertical-align: top; /* eliminates descender/baseline gap from inline-flex in block container */
   animation: scroll 60s linear infinite; /* Doubled the animation time to slow it down */
   white-space: nowrap;
   will-change: transform;
