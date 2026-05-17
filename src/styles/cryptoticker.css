@@ -70,6 +70,7 @@
 
 .ticker-scroll {
   display: inline-flex;
+  vertical-align: top; /* eliminates descender/baseline gap from inline-flex in block container */
   animation: scroll 60s linear infinite; /* Doubled the animation time to slow it down */
   white-space: nowrap;
   will-change: transform;
