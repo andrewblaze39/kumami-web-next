@@ -1,17 +1,15 @@
 .crypto-ticker-loading {
   background-color: #101010;
   color: #888;
-  text-align: center;
-  padding: 10px;
   font-size: 14px;
   font-weight: 500;
-  height: 40px;
+  height: var(--ticker-h);
   display: flex;
   align-items: center;
   justify-content: center;
   border-top: 1px solid #222;
   border-bottom: 1px solid #222;
-  position: sticky;
+  position: fixed;
   top: var(--navbar-h);
   left: 0;
   right: 0;
@@ -41,10 +39,12 @@
 .crypto-ticker {
   background-color: #101010;
   color: white;
-  padding: 10px 0;
   overflow: hidden;
   width: 100%;
-  position: sticky;
+  height: var(--ticker-h);
+  display: flex;
+  align-items: center;
+  position: fixed;
   top: var(--navbar-h);
   left: 0;
   right: 0;
