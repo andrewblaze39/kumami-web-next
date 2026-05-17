@@ -51,12 +51,15 @@
   border-top: 1px solid #222;
   border-bottom: 1px solid #222;
   z-index: 1500;
+  line-height: 0;
 }
 
 .ticker-container {
   width: 100%;
   overflow: hidden;
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 @keyframes scroll {
