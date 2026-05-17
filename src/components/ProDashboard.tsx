@@ -360,7 +360,14 @@ function PortfolioTab() {
             </div>
           </div>
 
-          {/* Donut — visible on all sizes, compact on mobile */}
+          {/* Kuma — desktop only, between balance and donut */}
+          {portfolio.length > 0 && (
+            <div className="hidden lg:flex justify-center">
+              <KumaInline phase={1} />
+            </div>
+          )}
+
+          {/* Donut — mobile compact (left of balance row) + desktop full */}
           {portfolio.length > 0 && (
             <div className="shrink-0">
               <div className="lg:hidden">
@@ -379,13 +386,6 @@ function PortfolioTab() {
                   </div>
                 </DonutChart>
               </div>
-            </div>
-          )}
-
-          {/* Kuma — desktop middle column only */}
-          {portfolio.length > 0 && (
-            <div className="hidden lg:flex justify-center">
-              <KumaInline phase={1} />
             </div>
           )}
         </div>
@@ -471,6 +471,7 @@ function PortfolioTab() {
               const pct = totalValue > 0 ? ((item.value / totalValue) * 100).toFixed(1) : '0.0';
               const isUp = (item.change24h ?? 0) >= 0;
               const coinColor = coinColors[idx] ?? '#96EDD6';
+              const priceKnown = !priceError && !isPriceLoading && !!marketPrices[item.name];
               return (
                 <div
                   key={idx}
@@ -531,21 +532,21 @@ function PortfolioTab() {
                       color: 'rgba(255,255,255,0.8)',
                     }}
                   >
-                    ${item.pricePerUnit.toLocaleString()}
+                    {priceKnown ? `$${item.pricePerUnit.toLocaleString()}` : '—'}
                   </div>
                   {/* 24h */}
                   <div
                     className={cn(
                       'text-right hidden md:flex items-center justify-end gap-1 text-sm font-bold',
-                      isUp ? 'text-green-400' : 'text-red-400'
+                      priceKnown ? (isUp ? 'text-green-400' : 'text-red-400') : 'text-white/40'
                     )}
                   >
-                    <Triangle
-                      size={6}
-                      fill="currentColor"
-                      className={cn(!isUp && 'rotate-180')}
-                    />
-                    {Math.abs(item.change24h ?? 0).toFixed(2)}%
+                    {priceKnown ? (
+                      <>
+                        <Triangle size={6} fill="currentColor" className={cn(!isUp && 'rotate-180')} />
+                        {Math.abs(item.change24h ?? 0).toFixed(2)}%
+                      </>
+                    ) : '—'}
                   </div>
                   {/* Value + mobile 24h */}
                   <div className="text-right">
@@ -557,16 +558,20 @@ function PortfolioTab() {
                         color: '#fff',
                       }}
                     >
-                      ${item.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      {priceKnown ? `$${item.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '—'}
                     </div>
                     <div
                       className={cn(
                         'md:hidden flex items-center justify-end gap-0.5 text-[11px] font-bold mt-0.5',
-                        isUp ? 'text-green-400' : 'text-red-400'
+                        priceKnown ? (isUp ? 'text-green-400' : 'text-red-400') : 'text-white/40'
                       )}
                     >
-                      <Triangle size={5} fill="currentColor" className={cn(!isUp && 'rotate-180')} />
-                      {Math.abs(item.change24h ?? 0).toFixed(2)}%
+                      {priceKnown ? (
+                        <>
+                          <Triangle size={5} fill="currentColor" className={cn(!isUp && 'rotate-180')} />
+                          {Math.abs(item.change24h ?? 0).toFixed(2)}%
+                        </>
+                      ) : '—'}
                     </div>
                   </div>
                   {/* Action dot */}
