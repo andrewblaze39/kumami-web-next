@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Search, Triangle, ChevronRight, ChevronLeft } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
@@ -54,20 +54,22 @@ export default function AddCryptoModal({
   const [filteredList, setFilteredList] = useState<CoinGeckoItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUsdFocused, setIsUsdFocused] = useState(false);
-  const [isCustomPriceFocused, setIsCustomPriceFocused] = useState(false);
-  const [isCustomCoin, setIsCustomCoin] = useState(false);
-  const [customCoinData, setCustomCoinData] = useState({
-    name: '',
-    symbol: '',
-    quantity: '',
-    priceUsd: '',
-  });
   const [mobileStep, setMobileStep] = useState<'select' | 'amount'>('select');
   const [isMobile, setIsMobile] = useState(false);
   const [recent, setRecent] = useState<Array<{ coinId: string; symbol: string; logo: string | null }>>([]);
   const [pulse, setPulse] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [activeChip, setActiveChip] = useState<string>('all');
+
+  // Live search state
+  const [searchResults, setSearchResults] = useState<CoinGeckoItem[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  // Price fetch state: coinId -> loading
+  const [fetchingPriceFor, setFetchingPriceFor] = useState<string | null>(null);
+
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const isSearchMode = searchQuery.length >= 2;
 
   useEffect(() => {
     setIsMobile(window.innerWidth < 640);
@@ -76,12 +78,11 @@ export default function AddCryptoModal({
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
+  // Load top 100 on open
   useEffect(() => {
     if (isOpen) {
       setIsLoading(true);
-      fetch(
-        'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false'
-      )
+      fetch('/api/coingecko/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1')
         .then((res) => res.json())
         .then((data: CoinGeckoItem[]) => {
           setCryptoList(data);
@@ -95,16 +96,13 @@ export default function AddCryptoModal({
     }
   }, [isOpen]);
 
+  // Browse mode: filter pre-loaded list by chip
   useEffect(() => {
+    if (isSearchMode) return; // search mode handled separately
     let list = cryptoList;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      list = list.filter(c =>
-        c.name.toLowerCase().includes(q) || c.symbol.toLowerCase().includes(q)
-      );
-    } else if (activeChip !== 'all') {
+    if (activeChip !== 'all') {
       const CHIP_KEYWORDS: Record<string, RegExp> = {
-        top10: /./,  // handled separately
+        top10: /./,
         defi: /uniswap|aave|compound|maker|curve|yearn|sushi|lido|chainlink/i,
         ai: /fetch|ocean|rndr|render|akash|near|worldcoin|numerai|grt|graph/i,
         memes: /doge|shib|pepe|floki|bonk|wif|brett|mog/i,
@@ -119,7 +117,36 @@ export default function AddCryptoModal({
       }
     }
     setFilteredList(list);
-  }, [searchQuery, cryptoList, activeChip]);
+  }, [cryptoList, activeChip, isSearchMode]);
+
+  // Debounced live search
+  useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+
+    if (searchQuery.length < 2) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    searchDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/coingecko/search?query=${encodeURIComponent(searchQuery)}`);
+        const data: CoinGeckoItem[] = await res.json();
+        setSearchResults(data);
+      } catch (err) {
+        console.error('Search error:', err);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, [searchQuery]);
 
   useEffect(() => {
     if (selectedCoin) {
@@ -129,10 +156,10 @@ export default function AddCryptoModal({
   }, [selectedCoin]);
 
   useEffect(() => {
-    if (isMobile && (selectedCoin || isCustomCoin)) {
+    if (isMobile && selectedCoin) {
       setMobileStep('amount');
     }
-  }, [selectedCoin, isCustomCoin, isMobile]);
+  }, [selectedCoin, isMobile]);
 
   const handleCryptoAmountChange = (value: string) => {
     setCryptoAmount(value);
@@ -154,38 +181,27 @@ export default function AddCryptoModal({
     }
   };
 
-  const handleCustomCoinSelect = () => {
-    setIsCustomCoin(true);
-    setSelectedCoin(null);
-    setCustomCoinData({ name: '', symbol: '', quantity: '', priceUsd: '' });
-  };
-
-  const handleAddCustomCoin = () => {
-    if (
-      customCoinData.name &&
-      customCoinData.symbol &&
-      customCoinData.quantity &&
-      customCoinData.priceUsd
-    ) {
-      const newCoin: PortfolioCoin = {
-        name: customCoinData.symbol.toUpperCase(),
-        coinId: null,
-        value: parseFloat(customCoinData.quantity) * parseFloat(customCoinData.priceUsd),
-        unitNum: parseFloat(customCoinData.quantity),
-        logo: null,
-        pricePerUnit: parseFloat(customCoinData.priceUsd),
-      };
-      const existingCoin = portfolio.find((c) => c.name === newCoin.name);
-      onAdd(newCoin, existingCoin);
-      handleClose();
+  // Select a coin — if it came from live search (price=0), fetch its price first
+  const handleCoinSelect = async (coin: CoinGeckoItem) => {
+    if (coin.current_price === 0) {
+      setFetchingPriceFor(coin.id);
+      try {
+        const res = await fetch(`/api/coingecko/markets?ids=${coin.id}&per_page=1`);
+        const data: CoinGeckoItem[] = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          coin = { ...coin, current_price: data[0].current_price, price_change_percentage_24h: data[0].price_change_percentage_24h };
+        }
+      } catch (err) {
+        console.error('Price fetch error:', err);
+        // proceed with price 0
+      } finally {
+        setFetchingPriceFor(null);
+      }
     }
+    setSelectedCoin(coin);
   };
 
   const handleAdd = () => {
-    if (isCustomCoin) {
-      handleAddCustomCoin();
-      return;
-    }
     if (!selectedCoin || !cryptoAmount || parseFloat(cryptoAmount) <= 0) return;
     setIsAdding(true);
     const newCoin: PortfolioCoin = {
@@ -200,7 +216,7 @@ export default function AddCryptoModal({
     onAdd(newCoin, existingCoin);
     // Variant B: stay open, reset amounts, ripple, append recent
     setRecent(prev => [
-      { coinId: selectedCoin.id, symbol: selectedCoin.symbol.toUpperCase(), logo: selectedCoin.image },
+      { coinId: selectedCoin!.id, symbol: selectedCoin!.symbol.toUpperCase(), logo: selectedCoin!.image },
       ...prev,
     ].slice(0, 5));
     setCryptoAmount('');
@@ -216,13 +232,13 @@ export default function AddCryptoModal({
     setCryptoAmount('');
     setUsdAmount('');
     setIsUsdFocused(false);
-    setIsCustomPriceFocused(false);
-    setIsCustomCoin(false);
-    setCustomCoinData({ name: '', symbol: '', quantity: '', priceUsd: '' });
     setMobileStep('select');
     setRecent([]);
     setActiveChip('all');
     setIsAdding(false);
+    setSearchResults([]);
+    setIsSearching(false);
+    setFetchingPriceFor(null);
     onClose();
   };
 
@@ -234,198 +250,73 @@ export default function AddCryptoModal({
     })}`;
   };
 
-  const getFormattedCustomPriceValue = () => {
-    if (isCustomPriceFocused || !customCoinData.priceUsd) return customCoinData.priceUsd;
-    return `$${parseFloat(customCoinData.priceUsd).toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  };
-
   if (!isOpen) return null;
+
+  // Displayed list — search mode vs browse mode
+  const displayList = isSearchMode ? searchResults : filteredList;
 
   // Shared coin list renderer
   const renderCoinList = () => (
     <div>
-      <div>
-        <div
-          onClick={handleCustomCoinSelect}
-          className={cn(
-            'flex items-center px-7 py-3 cursor-pointer transition-colors text-white hover:bg-[#96EDD6]/10',
-            isCustomCoin && 'bg-[#96EDD6]/15'
-          )}
-        >
-          <div
-            className="text-lg font-medium"
-            style={{ color: isCustomCoin ? '#96EDD6' : 'white' }}
-          >
-            Custom asset
-          </div>
+      {isSearching && (
+        <div className="text-center py-4 text-sm" style={{ color: 'rgba(150,237,214,0.7)' }}>
+          Searching...
         </div>
-        <div className="mx-4 border-b border-white/10" />
-      </div>
-
-      {filteredList.map((coin, i) => (
-        <div key={coin.id}>
-          <div
-            onClick={() => {
-              setSelectedCoin(coin);
-              setIsCustomCoin(false);
-            }}
-            className={cn(
-              'flex items-center gap-4 px-7 py-1.5 cursor-pointer transition-colors text-white',
-              selectedCoin?.id === coin.id && !isCustomCoin
-                ? 'bg-[rgba(150,237,214,0.15)]'
-                : 'hover:bg-[rgba(150,237,214,0.08)]'
-            )}
-            style={
-              selectedCoin?.id === coin.id && !isCustomCoin ? { color: '#96EDD6' } : {}
-            }
-          >
-            <img src={coin.image} alt={coin.name} className="w-8 h-8 rounded-full" />
-            <div className="flex-1">
-              <div className="font-bold">{coin.symbol.toUpperCase()}</div>
-            </div>
-            <div className="text-right">
-              <div className="font-semibold">${coin.current_price.toLocaleString()}</div>
-              <div
-                className={`flex items-center justify-end gap-1 text-xs ${
-                  coin.price_change_percentage_24h >= 0 ? 'text-green-400' : 'text-red-400'
-                }`}
-              >
-                <Triangle
-                  className={`w-3 h-3 ${
-                    coin.price_change_percentage_24h >= 0 ? '' : 'rotate-180'
-                  }`}
-                  fill="currentColor"
-                />
-                {Math.abs(coin.price_change_percentage_24h)?.toFixed(2)}%
+      )}
+      {!isSearching && isSearchMode && searchResults.length === 0 && (
+        <div className="text-center py-8 text-white/40 text-sm">No results found</div>
+      )}
+      {displayList.map((coin, i) => {
+        const isFetchingPrice = fetchingPriceFor === coin.id;
+        return (
+          <div key={coin.id}>
+            <div
+              onClick={() => !isFetchingPrice && handleCoinSelect(coin)}
+              className={cn(
+                'flex items-center gap-4 px-7 py-1.5 cursor-pointer transition-colors text-white',
+                selectedCoin?.id === coin.id
+                  ? 'bg-[rgba(150,237,214,0.15)]'
+                  : 'hover:bg-[rgba(150,237,214,0.08)]',
+                isFetchingPrice && 'opacity-60 cursor-wait'
+              )}
+              style={
+                selectedCoin?.id === coin.id ? { color: '#96EDD6' } : {}
+              }
+            >
+              <img src={coin.image} alt={coin.name} className="w-8 h-8 rounded-full" />
+              <div className="flex-1">
+                <div className="font-bold">{coin.symbol.toUpperCase()}</div>
+              </div>
+              <div className="text-right">
+                {isFetchingPrice ? (
+                  <div className="text-xs" style={{ color: 'rgba(150,237,214,0.7)' }}>Getting price...</div>
+                ) : coin.current_price > 0 ? (
+                  <>
+                    <div className="font-semibold">${coin.current_price.toLocaleString()}</div>
+                    <div
+                      className={`flex items-center justify-end gap-1 text-xs ${
+                        coin.price_change_percentage_24h >= 0 ? 'text-green-400' : 'text-red-400'
+                      }`}
+                    >
+                      <Triangle
+                        className={`w-3 h-3 ${
+                          coin.price_change_percentage_24h >= 0 ? '' : 'rotate-180'
+                        }`}
+                        fill="currentColor"
+                      />
+                      {Math.abs(coin.price_change_percentage_24h)?.toFixed(2)}%
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-xs text-white/40">—</div>
+                )}
               </div>
             </div>
+            {i < displayList.length - 1 && <div className="mx-4 border-b border-white/10" />}
           </div>
-          {i < filteredList.length - 1 && <div className="mx-4 border-b border-white/10" />}
-        </div>
-      ))}
+        );
+      })}
     </div>
-  );
-
-  // Custom coin form
-  const renderCustomCoinForm = () => (
-    <>
-      <div className="flex flex-col gap-2">
-        <p className="text-sm font-semibold text-white mb-0">Token Name</p>
-        <div
-          className="rounded-xl"
-          style={{
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(150,237,214,0.2)',
-          }}
-        >
-          <div className="flex items-center gap-3 justify-between py-3 px-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-white/20" />
-            </div>
-            <div className="text-right flex flex-col items-end">
-              <input
-                type="text"
-                value={customCoinData.name}
-                onChange={(e) =>
-                  setCustomCoinData({ ...customCoinData, name: e.target.value })
-                }
-                placeholder="Bitcoin"
-                className="text-xl font-black bg-transparent text-white text-right outline-none placeholder-white/30 placeholder:font-light"
-                style={{ caretColor: '#96EDD6' }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-col flex gap-2">
-        <div className="flex gap-1 w-full">
-          <div className="flex flex-col gap-1 w-full basis-1/2">
-            <p className="text-sm font-semibold text-white mb-0">Quantity</p>
-            <div
-              className="text-right flex flex-col items-end rounded-xl py-3 px-3"
-              style={{
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(150,237,214,0.2)',
-              }}
-            >
-              <input
-                type="number"
-                value={customCoinData.quantity}
-                onChange={(e) =>
-                  setCustomCoinData({ ...customCoinData, quantity: e.target.value })
-                }
-                placeholder="0"
-                className="text-xl font-bold bg-transparent text-white text-right outline-none w-32 placeholder-white/30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                style={{ caretColor: '#96EDD6' }}
-                min="0"
-              />
-            </div>
-          </div>
-          <div className="flex flex-col gap-1 w-full basis-1/2">
-            <p className="text-sm font-semibold text-white mb-0">Ticker</p>
-            <div
-              className="text-right flex flex-col items-end rounded-xl py-3 px-3"
-              style={{
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(150,237,214,0.2)',
-              }}
-            >
-              <input
-                type="text"
-                value={customCoinData.symbol}
-                onChange={(e) =>
-                  setCustomCoinData({ ...customCoinData, symbol: e.target.value })
-                }
-                placeholder="BTC"
-                className="text-xl font-black bg-transparent text-white text-right outline-none w-full placeholder-white/30 placeholder:font-light"
-                style={{ caretColor: '#96EDD6' }}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1 w-full">
-          <p className="text-sm font-semibold text-white mb-0">Current Price</p>
-          <div
-            className="relative rounded-xl"
-            style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(150,237,214,0.2)',
-            }}
-          >
-            <div className="flex items-center gap-3 justify-between py-2 px-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-[#96EDD6] flex items-center justify-center">
-                  <span className="text-[#102425] font-black text-lg">$</span>
-                </div>
-                <div className="text-lg font-bold text-white">USD</div>
-              </div>
-              <div className="text-right flex flex-col items-end">
-                <input
-                  type={isCustomPriceFocused ? 'number' : 'text'}
-                  value={getFormattedCustomPriceValue()}
-                  onChange={(e) =>
-                    setCustomCoinData({ ...customCoinData, priceUsd: e.target.value })
-                  }
-                  onFocus={() => setIsCustomPriceFocused(true)}
-                  onBlur={() => setIsCustomPriceFocused(false)}
-                  placeholder="0.00"
-                  className="text-xl font-bold bg-transparent text-white text-right outline-none w-full placeholder-white/30 placeholder:font-light [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  min="0"
-                />
-              </div>
-            </div>
-            <div className="absolute right-4 bottom-0 tracking-tight text-white/70 text-[0.625rem]">
-              United States Dollar
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
   );
 
   // Standard coin amount form
@@ -602,35 +493,28 @@ export default function AddCryptoModal({
           : 'Add will not close the modal — keep going.'}
       </p>
       <div className="flex gap-3">
-      <button
-        onClick={handleClose}
-        className="flex-1 rounded-xl transition-colors py-2 px-5 font-semibold text-[#96EDD6] border border-[#96EDD6]/30 hover:bg-[#96EDD6]/10"
-        style={{ background: 'transparent' }}
-      >
-        {recent.length > 0 ? 'Done' : 'Cancel'}
-      </button>
-      <button
-        onClick={handleAdd}
-        disabled={
-          isCustomCoin
-            ? !customCoinData.name ||
-              !customCoinData.symbol ||
-              !customCoinData.quantity ||
-              !customCoinData.priceUsd ||
-              parseFloat(customCoinData.quantity) <= 0 ||
-              parseFloat(customCoinData.priceUsd) <= 0
-            : !selectedCoin ||
-              !cryptoAmount ||
-              !usdAmount ||
-              parseFloat(cryptoAmount) <= 0 ||
-              parseFloat(usdAmount) <= 0 ||
-              isAdding
-        }
-        className="flex-1 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed py-2 px-5 font-semibold bg-[#96EDD6] text-[#0a0a0f]"
-      >
-        Add Asset
-      </button>
-    </div>
+        <button
+          onClick={handleClose}
+          className="flex-1 rounded-xl transition-colors py-2 px-5 font-semibold text-[#96EDD6] border border-[#96EDD6]/30 hover:bg-[#96EDD6]/10"
+          style={{ background: 'transparent' }}
+        >
+          {recent.length > 0 ? 'Done' : 'Cancel'}
+        </button>
+        <button
+          onClick={handleAdd}
+          disabled={
+            !selectedCoin ||
+            !cryptoAmount ||
+            !usdAmount ||
+            parseFloat(cryptoAmount) <= 0 ||
+            parseFloat(usdAmount) <= 0 ||
+            isAdding
+          }
+          className="flex-1 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed py-2 px-5 font-semibold bg-[#96EDD6] text-[#0a0a0f]"
+        >
+          Add Asset
+        </button>
+      </div>
     </div>
   );
 
@@ -674,26 +558,29 @@ export default function AddCryptoModal({
           <div className="flex flex-col gap-3 pt-2.5">
             {mobileStep === 'select' ? (
               <div className="flex flex-col gap-3">
-                <div className="flex gap-1.5 flex-wrap">
-                  {CATEGORY_CHIPS.map(chip => {
-                    const isActive = activeChip === chip.id && !searchQuery;
-                    return (
-                      <button
-                        key={chip.id}
-                        onClick={() => { setActiveChip(chip.id); setSearchQuery(''); }}
-                        className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-all"
-                        style={{
-                          background: isActive ? 'rgba(150,237,214,0.14)' : 'rgba(255,255,255,0.04)',
-                          border: `1px solid ${isActive ? '#96EDD6' : 'rgba(255,255,255,0.12)'}`,
-                          color: isActive ? '#96EDD6' : 'rgba(255,255,255,0.55)',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {chip.label}
-                      </button>
-                    );
-                  })}
-                </div>
+                {/* Category chips — hidden in search mode */}
+                {!isSearchMode && (
+                  <div className="flex gap-1.5 flex-wrap">
+                    {CATEGORY_CHIPS.map(chip => {
+                      const isActive = activeChip === chip.id;
+                      return (
+                        <button
+                          key={chip.id}
+                          onClick={() => setActiveChip(chip.id)}
+                          className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-all"
+                          style={{
+                            background: isActive ? 'rgba(150,237,214,0.14)' : 'rgba(255,255,255,0.04)',
+                            border: `1px solid ${isActive ? '#96EDD6' : 'rgba(255,255,255,0.12)'}`,
+                            color: isActive ? '#96EDD6' : 'rgba(255,255,255,0.55)',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {chip.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#96EDD6]" />
                   <input
@@ -717,7 +604,7 @@ export default function AddCryptoModal({
                     maxHeight: '55vh',
                   }}
                 >
-                  {isLoading ? (
+                  {isLoading && !isSearchMode ? (
                     <div className="text-white text-center py-8">
                       Loading cryptocurrencies...
                     </div>
@@ -728,7 +615,7 @@ export default function AddCryptoModal({
 
                 <button
                   onClick={() => setMobileStep('amount')}
-                  disabled={!selectedCoin && !isCustomCoin}
+                  disabled={!selectedCoin}
                   className="w-full flex items-center justify-center gap-2 rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   style={{
                     background: '#96EDD6',
@@ -753,7 +640,7 @@ export default function AddCryptoModal({
                 </button>
 
                 <div className="flex flex-col gap-3">
-                  {isCustomCoin ? renderCustomCoinForm() : renderCoinAmountForm()}
+                  {renderCoinAmountForm()}
                 </div>
 
                 {renderActionButtons()}
@@ -767,26 +654,29 @@ export default function AddCryptoModal({
             style={{ height: 'clamp(320px, calc(55vh - 80px), 480px)' }}
           >
             <div className="flex-1 flex flex-col gap-3 basis-1/2">
-              <div className="flex gap-1.5 flex-wrap">
-                {CATEGORY_CHIPS.map(chip => {
-                  const isActive = activeChip === chip.id && !searchQuery;
-                  return (
-                    <button
-                      key={chip.id}
-                      onClick={() => { setActiveChip(chip.id); setSearchQuery(''); }}
-                      className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-all"
-                      style={{
-                        background: isActive ? 'rgba(150,237,214,0.14)' : 'rgba(255,255,255,0.04)',
-                        border: `1px solid ${isActive ? '#96EDD6' : 'rgba(255,255,255,0.12)'}`,
-                        color: isActive ? '#96EDD6' : 'rgba(255,255,255,0.55)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {chip.label}
-                    </button>
-                  );
-                })}
-              </div>
+              {/* Category chips — hidden in search mode */}
+              {!isSearchMode && (
+                <div className="flex gap-1.5 flex-wrap">
+                  {CATEGORY_CHIPS.map(chip => {
+                    const isActive = activeChip === chip.id;
+                    return (
+                      <button
+                        key={chip.id}
+                        onClick={() => setActiveChip(chip.id)}
+                        className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-all"
+                        style={{
+                          background: isActive ? 'rgba(150,237,214,0.14)' : 'rgba(255,255,255,0.04)',
+                          border: `1px solid ${isActive ? '#96EDD6' : 'rgba(255,255,255,0.12)'}`,
+                          color: isActive ? '#96EDD6' : 'rgba(255,255,255,0.55)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {chip.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#96EDD6]" />
                 <input
@@ -807,7 +697,7 @@ export default function AddCryptoModal({
                 className="flex-1 overflow-y-auto rounded-xl"
                 style={{ border: '1px solid rgba(150,237,214,0.15)' }}
               >
-                {isLoading ? (
+                {isLoading && !isSearchMode ? (
                   <div className="text-white text-center py-8">
                     Loading cryptocurrencies...
                   </div>
@@ -818,7 +708,7 @@ export default function AddCryptoModal({
             </div>
 
             <div className="w-full flex flex-col basis-1/2 justify-between max-w-full">
-              {isCustomCoin ? renderCustomCoinForm() : renderCoinAmountForm()}
+              {renderCoinAmountForm()}
               {renderActionButtons()}
             </div>
           </div>
