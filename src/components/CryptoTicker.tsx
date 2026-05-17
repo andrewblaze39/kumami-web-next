@@ -107,7 +107,22 @@ const CryptoTicker = () => {
   const [flashStates, setFlashStates] = useState<{[key: string]: string | null}>({});
   const socketRef = useRef<WebSocket | null>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const tickerRef = useRef<HTMLDivElement | null>(null);
   const cryptoDataLoaded = Object.keys(cryptoData).length;
+
+  // Measure actual rendered height and update --ticker-h so downstream
+  // consumers (layout padding, sticky bars) always align perfectly.
+  useEffect(() => {
+    if (!tickerRef.current) return;
+    const update = () => {
+      const h = tickerRef.current!.getBoundingClientRect().height;
+      document.documentElement.style.setProperty('--ticker-h', `${h}px`);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(tickerRef.current);
+    return () => ro.disconnect();
+  }, []);
 
   const streams = [
     "btcusdt@ticker",
@@ -231,14 +246,14 @@ const CryptoTicker = () => {
 
   if (cryptoDataLoaded !== streams.length) {
     return (
-      <div className="crypto-ticker">
+      <div ref={tickerRef} className="crypto-ticker">
         <div className="crypto-ticker-loading">Loading price data...</div>
       </div>
     );
   }
 
   return (
-    <div className="crypto-ticker">
+    <div ref={tickerRef} className="crypto-ticker">
       <div className="ticker-container">
         <div className="ticker-scroll">
           {/* First copy of the ticker content */}
