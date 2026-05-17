@@ -48,7 +48,7 @@ export default function RootLayout({
           <NotificationProvider>
             <Navbar />
             <CryptoTicker />
-            <div className="pt-[118px]">
+            <div style={{ paddingTop: 'var(--header-h)' }}>
               {children}
             </div>
           </NotificationProvider>
