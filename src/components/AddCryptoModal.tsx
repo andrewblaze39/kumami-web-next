@@ -4,6 +4,16 @@ import { useState, useEffect } from 'react';
 import { X, Search, Triangle, ChevronRight, ChevronLeft } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
+const CATEGORY_CHIPS = [
+  { id: 'all', label: 'All' },
+  { id: 'top10', label: 'Top 10' },
+  { id: 'defi', label: 'DeFi' },
+  { id: 'ai', label: 'AI' },
+  { id: 'memes', label: 'Memes' },
+  { id: 'layer1', label: 'Layer 1s' },
+  { id: 'layer2', label: 'Layer 2s' },
+];
+
 interface CoinGeckoItem {
   id: string;
   symbol: string;
@@ -54,6 +64,9 @@ export default function AddCryptoModal({
   });
   const [mobileStep, setMobileStep] = useState<'select' | 'amount'>('select');
   const [isMobile, setIsMobile] = useState(false);
+  const [recent, setRecent] = useState<Array<{ coinId: string; symbol: string; logo: string | null }>>([]);
+  const [pulse, setPulse] = useState(false);
+  const [activeChip, setActiveChip] = useState<string>('all');
 
   useEffect(() => {
     setIsMobile(window.innerWidth < 640);
@@ -82,17 +95,30 @@ export default function AddCryptoModal({
   }, [isOpen]);
 
   useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredList(cryptoList);
-    } else {
-      const filtered = cryptoList.filter(
-        (coin) =>
-          coin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          coin.symbol.toLowerCase().includes(searchQuery.toLowerCase())
+    let list = cryptoList;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(c =>
+        c.name.toLowerCase().includes(q) || c.symbol.toLowerCase().includes(q)
       );
-      setFilteredList(filtered);
+    } else if (activeChip !== 'all') {
+      const CHIP_KEYWORDS: Record<string, RegExp> = {
+        top10: /./,  // handled separately
+        defi: /uniswap|aave|compound|maker|curve|yearn|sushi|lido|chainlink/i,
+        ai: /fetch|ocean|rndr|render|akash|near|worldcoin|numerai|grt|graph/i,
+        memes: /doge|shib|pepe|floki|bonk|wif|brett|mog/i,
+        layer1: /bitcoin|ethereum|solana|avalanche|cardano|polkadot|cosmos|tron|near|sui/i,
+        layer2: /polygon|arbitrum|optimism|base|zksync|starknet|mantle|scroll/i,
+      };
+      if (activeChip === 'top10') {
+        list = cryptoList.slice(0, 10);
+      } else {
+        const rx = CHIP_KEYWORDS[activeChip];
+        if (rx) list = cryptoList.filter(c => rx.test(c.name) || rx.test(c.symbol));
+      }
     }
-  }, [searchQuery, cryptoList]);
+    setFilteredList(list);
+  }, [searchQuery, cryptoList, activeChip]);
 
   useEffect(() => {
     if (selectedCoin) {
@@ -157,19 +183,29 @@ export default function AddCryptoModal({
   const handleAdd = () => {
     if (isCustomCoin) {
       handleAddCustomCoin();
-    } else if (selectedCoin && cryptoAmount && parseFloat(cryptoAmount) > 0) {
-      const newCoin: PortfolioCoin = {
-        name: selectedCoin.symbol.toUpperCase(),
-        coinId: selectedCoin.id,
-        value: parseFloat(cryptoAmount) * selectedCoin.current_price,
-        unitNum: parseFloat(cryptoAmount),
-        logo: selectedCoin.image,
-        pricePerUnit: selectedCoin.current_price,
-      };
-      const existingCoin = portfolio.find((c) => c.name === newCoin.name);
-      onAdd(newCoin, existingCoin);
-      handleClose();
+      return;
     }
+    if (!selectedCoin || !cryptoAmount || parseFloat(cryptoAmount) <= 0) return;
+    const newCoin: PortfolioCoin = {
+      name: selectedCoin.symbol.toUpperCase(),
+      coinId: selectedCoin.id,
+      value: parseFloat(cryptoAmount) * selectedCoin.current_price,
+      unitNum: parseFloat(cryptoAmount),
+      logo: selectedCoin.image,
+      pricePerUnit: selectedCoin.current_price,
+    };
+    const existingCoin = portfolio.find((c) => c.name === newCoin.name);
+    onAdd(newCoin, existingCoin);
+    // Variant B: stay open, reset amounts, ripple, append recent
+    setRecent(prev => [
+      { coinId: selectedCoin.id, symbol: selectedCoin.symbol.toUpperCase(), logo: selectedCoin.image },
+      ...prev,
+    ].slice(0, 5));
+    setCryptoAmount('');
+    setUsdAmount('');
+    setPulse(true);
+    setTimeout(() => setPulse(false), 600);
+    // DO NOT call handleClose()
   };
 
   const handleClose = () => {
@@ -182,6 +218,8 @@ export default function AddCryptoModal({
     setIsCustomCoin(false);
     setCustomCoinData({ name: '', symbol: '', quantity: '', priceUsd: '' });
     setMobileStep('select');
+    setRecent([]);
+    setActiveChip('all');
     onClose();
   };
 
@@ -390,6 +428,24 @@ export default function AddCryptoModal({
   // Standard coin amount form
   const renderCoinAmountForm = () => (
     <>
+      {recent.length > 0 && (
+        <div className="flex items-center gap-2 px-2.5 py-2 rounded-[10px]"
+          style={{ background: 'rgba(150,237,214,0.08)', border: '1px solid rgba(150,237,214,0.18)' }}>
+          <span className="text-[10px] font-black tracking-[0.04em]" style={{ color: '#96EDD6', flexShrink: 0 }}>
+            ✓ JUST ADDED
+          </span>
+          <div className="flex gap-1.5 flex-1 overflow-hidden">
+            {recent.slice(0, 4).map((r, i) => (
+              <div key={i} className="flex items-center gap-1 rounded-full px-2 py-0.5"
+                style={{ background: 'rgba(0,0,0,0.3)', flexShrink: 0 }}>
+                {r.logo && <img src={r.logo} alt={r.symbol} className="w-4 h-4 rounded-full" />}
+                <span className="text-[10px] font-bold text-white">{r.symbol}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col">
         <p className="text-sm font-semibold text-white mb-1">Coin chosen</p>
         <div
@@ -397,6 +453,8 @@ export default function AddCryptoModal({
           style={{
             background: 'rgba(255,255,255,0.05)',
             border: '1px solid rgba(150,237,214,0.12)',
+            transition: 'box-shadow 0.4s ease',
+            boxShadow: pulse ? '0 0 0 2px #96EDD6, 0 0 40px rgba(150,237,214,0.4)' : 'none',
           }}
         >
           {selectedCoin ? (
@@ -508,6 +566,25 @@ export default function AddCryptoModal({
               </div>
             </div>
           </div>
+
+          {/* Quick deposit */}
+          <div className="flex gap-1.5 flex-wrap mt-1">
+            {[100, 500, 1000, 5000].map(amt => (
+              <button
+                key={amt}
+                onClick={() => handleUsdAmountChange(String(amt))}
+                className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-all hover:opacity-90"
+                style={{
+                  background: 'rgba(150,237,214,0.10)',
+                  border: '1px solid rgba(150,237,214,0.25)',
+                  color: '#96EDD6',
+                  cursor: 'pointer',
+                }}
+              >
+                ${amt >= 1000 ? `${amt / 1000}k` : amt}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </>
@@ -515,13 +592,19 @@ export default function AddCryptoModal({
 
   // Action buttons
   const renderActionButtons = () => (
-    <div className="flex gap-3 mt-1">
+    <div className="mt-1">
+      <p className="text-[11px] mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
+        {recent.length > 0
+          ? <><span style={{ color: '#96EDD6', fontWeight: 800 }}>{recent.length}</span> added this session</>
+          : 'Add will not close the modal — keep going.'}
+      </p>
+      <div className="flex gap-3">
       <button
         onClick={handleClose}
         className="flex-1 rounded-xl transition-colors py-2 px-5 font-semibold text-[#96EDD6] border border-[#96EDD6]/30 hover:bg-[#96EDD6]/10"
         style={{ background: 'transparent' }}
       >
-        Cancel
+        {recent.length > 0 ? 'Done' : 'Cancel'}
       </button>
       <button
         onClick={handleAdd}
@@ -543,6 +626,7 @@ export default function AddCryptoModal({
       >
         Add Asset
       </button>
+    </div>
     </div>
   );
 
@@ -586,20 +670,40 @@ export default function AddCryptoModal({
           <div className="flex flex-col gap-3 pt-2.5">
             {mobileStep === 'select' ? (
               <div className="flex flex-col gap-3">
+                <div className="flex gap-1.5 flex-wrap">
+                  {CATEGORY_CHIPS.map(chip => {
+                    const isActive = activeChip === chip.id && !searchQuery;
+                    return (
+                      <button
+                        key={chip.id}
+                        onClick={() => { setActiveChip(chip.id); setSearchQuery(''); }}
+                        className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-all"
+                        style={{
+                          background: isActive ? 'rgba(150,237,214,0.14)' : 'rgba(255,255,255,0.04)',
+                          border: `1px solid ${isActive ? '#96EDD6' : 'rgba(255,255,255,0.12)'}`,
+                          color: isActive ? '#96EDD6' : 'rgba(255,255,255,0.55)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {chip.label}
+                      </button>
+                    );
+                  })}
+                </div>
                 <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#96EDD6]" />
                   <input
                     type="text"
                     placeholder="Search coin here"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pr-10 pl-4 py-3 rounded-xl text-white placeholder-white/40 placeholder:font-light placeholder:italic placeholder:tracking-tight focus:outline-none transition-colors h-11"
+                    className="w-full pl-9 pr-4 py-3 rounded-xl text-white placeholder-white/40 placeholder:font-light placeholder:italic placeholder:tracking-tight focus:outline-none transition-colors h-11"
                     style={{
                       background: 'rgba(255,255,255,0.06)',
                       border: '1px solid rgba(150,237,214,0.2)',
                       caretColor: '#96EDD6',
                     }}
                   />
-                  <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#96EDD6]" />
                 </div>
 
                 <div
@@ -659,20 +763,40 @@ export default function AddCryptoModal({
             style={{ height: 'clamp(320px, calc(55vh - 80px), 480px)' }}
           >
             <div className="flex-1 flex flex-col gap-3 basis-1/2">
+              <div className="flex gap-1.5 flex-wrap">
+                {CATEGORY_CHIPS.map(chip => {
+                  const isActive = activeChip === chip.id && !searchQuery;
+                  return (
+                    <button
+                      key={chip.id}
+                      onClick={() => { setActiveChip(chip.id); setSearchQuery(''); }}
+                      className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-all"
+                      style={{
+                        background: isActive ? 'rgba(150,237,214,0.14)' : 'rgba(255,255,255,0.04)',
+                        border: `1px solid ${isActive ? '#96EDD6' : 'rgba(255,255,255,0.12)'}`,
+                        color: isActive ? '#96EDD6' : 'rgba(255,255,255,0.55)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {chip.label}
+                    </button>
+                  );
+                })}
+              </div>
               <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#96EDD6]" />
                 <input
                   type="text"
                   placeholder="Search coin here"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pr-10 pl-4 py-3 rounded-xl text-white placeholder-white/40 placeholder:font-light placeholder:italic placeholder:tracking-tight focus:outline-none transition-colors h-11"
+                  className="w-full pl-9 pr-4 py-3 rounded-xl text-white placeholder-white/40 placeholder:font-light placeholder:italic placeholder:tracking-tight focus:outline-none transition-colors h-11"
                   style={{
                     background: 'rgba(255,255,255,0.06)',
                     border: '1px solid rgba(150,237,214,0.2)',
                     caretColor: '#96EDD6',
                   }}
                 />
-                <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#96EDD6]" />
               </div>
 
               <div
