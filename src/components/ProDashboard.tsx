@@ -163,8 +163,9 @@ function PortfolioTab() {
   const [priceError, setPriceError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const logoUrls = portfolio.map((c) => c.logo ?? null);
-  const coinColors = useDominantColors(logoUrls);
+  const coinColors = useDominantColors(
+    portfolio.map((c) => ({ coinId: c.coinId, symbol: c.name }))
+  );
 
   useEffect(() => {
     if (userData && Array.isArray(userData.cryptoPortfolio)) {
