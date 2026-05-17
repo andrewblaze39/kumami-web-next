@@ -696,7 +696,7 @@ export default function ProDashboard() {
             className="fixed inset-0 z-[1600] bg-black/60"
             onClick={() => setSidebarOpen(false)}
           />
-          <div className="fixed left-0 bottom-0 z-[1700] w-72" style={{ top: 'var(--header-h)', background: '#0a0a0f' }}>
+          <div className="fixed left-0 bottom-0 z-[1700] w-72" style={{ top: 'var(--navbar-h)', background: '#0a0a0f' }}>
             <Sidebar
               selectedTab={selectedTab}
               onTabChange={setSelectedTab}

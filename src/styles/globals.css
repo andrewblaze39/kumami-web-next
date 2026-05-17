@@ -1,9 +1,7 @@
 /* Base Styles */
 :root {
-  /* Layout: fixed header heights — update these if Navbar or CryptoTicker size changes */
+  /* Navbar height — update if Navbar padding/logo size changes */
   --navbar-h: 72px;
-  --ticker-h: 48px;
-  --header-h: calc(var(--navbar-h) + var(--ticker-h));
 
   --warning-color: #ffc107;
   --warning-bg: rgba(255, 193, 7, 0.1);
