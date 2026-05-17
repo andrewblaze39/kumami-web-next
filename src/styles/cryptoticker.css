@@ -11,7 +11,7 @@
   justify-content: center;
   border-top: 1px solid #222;
   border-bottom: 1px solid #222;
-  position: fixed;
+  position: sticky;
   top: var(--navbar-h);
   left: 0;
   right: 0;
@@ -44,8 +44,8 @@
   padding: 10px 0;
   overflow: hidden;
   width: 100%;
-  position: fixed;
-  top: var(--navbar-h); /* Position right below the navbar */
+  position: sticky;
+  top: var(--navbar-h);
   left: 0;
   right: 0;
   border-top: 1px solid #222;
