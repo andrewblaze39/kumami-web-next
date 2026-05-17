@@ -12,11 +12,11 @@ export async function GET(req: NextRequest) {
 
   const data = await response.json();
   // Return top 20 coins from search results, normalized to match CoinGeckoItem shape
-  const coins = (data.coins ?? []).slice(0, 20).map((c: { id: string; symbol: string; name: string; thumb: string; market_cap_rank: number }) => ({
+  const coins = (data.coins ?? []).slice(0, 20).map((c: { id: string; symbol: string; name: string; thumb: string; large: string; market_cap_rank: number }) => ({
     id: c.id,
     symbol: c.symbol,
     name: c.name,
-    image: c.thumb,
+    image: c.large || c.thumb,
     current_price: 0,       // unknown until selected
     price_change_percentage_24h: 0,
   }));

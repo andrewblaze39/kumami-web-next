@@ -681,7 +681,7 @@ export default function AddCryptoModal({
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#96EDD6]" />
                 <input
                   type="text"
-                  placeholder="Search coin here"
+                  placeholder="Search assets..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-4 py-3 rounded-xl text-white placeholder-white/40 placeholder:font-light placeholder:italic placeholder:tracking-tight focus:outline-none transition-colors h-11"
