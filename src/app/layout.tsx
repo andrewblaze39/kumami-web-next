@@ -48,7 +48,7 @@ export default function RootLayout({
           <NotificationProvider>
             <Navbar />
             <CryptoTicker />
-            <div className="pt-[112px]">
+            <div className="pt-[118px]">
               {children}
             </div>
           </NotificationProvider>
