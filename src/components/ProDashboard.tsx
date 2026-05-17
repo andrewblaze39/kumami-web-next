@@ -188,12 +188,14 @@ function PortfolioTab() {
       const pricesMap: Record<string, MarketPriceEntry> = {};
       (data as Array<{ symbol: string; current_price: number; price_change_percentage_24h: number; image: string; id: string }>).forEach(
         (coin) => {
-          pricesMap[coin.symbol.toUpperCase()] = {
+          const entry: MarketPriceEntry = {
             price: coin.current_price,
             change24h: coin.price_change_percentage_24h,
             image: coin.image,
             id: coin.id,
           };
+          pricesMap[coin.symbol.toUpperCase()] = entry;
+          pricesMap[coin.id] = entry;
         }
       );
       setMarketPrices(pricesMap);
@@ -213,7 +215,7 @@ function PortfolioTab() {
   useEffect(() => {
     if (Object.keys(marketPrices).length === 0 || portfolio.length === 0) return;
     const updatedPortfolio = portfolio.map((item) => {
-      const marketData = marketPrices[item.name];
+      const marketData = marketPrices[item.name] ?? marketPrices[item.coinId ?? ''];
       if (marketData) {
         return {
           ...item,
@@ -432,7 +434,7 @@ function PortfolioTab() {
           const coin = portfolio[hoveredSlice];
           const pct = totalValue > 0 ? ((coin.value / totalValue) * 100).toFixed(1) : '0.0';
           const isUp = (coin.change24h ?? 0) >= 0;
-          const priceKnown = !priceError && !isPriceLoading && !!marketPrices[coin.name];
+          const priceKnown = !priceError && !isPriceLoading && !!(marketPrices[coin.name] ?? marketPrices[coin.coinId ?? '']);
           return (
             <div
               style={{
@@ -570,7 +572,7 @@ function PortfolioTab() {
               const pct = totalValue > 0 ? ((item.value / totalValue) * 100).toFixed(1) : '0.0';
               const isUp = (item.change24h ?? 0) >= 0;
               const coinColor = coinColors[idx] ?? '#96EDD6';
-              const priceKnown = !priceError && !isPriceLoading && !!marketPrices[item.name];
+              const priceKnown = !priceError && !isPriceLoading && !!(marketPrices[item.name] ?? marketPrices[item.coinId ?? '']);
               return (
                 <div
                   key={idx}
