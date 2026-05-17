@@ -162,6 +162,7 @@ function PortfolioTab() {
   const [isPriceLoading, setIsPriceLoading] = useState(false);
   const [priceError, setPriceError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [hoveredSlice, setHoveredSlice] = useState<number | null>(null);
 
   const coinColors = useDominantColors(
     portfolio.map((c) => ({ coinId: c.coinId, symbol: c.name }))
@@ -304,6 +305,7 @@ function PortfolioTab() {
       {/* Hero card */}
       <div
         style={{
+          position: 'relative',
           background: 'linear-gradient(180deg, rgba(150,237,214,0.06), rgba(255,255,255,0.02))',
           border: '1px solid rgba(150,237,214,0.18)',
           borderRadius: 18,
@@ -371,7 +373,7 @@ function PortfolioTab() {
           {portfolio.length > 0 && (
             <div className="shrink-0">
               <div className="lg:hidden">
-                <DonutChart width={110} height={110} innerRadius={38} outerRadius={52} data={portfolio} colors={coinColors} noAnimation>
+                <DonutChart width={110} height={110} innerRadius={38} outerRadius={52} data={portfolio} colors={coinColors} noAnimation onSliceHover={setHoveredSlice}>
                   <div className="flex flex-col items-center justify-center">
                     <span className="text-[9px] font-bold text-white/50">Total</span>
                     <span className="text-[11px] font-black text-white">${formattedInt}</span>
@@ -379,7 +381,7 @@ function PortfolioTab() {
                 </DonutChart>
               </div>
               <div className="hidden lg:block">
-                <DonutChart width={150} height={150} innerRadius={54} outerRadius={70} data={portfolio} colors={coinColors}>
+                <DonutChart width={150} height={150} innerRadius={54} outerRadius={70} data={portfolio} colors={coinColors} onSliceHover={setHoveredSlice}>
                   <div className="flex flex-col items-center justify-center">
                     <span className="text-xs font-bold text-white/60">Total</span>
                     <span className="text-sm font-black text-white">${formattedInt}</span>
@@ -396,6 +398,51 @@ function PortfolioTab() {
             <KumaInline phase={1} />
           </div>
         )}
+
+        {/* Donut hover tooltip */}
+        {hoveredSlice !== null && portfolio[hoveredSlice] && (() => {
+          const coin = portfolio[hoveredSlice];
+          const pct = totalValue > 0 ? ((coin.value / totalValue) * 100).toFixed(1) : '0.0';
+          const isUp = (coin.change24h ?? 0) >= 0;
+          const priceKnown = !priceError && !isPriceLoading && !!marketPrices[coin.name];
+          return (
+            <div
+              style={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                background: 'rgba(10,10,15,0.95)',
+                border: '1px solid rgba(150,237,214,0.3)',
+                borderRadius: 10,
+                padding: '10px 14px',
+                pointerEvents: 'none',
+                zIndex: 50,
+                minWidth: 140,
+              }}
+            >
+              <div className="flex items-center gap-2 mb-1.5">
+                <img
+                  src={coin.logo || cryptoLogos[coin.name] || undefined}
+                  alt={coin.name}
+                  style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }}
+                />
+                <span style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>{coin.name}</span>
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.85)', fontFamily: 'ui-monospace, Menlo, monospace', marginBottom: 2 }}>
+                {priceKnown ? `$${coin.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '—'}
+              </div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginBottom: 2 }}>
+                {pct}% of portfolio
+              </div>
+              {priceKnown && (
+                <div className={`flex items-center gap-1 text-xs font-bold ${isUp ? 'text-green-400' : 'text-red-400'}`}>
+                  <Triangle size={6} fill="currentColor" className={!isUp ? 'rotate-180' : ''} />
+                  {Math.abs(coin.change24h ?? 0).toFixed(2)}% 24h
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Empty state */}

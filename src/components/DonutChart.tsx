@@ -30,6 +30,7 @@ interface DonutChartProps {
   cornerRadius?: number;
   noAnimation?: boolean;
   colors?: string[];
+  onSliceHover?: (index: number | null) => void;
 }
 
 export default function DonutChart({
@@ -44,6 +45,7 @@ export default function DonutChart({
   cornerRadius = 4,
   noAnimation = false,
   colors,
+  onSliceHover,
 }: DonutChartProps) {
   return (
     <div style={{ position: 'relative', width, height }}>
@@ -62,6 +64,8 @@ export default function DonutChart({
           paddingAngle={3}
           cornerRadius={cornerRadius}
           isAnimationActive={!noAnimation}
+          onMouseEnter={(_: unknown, index: number) => onSliceHover?.(index)}
+          onMouseLeave={() => onSliceHover?.(null)}
         >
           {data.map((_, index) => {
             const resolvedColors = colors ?? CHART_COLORS;
