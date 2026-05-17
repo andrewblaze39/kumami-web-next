@@ -29,6 +29,7 @@ interface DonutChartProps {
   dimOpacity?: number;
   cornerRadius?: number;
   noAnimation?: boolean;
+  colors?: string[];
 }
 
 export default function DonutChart({
@@ -42,6 +43,7 @@ export default function DonutChart({
   dimOpacity = 0.25,
   cornerRadius = 4,
   noAnimation = false,
+  colors,
 }: DonutChartProps) {
   return (
     <div style={{ position: 'relative', width, height }}>
@@ -61,11 +63,14 @@ export default function DonutChart({
           cornerRadius={cornerRadius}
           isAnimationActive={!noAnimation}
         >
-          {data.map((_, index) => (
+          {data.map((_, index) => {
+            const resolvedColors = colors ?? CHART_COLORS;
+            const color = resolvedColors[index % resolvedColors.length];
+            return (
             <Cell
               key={`slice-${index}`}
-              fill={CHART_COLORS[index % CHART_COLORS.length]}
-              stroke={CHART_COLORS[index % CHART_COLORS.length]}
+              fill={color}
+              stroke={color}
               fillOpacity={
                 highlightIndex === null || highlightIndex === undefined
                   ? 1
@@ -81,7 +86,8 @@ export default function DonutChart({
                   : dimOpacity
               }
             />
-          ))}
+            );
+          })}
         </Pie>
       </PieChart>
       {children ? (

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useDominantColors } from '@/hooks/useDominantColors';
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
@@ -161,6 +162,9 @@ function PortfolioTab() {
   const [isPriceLoading, setIsPriceLoading] = useState(false);
   const [priceError, setPriceError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const logoUrls = portfolio.map((c) => c.logo ?? null);
+  const coinColors = useDominantColors(logoUrls);
 
   useEffect(() => {
     if (userData && Array.isArray(userData.cryptoPortfolio)) {
@@ -412,7 +416,7 @@ function PortfolioTab() {
         {/* Donut chart — right column, desktop only */}
         {portfolio.length > 0 && (
           <div className="max-lg:hidden">
-            <DonutChart width={150} height={150} innerRadius={54} outerRadius={70} data={portfolio}>
+            <DonutChart width={150} height={150} innerRadius={54} outerRadius={70} data={portfolio} colors={coinColors}>
               <div className="flex flex-col items-center justify-center">
                 <span className="text-xs font-bold text-white/60">Total</span>
                 <span className="text-sm font-black text-white">${formattedInt}</span>
@@ -494,6 +498,7 @@ function PortfolioTab() {
             {portfolio.map((item, idx) => {
               const pct = totalValue > 0 ? ((item.value / totalValue) * 100).toFixed(1) : '0.0';
               const isUp = (item.change24h ?? 0) >= 0;
+              const coinColor = coinColors[idx] ?? '#96EDD6';
               return (
                 <div
                   key={idx}
@@ -530,8 +535,8 @@ function PortfolioTab() {
                       <span
                         className="text-[10px] font-bold px-1.5 py-0.5 rounded"
                         style={{
-                          background: 'rgba(150,237,214,0.12)',
-                          color: '#96EDD6',
+                          background: `${coinColor}22`,
+                          color: coinColor,
                         }}
                       >
                         {pct}%
