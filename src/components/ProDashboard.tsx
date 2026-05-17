@@ -212,6 +212,29 @@ function PortfolioTab() {
     fetchMarketPrices();
   }, [fetchMarketPrices]);
 
+  // Fetch prices for any portfolio coins not covered by the top-100 market fetch
+  useEffect(() => {
+    if (Object.keys(marketPrices).length === 0 || portfolio.length === 0) return;
+    const missing = portfolio.filter(c => c.coinId && !marketPrices[c.coinId] && !marketPrices[c.name]);
+    if (missing.length === 0) return;
+    const ids = missing.map(c => c.coinId).join(',');
+    fetch(`/api/coingecko/markets?ids=${ids}&per_page=${missing.length}`)
+      .then(r => r.ok ? r.json() : [])
+      .then((data: Array<{ symbol: string; current_price: number; price_change_percentage_24h: number; image: string; id: string }>) => {
+        if (!Array.isArray(data) || data.length === 0) return;
+        setMarketPrices(prev => {
+          const next = { ...prev };
+          data.forEach(coin => {
+            const entry = { price: coin.current_price, change24h: coin.price_change_percentage_24h, image: coin.image, id: coin.id };
+            next[coin.symbol.toUpperCase()] = entry;
+            next[coin.id] = entry;
+          });
+          return next;
+        });
+      })
+      .catch(() => {});
+  }, [marketPrices, portfolio]);
+
   useEffect(() => {
     if (Object.keys(marketPrices).length === 0 || portfolio.length === 0) return;
     const updatedPortfolio = portfolio.map((item) => {
@@ -233,6 +256,21 @@ function PortfolioTab() {
 
   const handleAddCrypto = async (newCrypto: PortfolioCoin, existingCoin?: PortfolioCoin) => {
     if (!currentUser) return;
+    // If this coin isn't in our price map yet, fetch it and merge it in
+    if (newCrypto.coinId && !marketPrices[newCrypto.coinId] && !marketPrices[newCrypto.name]) {
+      try {
+        const res = await fetch(`/api/coingecko/markets?ids=${newCrypto.coinId}&per_page=1`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data[0]) {
+            const coin = data[0];
+            const entry = { price: coin.current_price, change24h: coin.price_change_percentage_24h, image: coin.image, id: coin.id };
+            setMarketPrices(prev => ({ ...prev, [coin.symbol.toUpperCase()]: entry, [coin.id]: entry }));
+            newCrypto = { ...newCrypto, pricePerUnit: coin.current_price, value: newCrypto.unitNum * coin.current_price };
+          }
+        }
+      } catch { /* ignore, proceed with existing price */ }
+    }
     try {
       const userDocRef = doc(db, 'users', currentUser.uid);
       const userDoc = await getDoc(userDocRef);
