@@ -66,6 +66,7 @@ export default function AddCryptoModal({
   const [isMobile, setIsMobile] = useState(false);
   const [recent, setRecent] = useState<Array<{ coinId: string; symbol: string; logo: string | null }>>([]);
   const [pulse, setPulse] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const [activeChip, setActiveChip] = useState<string>('all');
 
   useEffect(() => {
@@ -186,6 +187,7 @@ export default function AddCryptoModal({
       return;
     }
     if (!selectedCoin || !cryptoAmount || parseFloat(cryptoAmount) <= 0) return;
+    setIsAdding(true);
     const newCoin: PortfolioCoin = {
       name: selectedCoin.symbol.toUpperCase(),
       coinId: selectedCoin.id,
@@ -204,7 +206,7 @@ export default function AddCryptoModal({
     setCryptoAmount('');
     setUsdAmount('');
     setPulse(true);
-    setTimeout(() => setPulse(false), 600);
+    setTimeout(() => { setPulse(false); setIsAdding(false); }, 400);
     // DO NOT call handleClose()
   };
 
@@ -220,6 +222,7 @@ export default function AddCryptoModal({
     setMobileStep('select');
     setRecent([]);
     setActiveChip('all');
+    setIsAdding(false);
     onClose();
   };
 
@@ -620,7 +623,8 @@ export default function AddCryptoModal({
               !cryptoAmount ||
               !usdAmount ||
               parseFloat(cryptoAmount) <= 0 ||
-              parseFloat(usdAmount) <= 0
+              parseFloat(usdAmount) <= 0 ||
+              isAdding
         }
         className="flex-1 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed py-2 px-5 font-semibold bg-[#96EDD6] text-[#0a0a0f]"
       >
