@@ -409,14 +409,14 @@ function PortfolioTab() {
 
         {/* Kuma mascot — middle column, desktop only */}
         {portfolio.length > 0 && (
-          <div className="max-lg:hidden flex justify-center">
+          <div className="hidden lg:flex justify-center">
             <KumaInline phase={1} />
           </div>
         )}
 
         {/* Donut chart — right column, desktop only */}
         {portfolio.length > 0 && (
-          <div className="max-lg:hidden">
+          <div className="hidden lg:block">
             <DonutChart width={150} height={150} innerRadius={54} outerRadius={70} data={portfolio} colors={coinColors}>
               <div className="flex flex-col items-center justify-center">
                 <span className="text-xs font-bold text-white/60">Total</span>
@@ -426,6 +426,21 @@ function PortfolioTab() {
           </div>
         )}
       </div>
+
+      {/* Mobile-only: donut + Kuma row */}
+      {portfolio.length > 0 && (
+        <div className="lg:hidden flex items-center gap-3 mb-5">
+          <DonutChart width={110} height={110} innerRadius={38} outerRadius={52} data={portfolio} colors={coinColors} noAnimation>
+            <div className="flex flex-col items-center justify-center">
+              <span className="text-[9px] font-bold text-white/50">Total</span>
+              <span className="text-xs font-black text-white">${formattedInt}</span>
+            </div>
+          </DonutChart>
+          <div className="flex-1 min-w-0">
+            <KumaInline phase={1} />
+          </div>
+        </div>
+      )}
 
       {/* Empty state */}
       {portfolio.length === 0 && (
@@ -504,12 +519,9 @@ function PortfolioTab() {
                 <div
                   key={idx}
                   onClick={() => handleCoinClick(item)}
-                  className="cursor-pointer rounded-xl transition-all"
+                  className="cursor-pointer rounded-xl transition-all grid items-center grid-cols-[auto_1fr_auto] md:grid-cols-[40px_1.4fr_1fr_1fr_1fr_36px]"
                   style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'auto 1.4fr 1fr 1fr 1fr 36px',
                     gap: 12,
-                    alignItems: 'center',
                     padding: '12px 14px',
                     background: 'rgba(255,255,255,0.03)',
                     border: '1px solid rgba(255,255,255,0.08)',
@@ -579,17 +591,27 @@ function PortfolioTab() {
                     />
                     {Math.abs(item.change24h ?? 0).toFixed(2)}%
                   </div>
-                  {/* Value */}
-                  <div
-                    className="text-right"
-                    style={{
-                      fontFamily: 'ui-monospace, Menlo, monospace',
-                      fontWeight: 800,
-                      fontSize: 15,
-                      color: '#fff',
-                    }}
-                  >
-                    ${item.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  {/* Value + mobile 24h */}
+                  <div className="text-right">
+                    <div
+                      style={{
+                        fontFamily: 'ui-monospace, Menlo, monospace',
+                        fontWeight: 800,
+                        fontSize: 15,
+                        color: '#fff',
+                      }}
+                    >
+                      ${item.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    </div>
+                    <div
+                      className={cn(
+                        'md:hidden flex items-center justify-end gap-0.5 text-[11px] font-bold mt-0.5',
+                        isUp ? 'text-green-400' : 'text-red-400'
+                      )}
+                    >
+                      <Triangle size={5} fill="currentColor" className={cn(!isUp && 'rotate-180')} />
+                      {Math.abs(item.change24h ?? 0).toFixed(2)}%
+                    </div>
                   </div>
                   {/* Action dot */}
                   <button
