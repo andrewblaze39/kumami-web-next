@@ -10,6 +10,7 @@ import CustomDropdown from '@/components/CustomDropdown';
 import AddCryptoModal from '@/components/AddCryptoModal';
 import EditCryptoModal from '@/components/EditCryptoModal';
 import AlphaRoom from '@/components/AlphaRoom';
+import KumaInline from '@/components/portfolio/KumaInline';
 import MarketAnalysis from '@/components/MarketAnalysis';
 import KumaAIChatTab from '@/components/KumaAIChatTab';
 import {
@@ -297,134 +298,163 @@ function PortfolioTab() {
 
   return (
     <>
-      <div className="flex flex-col lg:flex-row py-4 lg:py-6 px-4 items-start gap-4 w-full bg-black/20 rounded-xl">
-        <div className="flex w-full lg:basis-1/3 justify-center">
-          {portfolio.length === 0 ? (
-            <div className="flex flex-col items-center justify-center w-full min-h-[260px] lg:min-h-[480px] bg-[#102425]/50 rounded-xl">
-              <div className="flex flex-col items-center justify-center gap-4 p-6 text-center">
-                <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-[#96EDD6]/20 flex items-center justify-center">
-                  <CirclePlus className="h-8 w-8 lg:h-10 lg:w-10 text-[#96EDD6]" />
-                </div>
-                <h3 className="text-xl lg:text-2xl font-bold text-white">
-                  Your portfolio is empty
-                </h3>
-                <p className="text-white/70 max-w-xs text-sm lg:text-base">
-                  Add coins to your portfolio to see your investments visualized here with detailed
-                  analytics.
-                </p>
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="px-4 py-2 bg-[#96EDD6] text-[#102425] font-bold rounded-lg hover:bg-[#96EDD6]/90 transition-colors flex items-center gap-2"
-                >
-                  <CirclePlus className="h-4 w-4" />
-                  Add Your First Coin
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* Mobile donut */}
-              <div className="flex lg:hidden">
-                <DonutChart
-                  width={280}
-                  height={280}
-                  innerRadius={108}
-                  outerRadius={130}
-                  data={portfolio}
-                >
-                  <div className="flex flex-col items-center justify-center gap-1">
-                    <div className="flex text-white font-semibold leading-none items-center">
-                      <span className="text-xl mr-1">$</span>
-                      <span className="text-xl">{formattedInt}</span>
-                      {fracPart !== '00' && (
-                        <>
-                          <span className="text-xl self-end">.</span>
-                          <span className="text-base self-end">{fracPart}</span>
-                        </>
-                      )}
-                    </div>
-                    <div
-                      className={cn(
-                        'flex items-center justify-center gap-1 text-[#22FFB5] text-xs font-semibold',
-                        !isIncrease && 'text-red-500'
-                      )}
-                    >
-                      {isIncrease ? <Triangle size={6} fill="#22FFB5" /> : '-'}$
-                      {formattedDeltaValue} ({increaseInPercent}%)
-                    </div>
-                  </div>
-                </DonutChart>
-              </div>
-              {/* Desktop donut */}
-              <div className="hidden lg:flex">
-                <DonutChart width={480} height={480} data={portfolio}>
-                  <div className="flex flex-col items-center justify-center gap-1">
-                    <div className="flex text-white font-semibold leading-none items-center">
-                      <span className="text-3xl mr-1">$</span>
-                      <span className="text-3xl">{formattedInt}</span>
-                      {fracPart !== '00' && (
-                        <>
-                          <span className="text-3xl self-end">.</span>
-                          <span className="text-xl self-end">{fracPart}</span>
-                        </>
-                      )}
-                    </div>
-                    <div
-                      className={cn(
-                        'flex items-center justify-center gap-1 text-[#22FFB5] text-[15px] font-semibold',
-                        !isIncrease && 'text-red-500'
-                      )}
-                    >
-                      {isIncrease ? <Triangle size={8} fill="#22FFB5" /> : '-'}$
-                      {formattedDeltaValue} ({increaseInPercent}%)
-                    </div>
-                  </div>
-                </DonutChart>
-              </div>
-            </>
-          )}
+      {/* Hero card — Total balance | Kuma | Donut */}
+      <div
+        style={{
+          background: 'linear-gradient(180deg, rgba(150,237,214,0.06), rgba(255,255,255,0.02))',
+          border: '1px solid rgba(150,237,214,0.18)',
+          borderRadius: 18,
+          padding: '22px',
+          display: 'grid',
+          gridTemplateColumns: portfolio.length > 0 ? 'minmax(0,1fr) minmax(0,1fr) auto' : '1fr',
+          gap: 18,
+          alignItems: 'center',
+          marginBottom: 20,
+        }}
+        className="max-lg:!grid-cols-1 max-lg:!gap-3"
+      >
+        {/* Balance + actions */}
+        <div>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 800,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: 'rgba(255,255,255,0.40)',
+              marginBottom: 6,
+            }}
+          >
+            Total balance
+          </div>
+          <div
+            style={{
+              fontSize: 42,
+              fontWeight: 800,
+              color: '#fff',
+              fontFamily: 'ui-monospace, Menlo, monospace',
+              letterSpacing: '-0.02em',
+              lineHeight: 1,
+            }}
+            className="max-lg:!text-[34px]"
+          >
+            ${formattedInt}
+            {fracPart !== '00' && (
+              <span style={{ fontSize: 24, opacity: 0.6 }}>.{fracPart}</span>
+            )}
+          </div>
+          <div
+            className="flex items-center gap-2 mt-2"
+            style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)' }}
+          >
+            <span
+              className={cn(
+                'flex items-center gap-1 font-bold text-sm',
+                isIncrease ? 'text-green-400' : 'text-red-400'
+              )}
+            >
+              <Triangle
+                size={8}
+                fill="currentColor"
+                className={cn(!isIncrease && 'rotate-180')}
+              />
+              {increaseInPercent}%
+            </span>
+            <span
+              style={{
+                fontFamily: 'ui-monospace, Menlo, monospace',
+                fontWeight: 700,
+                color: isIncrease ? '#4ade80' : '#f87171',
+              }}
+            >
+              {isIncrease ? '+' : '-'}${formattedDeltaValue}
+            </span>
+            <span style={{ color: 'rgba(255,255,255,0.40)' }}>· last 24h</span>
+          </div>
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl font-semibold text-sm"
+              style={{
+                background: '#96EDD6',
+                color: '#0a0a0f',
+                padding: '10px 18px',
+                boxShadow: '0 0 16px rgba(150,237,214,0.3)',
+              }}
+            >
+              <CirclePlus size={16} /> Add Asset
+            </button>
+            <button
+              onClick={fetchMarketPrices}
+              disabled={isPriceLoading}
+              className="inline-flex items-center gap-1.5 rounded-xl font-semibold text-sm disabled:opacity-50"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                color: '#96EDD6',
+                border: '1px solid rgba(150,237,214,0.3)',
+                padding: '10px 18px',
+              }}
+            >
+              <RefreshCw size={14} className={isPriceLoading ? 'animate-spin' : ''} />
+              {isPriceLoading ? 'Updating…' : 'Refresh'}
+            </button>
+            {priceError && <span className="text-xs text-red-400 self-center">Price update failed</span>}
+          </div>
         </div>
 
-        <div className="flex flex-col w-full lg:basis-2/3 h-auto lg:h-[450px]">
-          <div
-            className="flex items-center justify-between flex-wrap gap-3 w-full pt-2 lg:pt-12 pb-4"
-            style={{ borderBottom: '1px solid rgba(255,255,255,0.10)' }}
-          >
-            <div className="flex flex-wrap gap-2 items-center">
-              <p className="text-xl lg:text-3xl font-black mb-0">Portfolio</p>
-              <button
-                type="button"
-                aria-label="Add Asset"
-                className="inline-flex items-center gap-1.5 transition-colors rounded-xl text-sm font-semibold"
-                style={{
-                  background: '#96EDD6',
-                  color: '#0a0a0f',
-                  padding: '8px 16px',
-                  boxShadow: '0 0 12px rgba(150,237,214,0.2)',
-                }}
-                onClick={() => setIsModalOpen(true)}
-              >
-                <span className="text-base leading-none font-bold">+</span>
-                Add Asset
-              </button>
-              <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 10, display: 'inline-flex' }}>
-                <button
-                  onClick={fetchMarketPrices}
-                  disabled={isPriceLoading}
-                  className="inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-[10px] text-sm font-semibold text-[#96EDD6] hover:bg-[#96EDD6]/10"
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid rgba(150,237,214,0.3)',
-                    padding: '8px 16px',
-                  }}
-                >
-                  <RefreshCw size={14} className={isPriceLoading ? 'animate-spin' : ''} />
-                  {isPriceLoading ? 'Updating...' : 'Refresh Prices'}
-                </button>
+        {/* Kuma mascot — middle column, desktop only */}
+        {portfolio.length > 0 && (
+          <div className="max-lg:hidden flex justify-center">
+            <KumaInline phase={1} />
+          </div>
+        )}
+
+        {/* Donut chart — right column, desktop only */}
+        {portfolio.length > 0 && (
+          <div className="max-lg:hidden">
+            <DonutChart width={150} height={150} innerRadius={54} outerRadius={70} data={portfolio}>
+              <div className="flex flex-col items-center justify-center">
+                <span className="text-xs font-bold text-white/60">Total</span>
+                <span className="text-sm font-black text-white">${formattedInt}</span>
               </div>
-              {priceError && <span className="text-xs text-red-400">Price update failed</span>}
-            </div>
-            <div className="flex items-center">
+            </DonutChart>
+          </div>
+        )}
+      </div>
+
+      {/* Empty state */}
+      {portfolio.length === 0 && (
+        <div className="flex flex-col items-center justify-center min-h-[240px] rounded-xl"
+          style={{ background: 'rgba(150,237,214,0.03)', border: '1px solid rgba(150,237,214,0.1)' }}>
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+            style={{ background: 'rgba(150,237,214,0.1)' }}>
+            <CirclePlus size={32} color="#96EDD6" />
+          </div>
+          <h3 className="text-xl font-bold text-white mb-1">Your portfolio is empty</h3>
+          <p className="text-white/50 text-sm mb-4 text-center max-w-xs">
+            Add coins to start tracking your portfolio.
+          </p>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-5 py-2.5 rounded-xl font-bold text-sm"
+            style={{ background: '#96EDD6', color: '#0a0a0f' }}
+          >
+            Add Your First Coin
+          </button>
+        </div>
+      )}
+
+      {/* Holdings */}
+      {portfolio.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3 px-1">
+            <h3 className="text-base font-black text-white m-0">
+              Holdings{' '}
+              <span style={{ color: 'rgba(255,255,255,0.40)', fontWeight: 600 }}>
+                {portfolio.length}
+              </span>
+            </h3>
+            <div className="flex items-center gap-2">
               <CustomDropdown
                 value={metric}
                 onChange={setMetric}
@@ -439,98 +469,150 @@ function PortfolioTab() {
             </div>
           </div>
 
-          <div className="relative max-h-[400px] lg:flex-1 lg:max-h-none overflow-y-scroll pr-2 lg:pr-4">
-            {portfolio.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center py-12 px-4">
-                <p className="text-white/70 text-center mb-4">
-                  Your portfolio list is currently empty. Click the &quot;+&quot; button above to
-                  add cryptocurrencies to your portfolio.
-                </p>
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="px-4 py-2 bg-[#96EDD6] text-[#102425] font-bold rounded-lg hover:bg-[#96EDD6]/90 transition-colors flex items-center gap-2"
+          {/* Desktop column headers */}
+          <div
+            className="hidden md:grid px-4 mb-1"
+            style={{
+              gridTemplateColumns: '40px 1.4fr 1fr 1fr 1fr 36px',
+              gap: 12,
+              fontSize: 10,
+              fontWeight: 700,
+              color: 'rgba(255,255,255,0.40)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}
+          >
+            <span />
+            <span>Asset</span>
+            <span style={{ textAlign: 'right' }}>Price</span>
+            <span style={{ textAlign: 'right' }}>24h</span>
+            <span style={{ textAlign: 'right' }}>Value</span>
+            <span />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            {portfolio.map((item, idx) => {
+              const pct = totalValue > 0 ? ((item.value / totalValue) * 100).toFixed(1) : '0.0';
+              const isUp = (item.change24h ?? 0) >= 0;
+              return (
+                <div
+                  key={idx}
+                  onClick={() => handleCoinClick(item)}
+                  className="cursor-pointer rounded-xl transition-all"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'auto 1.4fr 1fr 1fr 1fr 36px',
+                    gap: 12,
+                    alignItems: 'center',
+                    padding: '12px 14px',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLDivElement).style.border = '1px solid rgba(150,237,214,0.18)';
+                    (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.06)';
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLDivElement).style.border = '1px solid rgba(255,255,255,0.08)';
+                    (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.03)';
+                  }}
                 >
-                  <CirclePlus className="h-4 w-4" />
-                  Add Cryptocurrency
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {portfolio.map((item, idx) => (
-                  <div key={idx} className="rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <DonutChart
-                        width={76}
-                        height={76}
-                        innerRadius={28}
-                        outerRadius={34}
-                        data={portfolio}
-                        highlightIndex={idx}
-                        dimOpacity={0.2}
-                        cornerRadius={1}
+                  {/* Logo */}
+                  <img
+                    src={item.logo || cryptoLogos[item.name] || ''}
+                    alt={item.name}
+                    className="w-9 h-9 rounded-full object-cover"
+                  />
+                  {/* Name + allocation */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="font-black text-white text-[15px]">{item.name}</span>
+                      <span
+                        className="text-[10px] font-bold px-1.5 py-0.5 rounded"
+                        style={{
+                          background: 'rgba(150,237,214,0.12)',
+                          color: '#96EDD6',
+                        }}
                       >
-                        <img
-                          src={item.logo || cryptoLogos[item.name] || ''}
-                          alt={item.name}
-                          loading="lazy"
-                          className="w-[38px] h-[38px] rounded-full object-cover"
-                        />
-                      </DonutChart>
-                      <div className="flex flex-col flex-1">
-                        <div
-                          className="flex items-center justify-between cursor-pointer hover:bg-[#96EDD6]/10 rounded-md px-1 gap-2"
-                          onClick={() => handleCoinClick(item)}
-                        >
-                          <span className="text-2xl font-extrabold text-white">{item.name}</span>
-                          <span className="text-lg font-bold text-white">
-                            ${item.value.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <div className="flex items-center">
-                            <span className="font-semibold text-[10px] text-white mr-2">
-                              {totalValue > 0
-                                ? ((item.value / totalValue) * 100).toFixed(2)
-                                : '0.00'}
-                              %
-                            </span>
-                            {item.change24h !== undefined && (
-                              <span
-                                className={`font-semibold text-[10px] flex items-center ${
-                                  item.change24h >= 0 ? 'text-green-400' : 'text-red-400'
-                                }`}
-                              >
-                                {item.change24h >= 0 ? '+' : ''}
-                                {item.change24h?.toFixed(2)}%
-                              </span>
-                            )}
-                          </div>
-                          <span className="font-semibold text-[10px] text-white">{`${item.unitNum
-                            .toFixed(9)
-                            .replace(/\.?0+$/, '')} ${item.name}`}</span>
-                        </div>
-                      </div>
+                        {pct}%
+                      </span>
+                    </div>
+                    <div
+                      className="text-[11px]"
+                      style={{
+                        color: 'rgba(255,255,255,0.65)',
+                        fontFamily: 'ui-monospace, Menlo, monospace',
+                      }}
+                    >
+                      {item.unitNum.toFixed(9).replace(/\.?0+$/, '')} {item.name}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-            {lastUpdated && (
-              <div className="w-full text-center mt-4 pb-2">
-                <span className="text-xs text-white/70">
-                  Prices last updated: {lastUpdated.toLocaleTimeString()}
-                  {isPriceLoading && (
-                    <span className="ml-2 text-[#96EDD6]">
-                      <RefreshCw size={10} className="inline animate-spin mr-1" />
-                      Updating...
-                    </span>
-                  )}
-                </span>
-              </div>
-            )}
+                  {/* Price */}
+                  <div
+                    className="text-right hidden md:block"
+                    style={{
+                      fontFamily: 'ui-monospace, Menlo, monospace',
+                      fontWeight: 700,
+                      fontSize: 13,
+                      color: 'rgba(255,255,255,0.8)',
+                    }}
+                  >
+                    ${item.pricePerUnit.toLocaleString()}
+                  </div>
+                  {/* 24h */}
+                  <div
+                    className={cn(
+                      'text-right hidden md:flex items-center justify-end gap-1 text-sm font-bold',
+                      isUp ? 'text-green-400' : 'text-red-400'
+                    )}
+                  >
+                    <Triangle
+                      size={6}
+                      fill="currentColor"
+                      className={cn(!isUp && 'rotate-180')}
+                    />
+                    {Math.abs(item.change24h ?? 0).toFixed(2)}%
+                  </div>
+                  {/* Value */}
+                  <div
+                    className="text-right"
+                    style={{
+                      fontFamily: 'ui-monospace, Menlo, monospace',
+                      fontWeight: 800,
+                      fontSize: 15,
+                      color: '#fff',
+                    }}
+                  >
+                    ${item.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  </div>
+                  {/* Action dot */}
+                  <button
+                    onClick={e => { e.stopPropagation(); handleCoinClick(item); }}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center hidden md:flex"
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'rgba(255,255,255,0.40)',
+                      cursor: 'pointer',
+                      fontSize: 16,
+                    }}
+                  >
+                    ⋯
+                  </button>
+                </div>
+              );
+            })}
           </div>
+
+          {lastUpdated && (
+            <div className="text-center mt-3">
+              <span className="text-[11px] text-white/40">
+                Prices updated {lastUpdated.toLocaleTimeString()}
+              </span>
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
       <AddCryptoModal
         isOpen={isModalOpen}
