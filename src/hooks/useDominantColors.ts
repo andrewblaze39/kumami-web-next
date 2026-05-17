@@ -13,14 +13,25 @@ function rgbSaturation(r: number, g: number, b: number): number {
 }
 
 // Extract dominant vibrant color from an image URL via canvas sampling.
-// Falls back to `fallback` if image can't be read or has no vibrant pixels.
+// Uses fetch() → blob URL to bypass browser's cached non-CORS image responses,
+// which would taint the canvas and cause getImageData to throw.
 async function extractDominantColor(
   url: string,
   fallback: string
 ): Promise<string> {
+  let objectUrl: string | null = null;
+  try {
+    const res = await fetch(url, { mode: 'cors' });
+    if (!res.ok) return fallback;
+    const blob = await res.blob();
+    objectUrl = URL.createObjectURL(blob);
+  } catch {
+    return fallback;
+  }
+
   return new Promise((resolve) => {
+    const cleanup = () => { if (objectUrl) URL.revokeObjectURL(objectUrl!); };
     const img = new Image();
-    img.crossOrigin = 'anonymous';
     img.onload = () => {
       try {
         const size = 16;
@@ -28,7 +39,7 @@ async function extractDominantColor(
         canvas.width = size;
         canvas.height = size;
         const ctx = canvas.getContext('2d');
-        if (!ctx) { resolve(fallback); return; }
+        if (!ctx) { cleanup(); resolve(fallback); return; }
         ctx.drawImage(img, 0, 0, size, size);
         const { data } = ctx.getImageData(0, 0, size, size);
 
@@ -43,17 +54,19 @@ async function extractDominantColor(
           rSum += r; gSum += g; bSum += b; count++;
         }
 
+        cleanup();
         if (count === 0) { resolve(fallback); return; }
         const r = Math.round(rSum / count);
         const g = Math.round(gSum / count);
         const b = Math.round(bSum / count);
         resolve(`rgb(${r},${g},${b})`);
       } catch {
+        cleanup();
         resolve(fallback);
       }
     };
-    img.onerror = () => resolve(fallback);
-    img.src = url;
+    img.onerror = () => { cleanup(); resolve(fallback); };
+    img.src = objectUrl!;
   });
 }
 
