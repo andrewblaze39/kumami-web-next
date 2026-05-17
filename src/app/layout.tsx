@@ -47,10 +47,9 @@ export default function RootLayout({
         <AuthProvider>
           <NotificationProvider>
             <Navbar />
-            <div style={{ paddingTop: 'var(--navbar-h)' }}>
-              <CryptoTicker />
-              {children}
-            </div>
+            <div style={{ height: 'var(--navbar-h)' }} aria-hidden="true" />
+            <CryptoTicker />
+            {children}
           </NotificationProvider>
         </AuthProvider>
       </body>
