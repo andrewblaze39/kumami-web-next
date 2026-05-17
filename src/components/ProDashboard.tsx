@@ -7,7 +7,6 @@ import { db } from '@/lib/firebase';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { cn } from '@/utils/cn';
 import DonutChart from '@/components/DonutChart';
-import CustomDropdown from '@/components/CustomDropdown';
 import AddCryptoModal from '@/components/AddCryptoModal';
 import EditCryptoModal from '@/components/EditCryptoModal';
 import AlphaRoom from '@/components/AlphaRoom';
@@ -35,6 +34,8 @@ interface PortfolioCoin {
   logo: string | null;
   pricePerUnit: number;
   change24h?: number;
+  addedAt?: number;
+  addedValue?: number;
 }
 
 interface MarketPriceEntry {
@@ -154,7 +155,6 @@ function Sidebar({
 function PortfolioTab() {
   const { currentUser, userData } = useAuth();
   const [portfolio, setPortfolio] = useState<PortfolioCoin[]>([]);
-  const [metric, setMetric] = useState('total');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedCoin, setSelectedCoin] = useState<PortfolioCoin | null>(null);
@@ -163,6 +163,7 @@ function PortfolioTab() {
   const [priceError, setPriceError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [hoveredSlice, setHoveredSlice] = useState<number | null>(null);
+  const [sortBy, setSortBy] = useState<'value' | 'name' | 'date'>('value');
 
   const coinColors = useDominantColors(
     portfolio.map((c) => ({ coinId: c.coinId, symbol: c.name }))
@@ -245,18 +246,29 @@ function PortfolioTab() {
             unitNum: updatedUnitNum,
             value: updatedUnitNum * newCrypto.pricePerUnit,
             pricePerUnit: newCrypto.pricePerUnit,
+            // preserve existing addedAt/addedValue — do NOT overwrite on subsequent adds
           };
           const updatedPortfolio = [...currentPortfolio];
           updatedPortfolio[existingIndex] = updatedCoin;
           await updateDoc(userDocRef, { cryptoPortfolio: updatedPortfolio });
           setPortfolio(updatedPortfolio);
         } else {
-          const updatedPortfolio = [...currentPortfolio, newCrypto];
+          const coinWithTimestamp = {
+            ...newCrypto,
+            addedAt: Date.now(),
+            addedValue: newCrypto.value,
+          };
+          const updatedPortfolio = [...currentPortfolio, coinWithTimestamp];
           await updateDoc(userDocRef, { cryptoPortfolio: updatedPortfolio });
           setPortfolio(updatedPortfolio);
         }
       } else {
-        const updatedPortfolio = [...currentPortfolio, newCrypto];
+        const coinWithTimestamp = {
+          ...newCrypto,
+          addedAt: Date.now(),
+          addedValue: newCrypto.value,
+        };
+        const updatedPortfolio = [...currentPortfolio, coinWithTimestamp];
         await updateDoc(userDocRef, { cryptoPortfolio: updatedPortfolio });
         setPortfolio(updatedPortfolio);
       }
@@ -477,18 +489,30 @@ function PortfolioTab() {
                 {portfolio.length}
               </span>
             </h3>
-            <div className="flex items-center gap-2">
-              <CustomDropdown
-                value={metric}
-                onChange={setMetric}
-                label="Sort by"
-                options={[
-                  { value: 'total', label: 'Total Value' },
-                  { value: 'name', label: 'Name' },
-                  { value: 'profit', label: 'Profit' },
-                  { value: 'loss', label: 'Loss' },
-                ]}
-              />
+            <div className="flex items-center gap-1.5">
+              {([
+                { key: 'value', label: 'Value' },
+                { key: 'name', label: 'Name' },
+                { key: 'date', label: 'Date Added' },
+              ] as { key: 'value' | 'name' | 'date'; label: string }[]).map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setSortBy(key)}
+                  style={{
+                    background: sortBy === key ? 'rgba(150,237,214,0.15)' : 'rgba(255,255,255,0.05)',
+                    color: sortBy === key ? '#96EDD6' : 'rgba(255,255,255,0.5)',
+                    borderRadius: 20,
+                    padding: '4px 12px',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -514,7 +538,18 @@ function PortfolioTab() {
           </div>
 
           <div className="flex flex-col gap-2">
-            {portfolio.map((item, idx) => {
+            {[...portfolio].sort((a, b) => {
+              if (sortBy === 'value') return (b.value || 0) - (a.value || 0);
+              if (sortBy === 'name') return a.name.localeCompare(b.name);
+              // date: newest first, items without addedAt go last
+              if (sortBy === 'date') {
+                if (a.addedAt == null && b.addedAt == null) return 0;
+                if (a.addedAt == null) return 1;
+                if (b.addedAt == null) return -1;
+                return b.addedAt - a.addedAt;
+              }
+              return 0;
+            }).map((item, idx) => {
               const pct = totalValue > 0 ? ((item.value / totalValue) * 100).toFixed(1) : '0.0';
               const isUp = (item.change24h ?? 0) >= 0;
               const coinColor = coinColors[idx] ?? '#96EDD6';
@@ -568,6 +603,17 @@ function PortfolioTab() {
                     >
                       {item.unitNum.toFixed(9).replace(/\.?0+$/, '')} {item.name}
                     </div>
+                    {sortBy === 'date' && item.addedAt != null && (
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: 'rgba(255,255,255,0.35)',
+                          marginTop: 2,
+                        }}
+                      >
+                        Added {new Date(item.addedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </div>
+                    )}
                   </div>
                   {/* Price */}
                   <div
