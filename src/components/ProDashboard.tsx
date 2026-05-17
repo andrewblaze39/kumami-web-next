@@ -23,6 +23,7 @@ import {
   Zap,
   TrendingUp,
   Bot,
+  Trash2,
 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -297,6 +298,21 @@ function PortfolioTab() {
     }
   };
 
+  const handleDeleteCoin = async (coinToDelete: PortfolioCoin) => {
+    if (!currentUser) return;
+    try {
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userDocRef);
+      if (!userDoc.exists()) return;
+      const updated = (userDoc.data().cryptoPortfolio as PortfolioCoin[])
+        .filter(c => c.name !== coinToDelete.name);
+      await updateDoc(userDocRef, { cryptoPortfolio: updated });
+      setPortfolio(updated);
+    } catch (err) {
+      console.error('Failed to delete asset:', err);
+    }
+  };
+
   const handleCoinClick = (coin: PortfolioCoin) => {
     setSelectedCoin(coin);
     setIsEditModalOpen(true);
@@ -520,7 +536,7 @@ function PortfolioTab() {
           <div
             className="hidden md:grid px-4 mb-1"
             style={{
-              gridTemplateColumns: '40px 1.4fr 1fr 1fr 1fr 36px',
+              gridTemplateColumns: '40px 1.4fr 1fr 1fr 1fr 36px 36px',
               gap: 12,
               fontSize: 10,
               fontWeight: 700,
@@ -534,6 +550,7 @@ function PortfolioTab() {
             <span style={{ textAlign: 'right' }}>Price</span>
             <span style={{ textAlign: 'right' }}>24h</span>
             <span style={{ textAlign: 'right' }}>Value</span>
+            <span />
             <span />
           </div>
 
@@ -558,7 +575,7 @@ function PortfolioTab() {
                 <div
                   key={idx}
                   onClick={() => handleCoinClick(item)}
-                  className="cursor-pointer rounded-xl transition-all grid items-center grid-cols-[auto_1fr_auto] md:grid-cols-[40px_1.4fr_1fr_1fr_1fr_36px]"
+                  className="group cursor-pointer rounded-xl transition-all grid items-center grid-cols-[auto_1fr_auto] md:grid-cols-[40px_1.4fr_1fr_1fr_1fr_36px_36px]"
                   style={{
                     gap: 12,
                     padding: '12px 14px',
@@ -680,6 +697,27 @@ function PortfolioTab() {
                     }}
                   >
                     ⋯
+                  </button>
+                  {/* Delete button */}
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      if (window.confirm(`Remove ${item.name} from portfolio?`)) {
+                        handleDeleteCoin(item);
+                      }
+                    }}
+                    className="w-7 h-7 rounded-lg items-center justify-center hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'rgba(255,255,255,0.25)',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#ef4444'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.25)'; }}
+                    title={`Remove ${item.name}`}
+                  >
+                    <Trash2 size={14} />
                   </button>
                 </div>
               );

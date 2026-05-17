@@ -66,6 +66,8 @@ export default function AddCryptoModal({
   const [isSearching, setIsSearching] = useState(false);
   // Price fetch state: coinId -> loading
   const [fetchingPriceFor, setFetchingPriceFor] = useState<string | null>(null);
+  // Batch price enrichment in progress for search results
+  const [isFetchingBatchPrices, setIsFetchingBatchPrices] = useState(false);
 
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -134,11 +136,45 @@ export default function AddCryptoModal({
       try {
         const res = await fetch(`/api/coingecko/search?query=${encodeURIComponent(searchQuery)}`);
         const data: CoinGeckoItem[] = await res.json();
+        // Set results immediately with price=0 so list appears fast
         setSearchResults(data);
+        setIsSearching(false);
+
+        // Batch-fetch prices for all returned coins
+        if (data.length > 0) {
+          const ids = data.map((c) => c.id).join(',');
+          setIsFetchingBatchPrices(true);
+          try {
+            const priceRes = await fetch(
+              `/api/coingecko/markets?ids=${encodeURIComponent(ids)}&per_page=${data.length}`
+            );
+            const priceData: CoinGeckoItem[] = await priceRes.json();
+            if (Array.isArray(priceData) && priceData.length > 0) {
+              const priceMap: Record<string, Pick<CoinGeckoItem, 'current_price' | 'price_change_percentage_24h'>> = {};
+              priceData.forEach((p) => {
+                priceMap[p.id] = {
+                  current_price: p.current_price,
+                  price_change_percentage_24h: p.price_change_percentage_24h,
+                };
+              });
+              setSearchResults((prev) =>
+                prev.map((coin) =>
+                  priceMap[coin.id]
+                    ? { ...coin, ...priceMap[coin.id] }
+                    : coin
+                )
+              );
+            }
+          } catch (priceErr) {
+            console.error('Batch price fetch error:', priceErr);
+            // leave results as-is; handleCoinSelect will fetch on demand
+          } finally {
+            setIsFetchingBatchPrices(false);
+          }
+        }
       } catch (err) {
         console.error('Search error:', err);
         setSearchResults([]);
-      } finally {
         setIsSearching(false);
       }
     }, 300);
@@ -146,6 +182,7 @@ export default function AddCryptoModal({
     return () => {
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
   useEffect(() => {
@@ -239,6 +276,7 @@ export default function AddCryptoModal({
     setSearchResults([]);
     setIsSearching(false);
     setFetchingPriceFor(null);
+    setIsFetchingBatchPrices(false);
     onClose();
   };
 
@@ -307,6 +345,8 @@ export default function AddCryptoModal({
                       {Math.abs(coin.price_change_percentage_24h)?.toFixed(2)}%
                     </div>
                   </>
+                ) : isFetchingBatchPrices ? (
+                  <div className="text-xs" style={{ color: 'rgba(150,237,214,0.5)' }}>...</div>
                 ) : (
                   <div className="text-xs text-white/40">—</div>
                 )}
