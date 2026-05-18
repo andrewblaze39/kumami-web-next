@@ -136,13 +136,18 @@ export default function AddCryptoModal({
       try {
         const res = await fetch(`/api/coingecko/search?query=${encodeURIComponent(searchQuery)}`);
         const data: CoinGeckoItem[] = await res.json();
-        // Set results immediately with price=0 so list appears fast
-        setSearchResults(data);
+        // Enrich with prices already in the pre-loaded top-100 list
+        const enrichedFromCache = data.map(coin => {
+          const cached = cryptoList.find(c => c.id === coin.id);
+          return cached ? { ...coin, current_price: cached.current_price, price_change_percentage_24h: cached.price_change_percentage_24h, image: cached.image || coin.image } : coin;
+        });
+        setSearchResults(enrichedFromCache);
         setIsSearching(false);
 
-        // Batch-fetch prices for all returned coins
-        if (data.length > 0) {
-          const ids = data.map((c) => c.id).join(',');
+        // Batch-fetch prices only for coins NOT already in the top-100 cache
+        const needsPrice = enrichedFromCache.filter(c => c.current_price === 0);
+        if (needsPrice.length > 0) {
+          const ids = needsPrice.map((c) => c.id).join(',');
           setIsFetchingBatchPrices(true);
           try {
             const priceRes = await fetch(
