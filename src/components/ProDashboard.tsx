@@ -838,11 +838,7 @@ export default function ProDashboard() {
           </div>
         );
       case 'kumaai':
-        return (
-          <div className="w-full flex-1 overflow-hidden" style={{ minHeight: 400 }}>
-            <KumaAIChatTab />
-          </div>
-        );
+        return <KumaAIChatTab />;
       default:
         return null;
     }
@@ -902,7 +898,9 @@ export default function ProDashboard() {
         </div>
 
         {/* Tab content */}
-        <div className="flex-1 pt-4 px-4 pb-6">{renderContent()}</div>
+        <div className={cn('flex-1', selectedTab === 'kumaai' ? 'overflow-hidden' : 'pt-4 px-4 pb-6')}>
+          {renderContent()}
+        </div>
       </div>
     </div>
   );

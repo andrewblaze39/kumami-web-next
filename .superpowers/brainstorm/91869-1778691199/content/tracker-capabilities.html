@@ -1,0 +1,178 @@
+<h2>Tracker Bot — What Alchemy Can Power</h2>
+<p class="subtitle">Everything the API supports, mapped to UI surfaces. Which sections feel right?</p>
+
+<div class="section">
+  <h3>1. Watchlist Panel (already exists — needs upgrades)</h3>
+  <div style="background:#0a0a0f;border-radius:10px;padding:14px;font-family:system-ui,sans-serif;border:1px solid rgba(14,165,233,0.2);">
+    <p style="margin:0 0 8px;color:rgba(14,165,233,0.5);font-size:9px;letter-spacing:0.08em;font-weight:600;">WATCHING 2/20</p>
+
+    <!-- Wallet row expanded -->
+    <div style="background:rgba(14,165,233,0.07);border:1px solid rgba(14,165,233,0.2);border-radius:8px;padding:10px;margin-bottom:6px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div>
+          <span style="color:#0ea5e9;font-size:11px;font-weight:700;">0xAbCd...1234</span>
+          <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:6px;">ETH · Base · Arb</span>
+        </div>
+        <span style="color:rgba(14,165,233,0.5);font-size:9px;">⚙ Settings ▴</span>
+      </div>
+
+      <!-- NEW: inline wallet stats (from getBalance + getTokenBalances + getNftsForOwner) -->
+      <div style="display:flex;gap:8px;margin-bottom:8px;padding:6px 8px;background:rgba(14,165,233,0.05);border-radius:6px;border:1px solid rgba(14,165,233,0.1);">
+        <div style="text-align:center;flex:1;">
+          <p style="margin:0;color:rgba(14,165,233,0.5);font-size:8px;">ETH</p>
+          <p style="margin:0;color:#fff;font-size:10px;font-weight:600;">1.234</p>
+        </div>
+        <div style="width:1px;background:rgba(14,165,233,0.1);"></div>
+        <div style="text-align:center;flex:1;">
+          <p style="margin:0;color:rgba(14,165,233,0.5);font-size:8px;">TOKENS</p>
+          <p style="margin:0;color:#fff;font-size:10px;font-weight:600;">USDC · WETH</p>
+        </div>
+        <div style="width:1px;background:rgba(14,165,233,0.1);"></div>
+        <div style="text-align:center;flex:1;">
+          <p style="margin:0;color:rgba(14,165,233,0.5);font-size:8px;">NFTs</p>
+          <p style="margin:0;color:#fff;font-size:10px;font-weight:600;">12</p>
+        </div>
+      </div>
+
+      <!-- Improved settings -->
+      <div style="display:flex;gap:5px;flex-wrap:wrap;">
+        <!-- chain picker (NEW) -->
+        <div style="display:flex;gap:2px;">
+          <span style="background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);border-radius:4px;padding:2px 6px;color:#0ea5e9;font-size:9px;">✓ ETH</span>
+          <span style="background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.4);border-radius:4px;padding:2px 6px;color:#0ea5e9;font-size:9px;">✓ Base</span>
+          <span style="background:rgba(14,165,233,0.05);border:1px dashed rgba(14,165,233,0.2);border-radius:4px;padding:2px 6px;color:rgba(14,165,233,0.4);font-size:9px;">Arb</span>
+        </div>
+        <!-- threshold (NEW: inline input) -->
+        <div style="display:flex;align-items:center;gap:4px;background:rgba(14,165,233,0.05);border:1px solid rgba(14,165,233,0.2);border-radius:5px;padding:2px 6px;">
+          <span style="color:rgba(14,165,233,0.6);font-size:9px;">🔔 $</span>
+          <span style="background:rgba(14,165,233,0.1);border:1px solid rgba(14,165,233,0.3);border-radius:3px;padding:1px 5px;color:#fff;font-size:9px;min-width:28px;text-align:center;">100</span>
+          <span style="color:#0ea5e9;font-size:9px;cursor:pointer;">✓</span>
+        </div>
+        <!-- mute options (NEW: multiple durations) -->
+        <div style="display:flex;gap:2px;">
+          <span style="background:rgba(14,165,233,0.08);border:1px solid rgba(14,165,233,0.15);border-radius:4px;padding:2px 5px;color:rgba(14,165,233,0.6);font-size:9px;">🔕 1h</span>
+          <span style="background:rgba(14,165,233,0.08);border:1px solid rgba(14,165,233,0.15);border-radius:4px;padding:2px 5px;color:rgba(14,165,233,0.6);font-size:9px;">4h</span>
+          <span style="background:rgba(14,165,233,0.08);border:1px solid rgba(14,165,233,0.15);border-radius:4px;padding:2px 5px;color:rgba(14,165,233,0.6);font-size:9px;">24h</span>
+        </div>
+        <span style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:5px;padding:2px 8px;color:rgba(239,68,68,0.8);font-size:9px;">✕ Unwatch</span>
+      </div>
+    </div>
+  </div>
+  <p style="color:rgba(255,255,255,0.4);font-size:12px;margin-top:8px;">
+    <strong style="color:rgba(14,165,233,0.7);">New vs now:</strong> Live balance/tokens/NFTs inline per wallet. Chain toggles per wallet. Threshold is an editable number field. Mute has 1h/4h/24h options.
+  </p>
+</div>
+
+<div class="section">
+  <h3>2. Wallet Detail Drawer (new — tap address to expand)</h3>
+  <div style="background:#0a0a0f;border-radius:10px;padding:14px;font-family:system-ui,sans-serif;border:1px solid rgba(14,165,233,0.2);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div>
+        <p style="margin:0;color:#0ea5e9;font-size:12px;font-weight:700;">0xAbCd...1234</p>
+        <p style="margin:0;color:rgba(255,255,255,0.3);font-size:10px;">Last active: 2h ago · ETH · Base · Arb</p>
+      </div>
+      <a style="color:rgba(14,165,233,0.5);font-size:9px;text-decoration:none;">↗ Etherscan</a>
+    </div>
+
+    <!-- Multi-chain balances (from getWalletSummary) -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
+      <div style="background:rgba(14,165,233,0.05);border:1px solid rgba(14,165,233,0.12);border-radius:6px;padding:8px;text-align:center;">
+        <p style="margin:0;color:rgba(14,165,233,0.5);font-size:8px;font-weight:600;">ETH CHAIN</p>
+        <p style="margin:0;color:#fff;font-size:11px;font-weight:700;">1.234 ETH</p>
+        <p style="margin:0;color:rgba(255,255,255,0.3);font-size:9px;">12 NFTs · 8 txs</p>
+      </div>
+      <div style="background:rgba(14,165,233,0.05);border:1px solid rgba(14,165,233,0.12);border-radius:6px;padding:8px;text-align:center;">
+        <p style="margin:0;color:rgba(14,165,233,0.5);font-size:8px;font-weight:600;">BASE</p>
+        <p style="margin:0;color:#fff;font-size:11px;font-weight:700;">0.012 ETH</p>
+        <p style="margin:0;color:rgba(255,255,255,0.3);font-size:9px;">0 NFTs · 2 txs</p>
+      </div>
+      <div style="background:rgba(14,165,233,0.05);border:1px solid rgba(14,165,233,0.12);border-radius:6px;padding:8px;text-align:center;">
+        <p style="margin:0;color:rgba(14,165,233,0.5);font-size:8px;font-weight:600;">ARB</p>
+        <p style="margin:0;color:#fff;font-size:11px;font-weight:700;">0.003 ETH</p>
+        <p style="margin:0;color:rgba(255,255,255,0.3);font-size:9px;">0 NFTs · 1 tx</p>
+      </div>
+    </div>
+
+    <!-- Top token holdings (from getTokenBalances + getTokenMetadata) -->
+    <p style="margin:0 0 5px;color:rgba(14,165,233,0.4);font-size:9px;font-weight:600;letter-spacing:0.08em;">TOP HOLDINGS</p>
+    <div style="display:flex;flex-direction:column;gap:3px;">
+      <div style="display:flex;justify-content:space-between;padding:4px 8px;background:rgba(255,255,255,0.02);border-radius:5px;">
+        <span style="color:rgba(255,255,255,0.7);font-size:10px;font-weight:600;">USDC</span>
+        <span style="color:#fff;font-size:10px;">$4,200.00</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:4px 8px;background:rgba(255,255,255,0.02);border-radius:5px;">
+        <span style="color:rgba(255,255,255,0.7);font-size:10px;font-weight:600;">WETH</span>
+        <span style="color:#fff;font-size:10px;">0.45 WETH</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:4px 8px;background:rgba(255,255,255,0.02);border-radius:5px;">
+        <span style="color:rgba(255,255,255,0.7);font-size:10px;font-weight:600;">ARB</span>
+        <span style="color:#fff;font-size:10px;">120.00 ARB</span>
+      </div>
+    </div>
+  </div>
+  <p style="color:rgba(255,255,255,0.4);font-size:12px;margin-top:8px;">
+    <strong style="color:rgba(14,165,233,0.7);">Powered by:</strong> <code>getWalletSummary()</code> + <code>getTokenBalances()</code> + <code>getTokenMetadata()</code>. Loaded on-demand when you tap the address.
+  </p>
+</div>
+
+<div class="section">
+  <h3>3. Alerts Feed (already exists — needs richer rows)</h3>
+  <div style="background:#0a0a0f;border-radius:10px;padding:14px;font-family:system-ui,sans-serif;border:1px solid rgba(14,165,233,0.2);">
+    <p style="margin:0 0 8px;color:rgba(14,165,233,0.4);font-size:9px;letter-spacing:0.08em;font-weight:600;">LIVE ALERTS</p>
+
+    <!-- Rich alert row (vs plain text now) -->
+    <div style="border-left:3px solid #0ea5e9;background:rgba(14,165,233,0.05);border-radius:6px;padding:8px 10px;margin-bottom:5px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <p style="margin:0;font-size:10px;font-weight:700;color:#0ea5e9;">0xAbCd...1234 <span style="color:rgba(255,255,255,0.4);font-weight:400;">on ETH</span></p>
+          <p style="margin:2px 0 0;font-size:12px;color:#fff;">📥 Received <strong>1.5 ETH</strong> from 0xDead...Beef</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="margin:0;color:rgba(14,165,233,0.6);font-size:10px;font-weight:600;">~$3,000</p>
+          <p style="margin:2px 0 0;color:rgba(255,255,255,0.25);font-size:9px;">just now</p>
+        </div>
+      </div>
+      <div style="margin-top:5px;display:flex;gap:5px;">
+        <span style="background:rgba(14,165,233,0.08);border:1px solid rgba(14,165,233,0.15);border-radius:4px;padding:1px 6px;color:rgba(14,165,233,0.6);font-size:9px;">↗ Etherscan</span>
+        <span style="background:rgba(14,165,233,0.08);border:1px solid rgba(14,165,233,0.15);border-radius:4px;padding:1px 6px;color:rgba(14,165,233,0.6);font-size:9px;">📋 View Tx</span>
+      </div>
+    </div>
+
+    <div style="border-left:3px solid rgba(14,165,233,0.4);background:rgba(14,165,233,0.03);border-radius:6px;padding:8px 10px;margin-bottom:5px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <p style="margin:0;font-size:10px;font-weight:700;color:rgba(14,165,233,0.7);">0xDeFg...5678 <span style="color:rgba(255,255,255,0.4);font-weight:400;">on Base</span></p>
+          <p style="margin:2px 0 0;font-size:12px;color:rgba(255,255,255,0.7);">📤 Sent <strong>500 USDC</strong> to 0xCafe...1234</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="margin:0;color:rgba(14,165,233,0.5);font-size:10px;font-weight:600;">~$500</p>
+          <p style="margin:2px 0 0;color:rgba(255,255,255,0.2);font-size:9px;">3m ago</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p style="color:rgba(255,255,255,0.4);font-size:12px;margin-top:8px;">
+    <strong style="color:rgba(14,165,233,0.7);">New vs now:</strong> USD value estimate per alert. Counterparty address shown. Etherscan + View Tx links inline. ERC-20 token name instead of raw contract.
+  </p>
+</div>
+
+<div class="section">
+  <h3>4. Add Wallet — chain picker</h3>
+  <div style="background:#0a0a0f;border-radius:10px;padding:14px;font-family:system-ui,sans-serif;border:1px solid rgba(14,165,233,0.2);">
+    <p style="margin:0 0 8px;color:#0ea5e9;font-size:11px;font-weight:600;">Add a wallet to watch</p>
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <div style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(14,165,233,0.3);border-radius:10px;padding:8px 12px;color:rgba(255,255,255,0.5);font-size:12px;">0x or ENS name...</div>
+      <div style="background:linear-gradient(135deg,#0ea5e9,#0284c7);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;">→</div>
+    </div>
+    <div style="display:flex;gap:5px;">
+      <span style="background:rgba(14,165,233,0.15);border:1px solid rgba(14,165,233,0.4);border-radius:5px;padding:3px 8px;color:#0ea5e9;font-size:10px;font-weight:600;">✓ ETH</span>
+      <span style="background:rgba(14,165,233,0.15);border:1px solid rgba(14,165,233,0.4);border-radius:5px;padding:3px 8px;color:#0ea5e9;font-size:10px;font-weight:600;">✓ Base</span>
+      <span style="background:rgba(14,165,233,0.15);border:1px solid rgba(14,165,233,0.4);border-radius:5px;padding:3px 8px;color:#0ea5e9;font-size:10px;font-weight:600;">✓ Arb</span>
+    </div>
+  </div>
+  <p style="color:rgba(255,255,255,0.4);font-size:12px;margin-top:8px;">
+    Chain selection defaults to all 3. User can deselect chains before watching.
+  </p>
+</div>
+
+<p class="subtitle" style="margin-top:1.5rem;">Does this all look right? Any sections to drop or change before we spec it out?</p>

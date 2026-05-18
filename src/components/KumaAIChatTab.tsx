@@ -17,7 +17,16 @@ import {
   getDocs,
   serverTimestamp,
 } from 'firebase/firestore';
-import { Send, Plus, Trash2, MessageCircle, ChevronLeft, Lock } from 'lucide-react';
+import { Send, Plus, Trash2, ChevronLeft, Lock } from 'lucide-react';
+
+const PROMPT_SNIPPETS = [
+  'Explain DeFi in simple terms',
+  'What makes a good crypto portfolio?',
+  'How do I evaluate a new altcoin?',
+  'Explain Layer 1 vs Layer 2 blockchains',
+  'What are the risks of yield farming?',
+  'How does Bitcoin halving work?',
+];
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 const globalStyles = `
@@ -720,7 +729,7 @@ function ChatPanel({ room, userId }: { room: ChatRoom; userId: string }) {
   const [visibleCount, setVisibleCount] = useState(20);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -822,7 +831,7 @@ function ChatPanel({ room, userId }: { room: ChatRoom; userId: string }) {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
@@ -873,9 +882,42 @@ function ChatPanel({ room, userId }: { room: ChatRoom; userId: string }) {
         )}
 
         {visibleMessages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-white/25 text-center px-6 py-10">
-            <MessageCircle className="w-[38px] h-[38px] mb-3 opacity-40" />
-            <p className="text-[13px]">Start a conversation with Kuma AI</p>
+          <div className="flex flex-col items-center justify-center h-full text-center px-6 py-10 gap-6">
+            <div>
+              <div
+                className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center text-xl font-extrabold text-[#0a0a0f]"
+                style={{ background: 'linear-gradient(135deg, #96EDD6, #7c3aed)' }}
+              >
+                K
+              </div>
+              <p className="text-white font-semibold text-[15px] m-0">How can I help you today?</p>
+              <p className="text-white/40 text-sm m-0 mt-1">Ask me anything about crypto and Web3</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 w-full max-w-[420px]">
+              {PROMPT_SNIPPETS.map((snippet) => (
+                <button
+                  key={snippet}
+                  onClick={() => {
+                    setInputMessage(snippet);
+                    setTimeout(() => inputRef.current?.focus(), 50);
+                  }}
+                  className="text-left p-3 rounded-xl text-xs text-white/60 leading-snug transition-all cursor-pointer"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = 'rgba(150,237,214,0.06)';
+                    e.currentTarget.style.borderColor = 'rgba(150,237,214,0.2)';
+                    e.currentTarget.style.color = 'rgba(255,255,255,0.9)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                    e.currentTarget.style.color = 'rgba(255,255,255,0.6)';
+                  }}
+                >
+                  {snippet}
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
           visibleMessages.map((msg, idx) => (
@@ -991,56 +1033,75 @@ function ChatPanel({ room, userId }: { room: ChatRoom; userId: string }) {
       <div
         className="shrink-0"
         style={{
-          padding: '12px 16px',
-          borderTop: '1px solid rgba(150,237,214,0.12)',
-          background: 'rgba(255,255,255,0.02)',
+          padding: '12px 16px 14px',
+          borderTop: '1px solid rgba(150,237,214,0.1)',
+          background: '#0a0a0f',
         }}
       >
-        <div className="flex gap-2">
-          <input
+        <div
+          className="flex items-end gap-2 rounded-2xl px-4 py-3"
+          style={{
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(150,237,214,0.18)',
+            boxShadow: '0 0 0 0 rgba(150,237,214,0)',
+            transition: 'box-shadow 0.2s, border-color 0.2s',
+          }}
+          onFocus={() => {}}
+        >
+          <textarea
             ref={inputRef}
-            type="text"
             value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type your message..."
-            disabled={isLoading}
-            className="flex-1 rounded-xl px-4 py-2.5 text-[13px] text-white outline-none transition-all"
-            style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(150,237,214,0.2)',
+            rows={1}
+            onChange={(e) => {
+              setInputMessage(e.target.value);
+              e.target.style.height = 'auto';
+              e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
             }}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask Kuma AI anything..."
+            disabled={isLoading}
+            className="flex-1 text-[13px] text-white outline-none resize-none bg-transparent leading-relaxed"
+            style={{ maxHeight: 120, overflowY: 'auto' }}
             onFocus={(e) => {
-              e.target.style.borderColor = 'rgba(150,237,214,0.6)';
-              e.target.style.boxShadow = '0 0 0 3px rgba(150,237,214,0.08)';
+              const wrap = e.target.closest('div') as HTMLDivElement | null;
+              if (wrap) {
+                wrap.style.borderColor = 'rgba(150,237,214,0.5)';
+                wrap.style.boxShadow = '0 0 0 3px rgba(150,237,214,0.08)';
+              }
             }}
             onBlur={(e) => {
-              e.target.style.borderColor = 'rgba(150,237,214,0.2)';
-              e.target.style.boxShadow = 'none';
+              const wrap = e.target.closest('div') as HTMLDivElement | null;
+              if (wrap) {
+                wrap.style.borderColor = 'rgba(150,237,214,0.18)';
+                wrap.style.boxShadow = 'none';
+              }
             }}
           />
           <button
             onClick={sendMessage}
             disabled={isLoading || !inputMessage.trim()}
-            className="w-[42px] h-[42px] rounded-xl flex items-center justify-center shrink-0 transition-all disabled:opacity-45 disabled:cursor-not-allowed"
+            className="w-[34px] h-[34px] rounded-[10px] flex items-center justify-center shrink-0 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             style={{
-              background: 'linear-gradient(135deg, #00c9a7, #0891b2)',
+              background: inputMessage.trim() ? 'linear-gradient(135deg, #00c9a7, #0891b2)' : 'rgba(255,255,255,0.08)',
               border: 'none',
             }}
           >
             {isLoading ? (
               <div
-                className="w-4 h-4 rounded-full animate-spin"
+                className="w-3.5 h-3.5 rounded-full animate-spin"
                 style={{
                   border: '2px solid rgba(255,255,255,0.4)',
                   borderTopColor: '#fff',
                 }}
               />
             ) : (
-              <Send className="w-4 h-4 text-white" />
+              <Send className="w-3.5 h-3.5 text-white" />
             )}
           </button>
         </div>
+        <p className="text-center text-[10px] text-white/20 mt-2 m-0">
+          Press Enter to send · Shift+Enter for new line
+        </p>
       </div>
     </div>
   );
@@ -1454,8 +1515,6 @@ export default function KumaAIChatTab() {
     </div>
   );
 
-  const containerHeight = 'calc(100vh - 220px)';
-
   return (
     <>
       <style>{globalStyles}</style>
@@ -1465,14 +1524,10 @@ export default function KumaAIChatTab() {
         className="hidden md:flex"
         style={{
           width: '100%',
-          height: containerHeight,
+          height: 'calc(100vh - var(--navbar-h) - var(--ticker-h) - 40px)',
           minHeight: 520,
-          borderRadius: 14,
           overflow: 'hidden',
           background: '#0a0a0f',
-          backgroundImage: 'radial-gradient(rgba(150,237,214,0.08) 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-          border: '1px solid rgba(150,237,214,0.1)',
         }}
       >
         <ChatSidebar />
@@ -1492,14 +1547,10 @@ export default function KumaAIChatTab() {
         className="flex md:hidden"
         style={{
           width: '100%',
-          height: 'calc(100vh - 120px)',
+          height: 'calc(100vh - var(--navbar-h) - var(--ticker-h) - 58px)',
           minHeight: 400,
-          borderRadius: 14,
           overflow: 'hidden',
           background: '#0a0a0f',
-          backgroundImage: 'radial-gradient(rgba(150,237,214,0.08) 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-          border: '1px solid rgba(150,237,214,0.1)',
         }}
       >
         {mobilePanelView === 'sidebar' ? (

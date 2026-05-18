@@ -1,0 +1,95 @@
+<h2>Tracker Bot — Control Panel Design</h2>
+<p class="subtitle">Controls always at the top. Alerts-only feed below. No buttons buried in the feed.</p>
+
+<div class="mockup">
+  <div class="mockup-header">Proposed Layout</div>
+  <div class="mockup-body" style="background:#0a0a0f;padding:0;border-radius:8px;overflow:hidden;font-family:system-ui,sans-serif;">
+
+    <!-- HEADER BAR -->
+    <div style="padding:10px 14px;background:rgba(14,165,233,0.08);border-bottom:1px solid rgba(14,165,233,0.2);display:flex;align-items:center;gap:8px;">
+      <span style="font-size:16px;">🐋</span>
+      <div style="flex:1;">
+        <p style="margin:0;color:#0ea5e9;font-weight:700;font-size:13px;">Crypto Address Tracker</p>
+        <p style="margin:0;color:rgba(14,165,233,0.5);font-size:10px;">Real-time wallet alerts · ETH · Base · Arb</p>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <div style="background:rgba(14,165,233,0.12);border:1px solid rgba(14,165,233,0.3);border-radius:6px;padding:3px 9px;color:#0ea5e9;font-size:10px;font-weight:600;cursor:pointer;">➕ Add Wallet</div>
+        <div style="background:rgba(14,165,233,0.12);border:1px solid rgba(14,165,233,0.3);border-radius:6px;padding:3px 9px;color:#0ea5e9;font-size:10px;font-weight:600;cursor:pointer;">🐋 Whales</div>
+        <div style="width:7px;height:7px;border-radius:50%;background:#0ea5e9;box-shadow:0 0 6px rgba(14,165,233,0.8);"></div>
+      </div>
+    </div>
+
+    <!-- WATCHLIST CONTROL PANEL -->
+    <div style="padding:10px 14px;border-bottom:1px solid rgba(14,165,233,0.12);background:rgba(14,165,233,0.03);">
+      <p style="margin:0 0 7px;color:rgba(14,165,233,0.4);font-size:9px;letter-spacing:0.08em;font-weight:600;">WATCHING 2/20</p>
+
+      <!-- Wallet row 1 — settings open -->
+      <div style="background:rgba(14,165,233,0.07);border:1px solid rgba(14,165,233,0.2);border-radius:8px;padding:8px 10px;margin-bottom:5px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <span style="color:#0ea5e9;font-size:11px;font-weight:700;">0xAbCd...1234</span>
+            <span style="color:rgba(255,255,255,0.35);font-size:9px;margin-left:6px;">ETH · Base · Arb</span>
+          </div>
+          <div style="display:flex;gap:4px;">
+            <div style="background:rgba(14,165,233,0.12);border:1px solid rgba(14,165,233,0.25);border-radius:5px;padding:2px 7px;color:#0ea5e9;font-size:9px;cursor:pointer;">⚙ Settings ▾</div>
+          </div>
+        </div>
+        <!-- Inline settings row (expanded) -->
+        <div style="margin-top:7px;padding-top:7px;border-top:1px solid rgba(14,165,233,0.12);display:flex;gap:5px;flex-wrap:wrap;">
+          <div style="background:rgba(14,165,233,0.08);border:1px solid rgba(14,165,233,0.2);border-radius:5px;padding:2px 8px;color:#0ea5e9;font-size:9px;cursor:pointer;">🔔 Threshold: $100</div>
+          <div style="background:rgba(14,165,233,0.08);border:1px solid rgba(14,165,233,0.2);border-radius:5px;padding:2px 8px;color:#0ea5e9;font-size:9px;cursor:pointer;">🔕 Mute 1h</div>
+          <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:5px;padding:2px 8px;color:rgba(239,68,68,0.8);font-size:9px;cursor:pointer;">✕ Unwatch</div>
+        </div>
+      </div>
+
+      <!-- Wallet row 2 — collapsed -->
+      <div style="background:rgba(14,165,233,0.04);border:1px solid rgba(14,165,233,0.1);border-radius:8px;padding:8px 10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <span style="color:rgba(14,165,233,0.7);font-size:11px;font-weight:600;">0xDeFg...5678</span>
+            <span style="color:rgba(255,255,255,0.25);font-size:9px;margin-left:6px;">ETH only</span>
+          </div>
+          <div style="background:rgba(14,165,233,0.08);border:1px solid rgba(14,165,233,0.15);border-radius:5px;padding:2px 7px;color:rgba(14,165,233,0.6);font-size:9px;cursor:pointer;">⚙ Settings ▾</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE ALERTS FEED — pure read-only -->
+    <div style="padding:10px 14px;max-height:160px;overflow-y:auto;">
+      <p style="margin:0 0 7px;color:rgba(14,165,233,0.4);font-size:9px;letter-spacing:0.08em;font-weight:600;">LIVE ALERTS</p>
+
+      <div style="border-left:3px solid #0ea5e9;background:rgba(14,165,233,0.05);border-radius:6px;padding:7px 10px;margin-bottom:5px;">
+        <p style="margin:0;color:rgba(255,255,255,0.85);font-size:11px;">🚨 <strong style="color:#0ea5e9;">0xAbCd...1234</strong> — 📥 Received <strong>1.5 ETH</strong> on ETH</p>
+        <p style="margin:2px 0 0;color:rgba(255,255,255,0.3);font-size:9px;">just now</p>
+      </div>
+
+      <div style="border-left:3px solid rgba(14,165,233,0.4);background:rgba(14,165,233,0.03);border-radius:6px;padding:7px 10px;margin-bottom:5px;">
+        <p style="margin:0;color:rgba(255,255,255,0.6);font-size:11px;">🚨 <strong style="color:rgba(14,165,233,0.7);">0xDeFg...5678</strong> — 📤 Sent <strong>0.8 ETH</strong> on Base</p>
+        <p style="margin:2px 0 0;color:rgba(255,255,255,0.2);font-size:9px;">3m ago</p>
+      </div>
+
+      <div style="border-left:3px solid rgba(14,165,233,0.4);background:rgba(14,165,233,0.03);border-radius:6px;padding:7px 10px;margin-bottom:5px;">
+        <p style="margin:0;color:rgba(255,255,255,0.6);font-size:11px;">🚨 <strong style="color:rgba(14,165,233,0.7);">0xAbCd...1234</strong> — 📥 Received <strong>0.3 ETH</strong> on Arb</p>
+        <p style="margin:2px 0 0;color:rgba(255,255,255,0.2);font-size:9px;">12m ago</p>
+      </div>
+
+      <div style="border-left:3px solid rgba(14,165,233,0.4);background:rgba(14,165,233,0.03);border-radius:6px;padding:7px 10px;">
+        <p style="margin:0;color:rgba(255,255,255,0.6);font-size:11px;">🚨 <strong style="color:rgba(14,165,233,0.7);">0xDeFg...5678</strong> — 📤 Sent <strong>2.1 ETH</strong> on ETH</p>
+        <p style="margin:2px 0 0;color:rgba(255,255,255,0.2);font-size:9px;">28m ago</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <h3>How it works</h3>
+  <ul style="color:rgba(255,255,255,0.7);font-size:13px;line-height:1.8;padding-left:1.2rem;">
+    <li><strong style="color:#0ea5e9;">Header</strong> — Add Wallet + Browse Whales buttons (same as now)</li>
+    <li><strong style="color:#0ea5e9;">Watchlist panel</strong> — always visible, shows all watched wallets. Click ⚙ Settings to expand inline controls: change threshold, mute 1h, unwatch</li>
+    <li><strong style="color:#0ea5e9;">Alerts feed</strong> — read-only, no buttons ever. Just live events scrolling in. Controls are always reachable above regardless of how many alerts accumulate</li>
+    <li><strong style="color:#0ea5e9;">No more chat messages</strong> — "now watching", "wallet summary" etc. don't go into the feed. The watchlist panel IS the confirmation that a wallet is being tracked</li>
+  </ul>
+</div>
+
+<p class="subtitle" style="margin-top:1rem;">Does this layout feel right? Let me know what to change.</p>

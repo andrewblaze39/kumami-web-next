@@ -252,14 +252,13 @@ export default function EducationArticleView({ educationId }: Props) {
           'linear-gradient(175deg, #4E8177 0%, #102425 10%, #102425 70%, #1C4345 85%, #1D5959 100%)',
       }}
     >
-      <div className="max-w-[1400px] mx-auto px-4 md:px-8 relative">
+      <div className="max-w-[1100px] mx-auto px-4 md:px-8 relative">
         {/* Two Column Layout (sidebar only on large screens) */}
-        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-10">
           {/* Left Sidebar - Table of Contents (desktop / large screens) */}
           <div className="relative hidden lg:block">
             <div
-              className="fixed top-45 w-80 rounded-2xl overflow-hidden"
-              style={{ maxWidth: '320px' }}
+              className="fixed top-45 w-[260px] rounded-2xl overflow-hidden"
             >
               <div className="bg-[#1a1a1a]/80 p-6 max-h-[70vh] overflow-y-auto">
                 <h2 className="text-xl font-bold mb-2 text-[#96EDD6]">
@@ -288,7 +287,8 @@ export default function EducationArticleView({ educationId }: Props) {
           </div>
 
           {/* Right Content Area */}
-          <div>
+          <div className="min-w-0">
+          <div className="max-w-[700px]">
             {/* Breadcrumb Navigation */}
             <div className="mb-6 flex items-center gap-2 text-base">
               <Link
@@ -311,9 +311,24 @@ export default function EducationArticleView({ educationId }: Props) {
             </div>
 
             {/* Article Title */}
-            <h1 className="text-5xl font-bold mb-8 text-white">
+            <h1 className="text-4xl font-bold mb-3 text-white leading-tight">
               {displayArticle.title}
             </h1>
+
+            {/* Byline */}
+            <div className="flex items-center gap-3 mb-8 pb-6 border-b border-white/10">
+              {displayArticle.level && (
+                <span
+                  className="inline-block px-2.5 py-0.5 rounded text-[#101010] text-xs font-bold"
+                  style={{ background: 'linear-gradient(to right, #3A7A7A, #96EDD6)' }}
+                >
+                  {displayArticle.level}
+                </span>
+              )}
+              <span className="text-sm text-white/50">
+                By {displayArticle.author || 'Kumami Team'}
+              </span>
+            </div>
 
             <div>
               {sections.map((section, sectionIndex) => (
@@ -322,7 +337,7 @@ export default function EducationArticleView({ educationId }: Props) {
                   id={`section-${sectionIndex}`}
                   className={sectionIndex > 0 ? 'mt-16' : ''}
                 >
-                  <h2 className="text-3xl font-bold mb-6 text-[#96EDD6]">
+                  <h2 className="text-2xl font-bold mb-5 text-[#96EDD6]">
                     {section.title}
                   </h2>
                   <div className="flex flex-col gap-6">
@@ -331,7 +346,7 @@ export default function EducationArticleView({ educationId }: Props) {
                         return (
                           <div
                             key={itemIndex}
-                            className="text-lg leading-relaxed text-gray-200 whitespace-pre-wrap"
+                            className="text-[16px] leading-[1.75] text-gray-200 whitespace-pre-wrap"
                             dangerouslySetInnerHTML={{
                               __html: parseMarkdown(item.text),
                             }}
@@ -469,7 +484,8 @@ export default function EducationArticleView({ educationId }: Props) {
                 </div>
               </div>
             </div>
-          </div>
+          </div>{/* max-w-[700px] */}
+          </div>{/* min-w-0 */}
         </div>
       </div>
       {/* Mobile TOC Drawer */}
