@@ -9,12 +9,13 @@ export async function GET(req: NextRequest) {
     page: searchParams.get('page') ?? '1',
     sparkline: 'false',
   };
-  const ids = searchParams.get('ids');
-  if (ids) paramsObj.ids = ids;
   const params = new URLSearchParams(paramsObj);
+  // ids contains commas — append raw so URLSearchParams doesn't encode them as %2C
+  const ids = searchParams.get('ids');
+  const idsSegment = ids ? `&ids=${ids}` : '';
 
   const response = await fetch(
-    `https://api.coingecko.com/api/v3/coins/markets?${params}`,
+    `https://api.coingecko.com/api/v3/coins/markets?${params}${idsSegment}`,
     { next: { revalidate: 60 } }
   );
 
