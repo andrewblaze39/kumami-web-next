@@ -151,7 +151,7 @@ export default function AddCryptoModal({
           setIsFetchingBatchPrices(true);
           try {
             const priceRes = await fetch(
-              `/api/coingecko/markets?ids=${encodeURIComponent(ids)}&per_page=${data.length}`
+              `/api/coingecko/markets?ids=${ids}&per_page=${data.length}`
             );
             const priceData: CoinGeckoItem[] = await priceRes.json();
             if (Array.isArray(priceData) && priceData.length > 0) {
