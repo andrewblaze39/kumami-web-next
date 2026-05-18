@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Plus, X, Check, RotateCcw } from 'lucide-react';
 import {
   ROADMAP_SEED,
@@ -65,10 +65,10 @@ function ItemRow({ item, onChange, onDelete }: ItemRowProps) {
       <div className="min-w-0">
         <div
           className="text-[13px] font-medium leading-snug text-white"
-          style={{
-            textDecoration: item.done ? 'line-through' : 'none',
-            textDecorationColor: 'rgba(255,255,255,0.3)',
-          }}
+          style={item.done
+            ? { textDecoration: 'line-through rgba(255,255,255,0.3)' }
+            : {}
+          }
         >
           <EditableText
             value={item.text}
@@ -116,6 +116,8 @@ function ItemRow({ item, onChange, onDelete }: ItemRowProps) {
 // ─────────────────────────────────────────────────────────────────────────
 function AddItemRow({ onAdd }: { onAdd: (text: string) => void }) {
   const [draft, setDraft] = useState('');
+  const [focused, setFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const submit = () => {
     const t = draft.trim();
     if (!t) return;
@@ -123,28 +125,41 @@ function AddItemRow({ onAdd }: { onAdd: (text: string) => void }) {
     setDraft('');
   };
   return (
-    <div className="flex items-center gap-2 px-1 pb-0.5 pt-2.5">
+    <div
+      className="flex items-center gap-2 px-2 py-2 mt-1 rounded-lg cursor-text transition-all"
+      style={{
+        border: `1px solid ${focused ? 'rgba(150,237,214,0.35)' : 'rgba(255,255,255,0.07)'}`,
+        background: focused ? 'rgba(150,237,214,0.04)' : 'rgba(255,255,255,0.02)',
+      }}
+      onClick={() => inputRef.current?.focus()}
+      onMouseEnter={(e) => {
+        if (!focused) (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(150,237,214,0.2)';
+      }}
+      onMouseLeave={(e) => {
+        if (!focused) (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.07)';
+      }}
+    >
       <span
         className="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px]"
         style={{
-          border: '1.5px dashed rgba(255,255,255,0.08)',
-          color: 'rgba(255,255,255,0.4)',
+          border: `1.5px solid ${focused ? 'rgba(150,237,214,0.5)' : 'rgba(255,255,255,0.15)'}`,
+          color: focused ? '#96EDD6' : 'rgba(255,255,255,0.5)',
         }}
       >
         <Plus className="h-[11px] w-[11px]" strokeWidth={2.4} />
       </span>
       <input
+        ref={inputRef}
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => { setFocused(false); submit(); }}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            submit();
-          }
+          if (e.key === 'Enter') { e.preventDefault(); submit(); }
+          if (e.key === 'Escape') { setDraft(''); inputRef.current?.blur(); }
         }}
-        onBlur={submit}
         placeholder="Add an upcoming feature…"
-        className="flex-1 border-none bg-transparent py-0.5 text-[13px] font-medium text-white outline-none"
+        className="flex-1 border-none bg-transparent text-[13px] font-medium text-white outline-none"
         style={{ caretColor: '#96EDD6' }}
       />
     </div>
