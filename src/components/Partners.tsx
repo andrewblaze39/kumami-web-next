@@ -40,7 +40,7 @@ const Partners = () => {
         const snapshot = await getDocs(q);
         const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
         const mapped: PartnerImage[] = list
-          .filter((p) => p.logoUrl)
+          .filter((p) => p.logoUrl && !p.logoUrl.startsWith('/static/media/'))
           .map((p) => ({
             key: p.id,
             src: p.logoUrl,
