@@ -29,7 +29,14 @@ export default async function GameDetailsPage({ searchParams }: Props) {
   const { name } = await searchParams
   return (
     <ProtectedRoute>
-      <Suspense fallback={<div className="min-h-screen bg-[#101010]" />}>
+      <Suspense fallback={
+        <div className="min-h-screen bg-[#101010] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4 text-white/50">
+            <div className="w-10 h-10 border-2 border-[#96EDD6] border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm">Loading game...</span>
+          </div>
+        </div>
+      }>
         <GameDetailView gameName={name} />
       </Suspense>
       <Footer />

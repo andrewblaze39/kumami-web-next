@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import EducationArticleView from '@/components/EducationArticleView'
@@ -82,5 +83,16 @@ export async function generateMetadata({
 export default async function EducationArticleRoute({ searchParams }: PageProps) {
   const params = await searchParams
   const educationId = params.id || '1'
-  return <EducationArticleView educationId={educationId} />
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-white/50">
+          <div className="w-10 h-10 border-2 border-[#96EDD6] border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm">Loading article...</span>
+        </div>
+      </div>
+    }>
+      <EducationArticleView educationId={educationId} />
+    </Suspense>
+  )
 }

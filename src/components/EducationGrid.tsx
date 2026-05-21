@@ -29,6 +29,7 @@ export default function EducationGrid() {
   const [selectedLevel, setSelectedLevel] = useState<string>('All')
   const [searchTerm, setSearchTerm] = useState('')
   const [educationArticles, setEducationArticles] = useState<EducationArticle[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchEducationArticles = async () => {
@@ -56,6 +57,8 @@ export default function EducationGrid() {
         setEducationArticles(docs)
       } catch (error) {
         console.error('Error loading education articles:', error)
+      } finally {
+        setLoading(false)
       }
     }
 
@@ -165,7 +168,17 @@ export default function EducationGrid() {
 
         {/* Education Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">
-          {filteredArticles.length === 0 ? (
+          {loading ? (
+            Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="bg-[#1a1a1a]/80 border-2 border-[#96EDD6]/20 rounded-lg overflow-hidden animate-pulse">
+                <div className="w-full aspect-[3/2] bg-[#2a2a2a]" />
+                <div className="p-3 space-y-2">
+                  <div className="h-4 bg-[#2a2a2a] rounded w-3/4" />
+                  <div className="h-3 bg-[#2a2a2a] rounded w-1/3" />
+                </div>
+              </div>
+            ))
+          ) : filteredArticles.length === 0 ? (
             <div className="col-span-full text-center py-12 text-gray-400 text-lg">
               No education articles found matching your criteria.
             </div>
