@@ -52,16 +52,17 @@ export default function EcosystemSection() {
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 mt-8">
           {ecosystemItems.map((item, index) => (
-            <div key={index} className="flex justify-center">
-              <Link href={item.path} className="ecosystem-link w-full flex flex-col items-center">
-                <div className="s-block up-hor ovr-base w-full">
-                  <div className="nn-card-set">
-                    <div className="s-card-icon">
-                      <img src={item.icon} alt={item.title} className="max-w-full h-auto" />
-                    </div>
-                    <h4>{item.title}</h4>
-                    <p>{item.description}</p>
-                  </div>
+            <div key={index}>
+              <Link href={item.path} className="no-underline block">
+                <div
+                  className="flex flex-col items-center text-center p-4 rounded-lg cursor-pointer transition-all duration-300 hover:-translate-y-2"
+                  style={{ background: 'rgba(255,255,255,0.05)' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0,194,199,0.1)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+                >
+                  <img src={item.icon} alt={item.title} className="mb-3" style={{ height: '44px', width: 'auto' }} />
+                  <p className="text-white font-semibold text-sm mb-1">{item.title}</p>
+                  <p className="text-white/70 text-xs">{item.description}</p>
                 </div>
               </Link>
             </div>
