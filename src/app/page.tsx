@@ -29,9 +29,9 @@ export default function HomePage() {
         <NumbersSection />
         <BlogUpdatesSection />
         <FAQSection />
-        <Partners />
-        <Contact />
       </div>
+      <Partners />
+      <Contact />
       <Footer />
     </div>
   );
