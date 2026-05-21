@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
 
 const PLANS = [
   {
@@ -35,60 +34,10 @@ export default function SubscriptionPlans() {
   const [selectedPlan, setSelectedPlan] = useState('monthly');
   const [paymentMethod, setPaymentMethod] = useState<'fiat' | 'crypto'>('fiat');
   const [referralCode, setReferralCode] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const router = useRouter();
-  const { currentUser } = useAuth();
 
-  const handleSubscribe = async () => {
-    if (selectedPlan === 'free') {
-      router.push('/signup');
-      return;
-    }
-
-    if (!currentUser) {
-      router.push('/login?returnUrl=/subscribe');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      if (paymentMethod === 'fiat') {
-        const res = await fetch('/api/subscribe-checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userEmail: currentUser.email,
-            planId: selectedPlan,
-            referralCode: referralCode.trim() || undefined,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Checkout failed');
-        window.location.href = data.checkoutUrl;
-      } else {
-        const plan = PLANS.find((p) => p.id === selectedPlan)!;
-        const res = await fetch('/api/create-crypto-payment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            plan: { id: plan.id, name: plan.name, price: plan.price },
-            userEmail: currentUser.email,
-            userId: currentUser.uid,
-            referralCode: referralCode.trim() || undefined,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Crypto payment failed');
-        window.location.href = data.invoiceUrl;
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+  const handleSubscribe = () => {
+    router.push('/coming-soon');
   };
 
   return (
@@ -171,27 +120,15 @@ export default function SubscriptionPlans() {
           </div>
         )}
 
-        {error && (
-          <p className="text-center text-red-400 text-sm mb-6">{error}</p>
-        )}
-
         {/* CTA */}
         <div className="text-center">
           <button
             onClick={handleSubscribe}
-            disabled={loading}
-            className="px-10 py-4 rounded-full font-bold text-black text-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-10 py-4 rounded-full font-bold text-black text-lg transition-all hover:scale-105"
             style={{ background: 'linear-gradient(135deg, #96EDD6, #40e0d0)' }}
           >
-            {loading
-              ? 'Processing...'
-              : selectedPlan === 'free'
-              ? 'Get Started Free'
-              : 'Subscribe Now'}
+            {selectedPlan === 'free' ? 'Get Started Free' : 'Subscribe Now'}
           </button>
-          {!currentUser && selectedPlan !== 'free' && (
-            <p className="text-gray-500 text-sm mt-3">You&apos;ll be asked to log in before checkout.</p>
-          )}
         </div>
       </div>
     </div>

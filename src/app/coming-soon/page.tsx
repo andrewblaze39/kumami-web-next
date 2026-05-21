@@ -1,29 +1,31 @@
-import type { Metadata } from 'next'
-import Footer from '@/components/Footer'
-import ComingSoonGames from '@/components/ComingSoonGames'
+import Link from 'next/link';
 
-export const metadata: Metadata = {
-  title: 'Coming Soon Games — Kumami World',
-  description: 'Discover upcoming games coming to Kumami World Game Zone.',
-  openGraph: {
-    title: 'Coming Soon Games — Kumami World',
-    description: 'Discover upcoming games coming to Kumami World Game Zone.',
-    url: 'https://kumami.world/coming-soon',
-    images: ['https://kumami.world/og-default.png'],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Coming Soon Games — Kumami World',
-    description: 'Discover upcoming games coming to Kumami World Game Zone.',
-    images: ['https://kumami.world/og-default.png'],
-  },
-}
+export const metadata = {
+  title: 'Coming Soon — Kumami World',
+};
 
 export default function ComingSoonPage() {
   return (
-    <>
-      <ComingSoonGames />
-      <Footer />
-    </>
-  )
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white text-center px-4">
+      <div
+        className="w-20 h-20 rounded-2xl mb-8 flex items-center justify-center text-4xl"
+        style={{ background: 'linear-gradient(135deg, #96EDD6, #40e0d0)' }}
+      >
+        🐻
+      </div>
+      <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: '#40e0d0' }}>
+        Coming Soon
+      </h1>
+      <p className="text-gray-400 text-lg max-w-md mb-10">
+        Kumami Pro is almost here. We&apos;re putting the finishing touches on something great. Stay tuned!
+      </p>
+      <Link
+        href="/"
+        className="px-8 py-3 rounded-full font-semibold text-black transition-all hover:scale-105"
+        style={{ background: 'linear-gradient(135deg, #96EDD6, #40e0d0)' }}
+      >
+        Back to Home
+      </Link>
+    </div>
+  );
 }
