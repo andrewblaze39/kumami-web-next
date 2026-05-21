@@ -50,11 +50,11 @@ export default function EcosystemSection() {
             </div>
           </div>
         </div>
-        <div className="flex flex-wrap upset ovr-bg1 ho-gdnt">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 mt-8">
           {ecosystemItems.map((item, index) => (
-            <div key={index} className="w-full sm:w-1/2 lg:w-1/6 mt30">
-              <Link href={item.path} className="ecosystem-link">
-                <div className="s-block up-hor ovr-base">
+            <div key={index} className="flex justify-center">
+              <Link href={item.path} className="ecosystem-link w-full flex flex-col items-center">
+                <div className="s-block up-hor ovr-base w-full">
                   <div className="nn-card-set">
                     <div className="s-card-icon">
                       <img src={item.icon} alt={item.title} className="max-w-full h-auto" />
