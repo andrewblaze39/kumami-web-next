@@ -292,8 +292,11 @@ function CollageTile({ src, index, area, onClick }: CollageTileProps) {
     <div
       onClick={() => onClick(index)}
       style={{ gridArea: area }}
-      className="rounded-xl overflow-hidden bg-[#0e1f20] cursor-pointer min-h-[150px]"
+      className="rounded-xl overflow-hidden bg-[#0e1f20] cursor-pointer min-h-[150px] relative"
     >
+      {!loaded && !errored && (
+        <div className="absolute inset-0 bg-[#0e1f20] animate-pulse" />
+      )}
       {!errored && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -302,12 +305,9 @@ function CollageTile({ src, index, area, onClick }: CollageTileProps) {
           loading="lazy"
           onLoad={() => setLoaded(true)}
           onError={() => setErrored(true)}
-          className="w-full h-full object-cover"
-          style={{ display: loaded ? 'block' : 'none' }}
+          className="w-full h-full object-cover transition-opacity duration-500"
+          style={{ opacity: loaded ? 1 : 0 }}
         />
-      )}
-      {!loaded && !errored && (
-        <div className="w-full h-full bg-[#0e1f20] min-h-[150px]" />
       )}
     </div>
   )
@@ -328,10 +328,10 @@ function CommunitySection({ images }: { images: string[] }) {
           More than a space — it&apos;s where good times, good people, and great memories meet.
         </h2>
 
+        {/* Desktop: asymmetric mosaic grid */}
         <div
-          className="mx-auto w-full max-w-[1200px] gap-2"
+          className="mx-auto w-full max-w-[1200px] gap-2 hidden md:grid"
           style={{
-            display: 'grid',
             gridTemplateColumns: 'repeat(4, 1fr)',
             gridTemplateRows: 'repeat(4, 220px)',
             gridTemplateAreas: `
@@ -350,6 +350,25 @@ function CommunitySection({ images }: { images: string[] }) {
               area={GRID_AREAS[i]}
               onClick={setLightboxIndex}
             />
+          ))}
+        </div>
+
+        {/* Mobile: simple 2-column grid */}
+        <div className="grid md:hidden grid-cols-2 gap-2 max-w-[600px] mx-auto">
+          {images.map((src, i) => (
+            <div
+              key={src}
+              className="aspect-square rounded-xl overflow-hidden bg-[#0e1f20] cursor-pointer relative"
+              onClick={() => setLightboxIndex(i)}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={src}
+                alt={`Community ${i + 1}`}
+                loading="lazy"
+                className="w-full h-full object-cover"
+              />
+            </div>
           ))}
         </div>
       </section>

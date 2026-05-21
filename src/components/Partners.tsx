@@ -61,27 +61,35 @@ const Partners = () => {
   const partnerImages = partners.length > 0 ? partners : fallbackPartnerImages;
 
   return (
-    <section className="partners-section py-5 mb-5 min-vh-50" id="partners">
-      <div className="container text-center">
-        <h2 className="section-title">Our Partners</h2>
-        <div className="row gy-5 gx-4 justify-content-center">
+    <section
+      className="py-16 text-white"
+      id="partners"
+      style={{
+        background: 'linear-gradient(180deg, #000 0%, #0a1a1a 50%, #102425 100%)',
+      }}
+    >
+      <div className="max-w-5xl mx-auto px-4 text-center">
+        <h2 className="text-3xl md:text-4xl font-bold mb-12" style={{ color: '#40e0d0' }}>
+          Our Partners
+        </h2>
+        <div className="grid grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-10 justify-items-center">
           {partnerImages
             .slice()
             .sort((a, b) => (a.alt || '').localeCompare(b.alt || ''))
             .map((partner, index) => (
-            <div key={partner.key || index} className="col-4 col-md-3 col-lg-3">
-              <div className="partner-card">
+              <div key={partner.key || index} className="flex items-center justify-center">
                 <a href={partner.link} target="_blank" rel="noopener noreferrer">
                   <img
                     src={partner.src}
                     alt={partner.alt}
-                    className="img-fluid"
-                    style={{ maxWidth: '75%', height: 'auto' }}
+                    className="h-10 w-auto object-contain opacity-80 hover:opacity-100 hover:scale-105 transition-all duration-300"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
                   />
                 </a>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
     </section>

@@ -59,21 +59,10 @@ const NumbersSection = () => {
   return (
     <section
       id="numbers-section"
-      className="py-16 relative overflow-hidden"
-      style={{
-        background: 'transparent'
-      }}
+      className="py-16"
+      style={{ background: '#000' }}
     >
-      {/* Background overlay */}
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          background: 'rgba(0, 0, 0, 0.7)',
-          backdropFilter: 'blur(5px)'
-        }}
-      ></div>
-
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-4">
         <h2
           style={{
             color: '#40e0d0',

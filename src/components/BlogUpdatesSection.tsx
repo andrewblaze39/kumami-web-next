@@ -56,7 +56,7 @@ const BlogUpdatesSection = () => {
   if (!posts.length) return null;
 
   return (
-    <section className="py-12 md:py-16" style={{ background: 'rgba(0,0,0,0.75)' }}>
+    <section className="py-12 md:py-16" style={{ background: '#000' }}>
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-10">
           <h2

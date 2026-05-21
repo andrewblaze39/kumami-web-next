@@ -4,7 +4,7 @@ import '@/styles/Contact.css';
 
 const Contact = () => {
   return (
-    <section id="contact" className="contact-section">
+    <section id="contact" className="contact-section" style={{ background: '#000' }}>
       <div className="container text-center">
         <h2
           className="section-title"

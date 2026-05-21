@@ -89,7 +89,7 @@ export default function PartnersGrid() {
                     <img
                       src={partner.src}
                       alt={partner.alt}
-                      className="max-w-[75%] h-auto mx-auto"
+                      className="max-w-[55%] max-h-[54px] h-auto mx-auto object-contain"
                       onError={(e) => {
                         const target = e.currentTarget
                         target.style.display = 'none'
@@ -99,7 +99,7 @@ export default function PartnersGrid() {
                     />
                   ) : null}
                   <div
-                    className="items-center justify-center h-[72px] text-white/60 text-sm font-semibold text-center px-2"
+                    className="items-center justify-center h-[54px] text-white/60 text-sm font-semibold text-center px-2"
                     style={{ display: partner.hasLogo ? 'none' : 'flex' }}
                   >
                     {partner.alt}
