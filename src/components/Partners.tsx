@@ -64,10 +64,10 @@ const Partners = () => {
 
   return (
     <section
-      className="pt-16 pb-0 text-white"
+      className="pt-16 pb-16 text-white"
       id="partners"
       style={{
-        background: 'linear-gradient(180deg, #000 0%, #0a1a1a 50%, #102425 100%)',
+        background: 'linear-gradient(180deg, #000 0%, #0a1a1a 40%, #102425 75%, #000 100%)',
       }}
     >
       <div className="max-w-5xl mx-auto px-4 text-center">
