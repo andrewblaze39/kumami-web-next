@@ -20,8 +20,9 @@ export default function HomePage() {
         style={{
           backgroundImage: "url('/landing-page-bg-(no-pic)-ver-2.jpg')",
           backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center top',
+          backgroundRepeat: 'repeat-y',
+          backgroundColor: '#000',
         }}
       >
         <TrendingNews />
