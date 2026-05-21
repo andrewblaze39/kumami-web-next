@@ -54,12 +54,7 @@ export default function EcosystemSection() {
           {ecosystemItems.map((item, index) => (
             <div key={index}>
               <Link href={item.path} className="no-underline block">
-                <div
-                  className="flex flex-col items-center text-center p-4 rounded-lg cursor-pointer transition-all duration-300 hover:-translate-y-2"
-                  style={{ background: 'rgba(255,255,255,0.05)' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0,194,199,0.1)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
-                >
+                <div className="flex flex-col items-center text-center p-4 rounded-lg cursor-pointer transition-all duration-300 hover:-translate-y-2 bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(0,194,199,0.1)]">
                   <img src={item.icon} alt={item.title} className="mb-3" style={{ height: '44px', width: 'auto' }} />
                   <p className="text-white font-semibold text-sm mb-1">{item.title}</p>
                   <p className="text-white/70 text-xs">{item.description}</p>
