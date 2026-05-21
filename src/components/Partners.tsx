@@ -58,11 +58,13 @@ const Partners = () => {
     fetchHomepagePartners();
   }, []);
 
+  // Use Firestore data if available, otherwise fall back to local images
+  // In dev the Firestore collection may be empty or have broken URLs
   const partnerImages = partners.length > 0 ? partners : fallbackPartnerImages;
 
   return (
     <section
-      className="py-16 text-white"
+      className="pt-16 pb-0 text-white"
       id="partners"
       style={{
         background: 'linear-gradient(180deg, #000 0%, #0a1a1a 50%, #102425 100%)',
