@@ -79,7 +79,7 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row gap-10 lg:gap-16 lg:ml-auto lg:mr-16">
             {/* Menu 1 */}
             <div>
-              <h3 className="text-lg font-bold mb-3 ml-8">Documentation</h3>
+              <h3 className="text-lg font-bold mb-3 ">Documentation</h3>
               <ul className="space-y-2">
                 <li>
                   <a
@@ -96,7 +96,7 @@ const Footer = () => {
 
             {/* Menu 2 */}
             <div>
-              <h3 className="text-lg font-bold mb-3 ml-8">Company</h3>
+              <h3 className="text-lg font-bold mb-3 ">Company</h3>
               <ul className="space-y-2">
                 <li>
                   <a href="/about" className="text-gray-300 hover:text-[#96EDD6] transition no-underline">
@@ -113,7 +113,7 @@ const Footer = () => {
 
             {/* Menu 3 */}
             <div>
-              <h3 className="text-lg font-bold mb-3 ml-8">Community</h3>
+              <h3 className="text-lg font-bold mb-3 ">Community</h3>
               <ul className="space-y-2">
                 <li>
                   <a href="/blogs" className="text-gray-300 hover:text-[#96EDD6] transition no-underline">
