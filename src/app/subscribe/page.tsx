@@ -5,6 +5,10 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Subscribe — Kumami World',
   description: 'Kumami Pro subscription is coming soon.',
+  robots: {
+    index: false,
+    follow: false,
+  },
 }
 
 export default function SubscribePage() {

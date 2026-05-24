@@ -7,11 +7,14 @@ import GameDetailView from '@/components/GameDetailView'
 export const metadata: Metadata = {
   title: 'Game Details — Kumami World',
   description: 'Explore game details, features, and more on Kumami World Game Zone.',
+  alternates: { canonical: 'https://kumami.world/game-details' },
   openGraph: {
     title: 'Game Details — Kumami World',
     description: 'Explore game details, features, and more on Kumami World Game Zone.',
     url: 'https://kumami.world/game-details',
-    images: ['https://kumami.world/og-default.png'],
+    siteName: 'Kumami World',
+    locale: 'en_US',
+    images: [{ url: 'https://kumami.world/og-default.png', width: 1200, height: 630, alt: 'Game Details — Kumami World' }],
   },
   twitter: {
     card: 'summary_large_image',

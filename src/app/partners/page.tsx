@@ -11,7 +11,12 @@ export const metadata: Metadata = {
     description:
       "Meet Kumami World's ecosystem partners and collaborators.",
     url: 'https://kumami.world/partners',
-    images: ['https://kumami.world/og-default.png'],
+    siteName: 'Kumami World',
+    locale: 'en_US',
+    images: [{ url: 'https://kumami.world/og-default.png', width: 1200, height: 630, alt: 'Partners — Kumami World' }],
+  },
+  alternates: {
+    canonical: 'https://kumami.world/partners',
   },
   twitter: {
     card: 'summary_large_image',

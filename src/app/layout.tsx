@@ -11,8 +11,10 @@ import CryptoTicker from '@/components/CryptoTicker'
 const lato = Lato({ subsets: ['latin'], weight: ['300', '400', '700', '900'] })
 
 export const metadata = {
+  metadataBase: new URL('https://kumami.world'),
   title: 'Kumami World — Where Web3 Finally Makes Sense',
   description: 'Where Web3 finally makes sense. Kumami World is your all-in-one platform for crypto intelligence, Web3 education, gaming, and community.',
+  alternates: { canonical: 'https://kumami.world' },
   icons: {
     icon: '/icon.png',
     apple: '/apple-icon.png',
@@ -25,9 +27,9 @@ export const metadata = {
     siteName: 'Kumami World',
     images: [
       {
-        url: '/icon.png',
-        width: 512,
-        height: 512,
+        url: 'https://kumami.world/og-default.png',
+        width: 1200,
+        height: 630,
         alt: 'Kumami World',
       },
     ],
@@ -37,7 +39,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'Kumami World — Where Web3 Finally Makes Sense',
     description: 'Where Web3 finally makes sense.',
-    images: ['/icon.png'],
+    images: ['https://kumami.world/og-default.png'],
   },
 }
 

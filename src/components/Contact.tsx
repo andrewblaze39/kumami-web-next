@@ -18,15 +18,9 @@ const Contact = () => {
           Get in Touch
         </h2>
         <div className="contact-box mb-5">
-          <p className="mb-3">Have questions? We&apos;d love to hear from you!</p>
-          <p className="mb-4">
-            Email:{' '}
-            <a href="mailto:team@kumami.world" className="contact-link">
-              team@kumami.world
-            </a>
-          </p>
+          <p className="mb-4">Have questions? We&apos;d love to hear from you!</p>
           <button
-            onClick={() => window.open('https://linktr.ee/kumamiworld', '_blank')}
+            onClick={() => window.open('https://discord.com/invite/5q3NnHFpYR', '_blank')}
             className="btn-main"
           >
             Join Our Community

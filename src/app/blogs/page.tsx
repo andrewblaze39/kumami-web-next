@@ -11,7 +11,12 @@ export const metadata: Metadata = {
     description:
       'Insights, updates, and stories from the Kumami World team.',
     url: 'https://kumami.world/blogs',
-    images: ['https://kumami.world/og-default.png'],
+    siteName: 'Kumami World',
+    locale: 'en_US',
+    images: [{ url: 'https://kumami.world/og-default.png', width: 1200, height: 630, alt: 'Blog — Kumami World' }],
+  },
+  alternates: {
+    canonical: 'https://kumami.world/blogs',
   },
   twitter: {
     card: 'summary_large_image',

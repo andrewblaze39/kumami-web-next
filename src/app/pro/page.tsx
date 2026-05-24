@@ -19,6 +19,10 @@ export const metadata: Metadata = {
     description: 'Your premium crypto portfolio dashboard with AI insights, market analysis, and alpha room.',
     images: ['https://kumami.world/og-default.png'],
   },
+  robots: {
+    index: false,
+    follow: false,
+  },
 }
 
 export default function ProPage() {

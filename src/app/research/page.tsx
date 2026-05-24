@@ -11,7 +11,12 @@ export const metadata: Metadata = {
     description:
       'In-depth crypto and Web3 research articles from the Kumami World team.',
     url: 'https://kumami.world/research',
-    images: ['https://kumami.world/og-default.png'],
+    siteName: 'Kumami World',
+    locale: 'en_US',
+    images: [{ url: 'https://kumami.world/og-default.png', width: 1200, height: 630, alt: 'Research — Kumami World' }],
+  },
+  alternates: {
+    canonical: 'https://kumami.world/research',
   },
   twitter: {
     card: 'summary_large_image',

@@ -11,7 +11,16 @@ export const metadata: Metadata = {
     description:
       'Terms of Service and conditions for using Kumami World platform.',
     url: 'https://kumami.world/terms',
-    images: ['https://kumami.world/og-default.png'],
+    siteName: 'Kumami World',
+    locale: 'en_US',
+    images: [{ url: 'https://kumami.world/og-default.png', width: 1200, height: 630, alt: 'Terms of Service — Kumami World' }],
+  },
+  alternates: {
+    canonical: 'https://kumami.world/terms',
+  },
+  robots: {
+    index: false,
+    follow: false,
   },
   twitter: {
     card: 'summary_large_image',

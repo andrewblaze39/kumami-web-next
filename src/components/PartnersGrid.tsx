@@ -76,20 +76,21 @@ export default function PartnersGrid() {
             <Loader className="animate-spin text-[#40e0d0]" size={40} />
           </div>
         ) : (
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-y-5 gap-x-1 justify-items-center pl-3 md:pl-5">
+          <div className="flex flex-wrap justify-center">
             {sorted.map((partner) => (
-              <div key={partner.key} className="flex items-center justify-center">
+              <div key={partner.key} className="w-1/3 md:w-1/4 flex items-center justify-center py-3 px-2">
                 <a
                   href={partner.link}
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="block transition-transform duration-300 hover:scale-105 hover:-translate-y-[3px]"
                 >
                   {partner.hasLogo ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={partner.src}
                       alt={partner.alt}
-                      className="max-w-[55%] max-h-[54px] h-auto mx-auto object-contain"
+                      className="max-w-[66%] max-h-[65px] h-auto mx-auto object-contain brightness-90 hover:brightness-100"
                       onError={(e) => {
                         const target = e.currentTarget
                         target.style.display = 'none'
@@ -99,7 +100,7 @@ export default function PartnersGrid() {
                     />
                   ) : null}
                   <div
-                    className="items-center justify-center h-[54px] text-white/60 text-sm font-semibold text-center px-2"
+                    className="items-center justify-center h-[65px] text-white/60 text-sm font-semibold text-center px-2"
                     style={{ display: partner.hasLogo ? 'none' : 'flex' }}
                   >
                     {partner.alt}

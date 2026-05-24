@@ -22,11 +22,14 @@ export async function generateMetadata({
     return {
       title: fallbackTitle,
       description: fallbackDescription,
+      alternates: { canonical: `https://kumami.world/glossary/${id}` },
       openGraph: {
         title: fallbackTitle,
         description: fallbackDescription,
         url: `https://kumami.world/glossary/${id}`,
-        images: [fallbackImage],
+        siteName: 'Kumami World',
+        locale: 'en_US',
+        images: [{ url: fallbackImage, width: 1200, height: 630, alt: 'Kumami World' }],
       },
       twitter: {
         card: 'summary_large_image',
@@ -46,11 +49,14 @@ export async function generateMetadata({
   return {
     title,
     description,
+    alternates: { canonical: `https://kumami.world/glossary/${id}` },
     openGraph: {
       title: term.term,
       description,
       url: `https://kumami.world/glossary/${id}`,
-      images: [fallbackImage],
+      siteName: 'Kumami World',
+      locale: 'en_US',
+      images: [{ url: fallbackImage, width: 1200, height: 630, alt: term.term }],
     },
     twitter: {
       card: 'summary_large_image',

@@ -5,11 +5,14 @@ import FeaturedGamesGrid from '@/components/FeaturedGamesGrid'
 export const metadata: Metadata = {
   title: 'Featured Games — Kumami World',
   description: 'Explore the best featured games on Kumami World Game Zone.',
+  alternates: { canonical: 'https://kumami.world/featured-games' },
   openGraph: {
     title: 'Featured Games — Kumami World',
     description: 'Explore the best featured games on Kumami World Game Zone.',
     url: 'https://kumami.world/featured-games',
-    images: ['https://kumami.world/og-default.png'],
+    siteName: 'Kumami World',
+    locale: 'en_US',
+    images: [{ url: 'https://kumami.world/og-default.png', width: 1200, height: 630, alt: 'Featured Games — Kumami World' }],
   },
   twitter: {
     card: 'summary_large_image',

@@ -6,12 +6,15 @@ export const metadata: Metadata = {
   title: 'All Games — Kumami World',
   description:
     'Browse every game available on Kumami World Game Zone.',
+  alternates: { canonical: 'https://kumami.world/all-games' },
   openGraph: {
     title: 'All Games — Kumami World',
     description:
       'Browse every game available on Kumami World Game Zone.',
     url: 'https://kumami.world/all-games',
-    images: ['https://kumami.world/og-default.png'],
+    siteName: 'Kumami World',
+    locale: 'en_US',
+    images: [{ url: 'https://kumami.world/og-default.png', width: 1200, height: 630, alt: 'All Games — Kumami World' }],
   },
   twitter: {
     card: 'summary_large_image',

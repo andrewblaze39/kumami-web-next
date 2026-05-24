@@ -6,12 +6,15 @@ export const metadata: Metadata = {
   title: 'AI Modules — Kumami World',
   description:
     'Explore AI modules and hands-on workshops from Kumami World\'s AI Labs.',
+  alternates: { canonical: 'https://kumami.world/ai-labs/module' },
   openGraph: {
     title: 'AI Modules — Kumami World',
     description:
       'Explore AI modules and hands-on workshops from Kumami World\'s AI Labs.',
     url: 'https://kumami.world/ai-labs/module',
-    images: ['https://kumami.world/og-default.png'],
+    siteName: 'Kumami World',
+    locale: 'en_US',
+    images: [{ url: 'https://kumami.world/og-default.png', width: 1200, height: 630, alt: 'AI Modules — Kumami World' }],
   },
   twitter: {
     card: 'summary_large_image',

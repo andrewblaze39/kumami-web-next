@@ -11,7 +11,12 @@ export const metadata: Metadata = {
     description:
       "Level up your crypto and Web3 knowledge with Kumami's free education courses.",
     url: 'https://kumami.world/education',
-    images: ['https://kumami.world/og-default.png'],
+    siteName: 'Kumami World',
+    locale: 'en_US',
+    images: [{ url: 'https://kumami.world/og-default.png', width: 1200, height: 630, alt: 'Learn Web3 — Kumami Education' }],
+  },
+  alternates: {
+    canonical: 'https://kumami.world/education',
   },
   twitter: {
     card: 'summary_large_image',

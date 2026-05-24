@@ -25,6 +25,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://kumami.world/profile',
   },
+  robots: {
+    index: false,
+    follow: false,
+  },
 }
 
 export default function ProfilePage() {

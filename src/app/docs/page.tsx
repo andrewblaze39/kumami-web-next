@@ -9,7 +9,12 @@ export const metadata: Metadata = {
     title: 'Documentation — Kumami World',
     description: 'Kumami World platform documentation and guides.',
     url: 'https://kumami.world/docs',
-    images: ['https://kumami.world/og-default.png'],
+    siteName: 'Kumami World',
+    locale: 'en_US',
+    images: [{ url: 'https://kumami.world/og-default.png', width: 1200, height: 630, alt: 'Documentation — Kumami World' }],
+  },
+  alternates: {
+    canonical: 'https://kumami.world/docs',
   },
   twitter: {
     card: 'summary_large_image',

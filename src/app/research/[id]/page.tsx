@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, Timestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import Footer from '@/components/Footer'
 import ResearchArticleView from '@/components/ResearchArticleView'
@@ -17,6 +17,8 @@ interface ResearchArticleMetaDoc {
   imageUrl?: string
   detailImageUrl?: string
   category?: string
+  author?: string
+  timestamp?: Timestamp | { seconds: number; nanoseconds: number }
 }
 
 async function fetchResearchForMeta(
@@ -42,16 +44,20 @@ export async function generateMetadata({
   const fallbackDescription =
     'In-depth crypto and Web3 research articles from the Kumami World team.'
   const fallbackImage = 'https://kumami.world/og-default.png'
+  const url = `https://kumami.world/research/${id}`
 
   if (!article) {
     return {
       title: fallbackTitle,
       description: fallbackDescription,
+      alternates: { canonical: url },
       openGraph: {
         title: fallbackTitle,
         description: fallbackDescription,
-        url: `https://kumami.world/research/${id}`,
-        images: [fallbackImage],
+        url,
+        siteName: 'Kumami World',
+        locale: 'en_US',
+        images: [{ url: fallbackImage, width: 1200, height: 630, alt: 'Kumami World' }],
         type: 'article',
       },
       twitter: {
@@ -84,17 +90,25 @@ export async function generateMetadata({
       : rawDescription
 
   const ogImage = article.imageUrl || article.detailImageUrl || fallbackImage
-  const url = `https://kumami.world/research/${id}`
+
+  const publishedTime = article.timestamp
+    ? new Date((article.timestamp as { seconds: number }).seconds * 1000).toISOString()
+    : undefined
 
   return {
     title,
     description,
+    alternates: { canonical: url },
     openGraph: {
       title: article.title || fallbackTitle,
       description,
       url,
-      images: [ogImage],
+      siteName: 'Kumami World',
+      locale: 'en_US',
+      images: [{ url: ogImage, width: 1200, height: 630, alt: article.title || 'Kumami World' }],
       type: 'article',
+      ...(publishedTime && { publishedTime }),
+      ...(article.category && { section: article.category }),
     },
     twitter: {
       card: 'summary_large_image',
@@ -107,8 +121,45 @@ export async function generateMetadata({
 
 export default async function ResearchDetailPage({ params }: PageProps) {
   const { id } = await params
+  const article = await fetchResearchForMeta(id)
+
+  const publishedTime = article?.timestamp
+    ? new Date((article.timestamp as { seconds: number }).seconds * 1000).toISOString()
+    : undefined
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article?.title ?? 'Kumami World',
+    description: article?.summary || article?.description || '',
+    image: article?.imageUrl || article?.detailImageUrl
+      ? [article?.imageUrl || article?.detailImageUrl]
+      : ['https://kumami.world/og-default.png'],
+    url: `https://kumami.world/research/${id}`,
+    ...(publishedTime && { datePublished: publishedTime, dateModified: publishedTime }),
+    author: {
+      '@type': 'Organization',
+      name: article?.author || 'Kumami World',
+      url: 'https://kumami.world',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Kumami World',
+      url: 'https://kumami.world',
+      logo: { '@type': 'ImageObject', url: 'https://kumami.world/logo.png' },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `https://kumami.world/research/${id}`,
+    },
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <ResearchArticleView articleId={id} />
       <Footer />
     </>
