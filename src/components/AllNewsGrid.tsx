@@ -374,7 +374,7 @@ export default function AllNewsGrid() {
                   key={article.id}
                   href={`/news/${article.id}`}
                   ref={isLast ? lastCardRef : null}
-                  className="rounded-3xl overflow-hidden bg-[#1a1a1a] border border-white/10 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1 no-underline group relative"
+                  className="flex flex-col rounded-3xl overflow-hidden bg-[#1a1a1a] border border-white/10 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1 no-underline group relative"
                 >
                   {article.isPremium && (
                     <div className="absolute top-3 left-3 z-10 px-2.5 py-0.5 rounded-full bg-amber-500 text-white text-xs font-semibold tracking-wide">
@@ -390,7 +390,7 @@ export default function AllNewsGrid() {
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   </div>
-                  <div className="p-5 flex flex-col">
+                  <div className="p-5 flex flex-col flex-1">
                     {article.category && (
                       <span className="inline-flex self-start items-center h-5 px-2.5 rounded-full bg-white/[0.08] border border-white/[0.12] text-white/75 text-[0.7rem] tracking-normal mb-2">
                         {article.category}

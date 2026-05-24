@@ -61,10 +61,15 @@ interface TrendingGameItem {
   title?: string
   name?: string
   description?: string
+  tagline?: string
   thumbnail?: string
   image?: string
   imageUrl?: string
+  imageDetail1Url?: string
+  carouselImageUrl?: string
+  portraitImageUrl?: string
   category?: string
+  categories?: string[]
   status?: string
   timestamp?: FirestoreTimestamp
 }
@@ -514,7 +519,18 @@ function TrendingGamesCarousel() {
           id: d.id,
           ...(d.data() as Omit<TrendingGameItem, 'id'>),
         }))
-        setItems(all.slice(0, 4))
+        const featured = all
+          .filter((g) => {
+            if (g.status === 'draft') return false
+            if (Array.isArray(g.categories)) {
+              return g.categories.some(
+                (c) => typeof c === 'string' && c.toLowerCase() === 'featured'
+              )
+            }
+            return typeof g.category === 'string' && g.category.toLowerCase() === 'featured'
+          })
+          .slice(0, 4)
+        setItems(featured.length > 0 ? featured : all.slice(0, 4))
       } catch (err) {
         console.error('Error fetching trending games:', err)
       } finally {
@@ -554,10 +570,17 @@ function TrendingGamesCarousel() {
 
   const current = items[currentIndex]
   const image =
+    current.imageDetail1Url ||
+    current.carouselImageUrl ||
+    current.portraitImageUrl ||
     current.thumbnail ||
     current.image ||
     current.imageUrl ||
     'https://kumami.world/og-default.png'
+
+  const description =
+    current.tagline ||
+    (current.description ? current.description.substring(0, 120) + '...' : '')
 
   return (
     <div className="w-full max-w-[760px] mx-auto">
@@ -580,7 +603,7 @@ function TrendingGamesCarousel() {
             {current.title || current.name}
           </h3>
           <p className="text-gray-300 text-sm line-clamp-2">
-            {current.description}
+            {description}
           </p>
         </div>
 
@@ -665,7 +688,7 @@ export default function AboutContent() {
   const introHtml = renderMarkdown(aboutIntroContent)
   const currentProduct = PRODUCT_CONTENT[selectedProduct]
 
-  const showComingSoon = selectedProduct === 'AI Labs' || selectedProduct === 'Staking'
+  const showComingSoon = selectedProduct === 'Staking'
 
   return (
     <div className="min-h-screen bg-[#101010] text-white pb-20">
@@ -725,7 +748,7 @@ export default function AboutContent() {
         <div className="flex-1 bg-[#102425] rounded-[48px] lg:rounded-[100px] p-6 lg:p-12 shadow-2xl">
           <div className="flex flex-col gap-6">
             {/* Title (suppressed for Games/AI Labs/Staking which render their own) */}
-            {!showComingSoon && selectedProduct !== 'Games' && (
+            {!showComingSoon && selectedProduct !== 'Games' && selectedProduct !== 'AI Labs' && (
               <h2 className="text-center text-3xl md:text-4xl font-bold text-[#40e0d0] mb-4">
                 {selectedProduct === 'Education'
                   ? 'Learn Together with KUMAMI'
@@ -888,6 +911,81 @@ export default function AboutContent() {
                     alt="RememberUS"
                     className="w-full md:w-[340px] rounded-lg object-cover"
                   />
+                </div>
+              </div>
+            )}
+
+            {selectedProduct === 'AI Labs' && (
+              <div className="w-full">
+                <h2 className="text-center text-3xl md:text-4xl font-bold text-[#40e0d0] mb-6">
+                  AI Labs
+                </h2>
+                {/* Main section: image + description */}
+                <div className="flex flex-col md:flex-row gap-6 items-start mb-8 flex-wrap">
+                  <div className="flex-1 basis-[280px] rounded-xl overflow-hidden border border-white/10">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/images/ailabs_mainpicture.webp"
+                      alt="AI Labs"
+                      className="w-full object-cover"
+                      style={{ aspectRatio: '3/2' }}
+                    />
+                  </div>
+                  <div className="flex-1 basis-[280px]">
+                    <p className="text-white text-base leading-relaxed text-justify mb-3">
+                      Kumami AI Labs is an AI and Web3 innovation hub focused on learning, collaboration, and incubation.
+                    </p>
+                    <p className="text-white text-base leading-relaxed text-justify">
+                      We provide AI learning modules developed with our team and ecosystem partners, host hands-on workshops with partners, and support innovators through AI and Web3 project submissions for mentorship and incubation. By combining artificial intelligence with decentralized technologies, Kumami AI Labs empowers builders to create scalable, real-world solutions for the next generation of the digital economy.
+                    </p>
+                  </div>
+                </div>
+                {/* Three feature cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {[
+                    {
+                      img: '/images/Module.webp',
+                      alt: 'AI module',
+                      title: 'Module',
+                      desc: 'Learn everything about AI here, designed to be practical, easy to understand, and beginner-friendly.',
+                    },
+                    {
+                      img: '/images/Workshop.webp',
+                      alt: 'AI workshop',
+                      title: 'Workshop',
+                      desc: 'Live sessions with our partners where we collaborate to build, test, and improve new AI features together in a simple and hands-on way.',
+                    },
+                    {
+                      img: '/images/Submission.webp',
+                      alt: 'AI submission',
+                      title: 'Submission',
+                      desc: 'Submit your AI project here. Our team, together with several AI incubators, will review and evaluate your project. If selected, we will support and help your project grow further.',
+                    },
+                  ].map(({ img, alt, title, desc }) => (
+                    <div
+                      key={title}
+                      className="rounded-[18px] bg-[#102425] border-[1.5px] border-[#baf7f0] overflow-hidden flex flex-col"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={img}
+                        alt={alt}
+                        className="w-full object-cover"
+                        style={{ aspectRatio: '3/2' }}
+                      />
+                      <div className="p-4 flex flex-col flex-1">
+                        <h3 className="text-[#96EDD6] font-bold text-[1.1rem] mb-2">{title}</h3>
+                        <p className="text-white text-sm leading-relaxed flex-1">{desc}</p>
+                        <button
+                          type="button"
+                          disabled
+                          className="mt-3 px-4 py-2 rounded-[18px] bg-transparent text-[#baf7f0] font-semibold border-[1.5px] border-[#baf7f0] opacity-60 cursor-not-allowed"
+                        >
+                          Coming Soon
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

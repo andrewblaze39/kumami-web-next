@@ -221,7 +221,7 @@ export default function NewsGrid() {
                     <Link
                       key={item.id}
                       href={`/news/${item.id}`}
-                      className={`flex-1 min-w-0 block relative rounded-[10px] overflow-hidden bg-black/50 border border-white/10 no-underline text-inherit transition-transform duration-300 hover:-translate-y-1 ${
+                      className={`flex-1 min-w-0 flex flex-col relative rounded-[10px] overflow-hidden bg-black/50 border border-white/10 no-underline text-inherit transition-transform duration-300 hover:-translate-y-1 ${
                         item.isPremium ? 'border-[#96EDD6]/60' : ''
                       }`}
                     >
@@ -241,11 +241,11 @@ export default function NewsGrid() {
                           />
                         )}
                       </div>
-                      <div className="p-4">
+                      <div className="p-4 flex flex-col flex-1">
                         <h4 className="text-[1.05rem] font-semibold text-white m-0 mb-1 leading-snug line-clamp-3">
                           {item.title}
                         </h4>
-                        <span className="block text-xs text-[#888] mt-1">
+                        <span className="block text-xs text-[#888] mt-auto pt-2">
                           {formatNewsPortalTimestamp(item.timestamp)}
                         </span>
                       </div>
