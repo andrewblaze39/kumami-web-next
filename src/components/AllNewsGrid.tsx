@@ -62,7 +62,20 @@ function mapDoc(docSnap: QueryDocumentSnapshot<DocumentData>): NewsArticle {
 
 function formatDate(ms: number): string {
   if (!ms) return ''
-  return new Date(ms).toLocaleDateString('en-US', {
+  const date = new Date(ms)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays} days ago`
+  if (diffDays < 14) return '1 week ago'
+  if (diffDays < 21) return '2 weeks ago'
+  if (diffDays < 28) return '3 weeks ago'
+  if (diffDays < 31) return '4 weeks ago'
+
+  return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
