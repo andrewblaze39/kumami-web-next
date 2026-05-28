@@ -378,7 +378,7 @@ export default function AllNewsGrid() {
             No news articles found.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex flex-col gap-5">
             {displayedArticles.map((article, index) => {
               const isLast =
                 index === displayedArticles.length - 1 && !isFiltering && trimmedSearch.length === 0
@@ -387,23 +387,25 @@ export default function AllNewsGrid() {
                   key={article.id}
                   href={`/news/${article.id}`}
                   ref={isLast ? lastCardRef : null}
-                  className="flex flex-col rounded-3xl overflow-hidden bg-[#1a1a1a] border border-white/10 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1 no-underline group relative"
+                  className="flex flex-row rounded-[10px] overflow-hidden bg-[#1a1a1a]/80 border border-white/10 transition-all hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(0,0,0,0.2)] no-underline group relative"
                 >
                   {article.isPremium && (
-                    <div className="absolute top-3 left-3 z-10 px-2.5 py-0.5 rounded-full bg-amber-500 text-white text-xs font-semibold tracking-wide">
+                    <div className="absolute top-2 left-2 z-10 px-2.5 py-0.5 rounded-full bg-amber-500 text-white text-xs font-semibold tracking-wide">
                       Premium
                     </div>
                   )}
-                  <div className="relative pb-[60%] overflow-hidden">
+                  {/* Image — fixed width left column */}
+                  <div className="flex-none w-[220px] md:w-[320px] aspect-[3/2] overflow-hidden bg-[#2a2a2a]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={getImage(article)}
                       alt={article.title}
                       loading="lazy"
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   </div>
-                  <div className="p-5 flex flex-col flex-1">
+                  {/* Content — right column */}
+                  <div className="flex flex-col flex-1 p-4 md:p-5">
                     {article.category && (
                       <span className="inline-flex self-start items-center h-5 px-2.5 rounded-full bg-white/[0.08] border border-white/[0.12] text-white/75 text-[0.7rem] tracking-normal mb-2">
                         {article.category}
@@ -412,12 +414,12 @@ export default function AllNewsGrid() {
                     <h3 className="text-base md:text-lg font-semibold text-white mb-2 line-clamp-2">
                       {article.title}
                     </h3>
-                    <p className="text-sm text-gray-300 mb-4 line-clamp-3">
+                    <p className="text-sm text-gray-300 line-clamp-3">
                       {getExcerpt(article)}
                     </p>
-                    <div className="mt-auto flex items-center justify-between text-xs text-gray-400">
-                      <span>{formatDate(article.timestamp)}</span>
-                    </div>
+                    <span className="mt-auto pt-2 text-xs text-[#888]">
+                      {formatDate(article.timestamp)}
+                    </span>
                   </div>
                 </Link>
               )

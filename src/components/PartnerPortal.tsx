@@ -217,7 +217,7 @@ export default function PartnerPortal() {
                 className="rounded-2xl border border-white/10 bg-[#1a1a1a]/75 backdrop-blur-md overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(0,0,0,0.35)] hover:border-[#40e0d0]/[0.35]"
               >
                 {/* Image */}
-                <div className="aspect-[3/2] bg-[#2a2a2a] overflow-hidden">
+                <div className="aspect-square bg-[#2a2a2a] overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={article.imageUrl}
