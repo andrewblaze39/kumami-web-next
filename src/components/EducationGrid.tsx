@@ -1,233 +1,790 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import Link from 'next/link'
-import { Search } from 'lucide-react'
+import { Search, Check, ArrowRight, Play, Clock } from 'lucide-react'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
+// ── Design tokens ─────────────────────────────────────────────────────────
+const T = {
+  bgGradient: 'linear-gradient(160deg, #0A1A1C 0%, #0D2224 30%, #102425 65%, #0e1d1f 100%)',
+  mint: '#96EDD6',
+  mintInk: '#102425',
+  text: '#FAFAFA',
+  textDim: 'rgba(250,250,250,0.55)',
+  textFade: 'rgba(250,250,250,0.35)',
+  border: 'rgba(150,237,214,0.25)',
+  borderLo: 'rgba(255,255,255,0.09)',
+}
+
+// ── Static data ───────────────────────────────────────────────────────────
+const LEVELS = [
+  { num: 1, name: 'Foundations', emoji: '🌱', color: '#86EFAC',
+    blurb: 'What is crypto, really? Start here.',
+    skills: ['What is Bitcoin', 'How wallets work', 'Reading a price chart'] },
+  { num: 2, name: 'First Steps', emoji: '🔑', color: '#5EEAD4',
+    blurb: 'Send, receive, and stay safe.',
+    skills: ['Self-custody basics', 'Spotting scams', 'Your first transaction'] },
+  { num: 3, name: 'DeFi & DApps', emoji: '⚡', color: '#96EDD6',
+    blurb: 'Use protocols, not banks.',
+    skills: ['Swapping on a DEX', 'Liquidity & yield', 'Reading smart contracts'] },
+  { num: 4, name: 'On-Chain Pro', emoji: '🛠️', color: '#A78BFA',
+    blurb: 'Read the blockchain like a pro.',
+    skills: ['Block explorers', 'Mempool & gas', 'On-chain analytics'] },
+  { num: 5, name: 'Build & Beyond', emoji: '🚀', color: '#F472B6',
+    blurb: 'Ship your first dApp.',
+    skills: ['Solidity basics', 'Frontend with viem', 'Auditing your code'] },
+]
+
+const FACTS = [
+  { value: '47', label: 'free lessons' },
+  { value: '5',  label: 'skill levels' },
+  { value: '6h', label: 'avg. to graduate' },
+  { value: '12k', label: 'students this month' },
+]
+
+const CONCEPTS = [
+  { id: 'c1', term: 'HODL',            meaning: 'Holding through volatility — born from a typo in 2013.' },
+  { id: 'c2', term: 'Gas',             meaning: 'A small fee paid to keep the network running.' },
+  { id: 'c3', term: 'Seed phrase',     meaning: '12 words that ARE your wallet — guard them with your life.' },
+  { id: 'c4', term: 'DeFi',            meaning: 'Banks, but written in code, open to anyone.' },
+  { id: 'c5', term: 'NFT',             meaning: 'Proof you own a specific digital thing.' },
+  { id: 'c6', term: 'Smart contract',  meaning: 'Code that runs when conditions are met — no humans needed.' },
+]
+
+const CSS_ANIMATIONS = `
+  @keyframes eduPeek {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  @keyframes eduPawL {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-8deg); }
+    75% { transform: rotate(3deg); }
+  }
+  @keyframes eduPawR {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(8deg); }
+    75% { transform: rotate(-3deg); }
+  }
+  @keyframes eduSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes eduFloat {
+    0%, 100% { transform: translateX(-50%) translateY(0px); }
+    50% { transform: translateX(-50%) translateY(-8px); }
+  }
+  @keyframes eduFadeUp {
+    from { opacity: 0; transform: translateY(22px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes orbDrift {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    33% { transform: translate(calc(-50% + 18px), calc(-50% - 22px)) scale(1.04); }
+    66% { transform: translate(calc(-50% - 12px), calc(-50% + 8px)) scale(0.97); }
+  }
+`
+
+// ── Types ─────────────────────────────────────────────────────────────────
 interface EducationArticle {
   id: string
   title: string
   level: string
   thumbnail: string
   featured: boolean
+  blurb: string
+  minutes: number
   createdAt: number
 }
 
-const LEVELS = [
-  'All',
-  'Level 1',
-  'Level 2',
-  'Level 3',
-  'Level 4',
-  'Level 5',
-  'Featured Classes',
-] as const
+// ── KumaPeek SVG bear ────────────────────────────────────────────────────
+function KumaPeek({ size = 260 }: { size?: number }) {
+  const white = '#FAFAFA'
+  const dark = '#0e1d1f'
+  return (
+    <svg viewBox="0 0 220 200" width={size} height={size * 0.91} style={{
+      filter: 'drop-shadow(0 14px 32px rgba(0,0,0,0.45))',
+      animation: 'eduPeek 5s ease-in-out infinite',
+      display: 'block',
+    }}>
+      {/* Ears */}
+      <circle cx="62" cy="58" r="18" fill={white}/>
+      <circle cx="158" cy="58" r="18" fill={white}/>
+      <circle cx="62" cy="58" r="9" fill="#dcdcdc"/>
+      <circle cx="158" cy="58" r="9" fill="#dcdcdc"/>
+      {/* Left paw */}
+      <g style={{ transformOrigin: '32px 170px', animation: 'eduPawL 4s ease-in-out infinite' }}>
+        <ellipse cx="32" cy="170" rx="26" ry="36" fill={white}/>
+        <ellipse cx="26" cy="152" rx="3.8" ry="5" fill={dark} opacity={0.85}/>
+        <ellipse cx="36" cy="150" rx="3.8" ry="5" fill={dark} opacity={0.85}/>
+        <ellipse cx="46" cy="156" rx="3.5" ry="4.6" fill={dark} opacity={0.85}/>
+        <ellipse cx="32" cy="164" rx="9" ry="8" fill={dark} opacity={0.85}/>
+      </g>
+      {/* Right paw */}
+      <g style={{ transformOrigin: '188px 170px', animation: 'eduPawR 4s ease-in-out infinite' }}>
+        <ellipse cx="188" cy="170" rx="26" ry="36" fill={white}/>
+        <ellipse cx="184" cy="150" rx="3.8" ry="5" fill={dark} opacity={0.85}/>
+        <ellipse cx="194" cy="152" rx="3.8" ry="5" fill={dark} opacity={0.85}/>
+        <ellipse cx="174" cy="156" rx="3.5" ry="4.6" fill={dark} opacity={0.85}/>
+        <ellipse cx="188" cy="164" rx="9" ry="8" fill={dark} opacity={0.85}/>
+      </g>
+      {/* Head */}
+      <ellipse cx="110" cy="116" rx="72" ry="64" fill={white}/>
+      {/* Eyes */}
+      <ellipse cx="86" cy="104" rx="4" ry="5.5" fill={dark}>
+        <animate attributeName="ry" values="5.5;0.5;5.5;5.5;5.5" keyTimes="0;0.03;0.06;0.6;1" dur="5s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="134" cy="104" rx="4" ry="5.5" fill={dark}>
+        <animate attributeName="ry" values="5.5;0.5;5.5;5.5;5.5" keyTimes="0;0.03;0.06;0.6;1" dur="5s" repeatCount="indefinite"/>
+      </ellipse>
+      {/* Snout */}
+      <ellipse cx="110" cy="130" rx="22" ry="14" fill="#f0eee9"/>
+      {/* Nose */}
+      <path d="M 104 120 Q 110 124 116 120 Q 115 127 110 127.5 Q 105 127 104 120 Z" fill={dark}/>
+      {/* Mouth */}
+      <path d="M 110 128 L 110 133 M 102 138 Q 110 142 118 138" stroke={dark} strokeWidth="2" fill="none" strokeLinecap="round"/>
+    </svg>
+  )
+}
 
-export default function EducationGrid() {
-  const [selectedLevel, setSelectedLevel] = useState<string>('All')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [educationArticles, setEducationArticles] = useState<EducationArticle[]>([])
-  const [loading, setLoading] = useState(true)
+// ── Floating orbs background ──────────────────────────────────────────────
+const ORB_DEFS = [
+  { size: 320, x: '10%',  y: '18%',  color: '#96EDD6', opacity: 0.05, delay: '0s',  dur: '18s' },
+  { size: 220, x: '78%',  y: '10%',  color: '#A78BFA', opacity: 0.06, delay: '3s',  dur: '22s' },
+  { size: 260, x: '55%',  y: '50%',  color: '#96EDD6', opacity: 0.04, delay: '6s',  dur: '20s' },
+  { size: 160, x: '18%',  y: '72%',  color: '#F472B6', opacity: 0.05, delay: '2s',  dur: '25s' },
+  { size: 190, x: '86%',  y: '64%',  color: '#5EEAD4', opacity: 0.05, delay: '8s',  dur: '19s' },
+  { size: 130, x: '42%',  y: '87%',  color: '#A78BFA', opacity: 0.04, delay: '4s',  dur: '23s' },
+]
+
+function FloatingOrbs() {
+  return (
+    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
+      {ORB_DEFS.map((o, i) => (
+        <div key={i} style={{
+          position: 'absolute', left: o.x, top: o.y,
+          width: o.size, height: o.size, borderRadius: '50%',
+          background: `radial-gradient(circle, ${o.color} 0%, transparent 70%)`,
+          opacity: o.opacity,
+          animation: `orbDrift ${o.dur} ${o.delay} ease-in-out infinite`,
+        }}/>
+      ))}
+    </div>
+  )
+}
+
+// ── Count-up number animation ─────────────────────────────────────────────
+function CountUp({ value }: { value: string }) {
+  const [display, setDisplay] = useState('0')
+  const rafRef = useRef<number>(0)
 
   useEffect(() => {
-    const fetchEducationArticles = async () => {
+    const match = value.match(/^(\d+\.?\d*)(.*)$/)
+    if (!match) { setDisplay(value); return }
+    const target = parseFloat(match[1])
+    const suffix = match[2]
+    let startTime: number | null = null
+    const duration = 1200
+
+    const animate = (ts: number) => {
+      if (!startTime) startTime = ts
+      const progress = Math.min((ts - startTime) / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setDisplay(String(Math.round(target * eased)) + suffix)
+      if (progress < 1) rafRef.current = requestAnimationFrame(animate)
+    }
+
+    const timer = setTimeout(() => {
+      rafRef.current = requestAnimationFrame(animate)
+    }, 500)
+
+    return () => {
+      clearTimeout(timer)
+      cancelAnimationFrame(rafRef.current)
+    }
+  }, [value])
+
+  return <span>{display}</span>
+}
+
+// ── Interactive level marker ──────────────────────────────────────────────
+type Level = typeof LEVELS[number]
+
+function LevelMarker({
+  lv, hovered, onHover, onLeave, mobile,
+}: {
+  lv: Level
+  idx?: number
+  hovered: number | null
+  onHover: (n: number) => void
+  onLeave: () => void
+  mobile?: boolean
+}) {
+  const isActive = hovered === lv.num
+  const isAnyHovered = hovered !== null
+  const reached = lv.num <= (hovered ?? 1)
+
+  if (mobile) {
+    return (
+      <button
+        onMouseEnter={() => onHover(lv.num)} onMouseLeave={onLeave}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 14,
+          padding: 14, borderRadius: 14, textAlign: 'left', width: '100%',
+          background: isActive
+            ? `linear-gradient(90deg, ${lv.color}1f, transparent)`
+            : 'rgba(255,255,255,0.03)',
+          border: `1.5px solid ${isActive ? lv.color : 'rgba(255,255,255,0.08)'}`,
+          cursor: 'pointer',
+          transition: 'all .25s ease',
+        }}>
+        <span style={{
+          width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+          background: lv.color, color: T.mintInk,
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          fontWeight: 900, fontSize: 22, letterSpacing: '-0.04em',
+          boxShadow: `0 8px 18px ${lv.color}66`,
+        }}>{lv.num}</span>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, color: lv.color, letterSpacing: '0.08em' }}>
+            LEVEL {lv.num} {lv.emoji}
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+            {lv.name}
+          </div>
+          <div style={{ fontSize: 12, color: T.textDim, marginTop: 4 }}>{lv.blurb}</div>
+        </div>
+      </button>
+    )
+  }
+
+  return (
+    <div
+      onMouseEnter={() => onHover(lv.num)} onMouseLeave={onLeave}
+      style={{
+        flex: 1, position: 'relative',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        cursor: 'pointer', minWidth: 0, paddingTop: 50,
+      }}>
+      {/* Marker circle */}
+      <div style={{
+        position: 'relative', zIndex: 3,
+        width: isActive ? 84 : 56, height: isActive ? 84 : 56,
+        borderRadius: '50%', background: lv.color, color: T.mintInk,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        fontWeight: 900, fontSize: isActive ? 32 : 20, letterSpacing: '-0.04em',
+        transform: isActive ? 'translateY(-22px)' : 'translateY(0)',
+        transition: 'all .35s cubic-bezier(.2,.9,.3,1.3)',
+        boxShadow: isActive
+          ? `0 16px 38px ${lv.color}aa, 0 0 0 6px ${lv.color}22, 0 0 0 1px ${lv.color}`
+          : reached ? `0 6px 14px ${lv.color}55` : '0 4px 10px rgba(0,0,0,0.3)',
+        opacity: isAnyHovered && !reached ? 0.4 : 1,
+      }}>
+        {lv.num}
+        {isActive && (
+          <span style={{
+            position: 'absolute', inset: -10, borderRadius: '50%',
+            border: `2px dashed ${lv.color}55`,
+            animation: 'eduSpin 12s linear infinite',
+          }}/>
+        )}
+      </div>
+
+      {/* Floating emoji */}
+      {isActive && (
+        <div style={{
+          position: 'absolute', top: 0, left: '50%',
+          transform: 'translateX(-50%)',
+          fontSize: 26, animation: 'eduFloat 2.5s ease-in-out infinite',
+        }}>{lv.emoji}</div>
+      )}
+
+      {/* Text block */}
+      <div style={{
+        marginTop: 18, textAlign: 'center', minHeight: 110,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+      }}>
+        <div style={{ fontSize: 10, fontWeight: 800, color: lv.color, letterSpacing: '0.12em' }}>
+          LEVEL {String(lv.num).padStart(2, '0')}
+        </div>
+        <div style={{
+          fontSize: isActive ? 22 : 19, fontWeight: 900, color: '#fff',
+          letterSpacing: '-0.025em', lineHeight: 1.05,
+          transition: 'font-size .3s cubic-bezier(.2,.9,.3,1.3)',
+        }}>{lv.name}</div>
+        <div style={{
+          fontSize: 12, color: T.textDim, lineHeight: 1.45, maxWidth: 180,
+          opacity: isActive ? 1 : 0.7, transition: 'opacity .25s ease',
+        }}>{lv.blurb}</div>
+
+        {/* Skills expand on hover */}
+        <div style={{
+          maxHeight: isActive ? 140 : 0, opacity: isActive ? 1 : 0,
+          overflow: 'hidden',
+          transition: 'max-height .35s ease, opacity .25s ease',
+          marginTop: isActive ? 6 : 0,
+        }}>
+          <div style={{
+            padding: '10px 14px', borderRadius: 12,
+            background: `${lv.color}14`, border: `1px solid ${lv.color}55`,
+            display: 'flex', flexDirection: 'column', gap: 5,
+          }}>
+            {lv.skills.map((s, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                fontSize: 11, color: T.textDim, textAlign: 'left',
+              }}>
+                <Check size={10} style={{ color: lv.color, flexShrink: 0 }}/>
+                <span>{s}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Lesson card ───────────────────────────────────────────────────────────
+function LessonCard({ article, i }: { article: EducationArticle; i: number }) {
+  const [hover, setHover] = useState(false)
+  const lv = LEVELS.find(l => `Level ${l.num}` === article.level)
+  const levelColor = lv?.color ?? T.mint
+
+  return (
+    <Link
+      href={`/education-article?id=${article.id}`}
+      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      style={{
+        borderRadius: 16, overflow: 'hidden',
+        border: `1px solid ${hover ? T.mint + '55' : T.borderLo}`,
+        background: 'rgba(255,255,255,0.03)',
+        transition: 'transform .25s ease, box-shadow .25s ease, border-color .25s ease',
+        transform: hover ? 'translateY(-4px)' : 'translateY(0)',
+        boxShadow: hover ? '0 20px 40px rgba(0,0,0,0.4)' : 'none',
+        animation: `eduFadeUp .5s cubic-bezier(.2,.9,.3,1.1) ${1.5 + i * 0.08}s both`,
+        textDecoration: 'none', color: 'inherit', display: 'block',
+      }}>
+      {/* Thumbnail */}
+      <div style={{
+        height: 140, position: 'relative',
+        backgroundImage: article.thumbnail ? `url(${article.thumbnail})` : undefined,
+        backgroundSize: 'cover', backgroundPosition: 'center',
+        background: article.thumbnail ? undefined : `linear-gradient(135deg, #1a2e30, #102425)`,
+      }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.5))',
+        }}/>
+        <div style={{ position: 'absolute', top: 10, left: 10 }}>
+          <span style={{
+            padding: '4px 10px', borderRadius: 999,
+            background: levelColor, color: T.mintInk,
+            fontSize: 10, fontWeight: 800, letterSpacing: '0.06em',
+          }}>{article.level}</span>
+        </div>
+        {article.minutes > 0 && (
+          <div style={{ position: 'absolute', bottom: 8, right: 8 }}>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              padding: '3px 8px', borderRadius: 999,
+              background: 'rgba(0,0,0,0.6)', color: T.textDim,
+              fontSize: 10, fontWeight: 600,
+            }}>
+              <Clock size={9}/> {article.minutes} min
+            </span>
+          </div>
+        )}
+      </div>
+      {/* Content */}
+      <div style={{ padding: 14 }}>
+        <div style={{
+          fontSize: 15, fontWeight: 800, color: '#fff',
+          letterSpacing: '-0.015em', marginBottom: 6, lineHeight: 1.3,
+        }}>{article.title}</div>
+        {article.blurb ? (
+          <div style={{
+            fontSize: 12, color: T.textDim, lineHeight: 1.45, marginBottom: 10,
+          }}>{article.blurb}</div>
+        ) : null}
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <span style={{
+            fontSize: 11, fontWeight: 800, color: T.mint, letterSpacing: '0.04em',
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+          }}>READ <ArrowRight size={11}/></span>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+// ── Concept card ─────────────────────────────────────────────────────────
+function ConceptCard({ c, i }: { c: typeof CONCEPTS[number]; i: number }) {
+  return (
+    <div style={{
+      flex: '0 0 240px', scrollSnapAlign: 'start',
+      padding: '18px 16px', borderRadius: 14,
+      background: 'linear-gradient(135deg, rgba(150,237,214,0.10), rgba(150,237,214,0.02))',
+      border: `1px solid ${T.border}`,
+      animation: `eduFadeUp .5s cubic-bezier(.2,.9,.3,1.1) ${0.7 + i * 0.05}s both`,
+    }}>
+      <div style={{ fontSize: 10, fontWeight: 800, color: T.mint, letterSpacing: '0.1em', marginBottom: 8 }}>
+        TERM #{String(i + 1).padStart(2, '0')}
+      </div>
+      <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.025em', marginBottom: 6 }}>
+        {c.term}
+      </div>
+      <div style={{ fontSize: 12, color: T.textDim, lineHeight: 1.45 }}>
+        {c.meaning}
+      </div>
+    </div>
+  )
+}
+
+// ── Skeleton card ─────────────────────────────────────────────────────────
+function SkeletonCard() {
+  return (
+    <div style={{
+      borderRadius: 16, overflow: 'hidden',
+      background: 'rgba(255,255,255,0.04)', border: `1px solid ${T.borderLo}`,
+    }}>
+      <div style={{ height: 140, background: 'rgba(255,255,255,0.06)' }}/>
+      <div style={{ padding: 14 }}>
+        <div style={{ height: 16, background: 'rgba(255,255,255,0.06)', borderRadius: 4, marginBottom: 8 }}/>
+        <div style={{ height: 12, background: 'rgba(255,255,255,0.04)', borderRadius: 4, width: '70%' }}/>
+      </div>
+    </div>
+  )
+}
+
+// ── Main component ────────────────────────────────────────────────────────
+export default function EducationGrid() {
+  const [hovered, setHovered] = useState<number | null>(null)
+  const [searchTerm, setSearch] = useState('')
+  const [articles, setArticles] = useState<EducationArticle[]>([])
+  const [loading, setLoading] = useState(true)
+  const [mobile, setMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  useEffect(() => {
+    const fetchArticles = async () => {
       try {
         const snapshot = await getDocs(collection(db, 'education_articles'))
         const docs = snapshot.docs
           .map((doc) => {
             const data = doc.data() as Record<string, unknown>
-            if (data.status && data.status !== 'published') {
-              return null
-            }
+            if (data.status && data.status !== 'published') return null
             const createdAtRaw = data.createdAt as { toMillis?: () => number } | undefined
             return {
               id: doc.id,
               title: (data.title as string) || 'Untitled Lesson',
               level: (data.level as string) || 'Level 1',
-              thumbnail:
-                (data.thumbnail as string) ||
-                'https://via.placeholder.com/300x200?text=Education',
+              thumbnail: (data.thumbnail as string) || '',
               featured: (data.featured as boolean) || false,
+              blurb: (data.blurb as string) || (data.description as string) || '',
+              minutes: (data.minutes as number) || (data.readTime as number) || 0,
               createdAt: createdAtRaw?.toMillis ? createdAtRaw.toMillis() : 0,
             } as EducationArticle
           })
           .filter((d): d is EducationArticle => d !== null)
-        setEducationArticles(docs)
-      } catch (error) {
-        console.error('Error loading education articles:', error)
+        setArticles(docs)
+      } catch (err) {
+        console.error('Error loading education articles:', err)
       } finally {
         setLoading(false)
       }
     }
-
-    fetchEducationArticles()
+    fetchArticles()
   }, [])
 
-  const filteredArticles = educationArticles.filter((article) => {
-    const matchesLevel =
-      selectedLevel === 'All' ||
-      (selectedLevel === 'Featured Classes'
-        ? article.featured
-        : article.level === selectedLevel)
-    const matchesSearch = article.title
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-    return matchesLevel && matchesSearch
-  })
-
-  const getLevelNumber = (level: string) => {
-    const match = String(level || '').match(/\d+/)
-    return match ? Number(match[0]) : Number.POSITIVE_INFINITY
-  }
-
-  const sortedArticles = [...filteredArticles].sort((a, b) => {
-    if (selectedLevel === 'All') {
-      const levelDiff = getLevelNumber(a.level) - getLevelNumber(b.level)
-      if (levelDiff !== 0) return levelDiff
-    }
-
-    const createdDiff = (a.createdAt || 0) - (b.createdAt || 0)
-    if (createdDiff !== 0) return createdDiff
-
-    const titleDiff = String(a.title || '').localeCompare(
-      String(b.title || ''),
-      undefined,
-      { sensitivity: 'base' }
+  const filtered = useMemo(() => {
+    if (!searchTerm.trim()) return articles
+    const q = searchTerm.toLowerCase()
+    return articles.filter(a =>
+      a.title.toLowerCase().includes(q) ||
+      a.blurb.toLowerCase().includes(q) ||
+      a.level.toLowerCase().includes(q)
     )
-    if (titleDiff !== 0) return titleDiff
+  }, [articles, searchTerm])
 
-    return String(a.id || '').localeCompare(String(b.id || ''), undefined, {
-      sensitivity: 'base',
-    })
-  })
+  const featured = useMemo(() => filtered.filter(a => a.featured), [filtered])
+  const displayedLessons = featured.length > 0 ? featured : filtered
 
   return (
-    <div
-      className="min-h-screen text-white pt-12 pb-8 px-4 md:px-8 relative overflow-hidden"
-      style={{
-        background:
-          'linear-gradient(175deg, #4E8177 0%, #102425 10%, #102425 70%, #1C4345 85%, #1D5959 100%)',
-      }}
-    >
-      <div className="max-w-[1400px] mx-auto relative z-10">
-        {/* Header */}
-        <div className="text-center mb-4">
-          <h1 className="text-4xl font-bold uppercase tracking-wide">Courses</h1>
-        </div>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: CSS_ANIMATIONS }}/>
+      <div style={{
+        width: '100%', minHeight: '100vh',
+        background: T.bgGradient, color: T.text,
+        fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
+        position: 'relative', overflow: 'auto',
+      }}>
+        <FloatingOrbs/>
 
-        {/* Search Bar */}
-        <div className="flex justify-center mb-2">
-          <div className="relative w-full max-w-[1280px]">
-            <input
-              type="text"
-              placeholder="What do you want to learn?"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 pr-12 py-2 bg-transparent border-2 border-white rounded-[10px] text-white placeholder:text-white placeholder:italic outline-none focus:border-[#96EDD6] focus:bg-[#96EDD6]/5 transition-all"
-            />
-            <Search
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white pointer-events-none"
-              size={20}
-            />
+        <div style={{
+          position: 'relative', maxWidth: 1280, margin: '0 auto',
+          padding: mobile ? '24px 16px 48px' : '40px 36px 70px',
+          zIndex: 1,
+        }}>
+
+          {/* ── HERO ── */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: mobile ? '1fr' : '1fr auto',
+            gap: mobile ? 16 : 32,
+            alignItems: 'flex-end',
+            marginBottom: mobile ? 20 : 32,
+          }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ animation: 'eduFadeUp .5s ease both' }}>
+                <span style={{
+                  fontSize: 11, fontWeight: 800, letterSpacing: '0.14em',
+                  textTransform: 'uppercase', color: T.mint,
+                }}>◇ KUMAMI EDUCATION · FREE FOREVER</span>
+              </div>
+              <h1 style={{
+                margin: '6px 0 0',
+                fontSize: mobile ? 40 : 62,
+                fontWeight: 900, color: T.text,
+                letterSpacing: '-0.035em', lineHeight: 0.96,
+                animation: 'eduFadeUp .6s cubic-bezier(.2,.9,.3,1.1) .15s both',
+              }}>
+                Start your{' '}
+                <span style={{
+                  background: 'linear-gradient(90deg, #96EDD6, #A78BFA)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}>crypto journey</span>
+              </h1>
+              <p style={{
+                margin: '14px 0 0',
+                fontSize: mobile ? 14 : 17,
+                color: T.textDim, lineHeight: 1.55, maxWidth: 520,
+                animation: 'eduFadeUp .6s cubic-bezier(.2,.9,.3,1.1) .25s both',
+              }}>
+                No prior knowledge needed. Hover any level below to peek at what you&apos;ll learn — then jump in wherever feels right.
+              </p>
+              <div style={{
+                marginTop: mobile ? 18 : 22,
+                display: 'flex', gap: 10, flexWrap: 'wrap',
+                animation: 'eduFadeUp .6s cubic-bezier(.2,.9,.3,1.1) .35s both',
+              }}>
+                <Link href="/education-article" style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  padding: '12px 22px', borderRadius: 12,
+                  background: T.mint, color: T.mintInk,
+                  fontWeight: 800, fontSize: 15, textDecoration: 'none',
+                }}>
+                  <Play size={13} fill={T.mintInk}/> Start Level 1
+                </Link>
+                <button onClick={() => {
+                  document.getElementById('edu-featured')?.scrollIntoView({ behavior: 'smooth' })
+                }} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  padding: '12px 22px', borderRadius: 12,
+                  background: 'transparent', color: T.text,
+                  border: `1.5px solid ${T.borderLo}`,
+                  fontWeight: 700, fontSize: 15, cursor: 'pointer',
+                }}>
+                  Browse all <ArrowRight size={13}/>
+                </button>
+              </div>
+            </div>
+            {!mobile && (
+              <div style={{
+                flexShrink: 0,
+                animation: 'eduFadeUp .7s cubic-bezier(.2,.9,.3,1.1) .1s both',
+                marginBottom: -20,
+              }}>
+                <KumaPeek size={300}/>
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* Level Tabs */}
-        <div className="overflow-x-auto py-4 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] lg:flex lg:justify-center">
-          <div
-            className="flex gap-1 justify-start lg:justify-center items-center py-2 rounded-full h-12 px-6 min-w-max lg:w-[1280px]"
-            style={{
-              background: 'linear-gradient(to right, #3A7A7A, #96EDD6)',
-            }}
-          >
-            {LEVELS.map((level) => (
-              <button
-                key={level}
-                onClick={() => setSelectedLevel(level)}
-                className={`flex items-center justify-center flex-shrink-0 lg:flex-1 h-full rounded-full transition-all text-sm font-extrabold px-2 ${
-                  selectedLevel === level
-                    ? 'bg-[#102425] text-[#96EDD6] font-extrabold'
-                    : 'bg-transparent text-[#102425] hover:bg-[#102425]/50'
-                }`}
-              >
-                {level === 'Featured Classes' ? (
-                  <span className="text-center leading-tight">
-                    FEATURED
-                    <br />
-                    CLASSES
-                  </span>
-                ) : (
-                  <span className="whitespace-nowrap">{level.toUpperCase()}</span>
-                )}
-              </button>
-            ))}
+          {/* ── SEARCH ── */}
+          <div style={{
+            marginBottom: mobile ? 24 : 28,
+            animation: 'eduFadeUp .6s cubic-bezier(.2,.9,.3,1.1) .4s both',
+          }}>
+            <div style={{ position: 'relative' }}>
+              <input
+                type="text"
+                placeholder="Search lessons..."
+                value={searchTerm}
+                onChange={e => setSearch(e.target.value)}
+                style={{
+                  width: '100%', padding: '14px 48px 14px 18px',
+                  borderRadius: 12, border: `1.5px solid ${T.borderLo}`,
+                  background: 'rgba(255,255,255,0.06)', color: T.text,
+                  fontSize: 15, outline: 'none', boxSizing: 'border-box',
+                  fontFamily: 'inherit',
+                }}
+              />
+              <Search size={18} style={{
+                position: 'absolute', right: 16, top: '50%',
+                transform: 'translateY(-50%)', color: T.textFade, pointerEvents: 'none',
+              }}/>
+            </div>
           </div>
-        </div>
 
-        {/* Education Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">
-          {loading ? (
-            Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="bg-[#1a1a1a]/80 border-2 border-[#96EDD6]/20 rounded-lg overflow-hidden animate-pulse">
-                <div className="w-full aspect-[3/2] bg-[#2a2a2a]" />
-                <div className="p-3 space-y-2">
-                  <div className="h-4 bg-[#2a2a2a] rounded w-3/4" />
-                  <div className="h-3 bg-[#2a2a2a] rounded w-1/3" />
+          {/* ── STATS ── */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: mobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+            gap: 12, marginBottom: mobile ? 32 : 48,
+          }}>
+            {FACTS.map((f, i) => (
+              <div key={i} style={{
+                padding: '14px 18px', borderRadius: 14,
+                background: 'rgba(255,255,255,0.04)', border: `1px solid ${T.borderLo}`,
+                animation: `eduFadeUp .6s cubic-bezier(.2,.9,.3,1.1) ${0.4 + i * 0.1}s both`,
+              }}>
+                <div style={{
+                  fontSize: 28, fontWeight: 900, letterSpacing: '-0.025em',
+                  fontFamily: 'ui-monospace, Menlo, monospace', lineHeight: 1,
+                  color: T.mint,
+                }}>
+                  <CountUp value={f.value}/>
+                </div>
+                <div style={{ marginTop: 4, fontSize: 11, fontWeight: 700, color: T.textDim, letterSpacing: '0.04em' }}>
+                  {f.label}
                 </div>
               </div>
-            ))
-          ) : filteredArticles.length === 0 ? (
-            <div className="col-span-full text-center py-12 text-gray-400 text-lg">
-              No education articles found matching your criteria.
+            ))}
+          </div>
+
+          {/* ── INTERACTIVE JOURNEY ── */}
+          <div style={{ marginBottom: mobile ? 28 : 48 }}>
+            <div style={{ marginBottom: 24, animation: 'eduFadeUp .6s ease .6s both' }}>
+              <span style={{
+                fontSize: 11, fontWeight: 800, letterSpacing: '0.14em',
+                textTransform: 'uppercase', color: T.mint,
+              }}>◇ THE JOURNEY</span>
+              <h2 style={{
+                margin: '6px 0 0',
+                fontSize: mobile ? 28 : 36,
+                fontWeight: 900, letterSpacing: '-0.025em', color: T.text,
+              }}>5 levels. Hover to peek.</h2>
+              <div style={{ fontSize: 14, color: T.textDim, marginTop: 6 }}>
+                Move along the path — each marker rises like you&apos;re stepping onto it.
+              </div>
             </div>
-          ) : (
-            sortedArticles.map((article) => (
-              <Link
-                key={article.id}
-                href={`/education-article?id=${article.id}`}
-                className="bg-[#1a1a1a]/80 border-2 p-2 gap-2 border-[#96EDD6] rounded-lg overflow-hidden cursor-pointer transition-all hover:-translate-y-2 hover:shadow-[0_10px_20px_rgba(150,237,214,0.2)] flex flex-col"
-                style={{ textDecoration: 'none', color: 'inherit' }}
-                draggable={false}
-                onClick={(e) => {
-                  if (
-                    typeof window !== 'undefined' &&
-                    window.getSelection()?.toString().length
-                  )
-                    e.preventDefault()
-                }}
-              >
-                <div className="w-full aspect-[3/2] overflow-hidden bg-[#2a2a2a]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={article.thumbnail}
-                    alt={article.title}
-                    loading="lazy"
-                    className="w-full h-full object-cover transition-transform hover:scale-105"
-                  />
+
+            {mobile ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {LEVELS.map((lv, i) => (
+                  <LevelMarker key={lv.num} lv={lv} idx={i}
+                    hovered={hovered} onHover={setHovered} onLeave={() => setHovered(null)}
+                    mobile/>
+                ))}
+              </div>
+            ) : (
+              <div style={{ position: 'relative', padding: '0 12px' }}>
+                {/* Background dashed line */}
+                <div style={{
+                  position: 'absolute', top: 50 + 28,
+                  left: '8%', right: '8%', height: 2,
+                  background: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.18) 0 8px, transparent 8px 14px)',
+                  zIndex: 1,
+                }}/>
+                {/* Solid progress line */}
+                <div style={{
+                  position: 'absolute', top: 50 + 28, left: '8%', height: 3, borderRadius: 2,
+                  width: `${(((hovered ?? 1) - 1) / (LEVELS.length - 1)) * 84}%`,
+                  background: 'linear-gradient(90deg, #86EFAC, #5EEAD4, #96EDD6, #A78BFA, #F472B6)',
+                  boxShadow: hovered
+                    ? `0 0 16px ${LEVELS.find(l => l.num === hovered)?.color ?? T.mint}88`
+                    : 'none',
+                  zIndex: 2,
+                  transition: 'width .4s cubic-bezier(.2,.9,.3,1.3), box-shadow .3s ease',
+                }}/>
+                {/* Level markers */}
+                <div style={{
+                  position: 'relative', zIndex: 3,
+                  display: 'flex', alignItems: 'flex-start', gap: 12,
+                }}>
+                  {LEVELS.map((lv, i) => (
+                    <LevelMarker key={lv.num} lv={lv} idx={i}
+                      hovered={hovered} onHover={setHovered} onLeave={() => setHovered(null)}/>
+                  ))}
                 </div>
-                <div className="flex flex-col gap-2">
-                  <span
-                    className="py-1 px-4 inline-block rounded-md text-[#101010] text-xs font-extrabold tracking-tight uppercase w-fit"
-                    style={{
-                      background: 'linear-gradient(to right, #3A7A7A, #96EDD6)',
-                    }}
-                  >
-                    {article.level}
-                  </span>
-                  <h3
-                    className="w-full text-base font-semibold text-white m-0 h-12 flex items-center overflow-hidden line-clamp-2 cursor-text"
-                    style={{ userSelect: 'text' }}
-                  >
-                    {article.title}
-                  </h3>
-                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── WARMUP TERMS ── */}
+          <div style={{ marginBottom: mobile ? 28 : 40 }}>
+            <div style={{ marginBottom: 14 }}>
+              <span style={{
+                fontSize: 11, fontWeight: 800, letterSpacing: '0.14em',
+                textTransform: 'uppercase', color: '#A78BFA',
+              }}>◇ WARMUP</span>
+              <h2 style={{
+                margin: '6px 0 0',
+                fontSize: mobile ? 22 : 28,
+                fontWeight: 800, letterSpacing: '-0.02em', color: T.text,
+              }}>Crypto terms in plain English</h2>
+            </div>
+            <div style={{
+              display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8,
+              scrollSnapType: 'x mandatory',
+            }}>
+              {CONCEPTS.map((c, i) => <ConceptCard key={c.id} c={c} i={i}/>)}
+            </div>
+          </div>
+
+          {/* ── FEATURED LESSONS ── */}
+          <div id="edu-featured">
+            <div style={{
+              display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+              gap: 12, marginBottom: 16,
+            }}>
+              <div>
+                <span style={{
+                  fontSize: 11, fontWeight: 800, letterSpacing: '0.14em',
+                  textTransform: 'uppercase', color: T.mint,
+                }}>◇ HAND-PICKED</span>
+                <h2 style={{
+                  margin: '6px 0 0',
+                  fontSize: mobile ? 22 : 28,
+                  fontWeight: 800, letterSpacing: '-0.02em', color: T.text,
+                }}>Featured lessons</h2>
+              </div>
+              <Link href="/education-article" style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '8px 16px', borderRadius: 10,
+                border: `1px solid ${T.borderLo}`, background: 'transparent',
+                color: T.text, fontSize: 13, fontWeight: 700, textDecoration: 'none',
+              }}>
+                All lessons <ArrowRight size={12}/>
               </Link>
-            ))
-          )}
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: mobile ? '1fr' : 'repeat(3, 1fr)',
+              gap: 14,
+            }}>
+              {loading
+                ? Array.from({ length: mobile ? 2 : 6 }).map((_, i) => <SkeletonCard key={i}/>)
+                : displayedLessons.slice(0, mobile ? 4 : 6).map((a, i) => (
+                    <LessonCard key={a.id} article={a} i={i}/>
+                  ))
+              }
+            </div>
+          </div>
+
         </div>
       </div>
-    </div>
+    </>
   )
 }
