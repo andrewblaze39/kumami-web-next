@@ -35,6 +35,7 @@ interface NewsArticle {
   isPremium?: boolean
   status?: string
   author?: string
+  kumamiInsight?: string
   date?: FirestoreTimestampLike
   timestamp?: FirestoreTimestampLike
 }
@@ -354,6 +355,23 @@ export default function NewsArticleView({ articleId }: Props) {
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-8 text-white leading-tight">
               {article.title}
             </h1>
+
+            {/* Kumami Insight (if present) */}
+            {article.kumamiInsight && (
+              <div className="mb-8 rounded-2xl overflow-hidden"
+                style={{ background: 'linear-gradient(135deg, rgba(150,237,214,0.12) 0%, rgba(64,224,208,0.06) 100%)', border: '1px solid rgba(150,237,214,0.25)' }}>
+                <div className="flex items-center gap-2 px-5 py-3"
+                  style={{ background: 'rgba(150,237,214,0.1)', borderBottom: '1px solid rgba(150,237,214,0.15)' }}>
+                  <span style={{ fontSize: 15 }}>🐻</span>
+                  <span className="text-xs font-black uppercase tracking-widest" style={{ color: '#96EDD6' }}>
+                    Kumami Insight
+                  </span>
+                </div>
+                <p className="px-5 py-4 text-sm md:text-base leading-relaxed m-0" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                  {article.kumamiInsight}
+                </p>
+              </div>
+            )}
 
             {/* Summary (if present) */}
             {article.summary && (

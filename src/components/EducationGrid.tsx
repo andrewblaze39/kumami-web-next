@@ -369,10 +369,9 @@ function LessonCard({ article, i }: { article: EducationArticle; i: number }) {
       }}>
       {/* Thumbnail */}
       <div style={{
-        height: 140, position: 'relative',
-        backgroundImage: article.thumbnail ? `url(${article.thumbnail})` : undefined,
+        aspectRatio: '3/2', position: 'relative',
+        backgroundImage: article.thumbnail ? `url(${article.thumbnail})` : 'linear-gradient(135deg, #1a2e30, #102425)',
         backgroundSize: 'cover', backgroundPosition: 'center',
-        background: article.thumbnail ? undefined : `linear-gradient(135deg, #1a2e30, #102425)`,
       }}>
         <div style={{
           position: 'absolute', inset: 0,

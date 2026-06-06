@@ -13,6 +13,7 @@ import AlphaRoom from '@/components/AlphaRoom';
 import KumaInline from '@/components/portfolio/KumaInline';
 import MarketAnalysis from '@/components/MarketAnalysis';
 import KumaAIChatTab from '@/components/KumaAIChatTab';
+import MarketCapTool from '@/components/MarketCapTool';
 import {
   CirclePlus,
   Triangle,
@@ -24,6 +25,7 @@ import {
   TrendingUp,
   Bot,
   Trash2,
+  Calculator,
 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -46,7 +48,7 @@ interface MarketPriceEntry {
   id: string;
 }
 
-type TabId = 'portfolio' | 'alpha' | 'market' | 'kumaai';
+type TabId = 'portfolio' | 'alpha' | 'market' | 'kumaai' | 'marketcap';
 
 interface NavItem {
   id: TabId;
@@ -60,6 +62,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'alpha', label: 'Alpha Room', icon: Zap },
   { id: 'market', label: 'Market Analysis', icon: TrendingUp },
   { id: 'kumaai', label: 'Kuma AI Chat', icon: Bot },
+  { id: 'marketcap', label: 'Market Cap Tool', icon: Calculator },
 ];
 
 const cryptoLogos: Record<string, string> = {
@@ -839,6 +842,12 @@ export default function ProDashboard() {
         );
       case 'kumaai':
         return <KumaAIChatTab />;
+      case 'marketcap':
+        return (
+          <div className="w-full overflow-auto">
+            <MarketCapTool />
+          </div>
+        );
       default:
         return null;
     }

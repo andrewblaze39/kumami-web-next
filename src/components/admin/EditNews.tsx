@@ -36,6 +36,7 @@ export default function EditNews() {
     title: '', author: '', category: '', content: '', imageUrl: '',
     isPremium: false, likes: 0, readTime: 0, summary: '', tags: [] as string[],
     timestamp: null as { seconds: number } | null,
+    kumamiInsight: '',
   });
   const [newTag, setNewTag] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -52,7 +53,7 @@ export default function EditNews() {
             const d = { id: draftDoc.id, ...draftDoc.data() } as NewsArticle;
             setArticles([d]);
             setEditingId(d.id);
-            setFormData({ title: d.title, author: d.author, category: d.category, content: d.content, imageUrl: d.imageUrl, isPremium: d.isPremium, likes: d.likes || 0, readTime: d.readTime || 0, summary: d.summary || '', tags: d.tags || [], timestamp: d.timestamp });
+            setFormData({ title: d.title, author: d.author, category: d.category, content: d.content, imageUrl: d.imageUrl, isPremium: d.isPremium, likes: d.likes || 0, readTime: d.readTime || 0, summary: d.summary || '', tags: d.tags || [], timestamp: d.timestamp, kumamiInsight: (d.kumamiInsight as string) || '' });
           } else setError('Draft not found');
         } else {
           const snap = await getDocs(collection(db, 'news'));
@@ -68,7 +69,7 @@ export default function EditNews() {
 
   const handleEdit = (article: NewsArticle) => {
     setEditingId(article.id);
-    setFormData({ title: article.title, author: article.author, category: article.category, content: article.content, imageUrl: article.imageUrl, isPremium: article.isPremium, likes: article.likes || 0, readTime: article.readTime || 0, summary: article.summary || '', tags: article.tags || [], timestamp: article.timestamp });
+    setFormData({ title: article.title, author: article.author, category: article.category, content: article.content, imageUrl: article.imageUrl, isPremium: article.isPremium, likes: article.likes || 0, readTime: article.readTime || 0, summary: article.summary || '', tags: article.tags || [], timestamp: article.timestamp, kumamiInsight: (article.kumamiInsight as string) || '' });
   };
 
   const refreshArticles = async () => {
@@ -128,6 +129,10 @@ export default function EditNews() {
                 <div><label className="block text-sm font-medium text-gray-700">Author</label><input type="text" name="author" value={formData.author} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black" /></div>
                 <div><label className="block text-sm font-medium text-gray-700">Category</label><select name="category" value={formData.category} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white"><option value="">Select</option>{CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
                 <div><label className="block text-sm font-medium text-gray-700">Summary</label><textarea name="summary" value={formData.summary} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black h-20" /></div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Kumami Insight <span className="text-gray-400 font-normal">(optional — shown as a highlighted box on the article)</span></label>
+                  <textarea name="kumamiInsight" value={formData.kumamiInsight} onChange={handleChange} placeholder="e.g. This signals growing institutional confidence in Layer 2 scaling solutions..." className="w-full p-2 border border-[#96EDD6] rounded-md text-black h-24 focus:outline-none focus:ring-2 focus:ring-[#96EDD6]/50" />
+                </div>
                 <div><label className="block text-sm font-medium text-gray-700">Content</label><textarea name="content" value={formData.content} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black h-32" /></div>
                 {formData.imageUrl && <div><img src={formData.imageUrl} alt="Current" className="max-h-32 rounded" /><p className="text-xs text-gray-500 mt-1">Current Image</p></div>}
                 <div><label className="block text-sm font-medium text-gray-700">Upload New Image</label><input type="file" accept="image/*" onChange={handleImageUpload} disabled={isUploading} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white" /></div>

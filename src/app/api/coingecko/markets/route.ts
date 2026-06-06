@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
   const response = await fetch(
     `https://api.coingecko.com/api/v3/coins/markets?${params}${idsSegment}`,
-    { next: { revalidate: 60 } }
+    { next: { revalidate: 300 } }
   );
 
   if (!response.ok) {
@@ -25,6 +25,6 @@ export async function GET(req: NextRequest) {
 
   const data = await response.json();
   return NextResponse.json(data, {
-    headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=30' },
+    headers: { 'Cache-Control': 's-maxage=300, stale-while-revalidate=120' },
   });
 }

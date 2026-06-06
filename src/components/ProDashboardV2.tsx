@@ -13,6 +13,7 @@ import EditCryptoModal from '@/components/EditCryptoModal';
 import AlphaRoom from '@/components/AlphaRoom';
 import MarketAnalysis from '@/components/MarketAnalysis';
 import KumaAIChatTab from '@/components/KumaAIChatTab';
+import MarketCapTool from '@/components/MarketCapTool';
 import {
   CirclePlus,
   Triangle,
@@ -23,6 +24,7 @@ import {
   Zap,
   TrendingUp,
   Bot,
+  Calculator,
 } from 'lucide-react';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -43,7 +45,7 @@ interface MarketPriceEntry {
   id: string;
 }
 
-type TabId = 'portfolio' | 'alpha' | 'market' | 'kumaai';
+type TabId = 'portfolio' | 'alpha' | 'market' | 'kumaai' | 'marketcap';
 
 interface NavItem {
   id: TabId;
@@ -57,6 +59,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'alpha', label: 'Alpha Room', icon: Zap },
   { id: 'market', label: 'Market Analysis', icon: TrendingUp },
   { id: 'kumaai', label: 'Kuma AI Chat', icon: Bot },
+  { id: 'marketcap', label: 'Market Cap Tool', icon: Calculator },
 ];
 
 const cryptoLogos: Record<string, string> = {
@@ -151,7 +154,7 @@ function Sidebar({
       {/* Bottom: Switch to Classic */}
       <div className="px-3 py-4" style={{ borderTop: '1px solid rgba(150,237,214,0.1)' }}>
         <button
-          onClick={() => router.push('/pro')}
+          onClick={() => router.push('/')}
           className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition-colors hover:bg-[#96EDD6]/5 hover:border-[#96EDD6]/50 hover:text-[#96EDD6]"
           style={{
             borderColor: 'rgba(150,237,214,0.25)',
@@ -159,7 +162,7 @@ function Sidebar({
             background: 'transparent',
           }}
         >
-          Switch to Classic
+          Back to Home
         </button>
       </div>
     </div>
@@ -617,6 +620,12 @@ export default function ProDashboardV2() {
         return (
           <div className="w-full flex-1 overflow-hidden" style={{ minHeight: 400 }}>
             <KumaAIChatTab />
+          </div>
+        );
+      case 'marketcap':
+        return (
+          <div className="w-full overflow-auto">
+            <MarketCapTool />
           </div>
         );
       default:
