@@ -4,7 +4,7 @@ import {
   getAnalytics,
   isSupported as analyticsSupported,
 } from "firebase/analytics";
-import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
+import { initializeFirestore, persistentLocalCache } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 // Detect environment
@@ -18,7 +18,7 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID!,
+  // measurementId omitted — let Firebase fetch the correct ID from server
 };
 
 console.log("Firebase project:", firebaseConfig.projectId);
@@ -28,23 +28,11 @@ const app = initializeApp(firebaseConfig);
 
 // Services
 const auth = getAuth(app);
-const db = getFirestore(app);
+// Use persistentLocalCache (replaces deprecated enableIndexedDbPersistence)
+const db = typeof window !== 'undefined'
+  ? initializeFirestore(app, { localCache: persistentLocalCache() })
+  : initializeFirestore(app, {});
 const storage = getStorage(app);
-
-// Enable Firestore persistence (only in browser)
-if (typeof window !== 'undefined') {
-  enableIndexedDbPersistence(db).catch((err) => {
-    if (err.code === "failed-precondition") {
-      console.warn(
-        "Multiple tabs open, persistence can only be enabled in one tab at a time."
-      );
-    } else if (err.code === "unimplemented") {
-      console.warn("Current browser does not support persistence.");
-    } else {
-      console.error("Firestore persistence error:", err);
-    }
-  });
-}
 
 // Analytics (only if supported and not in dev)
 (async () => {

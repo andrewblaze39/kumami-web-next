@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Search, Check, ArrowRight, Play, Clock } from 'lucide-react'
 import { collection, getDocs } from 'firebase/firestore'
@@ -20,29 +21,28 @@ const T = {
 
 // ── Static data ───────────────────────────────────────────────────────────
 const LEVELS = [
-  { num: 1, name: 'Foundations', emoji: '🌱', color: '#86EFAC',
-    blurb: 'What is crypto, really? Start here.',
-    skills: ['What is Bitcoin', 'How wallets work', 'Reading a price chart'] },
-  { num: 2, name: 'First Steps', emoji: '🔑', color: '#5EEAD4',
-    blurb: 'Send, receive, and stay safe.',
-    skills: ['Self-custody basics', 'Spotting scams', 'Your first transaction'] },
-  { num: 3, name: 'DeFi & DApps', emoji: '⚡', color: '#96EDD6',
-    blurb: 'Use protocols, not banks.',
-    skills: ['Swapping on a DEX', 'Liquidity & yield', 'Reading smart contracts'] },
-  { num: 4, name: 'On-Chain Pro', emoji: '🛠️', color: '#A78BFA',
-    blurb: 'Read the blockchain like a pro.',
-    skills: ['Block explorers', 'Mempool & gas', 'On-chain analytics'] },
-  { num: 5, name: 'Build & Beyond', emoji: '🚀', color: '#F472B6',
-    blurb: 'Ship your first dApp.',
-    skills: ['Solidity basics', 'Frontend with viem', 'Auditing your code'] },
+  { num: 1, name: 'Beginner', emoji: '🌱', color: '#86EFAC',
+    // TODO: update skills list as Level 1 curriculum grows
+    blurb: 'Your starting point. No experience needed.',
+    skills: ['Blockchain Level 1', 'Introduction to Blockchain', 'More coming soon'] },
+  { num: 2, name: 'Elementary', emoji: '🔑', color: '#5EEAD4',
+    // TODO: update skills list as Level 2 curriculum grows
+    blurb: 'Build on the basics and gain confidence.',
+    skills: ['More lessons coming soon'] },
+  { num: 3, name: 'Intermediate', emoji: '⚡', color: '#96EDD6',
+    // TODO: update skills list as Level 3 curriculum grows
+    blurb: 'Go deeper into the crypto ecosystem.',
+    skills: ['More lessons coming soon'] },
+  { num: 4, name: 'Advanced', emoji: '🛠️', color: '#A78BFA',
+    // TODO: update skills list as Level 4 curriculum grows
+    blurb: 'Think and act like a crypto native.',
+    skills: ['More lessons coming soon'] },
+  { num: 5, name: 'Expert', emoji: '🚀', color: '#F472B6',
+    // TODO: update skills list as Level 5 curriculum grows
+    blurb: 'Master-level knowledge for the serious Web3 builder.',
+    skills: ['More lessons coming soon'] },
 ]
 
-const FACTS = [
-  { value: '47', label: 'free lessons' },
-  { value: '5',  label: 'skill levels' },
-  { value: '6h', label: 'avg. to graduate' },
-  { value: '12k', label: 'students this month' },
-]
 
 const CONCEPTS = [
   { id: 'c1', term: 'HODL',            meaning: 'Holding through volatility — born from a typo in 2013.' },
@@ -175,39 +175,6 @@ function FloatingOrbs() {
   )
 }
 
-// ── Count-up number animation ─────────────────────────────────────────────
-function CountUp({ value }: { value: string }) {
-  const [display, setDisplay] = useState('0')
-  const rafRef = useRef<number>(0)
-
-  useEffect(() => {
-    const match = value.match(/^(\d+\.?\d*)(.*)$/)
-    if (!match) { setDisplay(value); return }
-    const target = parseFloat(match[1])
-    const suffix = match[2]
-    let startTime: number | null = null
-    const duration = 1200
-
-    const animate = (ts: number) => {
-      if (!startTime) startTime = ts
-      const progress = Math.min((ts - startTime) / duration, 1)
-      const eased = 1 - Math.pow(1 - progress, 3)
-      setDisplay(String(Math.round(target * eased)) + suffix)
-      if (progress < 1) rafRef.current = requestAnimationFrame(animate)
-    }
-
-    const timer = setTimeout(() => {
-      rafRef.current = requestAnimationFrame(animate)
-    }, 500)
-
-    return () => {
-      clearTimeout(timer)
-      cancelAnimationFrame(rafRef.current)
-    }
-  }, [value])
-
-  return <span>{display}</span>
-}
 
 // ── Interactive level marker ──────────────────────────────────────────────
 type Level = typeof LEVELS[number]
@@ -460,11 +427,16 @@ function SkeletonCard() {
 
 // ── Main component ────────────────────────────────────────────────────────
 export default function EducationGrid() {
+  const router = useRouter()
   const [hovered, setHovered] = useState<number | null>(null)
   const [searchTerm, setSearch] = useState('')
   const [articles, setArticles] = useState<EducationArticle[]>([])
   const [loading, setLoading] = useState(true)
   const [mobile, setMobile] = useState(false)
+
+  const firstLevel1Id = articles.find(a =>
+    /^(level\s*1|1)$/i.test((a.level ?? '').trim())
+  )?.id ?? null
 
   useEffect(() => {
     const check = () => setMobile(window.innerWidth < 768)
@@ -577,14 +549,18 @@ export default function EducationGrid() {
                 display: 'flex', gap: 10, flexWrap: 'wrap',
                 animation: 'eduFadeUp .6s cubic-bezier(.2,.9,.3,1.1) .35s both',
               }}>
-                <Link href="/education-article" style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 8,
-                  padding: '12px 22px', borderRadius: 12,
-                  background: T.mint, color: T.mintInk,
-                  fontWeight: 800, fontSize: 15, textDecoration: 'none',
-                }}>
+                <button
+                  onClick={() => { if (firstLevel1Id) router.push(`/education-article?id=${firstLevel1Id}`) }}
+                  disabled={!firstLevel1Id}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    padding: '12px 22px', borderRadius: 12,
+                    background: T.mint, color: T.mintInk,
+                    fontWeight: 800, fontSize: 15, border: 'none', cursor: firstLevel1Id ? 'pointer' : 'default',
+                    opacity: firstLevel1Id ? 1 : 0.5,
+                  }}>
                   <Play size={13} fill={T.mintInk}/> Start Level 1
-                </Link>
+                </button>
                 <button onClick={() => {
                   document.getElementById('edu-featured')?.scrollIntoView({ behavior: 'smooth' })
                 }} style={{
@@ -633,32 +609,6 @@ export default function EducationGrid() {
                 transform: 'translateY(-50%)', color: T.textFade, pointerEvents: 'none',
               }}/>
             </div>
-          </div>
-
-          {/* ── STATS ── */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: mobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
-            gap: 12, marginBottom: mobile ? 32 : 48,
-          }}>
-            {FACTS.map((f, i) => (
-              <div key={i} style={{
-                padding: '14px 18px', borderRadius: 14,
-                background: 'rgba(255,255,255,0.04)', border: `1px solid ${T.borderLo}`,
-                animation: `eduFadeUp .6s cubic-bezier(.2,.9,.3,1.1) ${0.4 + i * 0.1}s both`,
-              }}>
-                <div style={{
-                  fontSize: 28, fontWeight: 900, letterSpacing: '-0.025em',
-                  fontFamily: 'ui-monospace, Menlo, monospace', lineHeight: 1,
-                  color: T.mint,
-                }}>
-                  <CountUp value={f.value}/>
-                </div>
-                <div style={{ marginTop: 4, fontSize: 11, fontWeight: 700, color: T.textDim, letterSpacing: '0.04em' }}>
-                  {f.label}
-                </div>
-              </div>
-            ))}
           </div>
 
           {/* ── INTERACTIVE JOURNEY ── */}
@@ -758,14 +708,16 @@ export default function EducationGrid() {
                   fontWeight: 800, letterSpacing: '-0.02em', color: T.text,
                 }}>Featured lessons</h2>
               </div>
-              <Link href="/education-article" style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '8px 16px', borderRadius: 10,
-                border: `1px solid ${T.borderLo}`, background: 'transparent',
-                color: T.text, fontSize: 13, fontWeight: 700, textDecoration: 'none',
-              }}>
+              <button
+                onClick={() => router.push('/education/all')}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '8px 16px', borderRadius: 10,
+                  border: `1px solid ${T.borderLo}`, background: 'transparent',
+                  color: T.text, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                }}>
                 All lessons <ArrowRight size={12}/>
-              </Link>
+              </button>
             </div>
 
             <div style={{

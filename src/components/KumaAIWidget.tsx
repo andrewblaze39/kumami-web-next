@@ -32,8 +32,9 @@ export default function KumaAIWidget() {
 
   const isPremium = userData?.isPremium;
 
+  // Close panel on outside click (only for non-pro lock panel)
   useEffect(() => {
-    if (!expanded) return;
+    if (!expanded || isPremium) return;
     const handler = (e: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
         setExpanded(false);
@@ -41,10 +42,6 @@ export default function KumaAIWidget() {
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [expanded]);
-
-  useEffect(() => {
-    if (expanded && isPremium) inputRef.current?.focus();
   }, [expanded, isPremium]);
 
   useEffect(() => {
@@ -52,10 +49,7 @@ export default function KumaAIWidget() {
   }, [messages, typing]);
 
   const handleUnlock = () => {
-    if (isPremium) {
-      sessionStorage.setItem('proTab', 'kumaai');
-      router.push('/pro');
-    } else if (currentUser) {
+    if (currentUser) {
       router.push('/subscribe');
     } else {
       router.push('/signup');
@@ -66,9 +60,9 @@ export default function KumaAIWidget() {
     if (!input.trim() || typing) return;
     const userMsg = input.trim();
     setInput('');
+    setExpanded(true);
     setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
     setTyping(true);
-    // Placeholder — real AI integration coming soon
     setTimeout(() => {
       setTyping(false);
       setMessages(prev => [...prev, {
@@ -102,7 +96,7 @@ export default function KumaAIWidget() {
         .kuma-dot:nth-child(3) { animation-delay: 0.4s; }
       `}</style>
 
-      {/* Hidden — small eye button to restore */}
+      {/* Hidden — restore button */}
       {hidden && (
         <button
           onClick={() => setHidden(false)}
@@ -135,7 +129,7 @@ export default function KumaAIWidget() {
               background: 'linear-gradient(160deg, #102425 0%, #0d1e1f 100%)',
               border: '1px solid rgba(150,237,214,0.25)',
               boxShadow: '0 8px 40px rgba(0,0,0,0.65)',
-              height: isPremium ? '420px' : 'auto',
+              height: isPremium ? '360px' : 'auto',
             }}
           >
             {/* Header */}
@@ -144,7 +138,7 @@ export default function KumaAIWidget() {
               <span className="text-sm font-black uppercase tracking-widest" style={{ color: '#96EDD6' }}>Kuma AI</span>
               <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: 'rgba(150,237,214,0.12)', color: '#96EDD6' }}>Pro</span>
               <button
-                onClick={handleUnlock}
+                onClick={() => { sessionStorage.setItem('proTab', 'kumaai'); router.push('/pro'); }}
                 className="ml-auto flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-opacity"
                 style={{ background: 'rgba(150,237,214,0.1)', color: '#96EDD6', border: '1px solid rgba(150,237,214,0.2)' }}
                 onMouseEnter={e => (e.currentTarget.style.opacity = '0.7')}
@@ -156,89 +150,59 @@ export default function KumaAIWidget() {
             </div>
 
             {isPremium ? (
-              /* ── Pro: real chat UI ── */
-              <>
-                <div className="kuma-messages flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3 min-h-0">
-                  {messages.length === 0 && !typing && (
-                    <div className="flex-1 flex flex-col items-center justify-center text-center py-6">
-                      <Image src="/logo k.png" alt="Kumami" width={28} height={28} className="object-contain mb-3 opacity-30" />
-                      <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.3)' }}>Ask anything about crypto</p>
-                      <div className="grid grid-cols-2 gap-2 w-full">
-                        {SAMPLE_PROMPTS.map(p => (
-                          <button
-                            key={p}
-                            onClick={() => { setInput(p); inputRef.current?.focus(); }}
-                            className="text-left text-xs rounded-xl px-3 py-2 transition-all"
-                            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(150,237,214,0.12)', color: 'rgba(255,255,255,0.45)' }}
-                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(150,237,214,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.8)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; }}
-                          >
-                            {p}
-                          </button>
-                        ))}
-                      </div>
+              /* ── Pro: messages only, no input here ── */
+              <div className="kuma-messages flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3 min-h-0">
+                {messages.length === 0 && !typing && (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center py-6">
+                    <Image src="/logo k.png" alt="Kumami" width={28} height={28} className="object-contain mb-3 opacity-30" />
+                    <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.3)' }}>Ask anything about crypto</p>
+                    <div className="grid grid-cols-2 gap-2 w-full">
+                      {SAMPLE_PROMPTS.map(p => (
+                        <button
+                          key={p}
+                          onClick={() => { inputRef.current?.focus(); inputRef.current && (inputRef.current.value = p); setInput(p); }}
+                          className="text-left text-xs rounded-xl px-3 py-2 transition-all"
+                          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(150,237,214,0.12)', color: 'rgba(255,255,255,0.45)' }}
+                          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(150,237,214,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.8)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; }}
+                        >
+                          {p}
+                        </button>
+                      ))}
                     </div>
-                  )}
-
-                  {messages.map((msg, i) => (
-                    <div key={i} className={`flex items-end gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      {msg.role === 'assistant' && (
-                        <Image src="/logo k.png" alt="" width={16} height={16} className="object-contain mb-0.5 flex-shrink-0 opacity-60" />
-                      )}
-                      <div
-                        className="max-w-[78%] rounded-2xl px-3 py-2 text-sm leading-relaxed"
-                        style={msg.role === 'user'
-                          ? { background: 'rgba(150,237,214,0.15)', color: 'rgba(255,255,255,0.9)', borderBottomRightRadius: 4 }
-                          : { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.8)', borderBottomLeftRadius: 4 }
-                        }
-                      >
-                        {msg.content}
-                      </div>
-                    </div>
-                  ))}
-
-                  {typing && (
-                    <div className="flex items-end gap-2 justify-start">
-                      <Image src="/logo k.png" alt="" width={16} height={16} className="object-contain mb-0.5 flex-shrink-0 opacity-60" />
-                      <div className="rounded-2xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.06)', borderBottomLeftRadius: 4 }}>
-                        <span className="kuma-dot" style={{ marginRight: 3 }} />
-                        <span className="kuma-dot" style={{ marginRight: 3 }} />
-                        <span className="kuma-dot" />
-                      </div>
-                    </div>
-                  )}
-
-                  <div ref={messagesEndRef} />
-                </div>
-
-                {/* Input */}
-                <div className="flex-shrink-0 px-3 pb-3 pt-2" style={{ borderTop: '1px solid rgba(150,237,214,0.1)' }}>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold flex-shrink-0" style={{ color: 'rgba(150,237,214,0.5)' }}>Pro</span>
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={input}
-                      onChange={e => setInput(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Ask Kuma AI..."
-                      className="flex-1 bg-transparent text-sm outline-none"
-                      style={{ color: 'rgba(255,255,255,0.85)', caretColor: '#96EDD6' }}
-                    />
-                    <button
-                      onClick={handleSend}
-                      disabled={!input.trim() || typing}
-                      className="flex-shrink-0 rounded-full p-1.5 transition-all"
-                      style={{ background: input.trim() && !typing ? 'linear-gradient(135deg, #96EDD6, #40E0D0)' : 'rgba(150,237,214,0.1)' }}
-                    >
-                      <Send size={13} style={{ color: input.trim() && !typing ? '#0a0a0f' : 'rgba(150,237,214,0.35)' }} />
-                    </button>
                   </div>
-                  <p className="text-center mt-2 text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>
-                    Kuma AI can make mistakes. Not financial advice.
-                  </p>
-                </div>
-              </>
+                )}
+
+                {messages.map((msg, i) => (
+                  <div key={i} className={`flex items-end gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    {msg.role === 'assistant' && (
+                      <Image src="/logo k.png" alt="" width={16} height={16} className="object-contain mb-0.5 flex-shrink-0 opacity-60" />
+                    )}
+                    <div
+                      className="max-w-[78%] rounded-2xl px-3 py-2 text-sm leading-relaxed"
+                      style={msg.role === 'user'
+                        ? { background: 'rgba(150,237,214,0.15)', color: 'rgba(255,255,255,0.9)', borderBottomRightRadius: 4 }
+                        : { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.8)', borderBottomLeftRadius: 4 }
+                      }
+                    >
+                      {msg.content}
+                    </div>
+                  </div>
+                ))}
+
+                {typing && (
+                  <div className="flex items-end gap-2 justify-start">
+                    <Image src="/logo k.png" alt="" width={16} height={16} className="object-contain mb-0.5 flex-shrink-0 opacity-60" />
+                    <div className="rounded-2xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.06)', borderBottomLeftRadius: 4 }}>
+                      <span className="kuma-dot" style={{ marginRight: 3 }} />
+                      <span className="kuma-dot" style={{ marginRight: 3 }} />
+                      <span className="kuma-dot" />
+                    </div>
+                  </div>
+                )}
+
+                <div ref={messagesEndRef} />
+              </div>
             ) : (
               /* ── Non-pro: lock state ── */
               <div className="px-4 pt-4 pb-4">
@@ -278,11 +242,10 @@ export default function KumaAIWidget() {
           </div>
         )}
 
-        {/* Chat bar */}
+        {/* Bottom bar */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setExpanded(v => !v)}
-            className="flex-1 flex items-center gap-3 rounded-2xl px-4 py-2 transition-all duration-200 text-left"
+          <div
+            className="flex-1 flex items-center gap-3 rounded-2xl px-4 py-2"
             style={{
               background: 'linear-gradient(135deg, #102425 0%, #163332 100%)',
               border: '1px solid rgba(150,237,214,0.28)',
@@ -290,11 +253,47 @@ export default function KumaAIWidget() {
             }}
           >
             <Image src="/logo k.png" alt="Kumami" width={22} height={22} className="object-contain flex-shrink-0" />
-            <span className="flex-1 text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>Ask Kuma AI anything...</span>
-            <div className="flex-shrink-0 rounded-full p-1.5" style={{ background: 'rgba(150,237,214,0.15)' }}>
-              <ArrowUp size={14} style={{ color: '#96EDD6' }} />
-            </div>
-          </button>
+
+            {isPremium ? (
+              /* Real input for pro users */
+              <>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onFocus={() => setExpanded(true)}
+                  placeholder="Ask Kuma AI anything..."
+                  className="flex-1 bg-transparent text-sm outline-none"
+                  style={{ color: 'rgba(255,255,255,0.85)', caretColor: '#96EDD6' }}
+                />
+                <button
+                  onClick={handleSend}
+                  disabled={!input.trim() || typing}
+                  className="flex-shrink-0 rounded-full p-1.5 transition-all"
+                  style={{ background: input.trim() && !typing ? 'linear-gradient(135deg, #96EDD6, #40E0D0)' : 'rgba(150,237,214,0.15)' }}
+                >
+                  <Send size={14} style={{ color: input.trim() && !typing ? '#0a0a0f' : '#96EDD6' }} />
+                </button>
+              </>
+            ) : (
+              /* Fake placeholder for non-pro — opens lock panel */
+              <>
+                <button
+                  onClick={() => setExpanded(v => !v)}
+                  className="flex-1 text-left text-sm"
+                  style={{ color: 'rgba(255,255,255,0.35)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
+                >
+                  Ask Kuma AI anything...
+                </button>
+                <div className="flex-shrink-0 rounded-full p-1.5" style={{ background: 'rgba(150,237,214,0.15)' }}>
+                  <ArrowUp size={14} style={{ color: '#96EDD6' }} />
+                </div>
+              </>
+            )}
+          </div>
+
           <button
             onClick={() => { setExpanded(false); setHidden(true); }}
             className="flex-shrink-0 p-2 rounded-full transition-colors"
@@ -310,6 +309,12 @@ export default function KumaAIWidget() {
             <EyeOff size={14} />
           </button>
         </div>
+
+        {isPremium && (
+          <p className="text-center mt-1.5 text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>
+            Kuma AI can make mistakes. Not financial advice.
+          </p>
+        )}
       </div>
     </>
   );
