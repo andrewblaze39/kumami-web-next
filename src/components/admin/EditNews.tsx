@@ -7,6 +7,7 @@ import { collection, getDocs, doc, updateDoc, deleteDoc, getDoc } from 'firebase
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getAuth } from 'firebase/auth';
 import { formatTimestamp } from './utils';
+import { applyNewsOverlay } from './applyNewsOverlay';
 
 interface NewsArticle {
   id: string;
@@ -40,6 +41,9 @@ export default function EditNews() {
   });
   const [newTag, setNewTag] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [overlayApplied, setOverlayApplied] = useState(false);
+  const [applyingOverlay, setApplyingOverlay] = useState(false);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const auth = getAuth();
 
   useEffect(() => {
@@ -102,13 +106,35 @@ export default function EditNews() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setPendingImageFile(file);
+    setOverlayApplied(false);
+  };
+
+  const handleApplyOverlay = async () => {
+    if (!pendingImageFile) return;
+    setApplyingOverlay(true);
+    try {
+      const processed = await applyNewsOverlay(pendingImageFile);
+      setPendingImageFile(processed);
+      setOverlayApplied(true);
+    } catch (err) {
+      console.error('Overlay failed:', err);
+    } finally {
+      setApplyingOverlay(false);
+    }
+  };
+
+  const handleUploadToStorage = async () => {
+    if (!pendingImageFile) return;
     setIsUploading(true);
     try {
       const s = getStorage();
-      const storageRef = ref(s, `news-images/${Date.now()}_${file.name}`);
-      const snap = await uploadBytes(storageRef, file);
+      const storageRef = ref(s, `news-images/${Date.now()}_${pendingImageFile.name}`);
+      const snap = await uploadBytes(storageRef, pendingImageFile);
       const url = await getDownloadURL(snap.ref);
       setFormData((p) => ({ ...p, imageUrl: url }));
+      setPendingImageFile(null);
+      setOverlayApplied(false);
     } catch (err) { console.error('Error uploading:', err); }
     finally { setIsUploading(false); }
   };
@@ -135,7 +161,37 @@ export default function EditNews() {
                 </div>
                 <div><label className="block text-sm font-medium text-gray-700">Content</label><textarea name="content" value={formData.content} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black h-32" /></div>
                 {formData.imageUrl && <div><img src={formData.imageUrl} alt="Current" className="max-h-32 rounded" /><p className="text-xs text-gray-500 mt-1">Current Image</p></div>}
-                <div><label className="block text-sm font-medium text-gray-700">Upload New Image</label><input type="file" accept="image/*" onChange={handleImageUpload} disabled={isUploading} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white" /></div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Upload New Image</label>
+                  <input type="file" accept="image/*" onChange={handleImageUpload} disabled={isUploading} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white" />
+                  {pendingImageFile && (
+                    <div className="mt-2 space-y-2">
+                      <img src={URL.createObjectURL(pendingImageFile)} alt="Preview" className="max-h-32 rounded" />
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {!overlayApplied ? (
+                          <button
+                            type="button"
+                            onClick={handleApplyOverlay}
+                            disabled={applyingOverlay}
+                            className="px-3 py-1.5 bg-[#102425] text-[#96EDD6] border border-[#96EDD6]/40 rounded-md text-xs font-semibold hover:bg-[#163332] disabled:opacity-50 transition-colors"
+                          >
+                            {applyingOverlay ? 'Applying...' : '✦ Apply News Template'}
+                          </button>
+                        ) : (
+                          <span className="text-xs font-semibold text-green-600">✓ Template applied (1440×960 WebP)</span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={handleUploadToStorage}
+                          disabled={isUploading}
+                          className="px-3 py-1.5 bg-blue-600 text-white rounded-md text-xs font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                        >
+                          {isUploading ? 'Uploading...' : 'Upload Image'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <div className="flex items-center gap-2"><input type="checkbox" name="isPremium" checked={formData.isPremium} onChange={handleChange} /><span className="text-sm text-gray-700">Premium Article</span></div>
                 <div><label className="block text-sm font-medium text-gray-700">Read Time (minutes)</label><input type="number" name="readTime" value={formData.readTime} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black" /></div>
                 <div>

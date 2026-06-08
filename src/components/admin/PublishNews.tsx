@@ -6,6 +6,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatSelection as fmtSel, getFormattedPreviewHtml } from './utils';
+import { applyNewsOverlay } from './applyNewsOverlay';
 
 const CATEGORIES = ['Tech', 'News', 'Market', 'Games', 'Wallet', 'Funding', 'Crypto', 'Memes', 'NFT'];
 
@@ -22,6 +23,8 @@ export default function PublishNews() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [overlayApplied, setOverlayApplied] = useState(false);
+  const [applyingOverlay, setApplyingOverlay] = useState(false);
   const { currentUser, userData } = useAuth();
   const isNewsDrafter = userData?.role === 'newsdrafter';
   const isSuperAdmin = userData?.role === 'superadmin';
@@ -31,6 +34,23 @@ export default function PublishNews() {
     if (file) {
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
+      setOverlayApplied(false);
+    }
+  };
+
+  const handleApplyOverlay = async () => {
+    if (!imageFile) return;
+    setApplyingOverlay(true);
+    try {
+      const processed = await applyNewsOverlay(imageFile);
+      setImageFile(processed);
+      setImagePreview(URL.createObjectURL(processed));
+      setOverlayApplied(true);
+    } catch (err) {
+      console.error('Overlay failed:', err);
+      setMessage('Failed to apply template. Make sure /news-overlay.png exists in public/.');
+    } finally {
+      setApplyingOverlay(false);
     }
   };
 
@@ -112,7 +132,34 @@ export default function PublishNews() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">News Image</label>
           <input type="file" accept="image/*" onChange={handleImageChange} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white" />
-          {imagePreview && <img src={imagePreview} alt="Preview" className="mt-2 max-h-40 rounded" />}
+          {imagePreview && (
+            <div className="mt-2">
+              <img src={imagePreview} alt="Preview" className="max-h-40 rounded" />
+              <div className="flex items-center gap-2 mt-2">
+                {!overlayApplied ? (
+                  <button
+                    type="button"
+                    onClick={handleApplyOverlay}
+                    disabled={applyingOverlay}
+                    className="px-3 py-1.5 bg-[#102425] text-[#96EDD6] border border-[#96EDD6]/40 rounded-md text-xs font-semibold hover:bg-[#163332] disabled:opacity-50 transition-colors"
+                  >
+                    {applyingOverlay ? 'Applying...' : '✦ Apply News Template'}
+                  </button>
+                ) : (
+                  <span className="text-xs font-semibold text-green-600">✓ Template applied (1440×960 WebP)</span>
+                )}
+                {overlayApplied && (
+                  <button
+                    type="button"
+                    onClick={() => { setOverlayApplied(false); }}
+                    className="text-xs text-gray-400 hover:text-gray-600 underline"
+                  >
+                    Re-upload original
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
           {uploadProgress > 0 && uploadProgress < 100 && (
             <div className="mt-2 flex items-center gap-2 text-xs text-gray-600">
               <progress value={uploadProgress} max="100" /> <span>{Math.round(uploadProgress)}%</span>

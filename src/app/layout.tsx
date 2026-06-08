@@ -7,6 +7,7 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 import Navbar from '@/components/Navbar'
 import CryptoTicker from '@/components/CryptoTicker'
+import KumaAIWidget from '@/components/KumaAIWidget'
 
 const lato = Lato({ subsets: ['latin'], weight: ['300', '400', '700', '900'] })
 
@@ -57,6 +58,7 @@ export default function RootLayout({
             <div style={{ height: 'var(--navbar-h)' }} aria-hidden="true" />
             <CryptoTicker />
             {children}
+            <KumaAIWidget />
           </NotificationProvider>
         </AuthProvider>
       </body>
