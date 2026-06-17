@@ -18,6 +18,7 @@ export default function PublishNews() {
   const [isPremium, setIsPremium] = useState(false);
   const [author, setAuthor] = useState('');
   const [tags, setTags] = useState('');
+  const [kumamiInsight, setKumamiInsight] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -69,7 +70,7 @@ export default function PublishNews() {
   const resetForm = () => {
     setTitle(''); setContent(''); setSummary(''); setCategory('Tech');
     setImageFile(null); setImagePreview(''); setUploadProgress(0);
-    setIsPremium(false); setAuthor(''); setTags('');
+    setIsPremium(false); setAuthor(''); setTags(''); setKumamiInsight('');
   };
 
   const saveArticle = async (status: 'draft' | 'published') => {
@@ -97,6 +98,7 @@ export default function PublishNews() {
         isPremium,
         tags: tags.split(',').map((t) => t.trim()),
         status,
+        ...(kumamiInsight.trim() ? { kumamiInsight: kumamiInsight.trim() } : {}),
       });
       setMessage(status === 'published' ? 'News published successfully!' : 'Draft saved successfully!');
       resetForm();
@@ -175,6 +177,18 @@ export default function PublishNews() {
           <input type="text" className="w-full p-2 border border-gray-300 rounded-md text-black" value={summary} onChange={(e) => setSummary(e.target.value)} required />
         </div>
         <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Kumami Insight{' '}
+            <span className="text-gray-400 font-normal">(optional — shown as a highlighted callout on the article)</span>
+          </label>
+          <textarea
+            className="w-full p-2 border border-[#96EDD6] rounded-md text-black h-24 focus:outline-none focus:ring-2 focus:ring-[#96EDD6]/50"
+            value={kumamiInsight}
+            onChange={(e) => setKumamiInsight(e.target.value)}
+            placeholder="e.g. This signals growing institutional confidence in Layer 2 scaling solutions..."
+          />
+        </div>
+        <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
           <div className="flex gap-1 mb-2">
             <button type="button" onClick={() => fmtSel('news-content', content, 'bold', setContent)} className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-semibold hover:bg-gray-200">Bold</button>
@@ -202,6 +216,15 @@ export default function PublishNews() {
           <div className="text-sm text-gray-500 mt-1">{author || currentUser?.email || 'Anonymous'} &bull; {category}</div>
           {isPremium && <span className="inline-block mt-2 px-2 py-0.5 text-xs font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 text-gray-900 rounded-full">Premium</span>}
           {imagePreview && <img src={imagePreview} alt="Preview" className="mt-4 w-full max-h-64 object-cover rounded" />}
+          {kumamiInsight && (
+            <div className="mt-4 rounded-xl overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(150,237,214,0.12), rgba(64,224,208,0.06))', border: '1px solid rgba(150,237,214,0.35)' }}>
+              <div className="flex items-center gap-2 px-4 py-2" style={{ background: 'rgba(150,237,214,0.12)', borderBottom: '1px solid rgba(150,237,214,0.2)' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#96EDD6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3" fill="#96EDD6" stroke="none"/></svg>
+                <span className="text-xs font-black uppercase tracking-widest" style={{ color: '#96EDD6' }}>Kumami Insight</span>
+              </div>
+              <p className="px-4 py-3 text-sm text-gray-800 m-0">{kumamiInsight}</p>
+            </div>
+          )}
           {summary && <p className="mt-4 text-gray-700 italic">{summary}</p>}
           {content ? (
             <div className="mt-4 text-gray-800 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: getFormattedPreviewHtml(content) }} />

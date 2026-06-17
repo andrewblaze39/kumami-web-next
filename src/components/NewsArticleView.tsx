@@ -358,18 +358,63 @@ export default function NewsArticleView({ articleId }: Props) {
 
             {/* Kumami Insight (if present) */}
             {article.kumamiInsight && (
-              <div className="mb-8 rounded-2xl overflow-hidden"
-                style={{ background: 'linear-gradient(135deg, rgba(150,237,214,0.12) 0%, rgba(64,224,208,0.06) 100%)', border: '1px solid rgba(150,237,214,0.25)' }}>
-                <div className="flex items-center gap-2 px-5 py-3"
-                  style={{ background: 'rgba(150,237,214,0.1)', borderBottom: '1px solid rgba(150,237,214,0.15)' }}>
-                  <span style={{ fontSize: 15 }}>🐻</span>
-                  <span className="text-xs font-black uppercase tracking-widest" style={{ color: '#96EDD6' }}>
-                    Kumami Insight
-                  </span>
+              <div className="mb-8 rounded-2xl overflow-hidden relative"
+                style={{
+                  background: 'linear-gradient(135deg, #0d2a22 0%, #0a1e1a 100%)',
+                  border: '1px solid rgba(150,237,214,0.3)',
+                  boxShadow: '0 0 40px rgba(150,237,214,0.08), inset 0 1px 0 rgba(150,237,214,0.1)',
+                }}>
+                {/* Glow orb */}
+                <div style={{
+                  position: 'absolute', top: -40, right: -40,
+                  width: 160, height: 160, borderRadius: '50%',
+                  background: 'radial-gradient(circle, rgba(150,237,214,0.15) 0%, transparent 70%)',
+                  pointerEvents: 'none',
+                }} />
+                {/* Header */}
+                <div className="flex items-center gap-3 px-5 py-3 relative"
+                  style={{ borderBottom: '1px solid rgba(150,237,214,0.15)' }}>
+                  {/* Kuma icon mark */}
+                  <div style={{
+                    width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                    background: 'linear-gradient(135deg, #96EDD6, #40e0d0)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 3C9.5 6 5 7.5 5 12a7 7 0 0 0 14 0c0-1.5-.6-2.7-1.4-3.6-.3 1-.9 1.6-1.6 1.6 0-3-1-5-1-7Z" fill="#0a1e1a"/>
+                      <circle cx="9" cy="13" r="1.2" fill="#0a1e1a"/>
+                      <circle cx="15" cy="13" r="1.2" fill="#0a1e1a"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-xs font-black uppercase tracking-widest" style={{ color: '#96EDD6', lineHeight: 1 }}>
+                      Kumami Insight
+                    </div>
+                    <div className="text-xs" style={{ color: 'rgba(150,237,214,0.5)', marginTop: 2 }}>
+                      Analysis by Kumami
+                    </div>
+                  </div>
+                  {/* Corner badge */}
+                  <div className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+                    style={{ background: 'rgba(150,237,214,0.1)', border: '1px solid rgba(150,237,214,0.2)' }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#96EDD6', boxShadow: '0 0 6px #96EDD6' }} />
+                    <span className="text-xs font-semibold" style={{ color: '#96EDD6' }}>Live</span>
+                  </div>
                 </div>
-                <p className="px-5 py-4 text-sm md:text-base leading-relaxed m-0" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                  {article.kumamiInsight}
-                </p>
+                {/* Body */}
+                <div className="px-5 py-4 relative">
+                  {/* Quote mark */}
+                  <div style={{
+                    position: 'absolute', top: 12, left: 16,
+                    fontSize: 48, lineHeight: 1, color: 'rgba(150,237,214,0.08)',
+                    fontFamily: 'Georgia, serif', fontWeight: 900, pointerEvents: 'none',
+                    userSelect: 'none',
+                  }}>&ldquo;</div>
+                  <p className="text-sm md:text-base leading-relaxed m-0 relative"
+                    style={{ color: 'rgba(255,255,255,0.9)', paddingLeft: 4 }}>
+                    {article.kumamiInsight}
+                  </p>
+                </div>
               </div>
             )}
 
