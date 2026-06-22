@@ -122,10 +122,9 @@ export default function EducationArticleRenderer({
   const goToStep = useCallback((step: number) => {
     setCurrentStep(step)
     setVisitedSections(prev => new Set(prev).add(step))
-    // Mark section as visited in Firestore/LS (step 0 = intro, steps 1..N = sections 0..N-1)
-    if (resolvedChapterIndex !== undefined && levelNum !== null) {
-      const sectionIndex = step > 0 ? step - 1 : 0
-      markSectionVisited(resolvedChapterIndex, sectionIndex)
+    // Only persist actual content sections (step 1..N → sectionIndex 0..N-1), not intro (step 0)
+    if (step > 0 && resolvedChapterIndex !== undefined && levelNum !== null) {
+      markSectionVisited(resolvedChapterIndex, step - 1)
     }
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [resolvedChapterIndex, levelNum, markSectionVisited])

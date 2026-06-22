@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { Clock, Search, ArrowLeft } from 'lucide-react'
 import { PHASES } from '@/data/educationPhases'
@@ -42,7 +42,7 @@ export default function AllEducationArticles() {
   const [levelFilter, setLevelFilter] = useState('All')
 
   useEffect(() => {
-    getDocs(collection(db, 'education_articles'))
+    getDocs(query(collection(db, 'education_articles'), where('status', '==', 'published'), where('comingSoon', '==', false)))
       .then(snap => {
         const docs = snap.docs
           .map(d => {

@@ -25,6 +25,7 @@ export interface EducationArticleDoc {
   minutes: number
   featured: boolean
   description: string
+  comingSoon?: boolean
   createdAt: unknown           // Firestore Timestamp
 }
 

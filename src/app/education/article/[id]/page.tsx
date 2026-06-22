@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore'
+import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import EducationArticleRenderer from '@/components/education/EducationArticleRenderer'
 import Link from 'next/link'
@@ -55,10 +55,15 @@ async function fetchSiblingIds(
   levelNum: number
 ): Promise<{ prevId: string | null; nextId: string | null }> {
   try {
-    const snap = await getDocs(collection(db, 'education_articles'))
+    const q = query(
+      collection(db, 'education_articles'),
+      where('level', '==', levelNum),
+      where('status', '==', 'published')
+    )
+    const snap = await getDocs(q)
     const sameLevel = snap.docs
-      .map(d => ({ id: d.id, ...d.data() } as { id: string; level?: unknown; chapterIndex?: number; status?: string }))
-      .filter(a => a.status === 'published' && resolveLevelNumber(a.level) === levelNum)
+      .map(d => ({ id: d.id, ...d.data() } as { id: string; chapterIndex?: number; comingSoon?: boolean }))
+      .filter(a => !a.comingSoon)
       .sort((a, b) => (a.chapterIndex ?? 0) - (b.chapterIndex ?? 0))
     const idx = sameLevel.findIndex(a => a.id === articleId)
     return {

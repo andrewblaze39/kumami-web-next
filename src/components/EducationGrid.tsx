@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Search, Check, ArrowRight, Play, Clock } from 'lucide-react'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { PHASES } from '@/data/educationPhases'
 import { resolveLevelNumber, getLevelColor } from '@/lib/educationUtils'
@@ -411,11 +411,15 @@ export default function EducationGrid() {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const snapshot = await getDocs(collection(db, 'education_articles'))
+        const q = query(
+          collection(db, 'education_articles'),
+          where('status', '==', 'published'),
+          where('comingSoon', '==', false)
+        )
+        const snapshot = await getDocs(q)
         const docs = snapshot.docs
           .map((d) => {
             const data = d.data() as Record<string, unknown>
-            if (data.status && data.status !== 'published') return null
             const createdAtRaw = data.createdAt as { toMillis?: () => number } | undefined
             return {
               id: d.id,

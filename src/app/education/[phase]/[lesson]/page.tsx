@@ -4,10 +4,9 @@ import { use, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { notFound, useRouter } from 'next/navigation'
 import { Info, ArrowRight, ArrowLeft } from 'lucide-react'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { PHASES } from '@/data/educationPhases'
-import { resolveLevelNumber } from '@/lib/educationUtils'
 
 interface Props {
   params: Promise<{ phase: string; lesson: string }>
@@ -34,14 +33,16 @@ export default function LessonPage({ params }: Props) {
   useEffect(() => {
     const checkForArticle = async () => {
       try {
-        const snap = await getDocs(collection(db, 'education_articles'))
+        const q = query(
+          collection(db, 'education_articles'),
+          where('level', '==', levelNum),
+          where('chapterIndex', '==', lessonIdx),
+          where('status', '==', 'published')
+        )
+        const snap = await getDocs(q)
         const match = snap.docs.find(d => {
           const data = d.data()
-          return (
-            data.status === 'published' &&
-            resolveLevelNumber(data.level) === levelNum &&
-            data.chapterIndex === lessonIdx
-          )
+          return !data.comingSoon && data.sections?.length > 0
         })
         if (match) {
           router.replace(`/education/article/${match.id}`)

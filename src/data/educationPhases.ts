@@ -40,7 +40,6 @@ export const PHASES: Phase[] = [
       'Common mistakes when buying on a CEX',
       'Risks of keeping your crypto on an exchange',
       'Why you should eventually move to a personal wallet',
-      'HANDS-ON: Buy your first Bitcoin',
     ],
   },
   {
@@ -74,7 +73,6 @@ export const PHASES: Phase[] = [
       'How to set up your first personal wallet',
       'How to read a block explorer',
       'What are stablecoins',
-      'HANDS-ON: Move your Bitcoin to your own wallet',
     ],
   },
   {
@@ -113,7 +111,6 @@ export const PHASES: Phase[] = [
       'How to bridge assets between chains',
       'How to make your first swap on a DEX',
       'How staking works',
-      'HANDS-ON: Research and buy your first altcoin',
     ],
   },
   {
@@ -147,7 +144,6 @@ export const PHASES: Phase[] = [
       'Portfolio construction',
       'How to not get liquidated',
       'Tax basics',
-      'HANDS-ON: Build your first investment thesis',
     ],
   },
   {
@@ -181,7 +177,6 @@ export const PHASES: Phase[] = [
       'Advanced DeFi',
       "How to read a crypto fund's thesis",
       'Building in Web3',
-      'HANDS-ON: Ship something in Web3',
     ],
   },
 ]

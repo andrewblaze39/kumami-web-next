@@ -1,0 +1,330 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /research_articles/{document} {
+      allow read: if true;  // Allow public read access
+
+      // Allow create for admins, superadmins, and newsresearchadmins
+      allow create: if isAdmin() || isNewsResearchAdmin();
+
+      // Allow update for admins, superadmins, and newsresearchadmins
+      // Regular admins and newsresearchadmins can update drafts
+      // Only superadmins can publish (change status from draft to published)
+      allow update: if isAdmin() || isNewsResearchAdmin() ||
+                    (isSuperAdmin() ||
+                     // Regular admins can only update if not changing status to published
+                     (resource.data.status == 'draft' &&
+                      (!('status' in request.resource.data) || request.resource.data.status == 'draft')));
+
+      // Allow delete for admins, superadmins, and newsresearchadmins
+      allow delete: if isAdmin() || isNewsResearchAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read, update: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /news/{newsId} {
+      allow read: if true;  // Allow public read access
+
+      // Allow create for admins, superadmins, newsresearchadmins, and newsdrafters (draft-only)
+      allow create: if isAdmin() || isNewsResearchAdmin() ||
+                    (isNewsDrafter() && request.resource.data.status == 'draft');
+
+      // Allow update for admins, superadmins, and newsresearchadmins
+      // Regular admins and newsresearchadmins can update drafts
+      // Only superadmins can publish (change status from draft to published)
+      allow update: if isAdmin() || isNewsResearchAdmin() ||
+                    (isSuperAdmin() ||
+                     // Regular admins can only update if not changing status to published
+                     (resource.data.status == 'draft' &&
+                      (!('status' in request.resource.data) || request.resource.data.status == 'draft')) ||
+                     // News drafters can only update drafts and cannot change status
+                     (isNewsDrafter() && resource.data.status == 'draft' &&
+                      (!('status' in request.resource.data) || request.resource.data.status == 'draft')));
+
+      // Allow delete for admins, superadmins, newsresearchadmins, and newsdrafters (draft-only)
+      allow delete: if isAdmin() || isNewsResearchAdmin() ||
+                    (isNewsDrafter() && resource.data.status == 'draft');
+    }
+
+    match /blogs/{blogId} {
+      allow read: if true;  // Allow public read access
+
+      // Allow create for admins, superadmins, and newsresearchadmins
+      allow create: if isAdmin() || isNewsResearchAdmin();
+
+      // Allow update for admins, superadmins, and newsresearchadmins
+      // Regular admins and newsresearchadmins can update drafts
+      // Only superadmins can publish (change status from draft to published)
+      allow update: if isAdmin() || isNewsResearchAdmin() ||
+                    (isSuperAdmin() ||
+                     // Regular admins can only update if not changing status to published
+                     (resource.data.status == 'draft' &&
+                      (!('status' in request.resource.data) || request.resource.data.status == 'draft')));
+
+      // Allow delete for admins, superadmins, and newsresearchadmins
+      allow delete: if isAdmin() || isNewsResearchAdmin();
+    }
+
+    match /featured/{featuredId} {
+      allow read: if true;  // Allow public read access to featured articles
+
+      // Allow create for admins, superadmins, and specialized admins
+      allow create: if isAdmin() || isNewsResearchAdmin() || isGamesAdmin();
+
+      // Allow update for admins, superadmins, and specialized admins
+      allow update: if isAdmin() || isNewsResearchAdmin() || isGamesAdmin();
+
+      // Allow delete for admins, superadmins, and specialized admins
+      allow delete: if isAdmin() || isNewsResearchAdmin() || isGamesAdmin();
+    }
+
+    // YouTube Shorts - readable by all, writable by admins
+    match /youtube_shorts/{shortId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /marketAnalysis/{document} {
+      allow read: if true;  // Allow public read access
+
+      // Allow create for admins, newsresearchadmins, and marketanalysisadmins
+      allow create: if isAdmin() || isNewsResearchAdmin() || isMarketAnalysisAdmin();
+
+      // Allow update for admins, newsresearchadmins, and marketanalysisadmins
+      allow update: if isAdmin() || isNewsResearchAdmin() || isMarketAnalysisAdmin();
+
+      // Allow delete for admins, newsresearchadmins, and marketanalysisadmins
+      allow delete: if isAdmin() || isNewsResearchAdmin() || isMarketAnalysisAdmin();
+    }
+
+    // Partner articles for Partner Portal
+    match /partner_articles/{articleId} {
+      // Public read access for Partner Portal
+      allow read: if true;
+
+      // Allow create for admins and news/research admins
+      allow create: if isAdmin() || isNewsResearchAdmin();
+
+      // Allow update for admins, superadmins, and newsresearchadmins
+      // Regular admins and newsresearchadmins can update drafts
+      // Only superadmins can publish (change status from draft to published)
+      allow update: if isAdmin() || isNewsResearchAdmin() ||
+                    (isSuperAdmin() ||
+                     (resource.data.status == 'draft' &&
+                      (!('status' in request.resource.data) || request.resource.data.status == 'draft')));
+
+      // Allow delete for admins, superadmins, and newsresearchadmins
+      allow delete: if isAdmin() || isNewsResearchAdmin();
+    }
+
+    match /app_config/{configId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin() || isSuperAdmin();
+    }
+
+    // Allow admin users full access
+    function isAdmin() {
+      let user = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return request.auth != null &&
+             (user.isAdmin == true || user.role == 'admin' || user.role == 'superadmin');
+    }
+
+    // Check if user is a superadmin
+    function isSuperAdmin() {
+      let user = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return request.auth != null && user.role == 'superadmin';
+    }
+
+    // Check if user is a games admin
+    function isGamesAdmin() {
+      let user = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return request.auth != null && user.role == 'gamesadmin';
+    }
+
+    // Check if user is a news and research admin
+    function isNewsResearchAdmin() {
+      let user = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return request.auth != null && user.role == 'newsresearchadmin';
+    }
+
+    // Check if user is a news drafter (draft-only permissions)
+    function isNewsDrafter() {
+      let user = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return request.auth != null && user.role == 'newsdrafter';
+    }
+
+    // Check if user is a market analysis admin
+    function isMarketAnalysisAdmin() {
+      let user = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return request.auth != null && user.role == 'marketanalysisadmin';
+    }
+
+    // Alpha Room messages
+    match /alphaRoom/{messageId} {
+      // Allow read for all authenticated users
+      allow read: if request.auth != null;
+
+      // Allow create, update, delete for admins and superadmins
+      allow create, update, delete: if isAdmin() || isSuperAdmin();
+    }
+
+    // Users collection rules
+    match /users/{userId} {
+      // Users can read their own document, superadmins can read all user documents
+      allow read: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+      // Users can create their own document
+      allow create: if request.auth != null && request.auth.uid == userId;
+      // Users can update their own document, superadmins can update any user's role
+      // Note: referralRewards and referralCount are updated by Cloud Functions with admin privileges
+      allow update: if request.auth != null && (
+        request.auth.uid == userId ||
+        (isSuperAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role']))
+      );
+      // Only admins can delete user docs
+      allow delete: if isAdmin();
+
+      // Education progress — users can read/write their own progress
+      match /education_progress/{levelId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // Referral codes collection - publicly readable but restricted write
+    match /referralCodes/{code} {
+      // Anyone can read referral codes (for validation)
+      allow read: if true;
+      // Only the owner can update their referral code
+      allow update: if request.auth != null &&
+                  resource.data.userId == request.auth.uid;
+      // Only the system or admin can create new codes
+      allow create: if isAdmin() || (request.auth != null &&
+                  request.resource.data.userId == request.auth.uid);
+      // Only admin can delete codes
+      allow delete: if isAdmin();
+    }
+
+    // Referrals collection - tracks referral relationships
+    match /referrals/{referralId} {
+      // Users can read their own referrals (as referrer or referred)
+      allow read: if request.auth != null &&
+                (resource.data.referrerId == request.auth.uid ||
+                 resource.data.refereeId == request.auth.uid);
+
+      // Users can only create referrals where:
+      // 1. They are the referee (the person being referred)
+      // 2. The status is set to "pending" (only Cloud Functions can set to "completed")
+      // 3. Required fields are present
+      allow create: if request.auth != null &&
+                   request.resource.data.refereeId == request.auth.uid &&
+                   request.resource.data.status == "pending" &&
+                   request.resource.data.referrerId != request.auth.uid &&
+                   request.resource.data.code is string &&
+                   request.resource.data.planId is string;
+
+      // Only admin can update or delete referrals
+      allow update, delete: if isAdmin();
+    }
+
+    // Subscriptions collection rules
+    match /subscriptions/{subscriptionId} {
+      // Users can create and read their own subscriptions
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Only admins can update/delete subscriptions
+      allow update, delete: if isAdmin();
+    }
+
+
+    match /games/{gamesId} {
+      allow read: if true;  // Allow public read access
+
+      // Allow create for admins, superadmins, and gamesadmins
+      allow create: if isAdmin() || isGamesAdmin();
+
+      // Allow update for admins, superadmins, and gamesadmins
+      // Regular admins and gamesadmins can update drafts
+      // Only superadmins can publish (change status from draft to published)
+      allow update: if isAdmin() || isGamesAdmin() ||
+                    (isSuperAdmin() ||
+                     // Regular admins can only update if not changing status to published
+                     (resource.data.status == 'draft' &&
+                      (!('status' in request.resource.data) || request.resource.data.status == 'draft')));
+
+      // Allow delete for admins, superadmins, and gamesadmins
+      allow delete: if isAdmin() || isGamesAdmin();
+    }
+
+    // Shared dropdown options for games (genres, networks, platforms, categories)
+    match /gameDropdownOptions/{optionId} {
+      // Any authenticated user can read options
+      allow read: if request.auth != null;
+
+      // Only admins or games admins can manage options
+      allow create, update, delete: if isAdmin() || isGamesAdmin();
+    }
+
+    match /education_articles/{articleId} {
+      allow read: if true;  // Allow public read access
+
+      // Allow create, update, delete for admins and superadmins
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Homepage partners collection
+    match /homepage_partners/{partnerId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin() || isSuperAdmin();
+    }
+
+    // All partners collection
+    match /all_partners/{partnerId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin() || isSuperAdmin();
+    }
+
+    // Legacy partners collection (keep for backward compatibility)
+    match /partners/{partnerId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin() || isSuperAdmin();
+    }
+
+    // Allow authenticated users to create but not read pending crypto payments
+    match /pendingCryptoPayments/{document} {
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow read: if false;  // No client-side reading allowed
+    }
+
+    // Reels collection for Instagram/embeddable content
+    match /reels/{reelId} {
+      allow read: if true;  // Allow public read access
+
+      // Allow create, update, delete for admins, superadmins, and newsresearchadmins
+      allow create, update, delete: if isAdmin() || isNewsResearchAdmin();
+    }
+
+    // Users' chatrooms and messages - users can read their own, backend writes
+    match /users/{userId}/chatrooms/{chatRoomId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+
+      match /messages/{messageId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null && request.auth.uid == userId;
+        allow update: if request.auth != null && request.auth.uid == userId;
+        allow delete: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // Default deny-all rule (must come last)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

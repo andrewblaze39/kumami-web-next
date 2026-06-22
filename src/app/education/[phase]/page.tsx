@@ -12,7 +12,7 @@ import {
   ChevronDown,
   ArrowRight,
 } from 'lucide-react'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { PHASES } from '@/data/educationPhases'
 import { resolveLevelNumber } from '@/lib/educationUtils'
@@ -26,16 +26,17 @@ interface Props {
 // Fetch published articles for a level, keyed by chapterIndex
 async function fetchArticlesForLevel(levelNum: number): Promise<Map<number, EducationArticle>> {
   try {
-    const snap = await getDocs(collection(db, 'education_articles'))
+    const q = query(
+      collection(db, 'education_articles'),
+      where('level', '==', levelNum),
+      where('status', '==', 'published')
+    )
+    const snap = await getDocs(q)
     const map = new Map<number, EducationArticle>()
     snap.docs.forEach(d => {
       const data = d.data() as Record<string, unknown>
-      if (data.status && data.status !== 'published') return
-      const lvl = resolveLevelNumber(data.level)
-      if (lvl !== levelNum) return
       const ci = data.chapterIndex as number | undefined
       if (ci === undefined || ci === null) return
-      // Only store first one found per chapterIndex (tiebreaker: first encountered)
       if (!map.has(ci)) {
         map.set(ci, { id: d.id, ...data } as EducationArticle)
       }
@@ -56,13 +57,17 @@ export default function CoursePage({ params }: Props) {
   const [openChapters, setOpenChapters] = useState<Set<number>>(new Set([0]))
   const [articleMap, setArticleMap] = useState<Map<number, EducationArticle>>(new Map())
 
-  const { isChapterComplete } = useEducationProgress(levelNum)
+  // Derive sorted chapter list from Firestore articles
+  const chapters = Array.from(articleMap.values()).sort((a, b) => a.chapterIndex - b.chapterIndex)
 
-  const doneCh = levelData
-    ? levelData.chapters.filter((_, ci) => isChapterComplete(ci)).length
-    : 0
-  const pct = levelData && levelData.chapters.length > 0
-    ? Math.round((doneCh / levelData.chapters.length) * 100)
+  const { isChapterComplete, getChapterSectionProgress } = useEducationProgress(levelNum)
+
+  // Calculate progress based on sections completed across all chapters (from Firestore)
+  const totalSections = chapters.reduce((sum, a) => sum + (a.sections?.length ?? 0), 0)
+  const completedSections = chapters.reduce((sum, a) => sum + getChapterSectionProgress(a.chapterIndex).length, 0)
+  const doneCh = chapters.filter(a => isChapterComplete(a.chapterIndex)).length
+  const pct = totalSections > 0
+    ? Math.round((completedSections / totalSections) * 100)
     : 0
 
   useEffect(() => {
@@ -107,7 +112,7 @@ export default function CoursePage({ params }: Props) {
             </p>
             <div className="edu-pmeta">
               <span className="edu-pill">
-                <BookOpen size={12} /> {levelData.chapters.length} chapters
+                <BookOpen size={12} /> {chapters.length} chapters
               </span>
               <span className="edu-pill">
                 <Clock size={12} /> {levelData.hours}
@@ -124,7 +129,7 @@ export default function CoursePage({ params }: Props) {
               {pct}%
             </div>
             <div className="edu-pcl">
-              {doneCh} of {levelData.chapters.length} chapters complete
+              {completedSections} of {totalSections} sections complete
             </div>
             <div className="edu-progress" style={{ width: 160, marginBottom: 16 }}>
               <i style={{ width: `${pct}%`, background: levelData.hex }} />
@@ -163,20 +168,20 @@ export default function CoursePage({ params }: Props) {
           <div className="edu-ch-intro">
             <h2>Course content</h2>
             <span style={{ color: 'var(--muted)', fontSize: 13.5 }}>
-              {levelData.chapters.length} chapters · {levelData.hours}
+              {chapters.length} chapters · {levelData.hours}
             </span>
           </div>
 
-          {levelData.chapters.map((chapter, ci) => {
-            const isLab = chapter.startsWith('HANDS-ON')
-            const title = isLab ? chapter.replace('HANDS-ON: ', '') : chapter
+          {chapters.map((article) => {
+            const ci = article.chapterIndex
+            const title = article.title
+            const isComingSoon = article.comingSoon === true || (article.sections?.length === 0)
             const chapterDone = isChapterComplete(ci)
             const status = chapterDone ? 'done' : ci === doneCh ? 'current' : 'upcoming'
             const isOpen = openChapters.has(ci)
-            const linkedArticle = articleMap.get(ci)
-            const chapterHref = linkedArticle
-              ? `/education/article/${linkedArticle.id}`
-              : `/education/${levelData.n}/${ci}`
+            const chapterHref = isComingSoon
+              ? `/education/${levelData.n}/${ci}`
+              : `/education/article/${article.id}`
 
             return (
               <div key={ci} className="edu-chapter">
@@ -203,25 +208,23 @@ export default function CoursePage({ params }: Props) {
                   </div>
 
                   <div className="edu-ch-title">
-                    <span
-                      className={isLab ? 'edu-ch-title-lab' : ''}
-                      style={isLab ? ({ color: levelData.hex } as React.CSSProperties) : {}}
-                    >
-                      {isLab && '⚡ '}
-                      {title}
-                    </span>
+                    <span>{title}</span>
                     <div style={{ fontSize: 12, color: 'var(--muted-2)', marginTop: 2, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      {linkedArticle ? (
+                      {isComingSoon ? (
+                        <span style={{ color: '#a78bfa' }}>Coming soon</span>
+                      ) : (
                         <>
-                          {linkedArticle.sections?.length > 0 && (
-                            <span>⏱ {linkedArticle.sections.length} {linkedArticle.sections.length === 1 ? 'section' : 'sections'}</span>
-                          )}
-                          {linkedArticle.minutes ? (
-                            <span>⏰ {linkedArticle.minutes}m</span>
+                          {article.sections?.length > 0 && (() => {
+                            const visited = getChapterSectionProgress(ci).length
+                            const total = article.sections.length
+                            return (
+                              <span>⏱ {visited}/{total} sections</span>
+                            )
+                          })()}
+                          {article.minutes ? (
+                            <span>⏰ {article.minutes}m</span>
                           ) : null}
                         </>
-                      ) : (
-                        <span>Coming soon</span>
                       )}
                     </div>
                   </div>
@@ -240,53 +243,63 @@ export default function CoursePage({ params }: Props) {
                 {/* Expandable body */}
                 {isOpen && (
                   <div className="edu-ch-body">
-                    {linkedArticle?.blurb && (
-                      <p style={{ fontSize: 13.5, color: 'var(--muted)', lineHeight: 1.6, margin: '0 0 12px' }}>
-                        {linkedArticle.blurb}
-                      </p>
-                    )}
-
-                    {/* Section list */}
-                    {linkedArticle?.sections && linkedArticle.sections.length > 0 && (
-                      <div style={{ marginBottom: 14 }}>
-                        {linkedArticle.sections.map((section, si) => (
-                          <div key={si} className="edu-part">
-                            <div className="edu-pdot" />
-                            <span>Part {si + 1}: {section.title}</span>
-                            <span className="edu-ptype">Read</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {linkedArticle ? (
-                      <Link
-                        href={chapterHref}
-                        className="edu-btn edu-btn-surface"
-                        style={{
-                          marginTop: 4,
-                          fontSize: 13,
-                          padding: '8px 14px',
-                          borderRadius: 10,
-                        }}
-                      >
-                        {status === 'done' ? 'Revisit chapter' : 'Start chapter'}{' '}
-                        <ArrowRight size={13} />
-                      </Link>
-                    ) : (
+                    {isComingSoon ? (
                       <span
                         style={{
                           display: 'inline-block',
-                          marginTop: 4,
                           fontSize: 12,
-                          color: 'var(--muted-2)',
+                          color: '#a78bfa',
                           padding: '6px 12px',
-                          border: '1px solid var(--border)',
+                          border: '1px solid rgba(167, 139, 250, 0.25)',
+                          background: 'rgba(167, 139, 250, 0.07)',
                           borderRadius: 8,
                         }}
                       >
                         Content coming soon
                       </span>
+                    ) : (
+                      <>
+                        {article.blurb && (
+                          <p style={{ fontSize: 13.5, color: 'var(--muted)', lineHeight: 1.6, margin: '0 0 12px' }}>
+                            {article.blurb}
+                          </p>
+                        )}
+
+                        {/* Section list */}
+                        {article.sections && article.sections.length > 0 && (() => {
+                          const visitedSections = getChapterSectionProgress(ci)
+                          return (
+                            <div style={{ marginBottom: 14 }}>
+                              {article.sections.map((section, si) => {
+                                const sectionDone = visitedSections.includes(si)
+                                return (
+                                  <div key={si} className="edu-part">
+                                    <div className={`edu-pdot${sectionDone ? ' edu-pdot-done' : ''}`}>
+                                      {sectionDone && <Check size={10} />}
+                                    </div>
+                                    <span>Part {si + 1}: {section.title}</span>
+                                    <span className="edu-ptype">Read</span>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )
+                        })()}
+
+                        <Link
+                          href={chapterHref}
+                          className="edu-btn edu-btn-surface"
+                          style={{
+                            marginTop: 4,
+                            fontSize: 13,
+                            padding: '8px 14px',
+                            borderRadius: 10,
+                          }}
+                        >
+                          {status === 'done' ? 'Revisit chapter' : 'Start chapter'}{' '}
+                          <ArrowRight size={13} />
+                        </Link>
+                      </>
                     )}
                   </div>
                 )}

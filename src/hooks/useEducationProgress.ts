@@ -73,8 +73,8 @@ async function fsGetLevel(uid: string, levelNum: number): Promise<LevelProgress>
         sectionProgress: data.sectionProgress ?? {},
       }
     }
-  } catch {
-    // ignore network errors — fall back to empty
+  } catch (err) {
+    console.error('[edu-progress] Firestore read failed:', err)
   }
   return { ...EMPTY_PROGRESS }
 }
@@ -86,8 +86,8 @@ async function fsSetLevel(uid: string, levelNum: number, progress: LevelProgress
       { ...progress, updatedAt: serverTimestamp() },
       { merge: true }
     )
-  } catch {
-    // ignore write errors
+  } catch (err) {
+    console.error('[edu-progress] Firestore write failed:', err)
   }
 }
 

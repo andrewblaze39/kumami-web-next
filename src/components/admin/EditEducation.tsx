@@ -264,8 +264,32 @@ export default function EditEducation() {
     <div className="p-6 max-w-screen-xl mx-auto">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Edit Education Articles</h2>
       <div className="space-y-4">
-        {articles.map(article => (
-          <div key={article.id} className="bg-white border border-gray-200 rounded-lg p-4">
+        {[...articles]
+          .sort((a, b) => {
+            const lvlA = resolveLevelNumber(a.level) ?? 99
+            const lvlB = resolveLevelNumber(b.level) ?? 99
+            if (lvlA !== lvlB) return lvlA - lvlB
+            return (a.chapterIndex ?? 0) - (b.chapterIndex ?? 0)
+          })
+          .map((article, idx, arr) => {
+            const lvl = resolveLevelNumber(article.level) ?? 0
+            const prevLvl = idx > 0 ? (resolveLevelNumber(arr[idx - 1].level) ?? 0) : -1
+            const showHeader = lvl !== prevLvl
+            const phase = PHASES.find(p => p.n === lvl)
+            const isComingSoon = !article.sections || article.sections.length === 0
+            return (
+              <div key={article.id}>
+                {showHeader && (
+                  <div style={{ padding: '16px 0 8px', borderBottom: '2px solid #e5e7eb', marginBottom: 12, marginTop: idx > 0 ? 16 : 0 }}>
+                    <h3 className="text-lg font-bold text-gray-800">
+                      Level {lvl}{phase ? `: ${phase.title}` : ''}
+                      <span className="text-sm font-normal text-gray-500 ml-2">
+                        ({arr.filter(a => (resolveLevelNumber(a.level) ?? 0) === lvl).length} chapters)
+                      </span>
+                    </h3>
+                  </div>
+                )}
+                <div className={`bg-white border rounded-lg p-4 ${isComingSoon ? 'border-amber-200 bg-amber-50/30' : 'border-gray-200'}`}>
             {editingId === article.id ? (
               <div className="flex gap-6">
                 {/* Form */}
@@ -574,16 +598,28 @@ export default function EditEducation() {
             ) : (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: isComingSoon ? '#fbbf24' : '#10b981', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
+                    {(article.chapterIndex ?? 0) + 1}
+                  </div>
                   {article.thumbnail && (
-                    <img src={article.thumbnail} alt={article.title} className="w-16 h-16 object-cover rounded" />
+                    <img src={article.thumbnail} alt={article.title} className="w-12 h-12 object-cover rounded" />
                   )}
                   <div>
-                    <h3 className="font-semibold text-gray-900">{article.title}</h3>
+                    <h3 className="font-semibold text-gray-900" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {article.title}
+                      {isComingSoon && (
+                        <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 6, background: '#fef3c7', color: '#92400e', fontWeight: 600 }}>
+                          Coming soon
+                        </span>
+                      )}
+                      {article.featured && (
+                        <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 6, background: '#dbeafe', color: '#1d4ed8', fontWeight: 600 }}>
+                          Featured
+                        </span>
+                      )}
+                    </h3>
                     <p className="text-sm text-gray-500">
-                      {article.author} · Level {resolveLevelNumber(article.level) ?? article.level} · Ch. {(article.chapterIndex ?? 0) + 1}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {formatTimestamp(article.createdAt as Parameters<typeof formatTimestamp>[0])}
+                      {article.sections?.length ?? 0} sections · {article.minutes ?? 0}m · {article.status ?? 'published'}
                     </p>
                   </div>
                 </div>
@@ -593,8 +629,10 @@ export default function EditEducation() {
                 </div>
               </div>
             )}
-          </div>
-        ))}
+                </div>
+              </div>
+            )
+          })}
       </div>
     </div>
   );

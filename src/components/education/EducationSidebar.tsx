@@ -65,7 +65,7 @@ export default function EducationSidebar() {
       <aside className={`edu-sidebar${isOpen ? ' edu-open' : ''}`}>
         {/* Brand */}
         <Link href="/education" className="edu-brand" onClick={close}>
-          <span className="edu-brand-edu">Education</span>
+          <span className="edu-brand-edu">Kumami Education</span>
         </Link>
 
         {/* Learn group */}

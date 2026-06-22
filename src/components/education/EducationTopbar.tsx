@@ -10,10 +10,11 @@ export default function EducationTopbar() {
   const pathname = usePathname()
   const { toggle } = useEducationSidebar()
 
-  // Build breadcrumb
-  const crumbs: { label: string; href?: string }[] = [
-    { label: 'Education', href: '/education' },
-  ]
+  // Build breadcrumb — skip "Education" label on the education homepage (sidebar already shows it)
+  const crumbs: { label: string; href?: string }[] = []
+  if (pathname !== '/education') {
+    crumbs.push({ label: 'Education', href: '/education' })
+  }
 
   const parts = pathname.split('/').filter(Boolean) // ['education', '1', '0'] or ['education', 'article', 'docId']
 
@@ -79,17 +80,6 @@ export default function EducationTopbar() {
       </nav>
 
       <div className="edu-topbar-spacer" />
-
-      <div className="edu-topbar-actions">
-        <span className="edu-pill-free">Free forever</span>
-        <Link
-          href="/subscribe"
-          className="edu-btn edu-btn-surface"
-          style={{ padding: '9px 16px', fontSize: 13.5, borderRadius: 10 }}
-        >
-          Get Kumami Pro
-        </Link>
-      </div>
     </header>
   )
 }
