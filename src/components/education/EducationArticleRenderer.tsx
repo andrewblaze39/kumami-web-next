@@ -144,9 +144,16 @@ export default function EducationArticleRenderer({
   // Called when user clicks "Mark complete & continue" in the rail
   const handleMarkComplete = useCallback(() => {
     if (resolvedChapterIndex !== undefined && levelNum !== null) {
-      markChapterComplete(resolvedChapterIndex)
+      // Mark chapter complete WITH all sections in one atomic write
+      markChapterComplete(resolvedChapterIndex, totalSections)
+      // Update local UI
+      setVisitedSections(() => {
+        const all = new Set<number>()
+        for (let i = 0; i <= totalSections; i++) all.add(i)
+        return all
+      })
     }
-  }, [resolvedChapterIndex, levelNum, markChapterComplete])
+  }, [resolvedChapterIndex, levelNum, totalSections, markChapterComplete])
 
   const isIntro = currentStep === 0
   const isLastSection = currentStep === totalSections

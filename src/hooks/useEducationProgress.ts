@@ -156,13 +156,32 @@ export function useEducationProgress(levelNum: number) {
   )
 
   const markChapterComplete = useCallback(
-    (chapterIndex: number) => {
+    (chapterIndex: number, totalSections?: number) => {
       const prev = progressRef.current
-      if (prev.completedChapters.includes(chapterIndex)) return
-      const next: LevelProgress = {
-        ...prev,
-        completedChapters: [...prev.completedChapters, chapterIndex],
+      let next = { ...prev }
+
+      // If totalSections provided, mark all sections as visited in one batch
+      if (totalSections !== undefined && totalSections > 0) {
+        const existing = prev.sectionProgress[chapterIndex] ?? []
+        const allSections = Array.from({ length: totalSections }, (_, i) => i)
+        const merged = [...new Set([...existing, ...allSections])]
+        next = {
+          ...next,
+          sectionProgress: {
+            ...next.sectionProgress,
+            [chapterIndex]: merged,
+          },
+        }
       }
+
+      // Mark chapter as complete
+      if (!next.completedChapters.includes(chapterIndex)) {
+        next = {
+          ...next,
+          completedChapters: [...next.completedChapters, chapterIndex],
+        }
+      }
+
       persist(next)
     },
     [persist]

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Map, BookOpen, Trophy, Settings } from 'lucide-react'
+import { Home, Map, BookOpen, Trophy, Settings } from 'lucide-react'
 import { useEducationSidebar } from '@/contexts/EducationSidebarContext'
 import { PHASES } from '@/data/educationPhases'
 
@@ -14,6 +14,7 @@ interface NavItem {
 }
 
 const LEARN_ITEMS: NavItem[] = [
+  { key: 'dashboard', label: 'Dashboard',   href: '/education/dashboard',    icon: <Home     size={19} strokeWidth={1.9} /> },
   { key: 'journey',  label: 'The Journey', href: '/education',               icon: <Map      size={19} strokeWidth={1.9} /> },
   { key: 'courses',  label: 'My Courses',  href: '/education/1',             icon: <BookOpen size={19} strokeWidth={1.9} /> },
   { key: 'achieve',  label: 'Achievements',href: '/education/achievements',  icon: <Trophy   size={19} strokeWidth={1.9} /> },
@@ -47,8 +48,9 @@ export default function EducationSidebar() {
     : null
 
   const learnActive = (item: NavItem) => {
+    if (item.key === 'dashboard') return pathname === '/education/dashboard'
     if (item.key === 'journey') return pathname === '/education'
-    if (item.key === 'courses') return pathname.startsWith('/education/') && pathname !== '/education/achievements'
+    if (item.key === 'courses') return pathname.startsWith('/education/') && pathname !== '/education/achievements' && pathname !== '/education/dashboard'
     if (item.key === 'achieve') return pathname === '/education/achievements'
     return false
   }

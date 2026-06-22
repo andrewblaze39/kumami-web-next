@@ -1,4 +1,42 @@
-# Education System Fixes — Changes (latest session)
+# Education Dashboard — Changes (latest session)
+
+## Files Created
+
+### `src/app/education/dashboard/page.tsx`
+New client component at `/education/dashboard`. Sections top to bottom:
+
+- **Welcome header** — greets the user by `displayName` (or "Learner") and shows overall % progress across all 5 levels.
+- **Continue Learning card** — dark surface card with a left accent border in the current level's color. Finds the first incomplete level then first incomplete chapter within it. "Resume chapter" links to `/education/article/[id]` when a Firestore article is found for that level+chapterIndex; otherwise links to the chapter placeholder route. "View level overview" links to `/education/[n]`.
+- **My Insights** — 2x2 stat grid (sections visited, levels completed, estimated time learning, achievements earned). Time is derived from `minutes` fields on articles in completed chapters.
+- **Learning history** — lists all 5 levels with colored number circle, title, chapter progress, tag, and % bar. Each row links to its level page. "See full history" links to `/education`.
+- **Achievements** — five badge circles (earned = colored + checkmark, unearned = gray + lock), badge name, and status label. Links to `/education/achievements`.
+- **New & updated lessons** — fetches published, non-comingSoon articles ordered by `createdAt desc` (with a client-side fallback if the Firestore composite index is absent), shows 3 cards with level tag, title, blurb, section count, minutes. Links to `/education`.
+
+Data sources: `useEducationProgress` called once per level (5 hook calls), `useAuth` for display name, single Firestore query for articles.
+
+## Files Modified
+
+### `src/components/education/EducationSidebar.tsx`
+- Added `Home` import from lucide-react.
+- Added `{ key: 'dashboard', label: 'Dashboard', href: '/education/dashboard', icon: <Home> }` as the first item in `LEARN_ITEMS`.
+- Updated `learnActive()` to highlight `'dashboard'` only when `pathname === '/education/dashboard'`, and updated `'courses'` to exclude `/education/dashboard`.
+
+### `src/app/education/education.css`
+Added ~280 lines of dashboard-specific CSS at the end of the file, all `edu-dash-` prefixed:
+- Welcome section, top-row grid (continue + stats), continue learning card with left border accent, 2x2 stat grid, 3:2 history+achievements row, badge circle row, 3-column new-lessons grid. Responsive breakpoints at 1050px and 680px.
+
+## Tester focus areas
+
+1. **Logged-in vs guest** — The dashboard calls `useAuth()`. Verify it renders gracefully if `currentUser` is null; the "Learner" fallback name should appear.
+2. **Progress tracking** — With some chapters marked complete, confirm the correct current level and chapter are identified. Edge: all levels 100% complete should show last level without error.
+3. **Continue Learning article link** — If the current chapter has a published Firestore article with matching `chapterIndex`, button says "Resume chapter" and links to `/education/article/[id]`. If no article, button says "Start chapter" and links to the placeholder route.
+4. **New lessons Firestore query** — Uses `orderBy('createdAt', 'desc')` with `where('status', '==', 'published')`. If the composite index is missing, the fallback full-scan runs silently. Check browser console for Firestore index errors.
+5. **Sidebar Dashboard highlight** — Navigating to `/education/dashboard` should highlight "Dashboard" and NOT highlight "My Courses".
+6. **Responsive layout** — At ~1050px: top row stacks, stats expand to 4 columns, history stacks. At ~680px: stats become 2 columns, lessons become 1 column.
+
+---
+
+# Education System Fixes — Changes (prior session)
 
 ## Files Created
 

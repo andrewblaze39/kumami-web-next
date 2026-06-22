@@ -12,7 +12,7 @@ export default function EducationTopbar() {
 
   // Build breadcrumb — skip "Education" label on the education homepage (sidebar already shows it)
   const crumbs: { label: string; href?: string }[] = []
-  if (pathname !== '/education') {
+  if (pathname !== '/education' && pathname !== '/education/dashboard') {
     crumbs.push({ label: 'Education', href: '/education' })
   }
 
