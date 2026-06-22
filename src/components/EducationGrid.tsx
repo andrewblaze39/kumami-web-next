@@ -1,11 +1,14 @@
 'use client'
 
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Search, Check, ArrowRight, Play, Clock } from 'lucide-react'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { PHASES } from '@/data/educationPhases'
+import { resolveLevelNumber, getLevelColor } from '@/lib/educationUtils'
+import type { EducationArticle } from '@/types/education'
 
 // ── Design tokens ─────────────────────────────────────────────────────────
 const T = {
@@ -18,31 +21,6 @@ const T = {
   border: 'rgba(150,237,214,0.25)',
   borderLo: 'rgba(255,255,255,0.09)',
 }
-
-// ── Static data ───────────────────────────────────────────────────────────
-const LEVELS = [
-  { num: 1, name: 'Beginner', emoji: '🌱', color: '#86EFAC',
-    // TODO: update skills list as Level 1 curriculum grows
-    blurb: 'Your starting point. No experience needed.',
-    skills: ['Blockchain Level 1', 'Introduction to Blockchain', 'More coming soon'] },
-  { num: 2, name: 'Elementary', emoji: '🔑', color: '#5EEAD4',
-    // TODO: update skills list as Level 2 curriculum grows
-    blurb: 'Build on the basics and gain confidence.',
-    skills: ['More lessons coming soon'] },
-  { num: 3, name: 'Intermediate', emoji: '⚡', color: '#96EDD6',
-    // TODO: update skills list as Level 3 curriculum grows
-    blurb: 'Go deeper into the crypto ecosystem.',
-    skills: ['More lessons coming soon'] },
-  { num: 4, name: 'Advanced', emoji: '🛠️', color: '#A78BFA',
-    // TODO: update skills list as Level 4 curriculum grows
-    blurb: 'Think and act like a crypto native.',
-    skills: ['More lessons coming soon'] },
-  { num: 5, name: 'Expert', emoji: '🚀', color: '#F472B6',
-    // TODO: update skills list as Level 5 curriculum grows
-    blurb: 'Master-level knowledge for the serious Web3 builder.',
-    skills: ['More lessons coming soon'] },
-]
-
 
 const CONCEPTS = [
   { id: 'c1', term: 'HODL',            meaning: 'Holding through volatility — born from a typo in 2013.' },
@@ -87,17 +65,14 @@ const CSS_ANIMATIONS = `
   }
 `
 
-// ── Types ─────────────────────────────────────────────────────────────────
-interface EducationArticle {
-  id: string
-  title: string
-  level: string
-  thumbnail: string
-  featured: boolean
-  blurb: string
-  minutes: number
-  createdAt: number
-}
+// ── Derived level data from PHASES ────────────────────────────────────────
+const LEVELS = PHASES.map(p => ({
+  num: p.n,
+  name: p.tag,
+  color: p.hex,
+  blurb: p.blurb,
+  outcomes: p.outcomes,
+}))
 
 // ── KumaPeek SVG bear ────────────────────────────────────────────────────
 function KumaPeek({ size = 260 }: { size?: number }) {
@@ -175,14 +150,13 @@ function FloatingOrbs() {
   )
 }
 
-
 // ── Interactive level marker ──────────────────────────────────────────────
-type Level = typeof LEVELS[number]
+type LevelEntry = typeof LEVELS[number]
 
 function LevelMarker({
   lv, hovered, onHover, onLeave, mobile,
 }: {
-  lv: Level
+  lv: LevelEntry
   idx?: number
   hovered: number | null
   onHover: (n: number) => void
@@ -216,7 +190,7 @@ function LevelMarker({
         }}>{lv.num}</span>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ fontSize: 10, fontWeight: 800, color: lv.color, letterSpacing: '0.08em' }}>
-            LEVEL {lv.num} {lv.emoji}
+            LEVEL {lv.num}
           </div>
           <div style={{ fontSize: 20, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
             {lv.name}
@@ -259,15 +233,6 @@ function LevelMarker({
         )}
       </div>
 
-      {/* Floating emoji */}
-      {isActive && (
-        <div style={{
-          position: 'absolute', top: 0, left: '50%',
-          transform: 'translateX(-50%)',
-          fontSize: 26, animation: 'eduFloat 2.5s ease-in-out infinite',
-        }}>{lv.emoji}</div>
-      )}
-
       {/* Text block */}
       <div style={{
         marginTop: 18, textAlign: 'center', minHeight: 110,
@@ -286,7 +251,7 @@ function LevelMarker({
           opacity: isActive ? 1 : 0.7, transition: 'opacity .25s ease',
         }}>{lv.blurb}</div>
 
-        {/* Skills expand on hover */}
+        {/* Outcomes expand on hover (from PHASES) */}
         <div style={{
           maxHeight: isActive ? 140 : 0, opacity: isActive ? 1 : 0,
           overflow: 'hidden',
@@ -298,13 +263,13 @@ function LevelMarker({
             background: `${lv.color}14`, border: `1px solid ${lv.color}55`,
             display: 'flex', flexDirection: 'column', gap: 5,
           }}>
-            {lv.skills.map((s, i) => (
+            {lv.outcomes.slice(0, 3).map((o, i) => (
               <div key={i} style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 fontSize: 11, color: T.textDim, textAlign: 'left',
               }}>
                 <Check size={10} style={{ color: lv.color, flexShrink: 0 }}/>
-                <span>{s}</span>
+                <span>{o}</span>
               </div>
             ))}
           </div>
@@ -317,12 +282,12 @@ function LevelMarker({
 // ── Lesson card ───────────────────────────────────────────────────────────
 function LessonCard({ article, i }: { article: EducationArticle; i: number }) {
   const [hover, setHover] = useState(false)
-  const lv = LEVELS.find(l => `Level ${l.num}` === article.level)
-  const levelColor = lv?.color ?? T.mint
+  const levelNum = resolveLevelNumber(article.level)
+  const levelColor = levelNum ? getLevelColor(levelNum) : T.mint
 
   return (
     <Link
-      href={`/education-article?id=${article.id}`}
+      href={`/education/article/${article.id}`}
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       style={{
         borderRadius: 16, overflow: 'hidden',
@@ -349,7 +314,9 @@ function LessonCard({ article, i }: { article: EducationArticle; i: number }) {
             padding: '4px 10px', borderRadius: 999,
             background: levelColor, color: T.mintInk,
             fontSize: 10, fontWeight: 800, letterSpacing: '0.06em',
-          }}>{article.level}</span>
+          }}>
+            {levelNum ? `Level ${levelNum}` : String(article.level)}
+          </span>
         </div>
         {article.minutes > 0 && (
           <div style={{ position: 'absolute', bottom: 8, right: 8 }}>
@@ -434,10 +401,6 @@ export default function EducationGrid() {
   const [loading, setLoading] = useState(true)
   const [mobile, setMobile] = useState(false)
 
-  const firstLevel1Id = articles.find(a =>
-    /^(level\s*1|1)$/i.test((a.level ?? '').trim())
-  )?.id ?? null
-
   useEffect(() => {
     const check = () => setMobile(window.innerWidth < 768)
     check()
@@ -450,22 +413,27 @@ export default function EducationGrid() {
       try {
         const snapshot = await getDocs(collection(db, 'education_articles'))
         const docs = snapshot.docs
-          .map((doc) => {
-            const data = doc.data() as Record<string, unknown>
+          .map((d) => {
+            const data = d.data() as Record<string, unknown>
             if (data.status && data.status !== 'published') return null
             const createdAtRaw = data.createdAt as { toMillis?: () => number } | undefined
             return {
-              id: doc.id,
+              id: d.id,
               title: (data.title as string) || 'Untitled Lesson',
-              level: (data.level as string) || 'Level 1',
+              level: data.level as number | string,
+              chapterIndex: (data.chapterIndex as number) ?? 0,
               thumbnail: (data.thumbnail as string) || '',
               featured: (data.featured as boolean) || false,
               blurb: (data.blurb as string) || (data.description as string) || '',
               minutes: (data.minutes as number) || (data.readTime as number) || 0,
+              author: (data.author as string) || '',
+              sections: (data.sections as EducationArticle['sections']) || [],
+              status: 'published' as const,
+              description: (data.description as string) || '',
               createdAt: createdAtRaw?.toMillis ? createdAtRaw.toMillis() : 0,
-            } as EducationArticle
+            } as EducationArticle & { createdAt: number }
           })
-          .filter((d): d is EducationArticle => d !== null)
+          .filter((d): d is EducationArticle & { createdAt: number } => d !== null)
         setArticles(docs)
       } catch (err) {
         console.error('Error loading education articles:', err)
@@ -479,14 +447,29 @@ export default function EducationGrid() {
   const filtered = useMemo(() => {
     if (!searchTerm.trim()) return articles
     const q = searchTerm.toLowerCase()
+    const lvLabel = (a: EducationArticle) => {
+      const n = resolveLevelNumber(a.level)
+      return n ? `level ${n}` : String(a.level).toLowerCase()
+    }
     return articles.filter(a =>
       a.title.toLowerCase().includes(q) ||
       a.blurb.toLowerCase().includes(q) ||
-      a.level.toLowerCase().includes(q)
+      lvLabel(a).includes(q)
     )
   }, [articles, searchTerm])
 
-  const featured = useMemo(() => filtered.filter(a => a.featured), [filtered])
+  // Featured articles sorted by level then chapterIndex
+  const featured = useMemo(() => {
+    return filtered
+      .filter(a => a.featured === true)
+      .sort((a, b) => {
+        const la = resolveLevelNumber(a.level) ?? 99
+        const lb = resolveLevelNumber(b.level) ?? 99
+        if (la !== lb) return la - lb
+        return (a.chapterIndex ?? 0) - (b.chapterIndex ?? 0)
+      })
+  }, [filtered])
+
   const displayedLessons = featured.length > 0 ? featured : filtered
 
   return (
@@ -550,14 +533,12 @@ export default function EducationGrid() {
                 animation: 'eduFadeUp .6s cubic-bezier(.2,.9,.3,1.1) .35s both',
               }}>
                 <button
-                  onClick={() => { if (firstLevel1Id) router.push(`/education-article?id=${firstLevel1Id}`) }}
-                  disabled={!firstLevel1Id}
+                  onClick={() => { router.push('/education/1') }}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: 8,
                     padding: '12px 22px', borderRadius: 12,
                     background: T.mint, color: T.mintInk,
-                    fontWeight: 800, fontSize: 15, border: 'none', cursor: firstLevel1Id ? 'pointer' : 'default',
-                    opacity: firstLevel1Id ? 1 : 0.5,
+                    fontWeight: 800, fontSize: 15, border: 'none', cursor: 'pointer',
                   }}>
                   <Play size={13} fill={T.mintInk}/> Start Level 1
                 </button>

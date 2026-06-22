@@ -189,17 +189,3 @@ export const PHASES: Phase[] = [
 export function getPhase(n: number): Phase | undefined {
   return PHASES.find(p => p.n === n)
 }
-
-export function chapterParts(chapterIndex: number): number {
-  return 3 + (chapterIndex % 3)
-}
-
-export const PARTS_POOL = [
-  'Why it matters',
-  'The core idea',
-  'Step-by-step walkthrough',
-  'Watch out for these',
-  'Recap & quick quiz',
-]
-
-export const TYPE_POOL = ['Read', 'Video', 'Video', 'Read', 'Quiz']

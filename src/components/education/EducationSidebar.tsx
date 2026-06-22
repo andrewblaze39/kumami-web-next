@@ -2,18 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
-import {
-  Home,
-  Map,
-  BookOpen,
-  Trophy,
-  Sparkles,
-  Bookmark,
-  Settings,
-  Menu,
-  X,
-} from 'lucide-react'
+import { Map, BookOpen, Trophy, Settings } from 'lucide-react'
+import { useEducationSidebar } from '@/contexts/EducationSidebarContext'
+import { PHASES } from '@/data/educationPhases'
 
 interface NavItem {
   key: string
@@ -23,85 +14,65 @@ interface NavItem {
 }
 
 const LEARN_ITEMS: NavItem[] = [
-  { key: 'journey',      label: 'The Journey',   href: '/education',        icon: <Map size={19} strokeWidth={1.9} /> },
-  { key: 'courses',      label: 'My Courses',    href: '/education/1',      icon: <BookOpen size={19} strokeWidth={1.9} /> },
-  { key: 'achievements', label: 'Achievements',  href: '/education',        icon: <Trophy size={19} strokeWidth={1.9} /> },
+  { key: 'journey',  label: 'The Journey', href: '/education',               icon: <Map      size={19} strokeWidth={1.9} /> },
+  { key: 'courses',  label: 'My Courses',  href: '/education/1',             icon: <BookOpen size={19} strokeWidth={1.9} /> },
+  { key: 'achieve',  label: 'Achievements',href: '/education/achievements',  icon: <Trophy   size={19} strokeWidth={1.9} /> },
 ]
 
 const MORE_ITEMS: NavItem[] = [
-  { key: 'warmup',   label: 'Warm Up',   href: '/education', icon: <Sparkles size={19} strokeWidth={1.9} /> },
-  { key: 'saved',    label: 'Saved',     href: '/education', icon: <Bookmark size={19} strokeWidth={1.9} /> },
-  { key: 'settings', label: 'Settings',  href: '/education', icon: <Settings size={19} strokeWidth={1.9} /> },
+  { key: 'settings', label: 'Settings', href: '/education', icon: <Settings size={19} strokeWidth={1.9} /> },
 ]
 
-function NavLink({ item, active }: { item: NavItem; active: boolean }) {
+function NavLink({ item, active, onClose }: { item: NavItem; active: boolean; onClose: () => void }) {
   return (
     <Link
       href={item.href}
       className={`edu-nav-item${active ? ' edu-active' : ''}`}
+      onClick={onClose}
     >
       {item.icon}
-      <span>{item.label}</span>
+      <span style={{ flex: 1 }}>{item.label}</span>
     </Link>
   )
 }
 
 export default function EducationSidebar() {
   const pathname = usePathname()
-  const [open, setOpen] = useState(false)
+  const { isOpen, close } = useEducationSidebar()
 
-  function activeKey() {
-    if (pathname === '/education') return 'journey'
-    if (pathname.startsWith('/education/')) return 'courses'
-    return ''
+  // Detect current level from pathname like /education/3 or /education/3/5
+  const parts = pathname.split('/').filter(Boolean)
+  const currentLevelNum = parts[0] === 'education' && parts[1] && !isNaN(Number(parts[1]))
+    ? Number(parts[1])
+    : null
+
+  const learnActive = (item: NavItem) => {
+    if (item.key === 'journey') return pathname === '/education'
+    if (item.key === 'courses') return pathname.startsWith('/education/') && pathname !== '/education/achievements'
+    if (item.key === 'achieve') return pathname === '/education/achievements'
+    return false
   }
-  const ak = activeKey()
 
   return (
     <>
-      {/* Mobile toggle button — rendered inside topbar via portal-like approach */}
-      <button
-        className="edu-menu-btn"
-        id="edu-sidebar-toggle"
-        onClick={() => setOpen(o => !o)}
-        aria-label="Toggle menu"
-        style={{ display: 'none' }} // shown via CSS on mobile
-      >
-        <Menu size={20} />
-      </button>
-
       {/* Overlay */}
       <div
-        className={`edu-overlay${open ? ' edu-open' : ''}`}
-        onClick={() => setOpen(false)}
+        className={`edu-overlay${isOpen ? ' edu-open' : ''}`}
+        onClick={close}
       />
 
       {/* Sidebar */}
-      <aside className={`edu-sidebar${open ? ' edu-open' : ''}`} id="edu-sidebar">
-        {/* Brand → homepage */}
-        <Link href="/" className="edu-brand" onClick={() => setOpen(false)}>
-          <span className="edu-brand-logo">
-            kūmami <small>WORLD</small>
-          </span>
+      <aside className={`edu-sidebar${isOpen ? ' edu-open' : ''}`}>
+        {/* Brand */}
+        <Link href="/education" className="edu-brand" onClick={close}>
+          <span className="edu-brand-edu">Education</span>
         </Link>
-
-        {/* Home link */}
-        <div className="edu-nav-group">
-          <Link
-            href="/"
-            className="edu-nav-item"
-            onClick={() => setOpen(false)}
-          >
-            <Home size={19} strokeWidth={1.9} />
-            <span>Home</span>
-          </Link>
-        </div>
 
         {/* Learn group */}
         <div className="edu-nav-group">
           <div className="edu-nav-label">Learn</div>
           {LEARN_ITEMS.map(item => (
-            <NavLink key={item.key} item={item} active={ak === item.key} />
+            <NavLink key={item.key} item={item} active={learnActive(item)} onClose={close} />
           ))}
         </div>
 
@@ -109,35 +80,49 @@ export default function EducationSidebar() {
         <div className="edu-nav-group">
           <div className="edu-nav-label">More</div>
           {MORE_ITEMS.map(item => (
-            <NavLink key={item.key} item={item} active={false} />
+            <NavLink key={item.key} item={item} active={false} onClose={close} />
           ))}
         </div>
 
-        {/* Footer — close button on mobile */}
-        <div className="edu-sidebar-foot">
-          <button
-            onClick={() => setOpen(false)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '10px 12px',
-              borderRadius: 12,
-              background: 'transparent',
-              border: '1px solid var(--border)',
-              color: 'var(--muted)',
-              fontWeight: 600,
-              fontSize: 14,
-              cursor: 'pointer',
-              width: '100%',
-              fontFamily: 'inherit',
-            }}
-            className="edu-menu-close"
-          >
-            <X size={16} />
-            Close menu
-          </button>
+        {/* Levels group */}
+        <div className="edu-nav-group">
+          <div className="edu-nav-label">Levels</div>
+          {PHASES.map(phase => {
+            const isActive = currentLevelNum === phase.n
+            return (
+              <Link
+                key={phase.n}
+                href={`/education/${phase.n}`}
+                className={`edu-nav-item${isActive ? ' edu-active' : ''}`}
+                onClick={close}
+                style={{ fontSize: 13 }}
+              >
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 20,
+                    height: 20,
+                    borderRadius: 6,
+                    background: isActive ? phase.hex : 'transparent',
+                    border: `1.5px solid ${isActive ? phase.hex : 'var(--border)'}`,
+                    color: isActive ? '#06241a' : phase.hex,
+                    fontSize: 11,
+                    fontWeight: 800,
+                    flexShrink: 0,
+                  }}
+                >
+                  {phase.n}
+                </span>
+                <span>Level {phase.n}: {phase.title}</span>
+              </Link>
+            )
+          })}
         </div>
+
+        {/* Footer spacer — no close button */}
+        <div className="edu-sidebar-foot" />
       </aside>
     </>
   )

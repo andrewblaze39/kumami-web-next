@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { use, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import {
@@ -12,24 +12,62 @@ import {
   ChevronDown,
   ArrowRight,
 } from 'lucide-react'
-import { PHASES, chapterParts, PARTS_POOL, TYPE_POOL } from '@/data/educationPhases'
+import { collection, getDocs } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { PHASES } from '@/data/educationPhases'
+import { resolveLevelNumber } from '@/lib/educationUtils'
+import type { EducationArticle } from '@/types/education'
+import { useEducationProgress } from '@/hooks/useEducationProgress'
 
 interface Props {
-  params: { phase: string }
+  params: Promise<{ phase: string }>
+}
+
+// Fetch published articles for a level, keyed by chapterIndex
+async function fetchArticlesForLevel(levelNum: number): Promise<Map<number, EducationArticle>> {
+  try {
+    const snap = await getDocs(collection(db, 'education_articles'))
+    const map = new Map<number, EducationArticle>()
+    snap.docs.forEach(d => {
+      const data = d.data() as Record<string, unknown>
+      if (data.status && data.status !== 'published') return
+      const lvl = resolveLevelNumber(data.level)
+      if (lvl !== levelNum) return
+      const ci = data.chapterIndex as number | undefined
+      if (ci === undefined || ci === null) return
+      // Only store first one found per chapterIndex (tiebreaker: first encountered)
+      if (!map.has(ci)) {
+        map.set(ci, { id: d.id, ...data } as EducationArticle)
+      }
+    })
+    return map
+  } catch {
+    return new Map()
+  }
 }
 
 export default function CoursePage({ params }: Props) {
-  const phaseNum = parseInt(params.phase)
-  const phase = PHASES.find(p => p.n === phaseNum)
-  if (!phase) notFound()
+  const { phase } = use(params)
+  const levelNum = parseInt(phase)
+  const levelData = PHASES.find(p => p.n === levelNum)
+  if (!levelData) notFound()
 
-  const [activeTab, setActiveTab] = useState<
-    'overview' | 'details' | 'instructor' | 'reviews' | 'faq'
-  >('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'details' | 'instructor' | 'faq'>('overview')
   const [openChapters, setOpenChapters] = useState<Set<number>>(new Set([0]))
+  const [articleMap, setArticleMap] = useState<Map<number, EducationArticle>>(new Map())
 
-  const pct = 0 // progress — 0 for now until Firebase user progress is wired up
-  const doneCh = 0
+  const { isChapterComplete } = useEducationProgress(levelNum)
+
+  const doneCh = levelData
+    ? levelData.chapters.filter((_, ci) => isChapterComplete(ci)).length
+    : 0
+  const pct = levelData && levelData.chapters.length > 0
+    ? Math.round((doneCh / levelData.chapters.length) * 100)
+    : 0
+
+  useEffect(() => {
+    fetchArticlesForLevel(levelNum).then(setArticleMap)
+  }, [levelNum])
 
   function toggleChapter(i: number) {
     setOpenChapters(prev => {
@@ -40,11 +78,10 @@ export default function CoursePage({ params }: Props) {
   }
 
   const TABS = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'details', label: 'Details' },
-    { id: 'instructor', label: 'Instructor' },
-    { id: 'reviews', label: 'Reviews' },
-    { id: 'faq', label: 'FAQ' },
+    { id: 'overview',    label: 'Overview' },
+    { id: 'details',     label: 'Details' },
+    { id: 'instructor',  label: 'Instructor' },
+    { id: 'faq',         label: 'FAQ' },
   ] as const
 
   return (
@@ -53,49 +90,49 @@ export default function CoursePage({ params }: Props) {
       {/* ── COURSE HERO ── */}
       <div
         className="edu-phero"
-        style={{ '--c': phase.hex } as React.CSSProperties}
+        style={{ '--c': levelData.hex } as React.CSSProperties}
       >
         <div className="edu-phero-glow" />
         <div className="edu-phero-grid">
           <div>
             <span
               className="edu-lv-tag"
-              style={{ color: phase.hex, fontSize: 12 }}
+              style={{ color: levelData.hex, fontSize: 12 }}
             >
-              {phase.level} · {phase.tag}
+              Level {levelData.n} · {levelData.tag}
             </span>
-            <h1>{phase.title}</h1>
+            <h1>{levelData.title}</h1>
             <p style={{ color: 'var(--muted)', fontSize: 15, margin: '4px 0 0' }}>
-              {phase.blurb}
+              {levelData.blurb}
             </p>
             <div className="edu-pmeta">
               <span className="edu-pill">
-                <BookOpen size={12} /> {phase.chapters.length} chapters
+                <BookOpen size={12} /> {levelData.chapters.length} chapters
               </span>
               <span className="edu-pill">
-                <Clock size={12} /> {phase.hours}
+                <Clock size={12} /> {levelData.hours}
               </span>
               <span className="edu-pill">
-                <Trophy size={12} /> Badge: {phase.badge}
+                <Trophy size={12} /> Badge: {levelData.badge}
               </span>
               <span className="edu-pill-free">Free</span>
             </div>
           </div>
 
           <div className="edu-phero-side">
-            <div className="edu-pc" style={{ color: phase.hex }}>
+            <div className="edu-pc" style={{ color: levelData.hex }}>
               {pct}%
             </div>
             <div className="edu-pcl">
-              {doneCh} of {phase.chapters.length} chapters complete
+              {doneCh} of {levelData.chapters.length} chapters complete
             </div>
             <div className="edu-progress" style={{ width: 160, marginBottom: 16 }}>
-              <i style={{ width: `${pct}%`, background: phase.hex }} />
+              <i style={{ width: `${pct}%`, background: levelData.hex }} />
             </div>
             <Link
-              href={`/education/${phase.n}/0`}
+              href={`/education/${levelData.n}/0`}
               className="edu-btn edu-btn-primary"
-              style={{ background: phase.hex, color: '#06241a' }}
+              style={{ background: levelData.hex, color: '#06241a' }}
             >
               <Play size={14} fill="#06241a" />
               Start course
@@ -107,7 +144,7 @@ export default function CoursePage({ params }: Props) {
       {/* ── TABS ── */}
       <div
         className="edu-tabs"
-        style={{ '--c': phase.hex } as React.CSSProperties}
+        style={{ '--c': levelData.hex } as React.CSSProperties}
       >
         {TABS.map(t => (
           <button
@@ -126,17 +163,20 @@ export default function CoursePage({ params }: Props) {
           <div className="edu-ch-intro">
             <h2>Course content</h2>
             <span style={{ color: 'var(--muted)', fontSize: 13.5 }}>
-              {phase.chapters.length} chapters · {phase.hours}
+              {levelData.chapters.length} chapters · {levelData.hours}
             </span>
           </div>
 
-          {phase.chapters.map((chapter, ci) => {
+          {levelData.chapters.map((chapter, ci) => {
             const isLab = chapter.startsWith('HANDS-ON')
             const title = isLab ? chapter.replace('HANDS-ON: ', '') : chapter
-            const nParts = chapterParts(ci)
-            const status =
-              ci < doneCh ? 'done' : ci === doneCh ? 'current' : 'upcoming'
+            const chapterDone = isChapterComplete(ci)
+            const status = chapterDone ? 'done' : ci === doneCh ? 'current' : 'upcoming'
             const isOpen = openChapters.has(ci)
+            const linkedArticle = articleMap.get(ci)
+            const chapterHref = linkedArticle
+              ? `/education/article/${linkedArticle.id}`
+              : `/education/${levelData.n}/${ci}`
 
             return (
               <div key={ci} className="edu-chapter">
@@ -155,37 +195,34 @@ export default function CoursePage({ params }: Props) {
                     }`}
                     style={
                       status === 'current'
-                        ? ({ background: phase.hex, color: '#06241a' } as React.CSSProperties)
+                        ? ({ background: levelData.hex, color: '#06241a' } as React.CSSProperties)
                         : {}
                     }
                   >
-                    {status === 'done' ? (
-                      <Check size={13} />
-                    ) : (
-                      ci + 1
-                    )}
+                    {status === 'done' ? <Check size={13} /> : ci + 1}
                   </div>
 
                   <div className="edu-ch-title">
                     <span
                       className={isLab ? 'edu-ch-title-lab' : ''}
-                      style={
-                        isLab
-                          ? ({ color: phase.hex } as React.CSSProperties)
-                          : {}
-                      }
+                      style={isLab ? ({ color: levelData.hex } as React.CSSProperties) : {}}
                     >
                       {isLab && '⚡ '}
                       {title}
                     </span>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: 'var(--muted-2)',
-                        marginTop: 2,
-                      }}
-                    >
-                      {nParts} parts
+                    <div style={{ fontSize: 12, color: 'var(--muted-2)', marginTop: 2, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {linkedArticle ? (
+                        <>
+                          {linkedArticle.sections?.length > 0 && (
+                            <span>⏱ {linkedArticle.sections.length} {linkedArticle.sections.length === 1 ? 'section' : 'sections'}</span>
+                          )}
+                          {linkedArticle.minutes ? (
+                            <span>⏰ {linkedArticle.minutes}m</span>
+                          ) : null}
+                        </>
+                      ) : (
+                        <span>Coming soon</span>
+                      )}
                     </div>
                   </div>
 
@@ -200,45 +237,57 @@ export default function CoursePage({ params }: Props) {
                   />
                 </div>
 
-                {/* Expandable parts */}
+                {/* Expandable body */}
                 {isOpen && (
                   <div className="edu-ch-body">
-                    {Array.from({ length: nParts }).map((_, k) => {
-                      const partDone =
-                        status === 'done' || (status === 'current' && k < 1)
-                      return (
-                        <div key={k} className="edu-part">
-                          <div
-                            className={`edu-pdot ${partDone ? 'edu-pdot-done' : ''}`}
-                          >
-                            {partDone && <Check size={10} />}
+                    {linkedArticle?.blurb && (
+                      <p style={{ fontSize: 13.5, color: 'var(--muted)', lineHeight: 1.6, margin: '0 0 12px' }}>
+                        {linkedArticle.blurb}
+                      </p>
+                    )}
+
+                    {/* Section list */}
+                    {linkedArticle?.sections && linkedArticle.sections.length > 0 && (
+                      <div style={{ marginBottom: 14 }}>
+                        {linkedArticle.sections.map((section, si) => (
+                          <div key={si} className="edu-part">
+                            <div className="edu-pdot" />
+                            <span>Part {si + 1}: {section.title}</span>
+                            <span className="edu-ptype">Read</span>
                           </div>
-                          <span>
-                            <b>Part {k + 1}:</b>{' '}
-                            {PARTS_POOL[k % PARTS_POOL.length]}
-                          </span>
-                          <span className="edu-ptype">
-                            {isLab && k === nParts - 1
-                              ? 'Lab'
-                              : TYPE_POOL[k % TYPE_POOL.length]}
-                          </span>
-                        </div>
-                      )
-                    })}
-                    {/* Start chapter button */}
-                    <Link
-                      href={`/education/${phase.n}/${ci}`}
-                      className="edu-btn edu-btn-surface"
-                      style={{
-                        marginTop: 12,
-                        fontSize: 13,
-                        padding: '8px 14px',
-                        borderRadius: 10,
-                      }}
-                    >
-                      {status === 'done' ? 'Review' : 'Start chapter'}{' '}
-                      <ArrowRight size={13} />
-                    </Link>
+                        ))}
+                      </div>
+                    )}
+
+                    {linkedArticle ? (
+                      <Link
+                        href={chapterHref}
+                        className="edu-btn edu-btn-surface"
+                        style={{
+                          marginTop: 4,
+                          fontSize: 13,
+                          padding: '8px 14px',
+                          borderRadius: 10,
+                        }}
+                      >
+                        {status === 'done' ? 'Revisit chapter' : 'Start chapter'}{' '}
+                        <ArrowRight size={13} />
+                      </Link>
+                    ) : (
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          marginTop: 4,
+                          fontSize: 12,
+                          color: 'var(--muted-2)',
+                          padding: '6px 12px',
+                          border: '1px solid var(--border)',
+                          borderRadius: 8,
+                        }}
+                      >
+                        Content coming soon
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
@@ -270,7 +319,7 @@ export default function CoursePage({ params }: Props) {
               marginBottom: 28,
             }}
           >
-            {phase.detail}
+            {levelData.detail}
           </p>
 
           <h3
@@ -286,11 +335,11 @@ export default function CoursePage({ params }: Props) {
             What you&apos;ll be able to do
           </h3>
           <div className="edu-outcomes">
-            {phase.outcomes.map((o, i) => (
+            {levelData.outcomes.map((o, i) => (
               <div key={i} className="edu-outcome-item">
                 <Check
                   size={15}
-                  style={{ color: phase.hex, flexShrink: 0, marginTop: 1 }}
+                  style={{ color: levelData.hex, flexShrink: 0, marginTop: 1 }}
                 />
                 {o}
               </div>
@@ -301,33 +350,48 @@ export default function CoursePage({ params }: Props) {
 
       {/* ── INSTRUCTOR ── */}
       {activeTab === 'instructor' && (
-        <div
-          style={{
-            padding: 32,
-            background: 'var(--surface)',
-            borderRadius: 'var(--radius)',
-            border: '1px solid var(--border)',
-            textAlign: 'center',
-            color: 'var(--muted)',
-          }}
-        >
-          Instructor profiles coming soon.
-        </div>
-      )}
-
-      {/* ── REVIEWS ── */}
-      {activeTab === 'reviews' && (
-        <div
-          style={{
-            padding: 32,
-            background: 'var(--surface)',
-            borderRadius: 'var(--radius)',
-            border: '1px solid var(--border)',
-            textAlign: 'center',
-            color: 'var(--muted)',
-          }}
-        >
-          Reviews coming soon.
+        <div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 20,
+              padding: '24px',
+              background: 'var(--surface)',
+              borderRadius: 'var(--radius)',
+              border: '1px solid var(--border)',
+              marginBottom: 20,
+            }}
+          >
+            <div
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                background: levelData.hex,
+                color: '#06241a',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 800,
+                fontSize: 24,
+                flexShrink: 0,
+              }}
+            >
+              K
+            </div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 17, color: 'var(--text)', marginBottom: 4 }}>
+                Kumami Team
+              </div>
+              <div style={{ color: 'var(--muted)', fontSize: 14 }}>
+                Web3 Education · Kumami World
+              </div>
+            </div>
+          </div>
+          <p style={{ color: 'var(--muted)', fontSize: 14.5, lineHeight: 1.7, maxWidth: 640 }}>
+            Kumami World&apos;s education content is written and reviewed by experienced crypto practitioners and educators. Our goal is to make Web3 accessible to everyone, with clear, jargon-free explanations and real-world examples.
+          </p>
         </div>
       )}
 
@@ -345,7 +409,7 @@ export default function CoursePage({ params }: Props) {
             },
             {
               q: 'How long does each level take?',
-              a: `${phase.title} takes approximately ${phase.hours} to complete at a comfortable pace.`,
+              a: `${levelData.title} takes approximately ${levelData.hours} to complete at a comfortable pace.`,
             },
             {
               q: 'Can I skip chapters?',
@@ -387,8 +451,8 @@ export default function CoursePage({ params }: Props) {
         </div>
       )}
 
-      {/* ── NEXT PHASE ── */}
-      {activeTab === 'overview' && phase.n < 5 && (
+      {/* ── NEXT LEVEL ── */}
+      {activeTab === 'overview' && levelData.n < 5 && (
         <div
           style={{
             marginTop: 36,
@@ -415,18 +479,12 @@ export default function CoursePage({ params }: Props) {
             >
               Up next
             </div>
-            <div
-              style={{
-                fontSize: 16,
-                fontWeight: 700,
-                color: 'var(--text)',
-              }}
-            >
-              {PHASES[phase.n].level} — {PHASES[phase.n].title}
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>
+              Level {PHASES[levelData.n].n} — {PHASES[levelData.n].title}
             </div>
           </div>
           <Link
-            href={`/education/${phase.n + 1}`}
+            href={`/education/${levelData.n + 1}`}
             className="edu-btn edu-btn-ghost"
           >
             Preview level <ArrowRight size={14} />

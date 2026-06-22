@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { BookOpen, Clock, Trophy, ArrowRight } from 'lucide-react'
-import { PHASES } from '@/data/educationPhases'
+import JourneyLevelCards from '@/components/education/JourneyLevelCards'
 
 export const metadata: Metadata = {
   title: 'Learn Web3 — Kumami Education',
@@ -124,68 +123,7 @@ export default function JourneyPage() {
           </p>
         </div>
 
-        <div className="edu-journey">
-          {PHASES.map(phase => {
-            const handson = phase.chapters.filter(c =>
-              c.startsWith('HANDS-ON')
-            ).length
-
-            return (
-              <Link
-                key={phase.n}
-                href={`/education/${phase.n}`}
-                className="edu-lv-card"
-                style={{ '--c': phase.hex } as React.CSSProperties}
-              >
-                {/* Level number */}
-                <div className="edu-lv-marker">{phase.n}</div>
-
-                {/* Body */}
-                <div>
-                  <div className="edu-lv-tag">
-                    {phase.level} · {phase.tag}
-                  </div>
-                  <h3 className="edu-lv-title">{phase.title}</h3>
-                  <p className="edu-lv-blurb">{phase.blurb}</p>
-                  <div className="edu-lv-meta">
-                    <span className="edu-mi">
-                      <BookOpen size={13} />
-                      {phase.chapters.length} lessons
-                    </span>
-                    <span className="edu-mi">
-                      <Clock size={13} />
-                      {phase.hours}
-                    </span>
-                    {handson > 0 && (
-                      <span className="edu-mi">
-                        ⚡ {handson} lab
-                      </span>
-                    )}
-                  </div>
-                  <div className="edu-lv-badge">
-                    <Trophy size={11} /> Earns &ldquo;{phase.badge}&rdquo;
-                  </div>
-                </div>
-
-                {/* Right side progress */}
-                <div className="edu-lv-side">
-                  <div className="edu-prog-wrap">
-                    <div className="edu-prog-row">
-                      <span>Not started</span>
-                      <span>0 / {phase.chapters.length}</span>
-                    </div>
-                    <div className="edu-progress">
-                      <i style={{ width: '0%' }} />
-                    </div>
-                  </div>
-                  <span className="edu-lv-go">
-                    Start level <ArrowRight size={14} />
-                  </span>
-                </div>
-              </Link>
-            )
-          })}
-        </div>
+        <JourneyLevelCards />
       </section>
     </div>
   )

@@ -4,29 +4,40 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ChevronRight, Menu } from 'lucide-react'
 import { PHASES } from '@/data/educationPhases'
+import { useEducationSidebar } from '@/contexts/EducationSidebarContext'
 
 export default function EducationTopbar() {
   const pathname = usePathname()
+  const { toggle } = useEducationSidebar()
 
   // Build breadcrumb
   const crumbs: { label: string; href?: string }[] = [
     { label: 'Education', href: '/education' },
   ]
 
-  const parts = pathname.split('/').filter(Boolean) // ['education', '1', '0']
+  const parts = pathname.split('/').filter(Boolean) // ['education', '1', '0'] or ['education', 'article', 'docId']
 
   if (parts.length >= 2) {
-    const phaseNum = parseInt(parts[1])
-    const phase = PHASES.find(p => p.n === phaseNum)
-    if (phase) {
-      crumbs.push({ label: `${phase.level} · ${phase.tag}`, href: `/education/${phase.n}` })
+    const segment = parts[1]
+
+    if (segment === 'article' && parts.length >= 3) {
+      // /education/article/[id] — breadcrumb is just "Article"; renderer shows full breadcrumb
+      crumbs.push({ label: 'Article' })
+    } else if (segment === 'all') {
+      crumbs.push({ label: 'All Lessons' })
+    } else {
+      const levelNum = parseInt(segment)
+      const phase = PHASES.find(p => p.n === levelNum)
+      if (phase) {
+        crumbs.push({ label: `Level ${phase.n}: ${phase.title}`, href: `/education/${phase.n}` })
+      }
     }
   }
 
-  if (parts.length >= 3) {
-    const phaseNum = parseInt(parts[1])
+  if (parts.length >= 3 && parts[1] !== 'article' && parts[1] !== 'all') {
+    const levelNum = parseInt(parts[1])
     const lessonIdx = parseInt(parts[2])
-    const phase = PHASES.find(p => p.n === phaseNum)
+    const phase = PHASES.find(p => p.n === levelNum)
     if (phase) {
       const chapter = phase.chapters[lessonIdx]
       if (chapter) {
@@ -42,17 +53,11 @@ export default function EducationTopbar() {
 
   return (
     <header className="edu-topbar">
-      {/* Mobile menu button */}
+      {/* Mobile menu button — uses context, no DOM manipulation */}
       <button
         className="edu-menu-btn"
-        onClick={() => {
-          const sb = document.getElementById('edu-sidebar')
-          const ov = document.querySelector('.edu-overlay')
-          sb?.classList.toggle('edu-open')
-          ov?.classList.toggle('edu-open')
-        }}
+        onClick={toggle}
         aria-label="Menu"
-        style={{ display: 'flex' }}
       >
         <Menu size={20} />
       </button>
