@@ -37,6 +37,8 @@ interface ArticleDoc {
   blurb?: string
   minutes?: number
   status?: string
+  editorMode?: 'classic' | 'tiptap'
+  tiptapContent?: unknown
 }
 
 async function fetchArticle(id: string): Promise<ArticleDoc | null> {

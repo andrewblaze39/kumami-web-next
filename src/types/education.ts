@@ -1,11 +1,14 @@
 export interface ArticleSectionContent {
-  type: 'paragraph' | 'image' | 'youtube'
+  type: 'paragraph' | 'image' | 'youtube' | 'table'
   text?: string
   src?: string
   alt?: string
   caption?: string
   videoId?: string
   title?: string
+  headers?: string[]
+  rows?: string[][]
+  rowsJson?: string
 }
 
 export interface ArticleSection {
@@ -27,6 +30,8 @@ export interface EducationArticleDoc {
   description: string
   comingSoon?: boolean
   createdAt: unknown           // Firestore Timestamp
+  editorMode?: 'classic' | 'tiptap'
+  tiptapContent?: unknown      // TipTap JSONContent stored as Firestore object
 }
 
 // Hydrated version with Firestore doc ID

@@ -175,7 +175,7 @@ export default function CoursePage({ params }: Props) {
           {chapters.map((article) => {
             const ci = article.chapterIndex
             const title = article.title
-            const isComingSoon = article.comingSoon === true || (article.sections?.length === 0)
+            const isComingSoon = article.comingSoon === true
             const chapterDone = isChapterComplete(ci)
             const status = chapterDone ? 'done' : ci === doneCh ? 'current' : 'upcoming'
             const isOpen = openChapters.has(ci)

@@ -42,7 +42,7 @@ export default function LessonPage({ params }: Props) {
         const snap = await getDocs(q)
         const match = snap.docs.find(d => {
           const data = d.data()
-          return !data.comingSoon && data.sections?.length > 0
+          return !data.comingSoon && (data.sections?.length > 0 || !!data.tiptapContent)
         })
         if (match) {
           router.replace(`/education/article/${match.id}`)

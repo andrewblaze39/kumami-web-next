@@ -8,13 +8,16 @@ import { resolveLevelNumber } from '@/lib/educationUtils'
 import { useEducationProgress } from '@/hooks/useEducationProgress'
 
 interface ArticleSectionContent {
-  type: 'paragraph' | 'image' | 'youtube'
+  type: 'paragraph' | 'image' | 'youtube' | 'table'
   text?: string
   src?: string
   alt?: string
   caption?: string
   videoId?: string
   title?: string
+  headers?: string[]
+  rows?: string[][]
+  rowsJson?: string
 }
 
 interface ArticleSection {
@@ -55,11 +58,24 @@ function parseMarkdown(text: string | undefined): string {
   if (!text) return ''
   const escaped = escapeHtml(text)
   return escaped
+    // Bold: **text** or __text__ (underline)
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/__(.+?)__/g, '<u>$1</u>')
+    // Italic: *text* or _text_
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/_(.+?)_/g, '<em>$1</em>')
+    // Bullet points: lines starting with • or -
+    .replace(/^[•\-]\s+(.+)$/gm, '<li>$1</li>')
+    // Wrap consecutive <li> in <ul>
+    .replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>')
+    // Newlines to <br> (but not inside <ul>)
+    .replace(/\n/g, '<br />')
+    // Clean up <br> right after </ul> or before <ul>
+    .replace(/<br \/>\s*<ul>/g, '<ul>')
+    .replace(/<\/ul>\s*<br \/>/g, '</ul>')
+    .replace(/<br \/>\s*<li>/g, '<li>')
 }
+
 
 export default function EducationArticleRenderer({
   article,
@@ -335,6 +351,28 @@ export default function EducationArticleRenderer({
                         {item.caption && (
                           <p className="edu-art-caption">{item.caption}</p>
                         )}
+                      </div>
+                    )
+                  }
+                  if (item.type === 'table' && item.headers) {
+                    // Resolve rows from rowsJson (Firestore) or rows (direct)
+                    const tableRows: string[][] = item.rows?.length
+                      ? item.rows
+                      : item.rowsJson
+                        ? (() => { try { return JSON.parse(item.rowsJson) } catch { return [] } })()
+                        : []
+                    return (
+                      <div key={ii} className="edu-art-table-wrap">
+                        <table className="edu-art-table">
+                          <thead>
+                            <tr>{item.headers.map((h, hi) => <th key={hi}>{h}</th>)}</tr>
+                          </thead>
+                          <tbody>
+                            {tableRows.map((row, ri) => (
+                              <tr key={ri}>{row.map((cell, ci) => <td key={ci}>{cell}</td>)}</tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     )
                   }

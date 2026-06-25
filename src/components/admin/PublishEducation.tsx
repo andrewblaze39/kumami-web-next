@@ -8,16 +8,22 @@ import { generateId } from './utils';
 import { PHASES } from '@/data/educationPhases';
 import { resolveLevelNumber } from '@/lib/educationUtils';
 import EducationArticleRenderer from '@/components/education/EducationArticleRenderer';
+import RichTextEditor from './RichTextEditor';
+import TipTapEditor from './TipTapEditor';
+import type { JSONContent } from '@tiptap/react';
+import { tiptapToSections } from '@/lib/tiptapToSections';
 
 interface ContentItem {
   id: string;
-  type: 'paragraph' | 'image' | 'youtube';
+  type: 'paragraph' | 'image' | 'youtube' | 'table';
   text?: string;
   src?: string;
   alt?: string;
   caption?: string;
   videoId?: string;
   title?: string;
+  headers?: string[];
+  rows?: string[][];
 }
 
 interface Section {
@@ -34,6 +40,7 @@ export default function PublishEducation() {
   const [blurb, setBlurb] = useState('');
   const [minutes, setMinutes] = useState<number>(0);
   const [featured, setFeatured] = useState(false);
+  const [comingSoon, setComingSoon] = useState(false);
   const [description, setDescription] = useState('');
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState('');
@@ -42,6 +49,8 @@ export default function PublishEducation() {
   ]);
   const [loading, setLoading] = useState(false);
   const [conflictWarning, setConflictWarning] = useState('');
+  const [editorMode, setEditorMode] = useState<'classic' | 'tiptap'>('classic');
+  const [tiptapContent, setTiptapContent] = useState<JSONContent | null>(null);
 
   const levelPhase = PHASES.find(p => p.n === level);
   const chapters = levelPhase?.chapters ?? [];
@@ -104,6 +113,7 @@ export default function PublishEducation() {
     if (type === 'paragraph') updateItem(sId, iId, { type: 'paragraph', text: '' });
     else if (type === 'image') updateItem(sId, iId, { type: 'image', src: '', alt: '', caption: '' });
     else if (type === 'youtube') updateItem(sId, iId, { type: 'youtube', videoId: '', title: '', caption: '' });
+    else if (type === 'table') updateItem(sId, iId, { type: 'table', headers: ['Column 1', 'Column 2'], rows: [['', '']] });
   };
 
   const checkDuplicate = async (): Promise<string> => {
@@ -141,33 +151,53 @@ export default function PublishEducation() {
         thumbnailUrl = await getDownloadURL(snap.ref);
       }
 
-      const cleanedSections = sections
-        .filter(s => s.title || s.content.length > 0)
-        .map(s => ({
-          title: s.title,
-          content: s.content.map(({ type, text, src, alt, caption, videoId, title: t }) =>
-            type === 'paragraph'
-              ? { type, text }
-              : type === 'image'
-              ? { type, src, alt, caption }
-              : { type, videoId, title: t, caption }
-          ),
-        }));
-
-      await addDoc(collection(db, 'education_articles'), {
+      const docData: Record<string, unknown> = {
         title,
         level,
         chapterIndex,
         author,
         thumbnail: thumbnailUrl,
-        sections: cleanedSections,
         status,
         blurb,
         minutes,
         featured,
+        comingSoon,
         description,
         createdAt: serverTimestamp(),
-      });
+        editorMode,
+      };
+
+      if (editorMode === 'tiptap') {
+        docData.tiptapContent = tiptapContent ?? {};
+        const derivedSections = tiptapToSections(tiptapContent);
+        docData.sections = derivedSections.map(s => ({
+          title: s.title,
+          content: s.content.map(({ type, text, src, alt, caption, videoId, title: t, headers, rows }) =>
+            type === 'paragraph' ? { type, text }
+            : type === 'image' ? { type, src, alt, caption }
+            : type === 'table' ? { type, headers, rowsJson: JSON.stringify(rows || []) }
+            : { type, videoId, title: t, caption }
+          ),
+        }));
+      } else {
+        const cleanedSections = sections
+          .filter(s => s.title || s.content.length > 0)
+          .map(s => ({
+            title: s.title,
+            content: s.content.map(({ type, text, src, alt, caption, videoId, title: t, headers, rows }) =>
+              type === 'paragraph'
+                ? { type, text }
+                : type === 'image'
+                ? { type, src, alt, caption }
+                : type === 'table'
+                ? { type, headers, rowsJson: JSON.stringify(rows || []) }
+                : { type, videoId, title: t, caption }
+            ),
+          }));
+        docData.sections = cleanedSections;
+      }
+
+      await addDoc(collection(db, 'education_articles'), docData);
 
       alert(status === 'draft' ? 'Draft saved!' : 'Published!');
       setTitle('');
@@ -177,10 +207,13 @@ export default function PublishEducation() {
       setBlurb('');
       setMinutes(0);
       setFeatured(false);
+      setComingSoon(false);
       setDescription('');
       setThumbnailFile(null);
       setThumbnailPreview('');
       setSections([{ id: generateId(), title: '', content: [{ id: generateId(), type: 'paragraph', text: '' }] }]);
+      setTiptapContent(null);
+      setEditorMode('classic');
       setConflictWarning('');
     } catch (err) {
       console.error(err);
@@ -198,22 +231,28 @@ export default function PublishEducation() {
     level,
     chapterIndex,
     thumbnail: thumbnailPreview,
-    sections: sections
-      .filter(s => s.title || s.content.length > 0)
-      .map(s => ({
-        title: s.title,
-        content: s.content.map(({ type, text, src, alt, caption, videoId, title: t }) => ({
-          type,
-          text,
-          src,
-          alt,
-          caption,
-          videoId,
-          title: t,
-        })),
-      })),
+    sections: editorMode === 'tiptap'
+      ? []
+      : sections
+          .filter(s => s.title || s.content.length > 0)
+          .map(s => ({
+            title: s.title,
+            content: s.content.map(({ type, text, src, alt, caption, videoId, title: t, headers, rows }) => ({
+              type,
+              text,
+              src,
+              alt,
+              caption,
+              videoId,
+              title: t,
+              headers,
+              rows,
+            })),
+          })),
     blurb,
     minutes,
+    editorMode,
+    tiptapContent: editorMode === 'tiptap' ? (tiptapContent ?? undefined) : undefined,
   };
 
   const levelPhaseTitle = levelPhase?.title ?? '';
@@ -260,16 +299,17 @@ export default function PublishEducation() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Chapter</label>
-                <select
+                <label className="block text-sm font-medium text-gray-700 mb-1">Chapter position (0-based index)</label>
+                <input
+                  type="number"
+                  min={0}
                   value={chapterIndex}
                   onChange={e => setChapterIndex(Number(e.target.value))}
-                  className="w-full p-2 border border-gray-300 rounded-md text-black bg-white"
-                >
-                  {chapters.map((ch, i) => (
-                    <option key={i} value={i}>Chapter {i + 1}: {ch}</option>
-                  ))}
-                </select>
+                  className="w-full p-2 border border-gray-300 rounded-md text-black"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Chapter {chapterIndex + 1} in Level {level}. The article title becomes the chapter name.
+                </p>
               </div>
             </div>
 
@@ -294,15 +334,27 @@ export default function PublishEducation() {
                   className="w-full p-2 border border-gray-300 rounded-md text-black"
                 />
               </div>
-              <div className="flex items-center gap-2 pt-6">
-                <input
-                  type="checkbox"
-                  id="featured"
-                  checked={featured}
-                  onChange={e => setFeatured(e.target.checked)}
-                  className="w-4 h-4"
-                />
-                <label htmlFor="featured" className="text-sm font-medium text-gray-700">Featured lesson</label>
+              <div className="flex flex-col gap-2 pt-6">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="featured"
+                    checked={featured}
+                    onChange={e => setFeatured(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <label htmlFor="featured" className="text-sm font-medium text-gray-700">Featured lesson</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="comingSoon"
+                    checked={comingSoon}
+                    onChange={e => setComingSoon(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <label htmlFor="comingSoon" className="text-sm font-medium text-amber-700">Coming soon (placeholder, no content yet)</label>
+                </div>
               </div>
             </div>
 
@@ -344,7 +396,43 @@ export default function PublishEducation() {
               )}
             </div>
 
-            {/* Sections */}
+            {/* Editor mode toggle */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Editor mode</label>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (editorMode !== 'classic' && tiptapContent) {
+                      window.alert('Your TipTap content will still be saved, but you will edit using the section builder.');
+                    }
+                    setEditorMode('classic');
+                  }}
+                  className={`px-4 py-2 rounded-md text-sm font-medium border transition-colors ${editorMode === 'classic' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                >Classic</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (editorMode !== 'tiptap' && sections.some(s => s.title || s.content.length > 0)) {
+                      window.alert('Your classic sections will still be saved, but you will edit using the TipTap editor.');
+                    }
+                    setEditorMode('tiptap');
+                  }}
+                  className={`px-4 py-2 rounded-md text-sm font-medium border transition-colors ${editorMode === 'tiptap' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                >TipTap</button>
+              </div>
+            </div>
+
+            {/* TipTap editor */}
+            {editorMode === 'tiptap' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Content (TipTap)</label>
+                <TipTapEditor content={tiptapContent} onChange={setTiptapContent} />
+              </div>
+            )}
+
+            {/* Sections (classic mode) */}
+            {editorMode === 'classic' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Content Sections</label>
               <div className="space-y-4">
@@ -409,6 +497,7 @@ export default function PublishEducation() {
                               <option value="paragraph">Paragraph</option>
                               <option value="image">Image</option>
                               <option value="youtube">YouTube</option>
+                              <option value="table">Table</option>
                             </select>
                             <button
                               type="button"
@@ -417,12 +506,11 @@ export default function PublishEducation() {
                             >Remove</button>
                           </div>
                           {item.type === 'paragraph' && (
-                            <textarea
+                            <RichTextEditor
                               value={item.text || ''}
-                              onChange={e => updateItem(section.id, item.id, { text: e.target.value })}
-                              className="w-full p-2 border border-gray-300 rounded-md text-black"
-                              rows={3}
+                              onChange={(text) => updateItem(section.id, item.id, { text })}
                               placeholder="Paragraph text..."
+                              rows={3}
                             />
                           )}
                           {item.type === 'image' && (
@@ -475,6 +563,92 @@ export default function PublishEducation() {
                               />
                             </div>
                           )}
+                          {item.type === 'table' && (
+                            <div className="space-y-2">
+                              {/* Column count */}
+                              <div className="flex items-center gap-2">
+                                <label className="text-xs text-gray-600 whitespace-nowrap">Columns:</label>
+                                <input
+                                  type="number"
+                                  min={1}
+                                  max={10}
+                                  value={(item.headers || []).length || 2}
+                                  onChange={e => {
+                                    const n = Math.max(1, Number(e.target.value));
+                                    const oldHeaders = item.headers || [];
+                                    const newHeaders = Array.from({ length: n }, (_, i) => oldHeaders[i] ?? `Column ${i + 1}`);
+                                    const newRows = (item.rows || [['']]).map(row =>
+                                      Array.from({ length: n }, (_, i) => row[i] ?? '')
+                                    );
+                                    updateItem(section.id, item.id, { headers: newHeaders, rows: newRows });
+                                  }}
+                                  className="w-16 p-1 border border-gray-300 rounded text-black text-sm"
+                                />
+                              </div>
+                              {/* Header row */}
+                              <div>
+                                <div className="text-xs text-gray-500 mb-1 font-medium">Header row</div>
+                                <div className="flex gap-1 flex-wrap">
+                                  {(item.headers || []).map((h, hi) => (
+                                    <input
+                                      key={hi}
+                                      type="text"
+                                      value={h}
+                                      onChange={e => {
+                                        const newHeaders = [...(item.headers || [])];
+                                        newHeaders[hi] = e.target.value;
+                                        updateItem(section.id, item.id, { headers: newHeaders });
+                                      }}
+                                      className="flex-1 min-w-0 p-1 border border-gray-300 rounded text-black text-sm"
+                                      placeholder={`Col ${hi + 1}`}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                              {/* Data rows */}
+                              <div>
+                                <div className="text-xs text-gray-500 mb-1 font-medium">Data rows</div>
+                                <div className="space-y-1">
+                                  {(item.rows || []).map((row, ri) => (
+                                    <div key={ri} className="flex gap-1 items-center flex-wrap">
+                                      {row.map((cell, ci) => (
+                                        <input
+                                          key={ci}
+                                          type="text"
+                                          value={cell}
+                                          onChange={e => {
+                                            const newRows = (item.rows || []).map((r, rIdx) =>
+                                              rIdx === ri ? r.map((c, cIdx) => cIdx === ci ? e.target.value : c) : r
+                                            );
+                                            updateItem(section.id, item.id, { rows: newRows });
+                                          }}
+                                          className="flex-1 min-w-0 p-1 border border-gray-300 rounded text-black text-sm"
+                                          placeholder={`Row ${ri + 1}, Col ${ci + 1}`}
+                                        />
+                                      ))}
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const newRows = (item.rows || []).filter((_, rIdx) => rIdx !== ri);
+                                          updateItem(section.id, item.id, { rows: newRows.length > 0 ? newRows : [Array((item.headers || []).length).fill('')] });
+                                        }}
+                                        className="px-2 py-1 bg-red-50 text-red-700 rounded text-xs flex-shrink-0"
+                                      >−</button>
+                                    </div>
+                                  ))}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const cols = (item.headers || []).length || 2;
+                                    const newRows = [...(item.rows || []), Array(cols).fill('')];
+                                    updateItem(section.id, item.id, { rows: newRows });
+                                  }}
+                                  className="mt-1 px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
+                                >+ Add row</button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))}
                       <button
@@ -492,6 +666,7 @@ export default function PublishEducation() {
                 >Add section</button>
               </div>
             </div>
+            )}
 
             <div className="flex gap-2">
               <button
