@@ -127,14 +127,11 @@ async function ArticlePageContent({ id }: { id: string }) {
   if (!article) return <ArticleNotFound />
 
   const levelNum = resolveLevelNumber(article.level)
-  const { prevId, nextId } = levelNum !== null
-    ? await fetchSiblingIds(id, levelNum)
-    : { prevId: null, nextId: null }
-
   const chapterName = levelNum !== null && article.chapterIndex !== undefined
     ? getChapterName(levelNum, article.chapterIndex)
     : undefined
 
+  // Don't block rendering on sibling fetch — pass null, renderer fetches them client-side
   return (
     <EducationArticleRenderer
       article={{
@@ -149,11 +146,12 @@ async function ArticlePageContent({ id }: { id: string }) {
         minutes: article.minutes,
       }}
       articleId={id}
-      prevArticleId={prevId}
-      nextArticleId={nextId}
+      prevArticleId={null}
+      nextArticleId={null}
       levelNum={levelNum ?? undefined}
       chapterName={chapterName}
       chapterIndex={article.chapterIndex}
+      fetchSiblings
     />
   )
 }

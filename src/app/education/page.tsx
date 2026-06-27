@@ -24,16 +24,6 @@ export default function JourneyPage() {
       {/* ── HERO ── */}
       <section className="edu-hero">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-            <span className="edu-pill-free">Free forever</span>
-            <Link
-              href="/subscribe"
-              className="edu-btn edu-btn-surface"
-              style={{ padding: '6px 14px', fontSize: 12.5, borderRadius: 8 }}
-            >
-              Get Kumami Pro
-            </Link>
-          </div>
           <span className="edu-eyebrow">
             <span className="edu-dia" />
             Kumami Education

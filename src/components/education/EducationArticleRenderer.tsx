@@ -3,6 +3,8 @@
 import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, ChevronRight, Check } from 'lucide-react'
+import { collection, getDocs, query, where } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
 import { PHASES } from '@/data/educationPhases'
 import { resolveLevelNumber } from '@/lib/educationUtils'
 import { useEducationProgress } from '@/hooks/useEducationProgress'
@@ -43,6 +45,7 @@ export interface EducationArticleContentProps {
   levelNum?: number
   chapterName?: string
   chapterIndex?: number
+  fetchSiblings?: boolean
 }
 
 function escapeHtml(str: string): string {
@@ -79,16 +82,41 @@ function parseMarkdown(text: string | undefined): string {
 
 export default function EducationArticleRenderer({
   article,
-  prevArticleId,
-  nextArticleId,
+  articleId,
+  prevArticleId: prevArticleIdProp,
+  nextArticleId: nextArticleIdProp,
   levelNum: levelNumProp,
   chapterName: chapterNameProp,
   chapterIndex: chapterIndexProp,
+  fetchSiblings,
 }: EducationArticleContentProps) {
   const sections = article.sections || []
   const totalSections = sections.length
 
   const levelNum = levelNumProp ?? resolveLevelNumber(article.level) ?? null
+
+  // Client-side sibling fetch (non-blocking — article renders immediately)
+  const [prevArticleId, setPrevArticleId] = useState<string | null>(prevArticleIdProp)
+  const [nextArticleId, setNextArticleId] = useState<string | null>(nextArticleIdProp)
+
+  useEffect(() => {
+    if (!fetchSiblings || levelNum === null) return
+    const q = query(
+      collection(db, 'education_articles'),
+      where('level', '==', levelNum),
+      where('status', '==', 'published')
+    )
+    getDocs(q).then(snap => {
+      const sameLevel = snap.docs
+        .map(d => ({ id: d.id, chapterIndex: (d.data().chapterIndex as number) ?? 0, comingSoon: d.data().comingSoon as boolean }))
+        .filter(a => !a.comingSoon)
+        .sort((a, b) => a.chapterIndex - b.chapterIndex)
+      const idx = sameLevel.findIndex(a => a.id === articleId)
+      setPrevArticleId(idx > 0 ? sameLevel[idx - 1].id : null)
+      setNextArticleId(idx !== -1 && idx < sameLevel.length - 1 ? sameLevel[idx + 1].id : null)
+    }).catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchSiblings, levelNum, articleId])
   const levelData = levelNum ? PHASES.find(p => p.n === levelNum) : null
   const levelTitle = levelData?.title ?? ''
 

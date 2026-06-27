@@ -120,7 +120,6 @@ export default function CoursePage({ params }: Props) {
               <span className="edu-pill">
                 <Trophy size={12} /> Badge: {levelData.badge}
               </span>
-              <span className="edu-pill-free">Free</span>
             </div>
           </div>
 
@@ -277,7 +276,7 @@ export default function CoursePage({ params }: Props) {
                                     <div className={`edu-pdot${sectionDone ? ' edu-pdot-done' : ''}`}>
                                       {sectionDone && <Check size={10} />}
                                     </div>
-                                    <span>Part {si + 1}: {section.title}</span>
+                                    <span>Section {si + 1}: {section.title}</span>
                                     <span className="edu-ptype">Read</span>
                                   </div>
                                 )
