@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import JourneyLevelCards from '@/components/education/JourneyLevelCards'
 
 export const metadata: Metadata = {
@@ -53,57 +54,16 @@ export default function JourneyPage() {
           </div>
         </div>
 
-        {/* Kuma mascot — desktop only */}
+        {/* Kumami logo — desktop only */}
         <div style={{ flexShrink: 0 }} aria-hidden="true">
-          <svg
-            width="220"
-            height="220"
-            viewBox="0 0 240 240"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <defs>
-              <radialGradient id="kg" cx="42%" cy="36%" r="70%">
-                <stop offset="0%" stopColor="#ffffff" />
-                <stop offset="100%" stopColor="#e8eef0" />
-              </radialGradient>
-            </defs>
-            {/* paws */}
-            <ellipse cx="58" cy="196" rx="34" ry="34" fill="url(#kg)" />
-            <ellipse cx="58" cy="190" rx="13" ry="15" fill="#0c1b16" />
-            <circle cx="47" cy="178" r="4.4" fill="#0c1b16" />
-            <circle cx="58" cy="174" r="4.4" fill="#0c1b16" />
-            <circle cx="69" cy="178" r="4.4" fill="#0c1b16" />
-            <ellipse cx="182" cy="196" rx="34" ry="34" fill="url(#kg)" />
-            <ellipse cx="182" cy="190" rx="13" ry="15" fill="#0c1b16" />
-            <circle cx="171" cy="178" r="4.4" fill="#0c1b16" />
-            <circle cx="182" cy="174" r="4.4" fill="#0c1b16" />
-            <circle cx="193" cy="178" r="4.4" fill="#0c1b16" />
-            {/* ears */}
-            <circle cx="74" cy="74" r="30" fill="url(#kg)" />
-            <circle cx="74" cy="74" r="14" fill="#d7dee0" />
-            <circle cx="166" cy="74" r="30" fill="url(#kg)" />
-            <circle cx="166" cy="74" r="14" fill="#d7dee0" />
-            {/* head */}
-            <ellipse cx="120" cy="118" rx="86" ry="80" fill="url(#kg)" />
-            {/* eyes */}
-            <circle cx="92" cy="108" r="8.5" fill="#0c1b16" />
-            <circle cx="148" cy="108" r="8.5" fill="#0c1b16" />
-            <circle cx="89" cy="105" r="2.6" fill="#fff" />
-            <circle cx="145" cy="105" r="2.6" fill="#fff" />
-            {/* snout */}
-            <ellipse cx="120" cy="150" rx="40" ry="32" fill="#f3ece1" />
-            <ellipse cx="120" cy="134" rx="11" ry="8" fill="#0c1b16" />
-            <path
-              d="M120 142v9M120 151c0 7 -8 10 -13 7M120 151c0 7 8 10 13 7"
-              stroke="#0c1b16"
-              strokeWidth="3.4"
-              strokeLinecap="round"
-            />
-            {/* cheeks */}
-            <circle cx="62" cy="138" r="9" fill="#ffd1dc" opacity={0.55} />
-            <circle cx="178" cy="138" r="9" fill="#ffd1dc" opacity={0.55} />
-          </svg>
+          <Image
+            src="/logo-kumami-final.png"
+            alt="Kumami World"
+            width={220}
+            height={220}
+            style={{ objectFit: 'contain', width: 220, height: 'auto' }}
+            priority
+          />
         </div>
       </section>
 

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Lock, Sparkles, ArrowUp, EyeOff, Eye, ExternalLink, Send } from 'lucide-react';
+import { Lock, Sparkles, ArrowUp, EyeOff, Eye, ExternalLink, Send, Minus } from 'lucide-react';
 import Image from 'next/image';
 
 const SAMPLE_PROMPTS = [
@@ -146,6 +146,22 @@ export default function KumaAIWidget() {
               >
                 <ExternalLink size={11} />
                 View Full Page
+              </button>
+              <button
+                onClick={() => setExpanded(false)}
+                className="flex items-center justify-center rounded-full transition-colors"
+                style={{
+                  width: 26,
+                  height: 26,
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(150,237,214,0.15)',
+                  color: 'rgba(255,255,255,0.55)',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(150,237,214,0.12)'; e.currentTarget.style.color = '#96EDD6'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; }}
+                aria-label="Minimize"
+              >
+                <Minus size={13} />
               </button>
             </div>
 

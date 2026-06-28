@@ -11,6 +11,8 @@ import AddCryptoModal from '@/components/AddCryptoModal';
 import EditCryptoModal from '@/components/EditCryptoModal';
 import AlphaRoom from '@/components/AlphaRoom';
 import KumaInline from '@/components/portfolio/KumaInline';
+import PortfolioScanCard from '@/components/portfolio/scan/PortfolioScanCard';
+import NewsForYouCard from '@/components/portfolio/scan/NewsForYouCard';
 import MarketAnalysis from '@/components/MarketAnalysis';
 import KumaAIChatTab from '@/components/KumaAIChatTab';
 import MarketCapTool from '@/components/MarketCapTool';
@@ -516,6 +518,12 @@ function PortfolioTab() {
         })()}
       </div>
 
+      {/* 2-col grid: Holdings | sticky AI rail (single col under 1200px) */}
+      <div className="grid gap-[22px] items-start grid-cols-1 min-[1200px]:grid-cols-[minmax(0,1fr)_408px]">
+
+      {/* LEFT COLUMN: empty state + holdings */}
+      <div className="min-w-0">
+
       {/* Empty state */}
       {portfolio.length === 0 && (
         <div className="flex flex-col items-center justify-center min-h-[240px] rounded-xl"
@@ -776,6 +784,23 @@ function PortfolioTab() {
           )}
         </div>
       )}
+
+      </div>{/* /LEFT COLUMN */}
+
+      {/* RIGHT COLUMN: sticky AI rail */}
+      <div className="flex flex-col gap-4 min-[1200px]:sticky min-[1200px]:top-5">
+        <PortfolioScanCard
+          portfolio={portfolio}
+          totalValue={totalValue}
+          coinLogos={portfolio.reduce<Record<string, string | undefined>>((acc, c) => {
+            acc[c.name] = c.logo || cryptoLogos[c.name];
+            return acc;
+          }, {})}
+        />
+        <NewsForYouCard hasPortfolio={portfolio.length > 0} />
+      </div>
+
+      </div>{/* /2-col grid */}
 
       <AddCryptoModal
         isOpen={isModalOpen}

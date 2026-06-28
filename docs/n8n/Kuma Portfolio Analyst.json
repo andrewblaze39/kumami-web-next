@@ -1,0 +1,141 @@
+{
+  "name": "Kuma Portfolio Analyst",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Kuma Portfolio Analyst\n\nTriggered by the Next.js app at `POST /api/portfolio-scan`.\n\nFlow: **Webhook → AI Agent (Gemini) → Validate & Repair (Code) → Respond**.\n\n**Before activating:**\n1. Open *Google Gemini Chat Model* and confirm the credential is your Gemini account (same one used by the chatbot).\n2. Save & Activate.\n3. Open the *Webhook* node and copy the Production URL into `N8N_PORTFOLIO_SCAN_WEBHOOK_URL` in `.env.local`.\n4. Restart `npm run dev` and test in the browser.",
+        "height": 240,
+        "width": 360,
+        "color": 4
+      },
+      "id": "a1b2c3d4-0000-0000-0000-000000000001",
+      "name": "How to use",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-640, -160],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "portfolio-scan",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0000-0000-0000-000000000010",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-240, 160],
+      "webhookId": "kuma-portfolio-scan-webhook"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Holdings: {{ JSON.stringify($('Webhook').item.json.body.holdings) }}\nTotal USD: {{ $('Webhook').item.json.body.totalValue }}\nCurrency: {{ $('Webhook').item.json.body.currency }}",
+        "options": {
+          "systemMessage": "You are Kuma, a friendly but sharp crypto risk analyst inside the Kumami app.\n\nYou receive a user's crypto portfolio: each holding has a symbol, amount, USD value, % allocation,\nand 24h change. Analyze the portfolio's RISK and respond with ONLY valid JSON (no markdown, no prose\noutside the JSON) matching this schema:\n\n{\n  \"scannedAt\": ISO-8601 string,\n  \"overall\": {\n    \"score\": integer 0-100 where HIGHER = RISKIER,\n    \"level\": \"low\" | \"medium\" | \"high\",\n    \"label\": short pill text e.g. \"High Risk\",\n    \"headline\": one punchy sentence\n  },\n  \"dimensions\": [\n    { \"key\": \"concentration\"|\"diversification\"|\"volatility\"|\"liquidity\",\n      \"level\": \"low\"|\"medium\"|\"high\",\n      \"value\": short string e.g. \"99.8% in 2 coins\" }\n  ],\n  \"assets\": [\n    { \"symbol\": string, \"level\": \"low\"|\"medium\"|\"high\", \"note\": short string }\n  ],\n  \"actions\": [ 2-3 short, concrete suggested moves as plain strings ],\n  \"commentary\": 2-4 warm sentences in Kuma's voice (a friendly bear; may end with 🐾)\n}\n\nRules:\n- \"level\" must be EXACTLY one of \"low\", \"medium\", \"high\". Never invent other values.\n- Always include all 4 dimensions: concentration, diversification, volatility, liquidity.\n- Judge concentration (over-weight in one asset), diversification (sectors / # of meaningful holdings),\n  volatility (beta / meme / newer-token exposure), and liquidity (how easily positions can be exited).\n- Be specific to THIS user's real numbers and coins (quote their allocations).\n- Score reflects overall RISK, not performance. A hyper-concentrated bag is high even if it's up.\n- \"commentary\", \"note\", and \"actions\" are where you're conversational and specific; everything else\n  stays strictly structured.\n- Never give buy/sell or price-target advice. Frame moves as risk awareness (\"consider\", \"spread into\").\n- This is educational, not financial advice.\n- If holdings is empty, return overall.level \"low\", one action: \"Add your first asset to get a real scan.\",\n  and a friendly welcome commentary.\n\nReturn ONLY the JSON object — do not wrap it in ```json fences or any other text."
+        }
+      },
+      "id": "a1b2c3d4-0000-0000-0000-000000000030",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [40, 160]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0000-0000-0000-000000000031",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [-40, 400],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7WApNDv9tn2p3gFD",
+          "name": "Google Gemini(PaLM) Api account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate & repair the AI Agent output so the frontend never crashes on a bad shape.\nconst LEVELS = ['low', 'medium', 'high'];\nconst DIM_KEYS = ['concentration', 'diversification', 'volatility', 'liquidity'];\n\nlet raw = $input.first().json.output ?? $input.first().json;\n\n// Gemini sometimes wraps JSON in ```json fences — strip them.\nif (typeof raw === 'string') {\n  raw = raw.trim()\n    .replace(/^```(?:json)?\\s*/i, '')\n    .replace(/\\s*```$/, '')\n    .trim();\n  try {\n    raw = JSON.parse(raw);\n  } catch (e) {\n    throw new Error('AI output was not valid JSON: ' + raw.slice(0, 200));\n  }\n}\n\nconst out = raw || {};\nconst clampLevel = v => LEVELS.includes(v) ? v : 'medium';\nconst clampScore = v => {\n  const n = Number(v);\n  return Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : 50;\n};\nconst str = (v, fallback = '') => typeof v === 'string' ? v : fallback;\n\nout.overall = out.overall || {};\nout.overall.score    = clampScore(out.overall.score);\nout.overall.level    = clampLevel(out.overall.level);\nout.overall.label    = str(out.overall.label, 'Risk');\nout.overall.headline = str(out.overall.headline, '');\n\nout.dimensions = (Array.isArray(out.dimensions) ? out.dimensions : [])\n  .filter(d => DIM_KEYS.includes(d?.key))\n  .map(d => ({ key: d.key, level: clampLevel(d.level), value: str(d.value) }));\n\nout.assets = (Array.isArray(out.assets) ? out.assets : [])\n  .map(a => ({ symbol: str(a?.symbol), level: clampLevel(a?.level), note: str(a?.note) }))\n  .filter(a => a.symbol);\n\nout.actions = (Array.isArray(out.actions) ? out.actions : [])\n  .filter(s => typeof s === 'string')\n  .slice(0, 4);\n\nout.commentary = str(out.commentary);\nout.scannedAt  = str(out.scannedAt) || new Date().toISOString();\n\nreturn [{ json: out }];"
+      },
+      "id": "a1b2c3d4-0000-0000-0000-000000000040",
+      "name": "Validate & Repair",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 160]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0000-0000-0000-000000000050",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [600, 160]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Validate & Repair",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate & Repair": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "kuma-portfolio-analyst-v2",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "KumaPortfolioAnalyst001",
+  "tags": []
+}

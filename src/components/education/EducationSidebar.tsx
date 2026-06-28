@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Map, BookOpen, Trophy, Settings } from 'lucide-react'
+import { Home, Map, BookOpen, Trophy, Settings, Menu } from 'lucide-react'
 import { useEducationSidebar } from '@/contexts/EducationSidebarContext'
 import { PHASES } from '@/data/educationPhases'
 
@@ -39,7 +39,7 @@ function NavLink({ item, active, onClose }: { item: NavItem; active: boolean; on
 
 export default function EducationSidebar() {
   const pathname = usePathname()
-  const { isOpen, close } = useEducationSidebar()
+  const { isOpen, close, toggle } = useEducationSidebar()
 
   // Detect current level from pathname like /education/3 or /education/3/5
   const parts = pathname.split('/').filter(Boolean)
@@ -57,6 +57,17 @@ export default function EducationSidebar() {
 
   return (
     <>
+      {/* Mobile floating menu button — only visible when sidebar is closed on mobile */}
+      {!isOpen && (
+        <button
+          className="edu-floating-menu"
+          onClick={toggle}
+          aria-label="Open menu"
+        >
+          <Menu size={18} />
+        </button>
+      )}
+
       {/* Overlay */}
       <div
         className={`edu-overlay${isOpen ? ' edu-open' : ''}`}

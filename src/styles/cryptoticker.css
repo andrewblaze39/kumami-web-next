@@ -11,7 +11,7 @@
   border-top: 1px solid #222;
   border-bottom: 1px solid #222;
   overflow: hidden;
-  z-index: 1500;
+  z-index: 40;
 }
 
 .crypto-ticker-loading::after {
@@ -48,7 +48,7 @@
   right: 0;
   border-top: 1px solid #222;
   border-bottom: 1px solid #222;
-  z-index: 1500;
+  z-index: 40;
 }
 
 .ticker-container {

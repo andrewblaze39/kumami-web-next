@@ -1,6 +1,5 @@
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import EducationSidebar from '@/components/education/EducationSidebar'
-import EducationTopbar from '@/components/education/EducationTopbar'
 import { EducationSidebarProvider } from '@/contexts/EducationSidebarContext'
 import './education.css'
 
@@ -21,7 +20,6 @@ export default function EducationLayout({
       <div className={`edu-app ${jakarta.variable}`}>
         <EducationSidebar />
         <main className="edu-main">
-          <EducationTopbar />
           {children}
         </main>
       </div>
