@@ -1,0 +1,456 @@
+/*
+ * Kumami World — scoped design system
+ * All rules live under .world-root so nothing leaks into marketing pages.
+ * Tokens sourced from /frankieone/plans/2026-07-05-kumami-mockup-app-reference.js
+ */
+
+.world-root {
+  /* ── Colour tokens ── */
+  --bg: #0a1411;
+  --bg-2: #08110e;
+  --topbar: #060d0b;
+  --panel: #0f1d18;
+  --panel-2: #142a22;
+  --panel-3: #193127;
+  --ink: #f1f7f4;
+  --muted: #8ea69c;
+  --muted-2: #5f786e;
+  --accent: #5ee9a8;
+  --accent2: #56dfe6;
+  --purple: #b9a4ff;
+  --gold: #f0cd7e;
+  --danger: #ff7a7a;
+  --amber: #f0cd7e;
+  --bull: #46e3a0;
+  --bear: #ff6b81;
+  --line: rgba(142, 166, 156, 0.18);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-2: rgba(255, 255, 255, 0.14);
+
+  /* ── Radius tokens ── */
+  --radius: 18px;
+  --radius-lg: 26px;
+  --radius-sm: 12px;
+
+  /* ── Shadow tokens ── */
+  --shadow: 0 18px 50px -20px rgba(0, 0, 0, 0.7);
+
+  /* ── Layout ── */
+  --maxw: 1180px;
+  --sidebar: 248px;
+
+  /* ── Typography ── */
+  font-family: var(--font-jakarta, 'Plus Jakarta Sans'), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+
+  /* ── Base ── */
+  background: radial-gradient(
+      1200px 600px at 80% -10%,
+      rgba(94, 233, 168, 0.06),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 500px at -5% 20%,
+      rgba(167, 139, 250, 0.05),
+      transparent 60%
+    ),
+    var(--bg);
+  color: var(--ink);
+  min-height: 100dvh;
+}
+
+/* ── Selection ── */
+.world-root ::selection {
+  background: rgba(94, 233, 168, 0.3);
+}
+
+/* ── Scrollbar ── */
+.world-root *::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+.world-root *::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+.world-root *::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+  background-clip: content-box;
+}
+
+/* ── Animations ── */
+@keyframes w-pop {
+  from {
+    transform: translateY(10px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes w-fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes w-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* ── Buttons ── */
+.world-root .w-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 12px 20px;
+  border-radius: 13px;
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14.5px;
+  cursor: pointer;
+  transition: 0.16s;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.world-root .w-btn svg {
+  width: 17px;
+  height: 17px;
+}
+.world-root .w-btn-primary {
+  background: var(--accent);
+  color: #06241a;
+  border-color: transparent;
+}
+.world-root .w-btn-primary:hover {
+  background: #74efb6;
+  transform: translateY(-1px);
+}
+.world-root .w-btn-ghost {
+  background: transparent;
+  border-color: var(--border-2);
+  color: var(--ink);
+}
+.world-root .w-btn-ghost:hover {
+  background: var(--panel);
+  border-color: var(--muted-2);
+}
+.world-root .w-btn-surface {
+  background: var(--panel-2);
+  color: var(--ink);
+  border-color: var(--border);
+}
+.world-root .w-btn-surface:hover {
+  background: var(--panel-3);
+}
+.world-root .w-btn-sm {
+  padding: 8px 14px;
+  font-size: 13px;
+  border-radius: 11px;
+}
+.world-root .w-btn-lg {
+  padding: 15px 26px;
+  font-size: 16px;
+  border-radius: 15px;
+}
+.world-root .w-btn-pill {
+  border-radius: 999px;
+}
+
+/* ── Gate landing ── */
+.world-root .w-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px;
+  background: radial-gradient(
+      1100px 620px at 50% -8%,
+      rgba(94, 233, 168, 0.1),
+      transparent 62%
+    ),
+    radial-gradient(
+      700px 500px at 85% 80%,
+      rgba(167, 139, 250, 0.07),
+      transparent 60%
+    ),
+    var(--bg-2);
+}
+
+.world-root .w-gate-logo {
+  position: absolute;
+  top: 30px;
+  left: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: #06241a;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  padding: 7px 12px;
+  border-radius: 11px;
+  text-decoration: none;
+}
+.world-root .w-gate-logo small {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  font-weight: 700;
+  align-self: flex-end;
+  margin-bottom: 2px;
+  opacity: 0.85;
+}
+
+.world-root .w-gate-bear {
+  width: 150px;
+  height: 150px;
+  margin-bottom: 14px;
+  animation: w-fadeUp 0.6s ease both;
+}
+
+.world-root .w-gate h1 {
+  font-size: clamp(46px, 8vw, 104px);
+  line-height: 0.98;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  margin: 0;
+  background: linear-gradient(
+    96deg,
+    #f1f7f4 38%,
+    #9be9c4 60%,
+    #a9c0f5 76%,
+    #c3b1f7 92%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: w-fadeUp 0.6s 0.1s ease both;
+}
+
+.world-root .w-gate .w-tag {
+  margin: 22px 0 36px;
+  font-size: clamp(18px, 2.4vw, 26px);
+  color: var(--muted);
+  font-weight: 500;
+  animation: w-fadeUp 0.6s 0.2s ease both;
+}
+
+.world-root .w-gate-cta {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  animation: w-fadeUp 0.6s 0.3s ease both;
+}
+.world-root .w-gate-cta .w-btn-primary {
+  box-shadow: 0 16px 40px -14px rgba(94, 233, 168, 0.6);
+}
+
+.world-root .w-gate-feats {
+  display: flex;
+  gap: 26px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 34px;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 600;
+  animation: w-fadeUp 0.6s 0.4s ease both;
+}
+.world-root .w-gate-feats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.world-root .w-gate-feats svg {
+  width: 17px;
+  height: 17px;
+  color: var(--accent);
+}
+
+.world-root .w-gate-foot {
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  right: 0;
+  color: var(--muted-2);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ── Auth modal ── */
+.world-root .w-auth-ov {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(4, 9, 7, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.world-root .w-auth-card {
+  position: relative;
+  width: min(420px, 94vw);
+  background: var(--panel);
+  border: 1px solid var(--border-2);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  padding: 30px 30px 26px;
+  animation: w-pop 0.2s ease;
+}
+
+.world-root .w-auth-card h2 {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 5px;
+  color: var(--ink);
+}
+.world-root .w-auth-card .w-sub {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 22px;
+}
+
+.world-root .w-field {
+  margin-bottom: 14px;
+}
+.world-root .w-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+.world-root .w-field input {
+  width: 100%;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 13px 14px;
+  color: var(--ink);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  transition: 0.15s;
+}
+.world-root .w-field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(94, 233, 168, 0.12);
+}
+
+.world-root .w-auth-card .w-btn-primary {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.world-root .w-auth-alt {
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--muted);
+  margin-top: 16px;
+}
+.world-root .w-auth-alt b {
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.world-root .w-auth-x {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  background: none;
+  border: none;
+  font-family: inherit;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.15s;
+}
+.world-root .w-auth-x:hover {
+  color: var(--ink);
+}
+
+.world-root .w-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: var(--muted-2);
+  font-size: 13px;
+}
+.world-root .w-divider::before,
+.world-root .w-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.world-root .w-google-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  color: var(--ink);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 14.5px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: 0.16s;
+}
+.world-root .w-google-btn:hover {
+  background: var(--panel-3);
+  border-color: var(--border-2);
+}
+
+.world-root .w-error {
+  background: rgba(255, 122, 122, 0.08);
+  border: 1px solid rgba(255, 122, 122, 0.25);
+  color: #ff9999;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13.5px;
+  margin-bottom: 14px;
+}
+.world-root .w-success {
+  background: rgba(94, 233, 168, 0.08);
+  border: 1px solid rgba(94, 233, 168, 0.25);
+  color: var(--accent);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13.5px;
+  margin-bottom: 14px;
+}
