@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import WorldProtected from '@/components/world/shell/WorldProtected';
 import { WorldModeProvider, useWorldMode } from '@/contexts/WorldModeContext';
 import Sidebar from '@/components/world/shell/Sidebar';
@@ -8,15 +9,23 @@ import Topbar from '@/components/world/shell/Topbar';
 // Inner layout that has access to WorldModeContext
 function AppShellInner({ children }: { children: React.ReactNode }) {
   const { kumaOpen } = useWorldMode();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="w-app" id="w-app-row">
+      {/* Mobile backdrop — closes sidebar on tap */}
+      <div
+        className={`w-sidebar-backdrop${sidebarOpen ? ' show' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+        aria-hidden="true"
+      />
+
       {/* Sidebar */}
-      <Sidebar />
+      <Sidebar sidebarOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main area */}
       <div className="w-main">
-        <Topbar />
+        <Topbar onMenuClick={() => setSidebarOpen(v => !v)} />
         <div className="w-content">
           {children}
         </div>
@@ -28,7 +37,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
           className="w-kuma-side open"
           data-side="right"
           aria-label="Kuma AI"
-          role="dialog"
+          role="complementary"
         >
           <div className="w-kuma-placeholder">
             <p style={{ color: 'var(--muted)', padding: '24px', fontSize: 13 }}>

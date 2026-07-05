@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useWorldMode } from '@/contexts/WorldModeContext';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -169,11 +169,47 @@ const COMPANY_LINKS = [
   { label: 'Contact', href: '#', icon: Icons.doc },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  sidebarOpen: boolean;
+  onClose: () => void;
+}
+
+export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
   const { mode } = useWorldMode();
   const { currentUser, userData, logout } = useAuth();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Refs for click-outside detection on the brand dropdown
+  const menuBtnRef = useRef<HTMLButtonElement>(null);
+  const menuDropRef = useRef<HTMLDivElement>(null);
+
+  // Close brand dropdown on click-outside or Escape
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (
+        menuBtnRef.current && menuBtnRef.current.contains(target)
+      ) return; // click on toggle button itself — let onClick handler toggle
+      if (
+        menuDropRef.current && menuDropRef.current.contains(target)
+      ) return; // click inside dropdown — leave open
+      setMenuOpen(false);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [menuOpen]);
 
   const nav = mode === 'beginner' ? BEGINNER_NAV : mode === 'advanced' ? ADV_NAV : null;
 
@@ -187,13 +223,14 @@ export default function Sidebar() {
     'Free plan';
 
   return (
-    <aside className={`w-sidebar${mode === 'advanced' ? ' is-adv' : mode === 'pro' ? ' is-pro' : ''}`} id="w-sidebar">
+    <aside className={`w-sidebar${mode === 'advanced' ? ' is-adv' : mode === 'pro' ? ' is-pro' : ''}${sidebarOpen ? ' open' : ''}`} id="w-sidebar">
 
       {/* ---- Brand / logo + dropdown ---- */}
       <div className="w-brand-wrap">
         <button
+          ref={menuBtnRef}
           className={`w-brand${menuOpen ? ' open-menu' : ''}`}
-          onClick={(e) => { e.stopPropagation(); setMenuOpen(v => !v); }}
+          onClick={() => setMenuOpen(v => !v)}
           aria-expanded={menuOpen}
           aria-haspopup="true"
         >
@@ -206,7 +243,7 @@ export default function Sidebar() {
         </button>
 
         {menuOpen && (
-          <div className="w-brand-menu" onClick={(e) => e.stopPropagation()}>
+          <div ref={menuDropRef} className="w-brand-menu">
             <div className="w-bm-head">Company</div>
             {COMPANY_LINKS.map(link => (
               <a key={link.label} href={link.href} className="w-bm-item" onClick={() => setMenuOpen(false)}>
@@ -231,7 +268,7 @@ export default function Sidebar() {
           <>
             <div className="w-nav-label">PRO</div>
             {PRO_NAV_ITEMS.map(item => (
-              <Link key={item.label} href="/world/pro" className="w-nav-item">
+              <Link key={item.label} href="/world/pro" className="w-nav-item" onClick={onClose}>
                 {item.icon}
                 <span>{item.label}</span>
                 <span className="w-nav-lock">{Icons.lock}</span>
@@ -247,6 +284,7 @@ export default function Sidebar() {
                   key={item.k}
                   href={item.href}
                   className={`w-nav-item${isActive(item.href) ? ' active' : ''}`}
+                  onClick={onClose}
                 >
                   {item.icon}
                   <span>{item.label}</span>

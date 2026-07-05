@@ -102,21 +102,17 @@ export function WorldModeProvider({ children }: { children: React.ReactNode }) {
 
       // ---------- Continuity logic (from mockup setMode) ----------
       let destination: string;
-      // beginner on /world/news → switching to advanced: land /world/intel
-      if (mode === 'beginner' && pathname.startsWith('/world/news') && newMode === 'advanced') {
-        destination = '/world/intel';
-      }
-      // advanced on /world/intel or /world/console → switching to beginner: land /world/news
-      else if (
-        mode === 'advanced' &&
-        (pathname.startsWith('/world/intel') || pathname.startsWith('/world/console')) &&
-        newMode === 'beginner'
-      ) {
-        destination = '/world/news';
-      }
       // switching to pro: always /world/pro
-      else if (newMode === 'pro') {
+      if (newMode === 'pro') {
         destination = '/world/pro';
+      }
+      // advanced → beginner: always land /world/news (beginner default) regardless of which advanced route
+      else if (mode === 'advanced' && newMode === 'beginner') {
+        destination = defaultPageForMode('beginner'); // '/world/news'
+      }
+      // beginner on /world/news → switching to advanced: land /world/intel (news→intel continuity)
+      else if (mode === 'beginner' && pathname.startsWith('/world/news') && newMode === 'advanced') {
+        destination = '/world/intel';
       }
       // all other cases: default page for the new mode
       else {

@@ -24,7 +24,17 @@ export default function WorldProtected({ children }: { children: React.ReactNode
     }
   }, [currentUser, loading, router]);
 
-  if (loading || !currentUser) return null;
+  // Show world-themed spinner while auth state resolves
+  if (loading) {
+    return (
+      <div className="world-root">
+        <div className="w-loading" aria-label="Loading…" />
+      </div>
+    );
+  }
+
+  // Not authenticated — redirect in progress, render nothing
+  if (!currentUser) return null;
 
   return <>{children}</>;
 }

@@ -898,6 +898,42 @@
   height: 100%;
 }
 
+/* ---- WorldProtected loading state ---- */
+.world-root .w-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+.world-root .w-loading::after {
+  content: '';
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(94, 233, 168, 0.18);
+  border-top-color: var(--accent);
+  animation: w-spin 0.7s linear infinite;
+}
+@keyframes w-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---- Mobile sidebar backdrop ---- */
+.world-root .w-sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 29;
+  background: rgba(4, 9, 7, 0.55);
+  backdrop-filter: blur(3px);
+}
+.world-root .w-sidebar-backdrop.show {
+  display: block;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 1080px) {
   .world-root .w-sidebar {
