@@ -874,7 +874,7 @@
   margin: 0;
 }
 
-/* ---- Kuma AI dock (push-over column, stub) ---- */
+/* ---- Kuma AI dock (push-over column) ---- */
 .world-root .w-kuma-side {
   flex: 0 0 auto;
   width: 0;
@@ -892,10 +892,353 @@
   border-left: 1px solid var(--border-2);
   box-shadow: -16px 0 40px -24px rgba(0, 0, 0, 0.7);
 }
-.world-root .w-kuma-placeholder {
+
+/* Drag handle — 8px hit-area on left edge */
+.world-root .w-kuma-drag-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: ew-resize;
+  z-index: 2;
+}
+.world-root .w-kuma-drag-handle:hover {
+  background: rgba(94, 233, 168, 0.08);
+}
+
+/* Inner panel — fixed width so transition clip works cleanly */
+.world-root .w-kuma-inner {
+  position: relative;
   width: var(--kuma-w, 380px);
   max-width: 92vw;
-  height: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+}
+
+/* ---- Header ---- */
+.world-root .w-kuma-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px 13px;
+  border-bottom: 1px solid var(--border-2);
+  flex-shrink: 0;
+}
+.world-root .w-kuma-av {
+  flex-shrink: 0;
+}
+.world-root .w-kuma-title {
+  flex: 1;
+  min-width: 0;
+}
+.world-root .w-kuma-title b {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.world-root .w-kuma-title em {
+  display: block;
+  font-style: normal;
+  font-size: 11.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.world-root .w-kuma-close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: 0.15s;
+  padding: 0;
+}
+.world-root .w-kuma-close:hover {
+  background: var(--panel-2);
+  border-color: var(--border-2);
+  color: var(--ink);
+}
+
+/* ---- Body (message area / upsell) ---- */
+.world-root .w-kuma-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Messages ---- */
+.world-root .w-kuma-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.world-root .w-kuma-messages::-webkit-scrollbar { width: 4px; }
+.world-root .w-kuma-messages::-webkit-scrollbar-thumb {
+  background: rgba(94, 233, 168, 0.18);
+  border-radius: 4px;
+}
+
+/* ---- Empty state ---- */
+.world-root .w-kuma-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 16px;
+  gap: 10px;
+}
+.world-root .w-kuma-empty-bear {
+  opacity: 0.35;
+}
+.world-root .w-kuma-empty-hint {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* ---- Sample prompts ---- */
+.world-root .w-kuma-prompts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+}
+.world-root .w-kuma-prompt-btn {
+  text-align: left;
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: 0.15s;
+  line-height: 1.4;
+}
+.world-root .w-kuma-prompt-btn:hover {
+  background: rgba(94, 233, 168, 0.07);
+  border-color: rgba(94, 233, 168, 0.3);
+  color: var(--ink);
+}
+
+/* ---- Message bubbles ---- */
+.world-root .w-kuma-msg {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.world-root .w-kuma-msg-user {
+  justify-content: flex-end;
+}
+.world-root .w-kuma-msg-bot {
+  justify-content: flex-start;
+}
+.world-root .w-kuma-msg-av {
+  flex-shrink: 0;
+  margin-bottom: 2px;
+}
+.world-root .w-kuma-bubble {
+  max-width: 80%;
+  border-radius: 16px;
+  padding: 10px 13px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  word-break: break-word;
+}
+.world-root .w-kuma-msg-user .w-kuma-bubble {
+  background: rgba(94, 233, 168, 0.16);
+  color: var(--ink);
+  border-bottom-right-radius: 4px;
+}
+.world-root .w-kuma-msg-bot .w-kuma-bubble {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(241, 247, 244, 0.85);
+  border-bottom-left-radius: 4px;
+}
+
+/* ---- Typing indicator ---- */
+.world-root .w-kuma-typing-bubble {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 16px;
+}
+@keyframes w-kuma-dot {
+  0%, 80%, 100% { opacity: 0.2; transform: translateY(0); }
+  40%           { opacity: 1;   transform: translateY(-3px); }
+}
+.world-root .w-kd {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: w-kuma-dot 1.2s infinite;
+}
+.world-root .w-kd:nth-child(2) { animation-delay: 0.2s; }
+.world-root .w-kd:nth-child(3) { animation-delay: 0.4s; }
+
+/* ---- Upsell / lock state ---- */
+.world-root .w-kuma-lock {
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.world-root .w-kuma-lock-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(94, 233, 168, 0.07);
+  border: 1px solid rgba(94, 233, 168, 0.18);
+  border-radius: 10px;
+  padding: 10px 13px;
+  font-size: 13px;
+  color: rgba(241, 247, 244, 0.7);
+}
+.world-root .w-kuma-lock-icon {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.world-root .w-kuma-lock-hint {
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  font-weight: 700;
+  margin: 0;
+}
+.world-root .w-kuma-prompt-locked {
+  color: rgba(241, 247, 244, 0.45);
+}
+.world-root .w-kuma-prompt-lock-ic {
+  display: inline;
+  margin-right: 4px;
+  opacity: 0.4;
+  vertical-align: middle;
+}
+.world-root .w-kuma-unlock-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 12px 20px;
+  background: var(--accent);
+  color: #06241a;
+  border: none;
+  border-radius: 13px;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+.world-root .w-kuma-unlock-btn:hover {
+  background: #74efb6;
+}
+.world-root .w-kuma-unlock-ic {
+  flex-shrink: 0;
+}
+
+/* ---- Footer / input ---- */
+.world-root .w-kuma-footer {
+  padding: 12px 14px 14px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.world-root .w-kuma-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 4px 4px 4px 14px;
+  transition: 0.15s;
+}
+.world-root .w-kuma-input-row:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(94, 233, 168, 0.1);
+}
+.world-root .w-kuma-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: var(--ink);
+  caret-color: var(--accent);
+  padding: 8px 0;
+  min-width: 0;
+}
+.world-root .w-kuma-input::placeholder {
+  color: var(--muted-2);
+}
+.world-root .w-kuma-send {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #06241a;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.15s;
+  padding: 0;
+}
+.world-root .w-kuma-send:hover:not(:disabled) {
+  background: #74efb6;
+}
+.world-root .w-kuma-send:disabled {
+  background: rgba(94, 233, 168, 0.18);
+  color: rgba(94, 233, 168, 0.5);
+  cursor: default;
+}
+.world-root .w-kuma-disc {
+  font-size: 11px;
+  color: var(--muted-2);
+  text-align: center;
+  margin: 8px 0 0;
+}
+
+/* Mobile: full-screen overlay on small viewports */
+@media (max-width: 760px) {
+  .world-root .w-kuma-side.open {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 90;
+  }
+  .world-root .w-kuma-drag-handle {
+    display: none;
+  }
 }
 
 /* ---- WorldProtected loading state ---- */

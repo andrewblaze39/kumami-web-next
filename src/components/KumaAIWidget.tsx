@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Lock, Sparkles, ArrowUp, EyeOff, Eye, ExternalLink, Send, Minus } from 'lucide-react';
 import Image from 'next/image';
+import { useKumaChat } from '@/components/world/kuma/useKumaChat';
 
 const SAMPLE_PROMPTS = [
   "What's driving Bitcoin's price today?",
@@ -13,17 +14,9 @@ const SAMPLE_PROMPTS = [
   "How do I read a crypto market cap chart?",
 ];
 
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
-
 export default function KumaAIWidget() {
   const [expanded, setExpanded] = useState(false);
   const [hidden, setHidden] = useState(false);
-  const [input, setInput] = useState('');
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [typing, setTyping] = useState(false);
   const { currentUser, userData } = useAuth();
   const router = useRouter();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -31,6 +24,8 @@ export default function KumaAIWidget() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isPremium = userData?.isPremium;
+
+  const { messages, typing, input, setInput, handleSend: chatSend } = useKumaChat();
 
   // Close panel on outside click (only for non-pro lock panel)
   useEffect(() => {
@@ -58,18 +53,8 @@ export default function KumaAIWidget() {
 
   const handleSend = () => {
     if (!input.trim() || typing) return;
-    const userMsg = input.trim();
-    setInput('');
     setExpanded(true);
-    setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
-    setTyping(true);
-    setTimeout(() => {
-      setTyping(false);
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: "Kuma AI is almost here! Full AI-powered responses are coming soon for Pro members. Stay tuned — the full experience will be available in your Pro dashboard.",
-      }]);
-    }, 1000);
+    chatSend();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
