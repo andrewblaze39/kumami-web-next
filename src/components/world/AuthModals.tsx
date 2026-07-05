@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { updateProfile } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 const REDIRECT_TARGET = '/world/news';
 
@@ -36,7 +38,6 @@ interface SignUpModalProps {
 
 export function SignUpModal({ onClose, onSwitchToLogin }: SignUpModalProps) {
   const { signup, loginWithGoogle } = useAuth();
-  const router = useRouter();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -44,6 +45,15 @@ export function SignUpModal({ onClose, onSwitchToLogin }: SignUpModalProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
+
+  // M2/M3: Close on Escape; focus card on open
+  const cardRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    cardRef.current?.focus();
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onClose]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,12 +63,14 @@ export function SignUpModal({ onClose, onSwitchToLogin }: SignUpModalProps) {
     try {
       setError('');
       setLoading(true);
-      // Store name in sessionStorage — it gets written to Firestore by AuthContext.setupUser
-      // after email verification; the name field is displayed post-login.
-      if (name.trim()) {
-        sessionStorage.setItem('pendingDisplayName', name.trim());
+      // I3: signup returns UserCredential; set displayName immediately while the
+      // user object is still valid (before email verification gating).
+      // Note: currentUser in AuthContext will remain null until email is verified;
+      // displayName is persisted on the Firebase Auth profile regardless.
+      const result = await signup(email, password);
+      if (name.trim() && result?.user) {
+        await updateProfile(result.user, { displayName: name.trim() });
       }
-      await signup(email, password);
       setVerificationSent(true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to create account.';
@@ -71,14 +83,16 @@ export function SignUpModal({ onClose, onSwitchToLogin }: SignUpModalProps) {
     try {
       setError('');
       setLoading(true);
-      // After Google sign-in, AuthContext sets currentUser → the page.tsx
-      // useEffect will redirect to REDIRECT_TARGET.
+      // I2: Set the redirect target so world/page.tsx useEffect can pick it up
+      // after currentUser resolves. No imperative router.replace here — the
+      // gate page's useEffect owns the redirect to avoid a double-navigation race.
       sessionStorage.setItem('redirectAfterSignup', REDIRECT_TARGET);
       await loginWithGoogle();
-      router.replace(REDIRECT_TARGET);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Google sign-in failed.';
       setError(msg);
+    } finally {
+      // I1: Always clear loading; if sign-in succeeded the page will navigate away.
       setLoading(false);
     }
   }
@@ -91,6 +105,8 @@ export function SignUpModal({ onClose, onSwitchToLogin }: SignUpModalProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="signup-title"
+        ref={cardRef}
+        tabIndex={-1}
       >
         <button className="w-auth-x" onClick={onClose} aria-label="Close">
           ✕
@@ -181,7 +197,8 @@ export function SignUpModal({ onClose, onSwitchToLogin }: SignUpModalProps) {
 
             <p className="w-auth-alt">
               Already have an account?{' '}
-              <b onClick={onSwitchToLogin}>Log In</b>
+              {/* M1: button for keyboard accessibility */}
+              <button type="button" className="w-auth-switch" onClick={onSwitchToLogin}>Log In</button>
             </p>
           </>
         )}
@@ -206,6 +223,15 @@ export function LogInModal({ onClose, onSwitchToSignUp }: LogInModalProps) {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // M2/M3: Close on Escape; focus card on open
+  const cardRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    cardRef.current?.focus();
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onClose]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -232,13 +258,16 @@ export function LogInModal({ onClose, onSwitchToSignUp }: LogInModalProps) {
     try {
       setError('');
       setLoading(true);
-      sessionStorage.setItem('redirectAfterSignup', REDIRECT_TARGET);
+      // I2: Login flow owns its redirect imperatively; no sessionStorage needed
+      // here — the gate page's useEffect is not involved for login.
       await loginWithGoogle();
       onClose();
       router.replace(REDIRECT_TARGET);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Google sign-in failed.';
       setError(msg);
+    } finally {
+      // I1: Always clear loading; if sign-in succeeded the page will navigate away.
       setLoading(false);
     }
   }
@@ -267,6 +296,8 @@ export function LogInModal({ onClose, onSwitchToSignUp }: LogInModalProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="login-title"
+        ref={cardRef}
+        tabIndex={-1}
       >
         <button className="w-auth-x" onClick={onClose} aria-label="Close">
           ✕
@@ -345,7 +376,8 @@ export function LogInModal({ onClose, onSwitchToSignUp }: LogInModalProps) {
 
         <p className="w-auth-alt">
           Don&apos;t have an account?{' '}
-          <b onClick={onSwitchToSignUp}>Sign Up</b>
+          {/* M1: button for keyboard accessibility */}
+          <button type="button" className="w-auth-switch" onClick={onSwitchToSignUp}>Sign Up</button>
         </p>
       </div>
     </div>

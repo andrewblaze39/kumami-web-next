@@ -11,7 +11,11 @@ export default function WorldPage() {
 
   useEffect(() => {
     if (!loading && currentUser) {
-      router.replace('/world/news');
+      // I2: Mirror the SignupClient pattern — honour a stored redirect target
+      // (set by SignUpModal.handleGoogle) then clear it; fall back to /world/news.
+      const stored = sessionStorage.getItem('redirectAfterSignup');
+      sessionStorage.removeItem('redirectAfterSignup');
+      router.replace(stored || '/world/news');
     }
   }, [currentUser, loading, router]);
 
