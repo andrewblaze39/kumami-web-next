@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { updateProfile } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 
 const REDIRECT_TARGET = '/world/news';
 
