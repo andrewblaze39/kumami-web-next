@@ -892,6 +892,10 @@
   border-left: 1px solid var(--border-2);
   box-shadow: -16px 0 40px -24px rgba(0, 0, 0, 0.7);
 }
+/* Suppress width transition while dragging so panel tracks pointer instantly */
+.world-root .w-kuma-side.dragging {
+  transition: none;
+}
 
 /* Drag handle — 8px hit-area on left edge */
 .world-root .w-kuma-drag-handle {

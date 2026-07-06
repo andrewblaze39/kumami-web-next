@@ -39,6 +39,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
         aria-label="Kuma AI"
         role="complementary"
         aria-hidden={!kumaOpen}
+        inert={!kumaOpen}
       >
         <KumaDock />
       </aside>

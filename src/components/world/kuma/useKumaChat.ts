@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 export interface KumaChatMessage {
   role: 'user' | 'assistant';
@@ -33,6 +33,17 @@ export function useKumaChat(): UseKumaChatReturn {
   const [typing, setTyping] = useState(false);
   const [input, setInput] = useState('');
 
+  // Keep a ref to the stub timer so we can cancel it on unmount
+  const stubTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (stubTimerRef.current !== null) {
+        clearTimeout(stubTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleSend = useCallback(() => {
     const text = input.trim();
     if (!text || typing) return;
@@ -43,7 +54,8 @@ export function useKumaChat(): UseKumaChatReturn {
 
     // Stub: simulate an async round-trip.
     // Replace this block with a real fetch('/api/chat', ...) when the endpoint exists.
-    setTimeout(() => {
+    stubTimerRef.current = setTimeout(() => {
+      stubTimerRef.current = null;
       setTyping(false);
       setMessages(prev => [
         ...prev,

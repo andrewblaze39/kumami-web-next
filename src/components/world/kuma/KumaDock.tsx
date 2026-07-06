@@ -67,7 +67,7 @@ export default function KumaDock() {
   const inputRef = useRef<HTMLInputElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
 
-  // Width — read from localStorage once on mount
+  // Width — read from localStorage once on mount; clean up CSS var on unmount
   const widthRef = useRef<number>(DEFAULT_WIDTH);
   useEffect(() => {
     widthRef.current = readStoredWidth();
@@ -76,6 +76,9 @@ export default function KumaDock() {
     }
     // update CSS var so the parent .w-kuma-side uses the correct width
     document.documentElement.style.setProperty('--kuma-w', `${widthRef.current}px`);
+    return () => {
+      document.documentElement.style.removeProperty('--kuma-w');
+    };
   }, []);
 
   // Auto-scroll to latest message
@@ -96,12 +99,21 @@ export default function KumaDock() {
   const dragStartX = useRef<number | null>(null);
   const dragStartWidth = useRef<number>(DEFAULT_WIDTH);
 
+  // Helper to find the parent .w-kuma-side aside and toggle the dragging class
+  const setDraggingClass = useCallback((active: boolean) => {
+    const aside = innerRef.current?.closest<HTMLElement>('.w-kuma-side');
+    if (!aside) return;
+    if (active) aside.classList.add('dragging');
+    else aside.classList.remove('dragging');
+  }, []);
+
   const onDragPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
     dragStartX.current = e.clientX;
     dragStartWidth.current = widthRef.current;
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
-  }, []);
+    setDraggingClass(true);
+  }, [setDraggingClass]);
 
   const onDragPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (dragStartX.current === null) return;
@@ -118,9 +130,31 @@ export default function KumaDock() {
       if (dragStartX.current === null) return;
       dragStartX.current = null;
       (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      setDraggingClass(false);
       persistWidth(currentUser?.uid, widthRef.current);
     },
-    [currentUser]
+    [currentUser, setDraggingClass]
+  );
+
+  // Cancel handler: reset state cleanly if drag is interrupted (e.g. system gesture)
+  const onDragPointerCancel = useCallback(
+    (_e: React.PointerEvent<HTMLDivElement>) => {
+      if (dragStartX.current === null) return;
+      dragStartX.current = null;
+      setDraggingClass(false);
+      persistWidth(currentUser?.uid, widthRef.current);
+    },
+    [currentUser, setDraggingClass]
+  );
+
+  const onDragLostPointerCapture = useCallback(
+    (_e: React.PointerEvent<HTMLDivElement>) => {
+      if (dragStartX.current === null) return;
+      dragStartX.current = null;
+      setDraggingClass(false);
+      persistWidth(currentUser?.uid, widthRef.current);
+    },
+    [currentUser, setDraggingClass]
   );
 
   // ── Upsell handler ──────────────────────────────────────────────────────────
@@ -146,6 +180,8 @@ export default function KumaDock() {
         onPointerDown={onDragPointerDown}
         onPointerMove={onDragPointerMove}
         onPointerUp={onDragPointerUp}
+        onPointerCancel={onDragPointerCancel}
+        onLostPointerCapture={onDragLostPointerCapture}
         title="Drag to resize"
         aria-hidden="true"
       />
