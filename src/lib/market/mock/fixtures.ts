@@ -23,7 +23,6 @@ import type {
   IntelligencePayload,
   MetricPanelKey,
   OnChainPayload,
-  PanelVerdict,
   Series,
   Verdict,
   WatchlistPayload,
@@ -92,22 +91,6 @@ const ALL_COLORS: Verdict['color'][] = ['green', 'grey-green', 'grey', 'amber', 
 
 function verdict(label: string, color: Verdict['color']): Verdict {
   return { label, color };
-}
-
-function panelVerdict(
-  label: string,
-  color: Verdict['color'],
-  tags: Verdict[],
-  confidence: number,
-  interpretation?: string
-): PanelVerdict {
-  return {
-    verdict: verdict(label, color),
-    tags,
-    confidence,
-    interpretation,
-    updatedAt: isoAgo(rndInt(() => 0, 60_000, 300_000)),
-  };
 }
 
 // ---------------------------------------------------------------------------
