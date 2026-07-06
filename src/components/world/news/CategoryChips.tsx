@@ -1,7 +1,4 @@
-'use client';
-
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 
 const CATEGORIES = [
   'All',
@@ -21,8 +18,7 @@ interface CategoryChipsProps {
 }
 
 export default function CategoryChips({ active }: CategoryChipsProps) {
-  // useSearchParams is only used for reading — parent passes active down via server props
-  // We use Link so the filter is server-side via ?category= searchParam
+  // Parent passes active down via server props; Link renders ?category= filter server-side
   const current = active || 'All';
 
   return (

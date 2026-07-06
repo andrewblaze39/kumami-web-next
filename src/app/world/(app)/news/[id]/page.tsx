@@ -28,8 +28,12 @@ function parseInline(text: string): string {
     .replace(/(^|[^*])\*(?!\s)([^*\n]+?)\*(?!\*)/g, '$1<em>$2</em>')
     .replace(/(^|[^_])_(?!\s)([^_\n]+?)_(?!_)/g, '$1<em>$2</em>')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label: string, href: string) => {
+      const safeLabel = escapeHtml(label);
+      // Allow only safe URI schemes; block javascript:, data:, vbscript:, etc.
+      const isSafe = /^(https?:|mailto:|\/|#|[^:]*$)/.test(href.trim());
+      if (!isSafe) return safeLabel;
       const safeHref = href.replace(/"/g, '&quot;');
-      return `<a href="${safeHref}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2);text-decoration:underline">${label}</a>`;
+      return `<a href="${safeHref}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2);text-decoration:underline">${safeLabel}</a>`;
     });
 }
 
@@ -528,13 +532,6 @@ export default async function WorldNewsDetailPage({ params }: PageProps) {
         )}
       </div>
 
-      <style>{`
-        @media (min-width: 900px) {
-          .w-article-grid {
-            grid-template-columns: 1fr 280px !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

@@ -126,25 +126,6 @@ export default async function WorldNewsPage({ searchParams }: PageProps) {
         </>
       )}
 
-      {/* Responsive 2-col CSS (injected here to avoid a separate stylesheet) */}
-      <style>{`
-        @media (min-width: 900px) {
-          .w-news-grid {
-            grid-template-columns: 1fr 320px !important;
-          }
-        }
-        .w-news-hero-link:hover {
-          border-color: var(--border-2) !important;
-          box-shadow: 0 8px 32px -12px rgba(0,0,0,0.5) !important;
-        }
-        .w-headline-card:hover {
-          opacity: 0.8 !important;
-        }
-        .w-latest-card:hover {
-          background: var(--panel-3) !important;
-          border-color: var(--border-2) !important;
-        }
-      `}</style>
     </div>
   );
 }

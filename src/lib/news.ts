@@ -10,6 +10,8 @@
  * Tier tags (advanced, pro) are not yet in the Firestore schema — typed optional.
  */
 
+import 'server-only';
+import { cache } from 'react';
 import { adminDb } from '@/lib/firebase-admin';
 
 // ---------- Types ----------
@@ -96,6 +98,71 @@ export async function getPublishedNews({
   const db = safeDb();
   if (!db) return [];
 
+  // When a category is requested, attempt a composite index query first.
+  if (category) {
+    try {
+      // Requires composite index: status ASC, category ASC, timestamp DESC.
+      // Create it in the Firebase console if Firestore throws FAILED_PRECONDITION.
+      let q = db
+        .collection('news')
+        .where('status', '==', 'published')
+        .where('category', '==', category)
+        .orderBy('timestamp', 'desc')
+        .limit(limitVal);
+
+      if (cursorSeconds !== undefined) {
+        const { Timestamp } = await import('firebase-admin/firestore');
+        q = q.startAfter(Timestamp.fromMillis(cursorSeconds * 1000));
+      }
+
+      const snapshot = await q.get();
+      return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as Omit<NewsArticle, 'id'>),
+      }));
+    } catch (err: unknown) {
+      // FAILED_PRECONDITION means the composite index doesn't exist yet.
+      // Fall back to a larger in-memory filter so the page still works.
+      const code = (err as { code?: string | number })?.code;
+      if (code === 'failed-precondition' || code === 9) {
+        console.warn(
+          '[news.ts] getPublishedNews: composite index missing for ' +
+            '(status ASC, category ASC, timestamp DESC). ' +
+            'Create it in the Firebase console to enable efficient category queries. ' +
+            'Falling back to in-memory filter (limit 100).'
+        );
+        // Fall through to the in-memory fallback below.
+      } else {
+        console.error('[news.ts] getPublishedNews (category) error:', err);
+        return [];
+      }
+    }
+
+    // In-memory fallback: fetch a larger batch and filter client-side.
+    try {
+      const cat = category.toLowerCase();
+      let q = db
+        .collection('news')
+        .where('status', '==', 'published')
+        .orderBy('timestamp', 'desc')
+        .limit(100);
+
+      if (cursorSeconds !== undefined) {
+        const { Timestamp } = await import('firebase-admin/firestore');
+        q = q.startAfter(Timestamp.fromMillis(cursorSeconds * 1000));
+      }
+
+      const snapshot = await q.get();
+      return snapshot.docs
+        .map((doc) => ({ id: doc.id, ...(doc.data() as Omit<NewsArticle, 'id'>) }))
+        .filter((a) => (a.category ?? '').toLowerCase() === cat);
+    } catch (err) {
+      console.error('[news.ts] getPublishedNews fallback error:', err);
+      return [];
+    }
+  }
+
+  // No category filter — simple status + timestamp query.
   try {
     let q = db
       .collection('news')
@@ -110,22 +177,10 @@ export async function getPublishedNews({
     }
 
     const snapshot = await q.get();
-
-    let articles: NewsArticle[] = snapshot.docs.map((doc) => ({
+    return snapshot.docs.map((doc) => ({
       id: doc.id,
       ...(doc.data() as Omit<NewsArticle, 'id'>),
     }));
-
-    // Category filter — apply server-side via Firestore if possible,
-    // but keep the post-filter here as a fallback for case mismatch.
-    if (category) {
-      const cat = category.toLowerCase();
-      articles = articles.filter(
-        (a) => (a.category ?? '').toLowerCase() === cat
-      );
-    }
-
-    return articles;
   } catch (err) {
     console.error('[news.ts] getPublishedNews error:', err);
     return [];
@@ -134,9 +189,11 @@ export async function getPublishedNews({
 
 /**
  * Fetch a single article by id.
+ * Wrapped in React cache() so generateMetadata + page share the same read
+ * within a single request without hitting Firestore twice.
  * Returns null if not found or if an error occurs.
  */
-export async function getNewsById(id: string): Promise<NewsArticle | null> {
+export const getNewsById = cache(async (id: string): Promise<NewsArticle | null> => {
   const db = safeDb();
   if (!db) return null;
 
@@ -148,4 +205,4 @@ export async function getNewsById(id: string): Promise<NewsArticle | null> {
     console.error('[news.ts] getNewsById error:', err);
     return null;
   }
-}
+});

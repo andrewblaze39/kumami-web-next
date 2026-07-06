@@ -121,8 +121,12 @@ function parseInline(text: string): string {
     .replace(/(^|[^*])\*(?!\s)([^*\n]+?)\*(?!\*)/g, '$1<em>$2</em>')
     .replace(/(^|[^_])_(?!\s)([^_\n]+?)_(?!_)/g, '$1<em>$2</em>')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label: string, href: string) => {
+      const safeLabel = escapeHtml(label)
+      // Allow only safe URI schemes; block javascript:, data:, vbscript:, etc.
+      const isSafe = /^(https?:|mailto:|\/|#|[^:]*$)/.test(href.trim())
+      if (!isSafe) return safeLabel
       const safeHref = href.replace(/"/g, '&quot;')
-      return `<a href="${safeHref}" target="_blank" rel="noopener noreferrer" class="text-[#40e0d0] hover:underline">${label}</a>`
+      return `<a href="${safeHref}" target="_blank" rel="noopener noreferrer" class="text-[#40e0d0] hover:underline">${safeLabel}</a>`
     })
 }
 
