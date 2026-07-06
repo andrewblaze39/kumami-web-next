@@ -861,6 +861,16 @@
   flex: 1;
 }
 .world-root .w-content-inner { animation: w-fadeUp 0.3s ease; }
+
+/* ---- Mode crossfade (news ↔ intel and all route changes) ---- */
+/* Base: transition always present so fade-in is smooth even without the fading class */
+.world-root .w-content-fade {
+  transition: opacity 0.15s ease;
+}
+/* Momentary class applied for 150ms on route change — fades content out then back in */
+.world-root .w-content-fading {
+  opacity: 0;
+}
 .world-root .w-page-title {
   font-size: 30px;
   font-weight: 800;
