@@ -1314,3 +1314,303 @@
     z-index: 90;
   }
 }
+
+/* ============================================================
+   PRO TEASER PAGE — locked feature cards
+   ============================================================ */
+
+/* ---- Pro button variant ---- */
+.world-root .w-btn-pro {
+  background: linear-gradient(120deg, var(--gold), #f7e6a8);
+  color: #1a1201;
+  border-color: transparent;
+  font-weight: 800;
+}
+.world-root .w-btn-pro:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 36px -12px rgba(240, 205, 126, 0.45);
+}
+
+/* ---- Kumami PRO gold tag ---- */
+.world-root .w-pro-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #1a1201;
+  background: linear-gradient(120deg, var(--gold), #f7e6a8);
+  padding: 4px 9px;
+  border-radius: 7px;
+}
+.world-root .w-pro-tag.w-pro-tag-lg {
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 10px;
+}
+
+/* ---- Pro teaser outer wrapper ---- */
+.world-root .w-pro-teaser {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ---- Section header ---- */
+.world-root .w-pro-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.world-root .w-pro-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.world-root .w-pro-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.world-root .w-pro-eyebrow svg {
+  width: 14px;
+  height: 14px;
+  color: var(--gold);
+}
+
+/* ---- Feature grid ---- */
+.world-root .w-pro-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 900px) {
+  .world-root .w-pro-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .world-root .w-pro-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- Locked card ---- */
+.world-root .w-locked-card {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  min-height: 188px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.world-root .w-locked-card:hover {
+  border-color: rgba(240, 205, 126, 0.3);
+  box-shadow: 0 12px 36px -16px rgba(240, 205, 126, 0.18);
+}
+
+/* ---- CSS-generated fake chart/list preview (blurred) ---- */
+.world-root .w-lc-preview {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.55;
+}
+/* Fake bar chart shapes */
+.world-root .w-lc-bar {
+  position: absolute;
+  bottom: 0;
+  border-radius: 4px 4px 2px 2px;
+  background: var(--accent);
+  opacity: 0.35;
+}
+.world-root .w-lc-b1 { left: 10%; width: 10%; height: 38%; background: var(--accent); }
+.world-root .w-lc-b2 { left: 24%; width: 10%; height: 56%; background: var(--gold); }
+.world-root .w-lc-b3 { left: 38%; width: 10%; height: 44%; background: var(--purple); }
+.world-root .w-lc-b4 { left: 52%; width: 10%; height: 70%; background: var(--accent); }
+
+/* Shape variants — shift bars for visual variety */
+.world-root .w-lc-shape-1 .w-lc-b1 { height: 62%; background: var(--purple); }
+.world-root .w-lc-shape-1 .w-lc-b2 { height: 34%; background: var(--accent); }
+.world-root .w-lc-shape-1 .w-lc-b3 { height: 78%; background: var(--gold); }
+.world-root .w-lc-shape-1 .w-lc-b4 { height: 46%; background: var(--purple); }
+
+.world-root .w-lc-shape-2 .w-lc-b1 { left: 8%; width: 14%; height: 52%; background: var(--gold); }
+.world-root .w-lc-shape-2 .w-lc-b2 { left: 26%; width: 8%;  height: 68%; background: var(--accent); }
+.world-root .w-lc-shape-2 .w-lc-b3 { left: 38%; width: 14%; height: 38%; background: var(--purple); }
+.world-root .w-lc-shape-2 .w-lc-b4 { left: 56%; width: 8%;  height: 55%; background: var(--gold); }
+
+.world-root .w-lc-shape-3 .w-lc-b1 { left: 14%; width: 8%;  height: 74%; background: var(--accent); }
+.world-root .w-lc-shape-3 .w-lc-b2 { left: 26%; width: 14%; height: 42%; background: var(--purple); }
+.world-root .w-lc-shape-3 .w-lc-b3 { left: 44%; width: 8%;  height: 60%; background: var(--gold); }
+.world-root .w-lc-shape-3 .w-lc-b4 { left: 56%; width: 14%; height: 36%; background: var(--accent); }
+
+.world-root .w-lc-shape-4 .w-lc-b1 { left: 6%;  width: 12%; height: 48%; background: var(--purple); }
+.world-root .w-lc-shape-4 .w-lc-b2 { left: 22%; width: 12%; height: 82%; background: var(--gold); }
+.world-root .w-lc-shape-4 .w-lc-b3 { left: 40%; width: 12%; height: 56%; background: var(--accent); }
+.world-root .w-lc-shape-4 .w-lc-b4 { left: 58%; width: 12%; height: 66%; background: var(--purple); }
+
+/* Fake sparkline / horizontal lines */
+.world-root .w-lc-line {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  height: 1.5px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+}
+.world-root .w-lc-line.w-lc-l1 { top: 28%; }
+.world-root .w-lc-line.w-lc-l2 { top: 52%; }
+
+/* Fake data dots */
+.world-root .w-lc-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.6;
+}
+.world-root .w-lc-dot.w-lc-d1 { top: 26%; left: 68%; }
+.world-root .w-lc-dot.w-lc-d2 { top: 50%; left: 78%; background: var(--gold); }
+
+/* Blur mask that smears the preview */
+.world-root .w-lc-blur-mask {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+  background: rgba(15, 29, 24, 0.52);
+  pointer-events: none;
+}
+
+/* ---- Card content ---- */
+.world-root .w-lc-body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 18px 16px;
+  flex: 1;
+}
+.world-root .w-lc-group {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.world-root .w-lc-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.world-root .w-lc-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+  flex: 1;
+}
+.world-root .w-lc-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--gold);
+  margin-top: 8px;
+}
+.world-root .w-lc-lock svg {
+  width: 13px;
+  height: 13px;
+  color: var(--gold);
+}
+
+/* ---- Bottom CTA strip ---- */
+.world-root .w-pro-footer-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 24px 28px;
+  background: var(--panel);
+  border: 1px solid rgba(240, 205, 126, 0.2);
+  border-radius: 20px;
+  background: linear-gradient(120deg, rgba(240, 205, 126, 0.06), var(--panel) 55%);
+}
+.world-root .w-pro-footer-copy {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 0;
+  max-width: 480px;
+  line-height: 1.5;
+}
+
+/* ---- Premium active (already subscribed) state ---- */
+.world-root .w-pro-active-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+}
+.world-root .w-pro-active-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  max-width: 440px;
+  padding: 40px 36px;
+  background: var(--panel);
+  border: 1px solid rgba(240, 205, 126, 0.28);
+  border-radius: 24px;
+  background: linear-gradient(150deg, rgba(240, 205, 126, 0.07), var(--panel) 60%);
+  box-shadow: 0 24px 60px -20px rgba(240, 205, 126, 0.12);
+  animation: w-fadeUp 0.35s ease both;
+}
+.world-root .w-pro-active-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: rgba(240, 205, 126, 0.14);
+  color: var(--gold);
+}
+.world-root .w-pro-active-icon svg {
+  width: 28px;
+  height: 28px;
+}
+.world-root .w-pro-active-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0;
+}
+.world-root .w-pro-active-sub {
+  font-size: 14.5px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0;
+}
