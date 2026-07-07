@@ -2,7 +2,7 @@
 
 /**
  * WorldProtected — auth guard for the /world/(app) shell.
- * Unauthenticated users are redirected to /world (the gate), NOT /signup.
+ * Unauthenticated users are redirected to / (the gate), NOT /signup.
  * We do NOT modify the original ProtectedRoute.
  */
 
@@ -20,7 +20,7 @@ export default function WorldProtected({ children }: { children: React.ReactNode
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('redirectAfterSignup', window.location.pathname + window.location.search);
       }
-      router.replace('/world');
+      router.replace('/');
     }
   }, [currentUser, loading, router]);
 

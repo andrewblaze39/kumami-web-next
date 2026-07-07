@@ -1,12 +1,5 @@
-import type { Metadata } from 'next';
-import LoginClient from './LoginClient';
-
-export const metadata: Metadata = {
-  title: 'Log In — Kumami World',
-  description: 'Log in to your Kumami World account.',
-  robots: { index: false, follow: false },
-};
+import { redirect } from 'next/navigation';
 
 export default function LoginPage() {
-  return <LoginClient />;
+  redirect('/');
 }
