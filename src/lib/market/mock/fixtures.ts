@@ -599,15 +599,28 @@ export function makeIntelligencePayload(
   prng: () => number,
   tier: 'free' | 'pro'
 ): IntelligencePayload {
-  const allBriefs = [
+  const allBriefs: Array<{
+    id: string;
+    tier: 'A' | 'B' | 'C';
+    headline: string;
+    category: string;
+    source: string;
+    summary: string;
+    hasProInterpretation: boolean;
+    proInterpretation?: string;
+    assets: string[];
+    ts: string;
+  }> = [
     {
       id: `intel-a1-${hourSeed()}`,
-      tier: 'A' as const,
+      tier: 'A',
       headline: 'Fed minutes signal pause — risk assets pricing in rate-cut delay',
+      // Macro: central-bank policy is a macro driver
       category: 'Macro',
       source: 'Federal Reserve / Bloomberg',
       summary:
         'FOMC minutes revealed broad committee consensus to hold rates steady into Q3. Risk assets pulled back modestly; crypto correlated with equities on the news before recovering.',
+      hasProInterpretation: true,
       proInterpretation:
         'Rate-cut delay typically compresses multiple for risk assets short-term. Watch BTC dominance: if it climbs above 55% while price holds, that is a historically constructive rotation signal.',
       assets: ['BTC', 'ETH', 'SPX'],
@@ -615,12 +628,14 @@ export function makeIntelligencePayload(
     },
     {
       id: `intel-a2-${hourSeed()}`,
-      tier: 'A' as const,
+      tier: 'A',
       headline: 'BlackRock BTC ETF records largest single-day inflow since January',
-      category: 'ETF Flows',
+      // Trade: ETF flows represent institutional buy-side trade activity
+      category: 'Trade',
       source: 'Bloomberg',
       summary:
         'IBIT saw $620M in net inflows yesterday, the largest since the ETF launch surge. Total AUM across US BTC ETFs now exceeds $58B.',
+      hasProInterpretation: true,
       proInterpretation:
         'Sustained ETF inflows of this magnitude historically precede 2–4 week momentum continuation phases. Spot demand is real — watch for futures premium to expand as a confirmation.',
       assets: ['BTC'],
@@ -628,12 +643,14 @@ export function makeIntelligencePayload(
     },
     {
       id: `intel-b1-${hourSeed()}`,
-      tier: 'B' as const,
+      tier: 'B',
       headline: 'SOL ecosystem TVL surpasses $8B — DeFi activity accelerating',
-      category: 'On-Chain',
+      // Narrative: TVL milestone is a sentiment/narrative catalyst for SOL
+      category: 'Narrative',
       source: 'DeFiLlama',
       summary:
         'Total value locked on Solana-based protocols crossed $8B, driven by Kamino Finance and Raydium V3 deployment. Daily active addresses at 6-month highs.',
+      hasProInterpretation: true,
       proInterpretation:
         'TVL expansion with rising active addresses is a healthy growth signal for SOL token value accrual. Monitor for any smart-contract exploit risk given pace of new deployments.',
       assets: ['SOL'],
@@ -641,43 +658,81 @@ export function makeIntelligencePayload(
     },
     {
       id: `intel-b2-${hourSeed()}`,
-      tier: 'B' as const,
+      tier: 'B',
       headline: 'Tether prints $1B USDT on Tron — dry powder signal for alt season',
-      category: 'Stablecoin',
+      // Macro: stablecoin supply expansion is a macro-liquidity signal
+      category: 'Macro',
       source: 'Whale Alert / Tether',
       summary:
         'Tether minted $1B USDT on the Tron network. Stablecoin supply expansion has historically preceded price appreciation across altcoins within 2–4 weeks.',
+      hasProInterpretation: false,
       assets: ['BTC', 'ETH', 'SOL'],
       ts: isoAgo(rnd(prng, 10_800_000, 28_800_000)),
     },
     {
       id: `intel-c1-${hourSeed()}`,
-      tier: 'C' as const,
+      tier: 'C',
       headline: 'Minor network upgrade scheduled for ETH mainnet — no disruption expected',
-      category: 'Protocol',
+      // Regulatory: protocol governance/upgrade falls under regulatory/compliance awareness
+      category: 'Regulatory',
       source: 'Ethereum Foundation',
       summary:
         'A routine EIP implementation is scheduled for the next epoch boundary. Core devs confirm no hard fork; validators advised to update clients within 72 hours.',
+      hasProInterpretation: false,
       assets: ['ETH'],
       ts: isoAgo(rnd(prng, 14_400_000, 43_200_000)),
     },
     {
       id: `intel-c2-${hourSeed()}`,
-      tier: 'C' as const,
+      tier: 'C',
       headline: 'Binance adjusts margin requirements for BNB perpetuals',
-      category: 'Exchange',
+      // Regulatory: exchange rule change is a regulatory/compliance event
+      category: 'Regulatory',
       source: 'Binance',
       summary:
         'Binance raised initial margin requirements for BNB-PERP from 1% to 1.5% effective in 48 hours, citing volatility. Minor impact expected on retail positioning.',
+      hasProInterpretation: false,
       assets: ['BNB'],
       ts: isoAgo(rnd(prng, 21_600_000, 72_000_000)),
     },
+    // ── Macro-calendar item ────────────────────────────────────────────────────
+    {
+      id: `intel-macro-cal-${hourSeed()}`,
+      tier: 'B',
+      headline: 'FOMC rate decision — July 29 · markets pricing 92% hold probability',
+      category: 'Macro',
+      source: 'CME FedWatch / Federal Reserve',
+      summary:
+        'The next FOMC decision is scheduled for July 29. Fed Funds futures imply a 92% probability of a hold. Crypto markets have historically traded sideways ±2 days around decision events.',
+      hasProInterpretation: true,
+      proInterpretation:
+        'Hold decisions with a hawkish statement tend to compress BTC multiples for 3–5 days before normalising. Position size accordingly heading into the event and watch DXY reaction as confirmation.',
+      assets: ['BTC', 'ETH', 'SPX'],
+      ts: isoAgo(rnd(prng, 3_600_000, 10_800_000)),
+    },
+    // ── Token-unlock item ──────────────────────────────────────────────────────
+    {
+      id: `intel-unlock-arb-${hourSeed()}`,
+      tier: 'A',
+      headline: 'ARB unlocks $120M in tokens — July 12 vesting cliff approaching',
+      // Trade: token unlock is a supply-side trade event
+      category: 'Trade',
+      source: 'Token Unlocks / Arbitrum Foundation',
+      summary:
+        'Arbitrum is set to release ~$120M worth of ARB tokens from team and investor vesting on July 12. Historical unlock events for ARB have correlated with 5–12% drawdowns in the 48h window.',
+      hasProInterpretation: true,
+      proInterpretation:
+        'Pre-unlock selling pressure is typically front-run 3–5 days before the cliff. If ARB holds above $0.90 post-unlock, it signals strong absorptive demand. Watch for protocol-revenue metrics as a counter-narrative.',
+      assets: ['ARB'],
+      ts: isoAgo(rnd(prng, 900_000, 3_600_000)),
+    },
   ];
 
-  // Free tier: strip proInterpretation
-  const briefs = tier === 'free'
-    ? allBriefs.map(({ proInterpretation: _pi, ...b }) => b)
-    : allBriefs;
+  // Free tier: strip proInterpretation text but preserve the hasProInterpretation flag
+  const briefs =
+    tier === 'free'
+      ? allBriefs.map(({ proInterpretation: _pi, ...b }) => b)
+      : allBriefs;
 
   return { briefs };
 }

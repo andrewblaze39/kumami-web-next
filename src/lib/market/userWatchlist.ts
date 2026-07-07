@@ -33,6 +33,21 @@ export interface WatchlistDeps {
   getSymbols(uid: string): Promise<string[]>;
   /** Persist the curated symbol list for a user. */
   setSymbols(uid: string, symbols: string[]): Promise<void>;
+  /**
+   * Execute a function atomically (Firestore transaction in production;
+   * serial in-memory execution in tests). The callback receives uid so
+   * implementations can scope reads/writes to the correct document.
+   *
+   * The callback returns the final symbol list, or a WatchlistError on failure.
+   * runTransaction must propagate the return value unchanged.
+   */
+  runTransaction(
+    uid: string,
+    fn: (
+      read: (uid: string) => Promise<string[]>,
+      write: (uid: string, symbols: string[]) => Promise<void>,
+    ) => Promise<string[] | WatchlistError>,
+  ): Promise<string[] | WatchlistError>;
 }
 
 // ---------------------------------------------------------------------------
@@ -54,6 +69,26 @@ function makeFirestoreDeps(): WatchlistDeps {
       const { adminDb } = await import('@/lib/firebase-admin');
       const db = adminDb();
       await db.collection('watchlists').doc(uid).set({ symbols }, { merge: false });
+    },
+    async runTransaction(uid, fn) {
+      const { adminDb } = await import('@/lib/firebase-admin');
+      const db = adminDb();
+      const ref = db.collection('watchlists').doc(uid);
+
+      return db.runTransaction(async (tx) => {
+        // Scoped read/write that operate within the Firestore transaction
+        const txRead = async (_uid: string): Promise<string[]> => {
+          const snap = await tx.get(ref);
+          if (!snap.exists) return [];
+          const data = snap.data();
+          const s = data?.symbols;
+          return Array.isArray(s) ? (s as string[]) : [];
+        };
+        const txWrite = async (_uid: string, symbols: string[]): Promise<void> => {
+          tx.set(ref, { symbols }, { merge: false });
+        };
+        return fn(txRead, txWrite);
+      });
     },
   };
 }
@@ -87,6 +122,9 @@ export async function getCuratedSymbols(
  *   - symbol is not in the allowlist → code: 'invalid_symbol'
  *   - adding would exceed `maxSlots` → code: 'slots_exceeded'
  * Deduplicates silently (adding existing symbol is a no-op, returns current list).
+ *
+ * The read + slot-check + write is executed inside deps.runTransaction so that
+ * concurrent requests cannot race past the slot limit.
  */
 export async function addSymbol(
   uid: string,
@@ -94,26 +132,28 @@ export async function addSymbol(
   maxSlots: number,
   deps: WatchlistDeps = makeFirestoreDeps(),
 ): Promise<string[] | WatchlistError> {
-  // Validate symbol
+  // Validate symbol before entering the transaction (cheap, no I/O)
   if (!(ALLOWED_SYMBOLS as readonly string[]).includes(symbol)) {
     return { code: 'invalid_symbol', message: `Symbol "${symbol}" is not in the allowed list.` };
   }
 
-  const current = await deps.getSymbols(uid);
+  return deps.runTransaction(uid, async (read, write) => {
+    const current = await read(uid);
 
-  // Deduplicate: already present → no-op
-  if (current.includes(symbol)) {
-    return current;
-  }
+    // Deduplicate: already present → no-op (return without write)
+    if (current.includes(symbol)) {
+      return current;
+    }
 
-  // Slot check (Infinity = unlimited for pro)
-  if (Number.isFinite(maxSlots) && current.length >= maxSlots) {
-    return { code: 'slots_exceeded', message: `Watchlist is full (${maxSlots} slots).` };
-  }
+    // Slot check (Infinity = unlimited for pro)
+    if (Number.isFinite(maxSlots) && current.length >= maxSlots) {
+      return { code: 'slots_exceeded', message: `Watchlist is full (${maxSlots} slots).` };
+    }
 
-  const updated = [...current, symbol];
-  await deps.setSymbols(uid, updated);
-  return updated;
+    const updated = [...current, symbol];
+    await write(uid, updated);
+    return updated;
+  });
 }
 
 /**

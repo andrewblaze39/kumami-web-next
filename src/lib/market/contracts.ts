@@ -158,8 +158,26 @@ export type IntelligencePayload = {
     category: string;
     source: string;
     summary: string;
+    /**
+     * Always present on every brief. True when a PRO interpretation exists
+     * for this brief (regardless of whether the text was stripped for free tier).
+     * Client uses this flag to decide whether to render the locked shell.
+     */
+    hasProInterpretation: boolean;
     proInterpretation?: string;
     assets: string[];
     ts: string;
   }[];
+};
+
+/**
+ * Extended GET response from /api/market/watchlist.
+ * Exported so both the route and the page share one canonical type.
+ */
+export type WatchlistApiResponse = {
+  /** null = unlimited (pro); Infinity serialised as null for JSON wire format */
+  slots: number | null;
+  assets: WatchlistPayload['assets'];
+  curatedSymbols: string[];
+  curatedAssets: WatchlistPayload['assets'];
 };

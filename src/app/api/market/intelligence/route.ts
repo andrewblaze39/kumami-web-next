@@ -32,7 +32,8 @@ export async function GET(request: Request) {
   );
 
   if (tier === 'free') {
-    // Strip proInterpretation for free users
+    // Strip proInterpretation text for free users; keep hasProInterpretation flag
+    // so the client can render the locked shell without knowing the text content.
     return NextResponse.json({
       briefs: fullPayload.briefs.map(({ proInterpretation: _pi, ...brief }) => brief),
     });

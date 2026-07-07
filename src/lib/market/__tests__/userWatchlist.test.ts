@@ -28,6 +28,14 @@ function makeDeps(initial: string[] = []): WatchlistDeps & { store: Map<string, 
     async setSymbols(uid: string, symbols: string[]) {
       store.set(uid, [...symbols]);
     },
+    // In-memory transaction: executes fn serially (no concurrency in tests)
+    async runTransaction(uid, fn) {
+      const self = this as WatchlistDeps;
+      return fn(
+        (u) => self.getSymbols(u),
+        (u, syms) => self.setSymbols(u, syms),
+      );
+    },
   };
 }
 
@@ -154,9 +162,11 @@ describe('removeSymbol', () => {
 
   it('does not call setSymbols when symbol was not present', async () => {
     let setCalled = false;
+    // removeSymbol only uses getSymbols/setSymbols; runTransaction is not called.
     const deps: WatchlistDeps = {
       async getSymbols() { return ['BTC']; },
       async setSymbols() { setCalled = true; },
+      async runTransaction(_uid, fn) { return fn(this.getSymbols.bind(this), this.setSymbols.bind(this)); },
     };
     await removeSymbol('uid', 'SOL', deps);
     expect(setCalled).toBe(false);

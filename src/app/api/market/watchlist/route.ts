@@ -30,6 +30,7 @@ import { authenticate } from '@/lib/market/api-helpers';
 import { getProvider } from '@/lib/market/provider';
 import { getCached } from '@/lib/market/cache';
 import { watchlistSlots } from '@/lib/market/gating';
+import type { WatchlistApiResponse } from '@/lib/market/contracts';
 import {
   getCuratedSymbols,
   addSymbol,
@@ -50,7 +51,8 @@ export async function GET(request: Request) {
   if (auth instanceof NextResponse) return auth;
   const { uid, tier } = auth;
 
-  // Radar watchlist — cached per uid
+  // Full pro-tier payload cached 300s per uid — used for both radar and
+  // curated asset rows so we only call the provider once.
   const fullPayload = await getCached(
     `market:watchlist:${uid}`,
     300,
@@ -65,26 +67,22 @@ export async function GET(request: Request) {
   // Curated symbols — always fresh (user edits must reflect immediately)
   const curatedSymbols = await getCuratedSymbols(uid);
 
-  // Build market rows for curated symbols. Re-use any matching rows from
-  // the full payload (radar already has rows for common symbols). For symbols
-  // not in the radar list, generate rows from the full mock payload keyed by
-  // symbol using a second provider call.
-  const radarBySymbol = new Map(fullPayload.assets.map(a => [a.asset, a]));
-
-  // Full mock payload has rows for all 10 assets
-  const fullMock = await getProvider().watchlist(uid, 'pro');
-  const allBySymbol = new Map(fullMock.assets.map(a => [a.asset, a]));
+  // Build market rows for curated symbols. Re-use rows from the cached
+  // full payload (which covers all 10 assets) keyed by symbol.
+  const allBySymbol = new Map(fullPayload.assets.map(a => [a.asset, a]));
 
   const curatedAssets = curatedSymbols
-    .map(sym => radarBySymbol.get(sym) ?? allBySymbol.get(sym))
+    .map(sym => allBySymbol.get(sym))
     .filter(Boolean);
 
-  return NextResponse.json({
+  const body: WatchlistApiResponse = {
     slots: serialiseSlots(slots),
     assets: cappedAssets,
     curatedSymbols,
-    curatedAssets,
-  });
+    curatedAssets: curatedAssets as WatchlistApiResponse['curatedAssets'],
+  };
+
+  return NextResponse.json(body);
 }
 
 export async function POST(request: Request) {

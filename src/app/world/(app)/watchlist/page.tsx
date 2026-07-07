@@ -16,24 +16,30 @@
  */
 
 import { useState, useCallback } from 'react';
-import type { WatchlistPayload } from '@/lib/market/contracts';
+import type { WatchlistApiResponse } from '@/lib/market/contracts';
 import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatPrice, formatChange, relativeTime } from '@/components/world/panels/format';
 import Link from 'next/link';
 
+// Convenience alias for the asset row shape
+type WatchlistAsset = WatchlistApiResponse['assets'][number];
+
 // ---------------------------------------------------------------------------
-// Extended GET response shape (watchlist route returns curated fields too)
+// Error-code → friendly message mapping (Issue #9)
 // ---------------------------------------------------------------------------
 
-type WatchlistAsset = WatchlistPayload['assets'][number];
-
-interface WatchlistResponse {
-  /** null = unlimited (pro); mirrors WatchlistPayload.slots but serialised over JSON */
-  slots: number | null;
-  assets: WatchlistAsset[];
-  curatedSymbols: string[];
-  curatedAssets: WatchlistAsset[];
+function friendlyAddError(code: string, atLimit: boolean): string {
+  if (code === 'slots_exceeded' || atLimit) {
+    return 'Your watchlist is full. Upgrade to PRO for unlimited slots.';
+  }
+  if (code === 'invalid_symbol') {
+    return "That asset isn't supported yet.";
+  }
+  if (code === 'Network error — please try again.') {
+    return code; // already human-readable
+  }
+  return 'Something went wrong — please try again.';
 }
 
 // ---------------------------------------------------------------------------
@@ -134,7 +140,7 @@ export default function WatchlistPage() {
   const { currentUser, userData } = useAuth();
   const isPremium = userData?.isPremium === true;
 
-  const endpoint = useMarketEndpoint<WatchlistResponse>('/api/market/watchlist');
+  const endpoint = useMarketEndpoint<WatchlistApiResponse>('/api/market/watchlist');
   const data = endpoint.data;
 
   const [addSymbol, setAddSymbol] = useState('');
@@ -168,10 +174,10 @@ export default function WatchlistPage() {
         body: JSON.stringify({ symbol: addSymbol }),
       });
       if (res.status === 403) {
-        setAddError('Watchlist is full. Unlock unlimited slots with PRO.');
+        setAddError('slots_exceeded');
       } else if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setAddError((body as { error?: string }).error ?? 'Failed to add symbol.');
+        setAddError((body as { error?: string }).error ?? 'unknown');
       } else {
         setAddSymbol('');
         endpoint.refetch();
@@ -204,9 +210,8 @@ export default function WatchlistPage() {
   const isLoading = endpoint.status === 'loading';
   const hasError  = endpoint.status === 'error' && !endpoint.data;
 
-  const updatedAt = data?.assets[0]
-    ? new Date().toISOString() // no explicit updatedAt on watchlist rows; use now
-    : null;
+  // Omit timestamp entirely — watchlist asset rows don't carry an updatedAt field
+  // and fabricating new Date() would show "just now" on every render.
 
   return (
     <div className="w-content-inner w-watchlist">
@@ -217,9 +222,6 @@ export default function WatchlistPage() {
           <h1 className="w-page-title">Watchlist</h1>
           <p className="w-page-sub">Track your assets and smart-money signals.</p>
         </div>
-        {updatedAt && (
-          <span className="w-watchlist-updated">Updated {relativeTime(updatedAt)}</span>
-        )}
       </div>
 
       {/* ── Error ── */}
@@ -277,8 +279,8 @@ export default function WatchlistPage() {
         {/* Add error / upsell */}
         {addError && (
           <div className="w-wl-add-error" role="alert">
-            <span>{addError}</span>
-            {atLimit && !isPremium && (
+            <span>{friendlyAddError(addError, atLimit)}</span>
+            {(addError === 'slots_exceeded' || atLimit) && !isPremium && (
               <Link href="/world/pro" className="w-wl-upsell-link">Unlock PRO</Link>
             )}
           </div>
@@ -320,9 +322,10 @@ export default function WatchlistPage() {
           ════════════════════════════════════ */}
       <section className="w-watchlist-section">
         <div className="w-watchlist-section-head">
-          <h2 className="w-watchlist-section-title">
+          {/* Accessible text: "Radar Watchlist · auto-detected" (Issue #8) */}
+          <h2 className="w-watchlist-section-title" aria-label="Radar Watchlist · auto-detected">
             Radar Watchlist
-            <span className="w-watchlist-section-badge">auto-detected</span>
+            <span className="w-watchlist-section-badge" aria-hidden="true">· auto-detected</span>
           </h2>
           <span className="w-watchlist-section-sub">Top assets by signal strength · read-only</span>
         </div>

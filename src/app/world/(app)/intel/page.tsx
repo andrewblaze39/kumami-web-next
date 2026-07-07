@@ -7,15 +7,17 @@
  * Supports client-side filtering by category + asset.
  *
  * PRO layer:
- *   - Free tier: server strips proInterpretation. Tier-A briefs render a
- *     blurred locked block with placeholder lines (content never sent).
+ *   - Free tier: server strips proInterpretation text but preserves
+ *     hasProInterpretation flag. Client shows locked shell when
+ *     !isPremium && brief.hasProInterpretation.
  *   - Pro tier: full proInterpretation text rendered beneath the summary.
  *
  * Macro-calendar and token-unlock items arrive as regular brief rows with
- * their own category values (e.g. "Macro", "Protocol") — rendered normally.
+ * their own category values (e.g. "Macro", "Trade") — rendered normally.
  */
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState, useMemo } from 'react';
 import type { IntelligencePayload } from '@/lib/market/contracts';
 import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
@@ -34,10 +36,10 @@ const TIER_CLASSES: Record<string, string> = {
 };
 
 // ---------------------------------------------------------------------------
-// Category chips
+// Category chips — must match the categories used in fixtures
 // ---------------------------------------------------------------------------
 
-const CATEGORY_CHIPS = ['All', 'Regulatory', 'Trade', 'Narrative', 'Macro'];
+const CATEGORY_CHIPS = ['All', 'Macro', 'Trade', 'Narrative', 'Regulatory'];
 
 // ---------------------------------------------------------------------------
 // Skeleton rows
@@ -59,10 +61,11 @@ function SkeletonRow() {
 }
 
 // ---------------------------------------------------------------------------
-// PRO locked block (free user + tier-A brief)
+// PRO locked block (free user + brief with hasProInterpretation)
 // ---------------------------------------------------------------------------
 
 function ProLockedBlock() {
+  const router = useRouter();
   return (
     <div className="w-intel-pro-locked" aria-label="PRO interpretation — locked">
       <div className="w-intel-pro-blur-wrap" aria-hidden="true">
@@ -74,7 +77,14 @@ function ProLockedBlock() {
           <rect x="4.5" y="10.5" width="15" height="10" rx="2.5" /><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
         </svg>
         <span>Unlock PRO interpretation</span>
-        <Link href="/world/pro" className="w-intel-pro-cta">Go PRO</Link>
+        {/* button prevents a nested anchor (the outer BriefRow is a Link) */}
+        <button
+          type="button"
+          className="w-intel-pro-cta"
+          onClick={e => { e.stopPropagation(); e.preventDefault(); router.push('/world/pro'); }}
+        >
+          Go PRO
+        </button>
       </div>
     </div>
   );
@@ -88,7 +98,8 @@ type Brief = IntelligencePayload['briefs'][number];
 
 function BriefRow({ brief, isPremium }: { brief: Brief; isPremium: boolean }) {
   const showProContent = isPremium && brief.proInterpretation;
-  const showLockedShell = !isPremium && brief.tier === 'A';
+  // Use server-provided flag — don't infer from tier (server strips text but keeps flag)
+  const showLockedShell = !isPremium && brief.hasProInterpretation;
 
   return (
     <Link href={`/world/intel/${brief.id}`} className="w-intel-row" aria-label={brief.headline}>
@@ -239,10 +250,10 @@ export default function IntelPage() {
         )}
       </div>
 
-      {/* ── Updated timestamp ── */}
-      {intel.data && (
+      {/* ── Updated timestamp — only show when a real timestamp is available ── */}
+      {intel.data && briefs[0]?.ts && (
         <p className="w-intel-updated">
-          Feed updated {relativeTime(briefs[0]?.ts ?? new Date().toISOString())}
+          Feed updated {relativeTime(briefs[0].ts)}
         </p>
       )}
     </div>

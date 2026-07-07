@@ -38,6 +38,7 @@ function BackLink() {
 }
 
 function ProLockedBlock() {
+  // On the detail page there is no outer Link, so a plain Link is fine here.
   return (
     <div className="w-intel-pro-locked w-intel-detail-pro-locked" aria-label="PRO interpretation — locked">
       <div className="w-intel-pro-blur-wrap" aria-hidden="true">
@@ -118,7 +119,8 @@ export default function IntelDetailPage({ params }: Props) {
   if (!brief) return null;
 
   const showProContent = isPremium && brief.proInterpretation;
-  const showLockedShell = !isPremium && brief.tier === 'A';
+  // Use server-provided flag — avoids inferring from tier (server strips text but keeps flag)
+  const showLockedShell = !isPremium && brief.hasProInterpretation;
 
   return (
     <div className="w-content-inner w-intel-detail">
