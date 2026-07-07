@@ -20,6 +20,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import PiPVideo from './PiPVideo';
 import type { CourseDoc, CourseChapter, CoursePart } from '@/lib/education/courses';
 
+// ---------- Constants ----------
+
+const NOTE_CAP = 5000;
+
 // ---------- Types ----------
 
 interface ChapterReaderProps {
@@ -40,7 +44,10 @@ function useChapterProgress(
 ) {
   const { currentUser, loading } = useAuth();
   const [completedParts, setCompletedParts] = useState<Set<string>>(new Set());
+  // I1: notes initialised from server on load; keys added as user types (dirty tracking)
   const [notes, setNotes] = useState<Record<string, string>>({});
+  // Track which partIds the user has edited in this session (I1: dirty tracking)
+  const dirtyParts = useRef<Set<string>>(new Set());
   const [progressLoading, setProgressLoading] = useState(true);
   const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
@@ -68,6 +75,18 @@ function useChapterProgress(
         if (entry?.completedParts) {
           setCompletedParts(new Set(entry.completedParts));
         }
+        // I1 fix: hydrate notes from server, but only for keys the user hasn't typed
+        // into yet (dirtyParts is empty at load time, so all server notes are safe to set)
+        if (entry?.notes && typeof entry.notes === 'object') {
+          setNotes(prev => {
+            const merged: Record<string, string> = { ...entry.notes };
+            // Any key the user already touched stays as-is
+            for (const key of dirtyParts.current) {
+              if (key in prev) merged[key] = prev[key];
+            }
+            return merged;
+          });
+        }
       } catch {
         // Silently ignore — progress is advisory
       } finally {
@@ -78,14 +97,23 @@ function useChapterProgress(
     return () => { cancelled = true; };
   }, [currentUser, loading, courseId]);
 
+  // Clear debounce timers on unmount (I2 fix)
+  useEffect(() => {
+    const timers = debounceTimers.current;
+    return () => {
+      for (const id of Object.values(timers)) clearTimeout(id);
+    };
+  }, []);
+
   const writeProgress = useCallback(
-    async (partId: string, done: boolean, note?: string) => {
-      if (!currentUser) return;
+    async (partId: string, done?: boolean, note?: string): Promise<boolean> => {
+      if (!currentUser) return false;
       try {
         const token = await currentUser.getIdToken();
-        const body: Record<string, unknown> = { courseId, partId, done };
+        const body: Record<string, unknown> = { courseId, partId };
+        if (done !== undefined) body.done = done;
         if (note !== undefined) body.note = note;
-        await fetch('/api/education/progress', {
+        const res = await fetch('/api/education/progress', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -93,55 +121,89 @@ function useChapterProgress(
           },
           body: JSON.stringify(body),
         });
+        return res.ok;
       } catch {
-        // Fire-and-forget — UI already optimistically updated
+        return false;
       }
     },
     [currentUser, courseId],
   );
 
+  // Per-part inline error state for failed done-toggles (minor: surface failures)
+  const [partErrors, setPartErrors] = useState<Record<string, string>>({});
+
   const togglePart = useCallback(
     (partId: string) => {
+      // Optimistic update
+      let wasChecked = false;
       setCompletedParts(prev => {
         const next = new Set(prev);
         const done = !next.has(partId);
+        wasChecked = !done; // true when we're un-checking
         if (done) next.add(partId);
         else next.delete(partId);
-        writeProgress(partId, done, notes[partId]);
         return next;
       });
+      setPartErrors(prev => ({ ...prev, [partId]: '' }));
+
+      // Fire-and-forget with revert on failure
+      // Read the desired done state from the set above
+      setCompletedParts(prev => {
+        const done = prev.has(partId);
+        writeProgress(partId, done).then(ok => {
+          if (!ok) {
+            // Revert optimistic update
+            setCompletedParts(p => {
+              const reverted = new Set(p);
+              if (wasChecked) reverted.add(partId);
+              else reverted.delete(partId);
+              return reverted;
+            });
+            setPartErrors(pe => ({ ...pe, [partId]: 'Could not save — please try again.' }));
+          }
+        });
+        return prev; // no change; side-effect only
+      });
     },
-    [writeProgress, notes],
+    [writeProgress],
   );
 
   const updateNote = useCallback(
     (partId: string, value: string) => {
-      setNotes(prev => ({ ...prev, [partId]: value }));
-      // Debounced save (1.2 s)
+      // Clamp to cap defensively on the way in
+      const clamped = value.slice(0, NOTE_CAP);
+      setNotes(prev => ({ ...prev, [partId]: clamped }));
+      dirtyParts.current.add(partId);
+      // I2 fix: debounce timer only sends note (no done) — avoids stale-closure race
       clearTimeout(debounceTimers.current[partId]);
       debounceTimers.current[partId] = setTimeout(() => {
-        writeProgress(partId, completedParts.has(partId), value);
+        writeProgress(partId, undefined, clamped);
       }, 1200);
     },
-    [writeProgress, completedParts],
+    [writeProgress],
   );
 
   const saveNoteNow = useCallback(
     (partId: string) => {
+      // I1 fix: only save if the user has actually typed in this part
+      if (!dirtyParts.current.has(partId)) return;
       clearTimeout(debounceTimers.current[partId]);
-      writeProgress(partId, completedParts.has(partId), notes[partId] ?? '');
+      // I2 fix: note-only save — no done flag
+      writeProgress(partId, undefined, notes[partId] ?? '');
     },
-    [writeProgress, completedParts, notes],
+    [writeProgress, notes],
   );
 
   // Ignore chapterId and parts in dep array — they're stable per page render
   void chapterId;
   void parts;
+  void initialPartId;
 
   return {
     completedParts,
     notes,
     progressLoading,
+    partErrors,
     togglePart,
     updateNote,
     saveNoteNow,
@@ -156,6 +218,7 @@ function PartBlock({
   totalParts,
   done,
   note,
+  error,
   onToggle,
   onNoteChange,
   onNoteBlur,
@@ -167,6 +230,7 @@ function PartBlock({
   totalParts: number;
   done: boolean;
   note: string;
+  error?: string;
   onToggle: () => void;
   onNoteChange: (v: string) => void;
   onNoteBlur: () => void;
@@ -177,6 +241,7 @@ function PartBlock({
     <section
       id={`part-${part.id}`}
       ref={partRef}
+      tabIndex={-1}
       className={`w-chapter-part${done ? ' done' : ''}${isActive ? ' w-chapter-part-active' : ''}`}
       aria-label={`Part ${partIndex + 1} of ${totalParts}: ${part.title}`}
     >
@@ -200,7 +265,8 @@ function PartBlock({
       {/* Content */}
       {part.type === 'video' && part.videoUrl ? (
         <div className="w-part-video-wrap">
-          <PiPVideo src={part.videoUrl} title={part.title} />
+          {/* I7: pass aspect from course doc, auto-detect for Shorts when absent */}
+          <PiPVideo src={part.videoUrl} title={part.title} aspect={part.aspect} />
         </div>
       ) : part.type === 'video' ? (
         <div className="w-part-placeholder w-part-placeholder-video">
@@ -236,6 +302,7 @@ function PartBlock({
           onBlur={onNoteBlur}
           placeholder="Add a note for this part…"
           rows={3}
+          maxLength={NOTE_CAP}
         />
       </div>
 
@@ -257,6 +324,11 @@ function PartBlock({
           </span>
           Mark as complete
         </label>
+        {error && (
+          <span className="w-part-error" role="alert" aria-live="polite">
+            {error}
+          </span>
+        )}
       </div>
     </section>
   );
@@ -270,7 +342,7 @@ export default function ChapterReader({
   chapterIndex,
   initialPartId,
 }: ChapterReaderProps) {
-  const { completedParts, notes, progressLoading, togglePart, updateNote, saveNoteNow } =
+  const { completedParts, notes, progressLoading, partErrors, togglePart, updateNote, saveNoteNow } =
     useChapterProgress(course.courseId, chapter.id, chapter.parts, initialPartId);
 
   // Track which part is "active" (in view / scrolled to)
@@ -281,21 +353,29 @@ export default function ChapterReader({
   // Refs for each part section — used for scroll-to and IntersectionObserver
   const partRefs = useRef<Record<string, HTMLElement | null>>({});
 
-  // Scroll to initialPartId on mount
+  // C2 fix: guard so initial-scroll only fires once after parts are mounted
+  const didScrollRef = useRef(false);
+
+  // C2 fix: scroll to initialPartId after parts mount (progressLoading → false)
   useEffect(() => {
+    if (progressLoading) return;       // bail until PartBlocks are mounted
     if (!initialPartId) return;
+    if (didScrollRef.current) return;  // only scroll once
+    didScrollRef.current = true;
+
     const el = partRefs.current[initialPartId];
     if (el) {
-      // Small delay so layout is fully painted before scrolling
       setTimeout(() => {
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         el.focus({ preventScroll: true });
       }, 80);
     }
-  }, [initialPartId]);
+  }, [initialPartId, progressLoading]);
 
-  // IntersectionObserver: track which part is in the viewport
+  // C2 fix: IntersectionObserver also waits until parts are mounted
   useEffect(() => {
+    if (progressLoading) return;       // bail until PartBlocks are mounted
+
     const observers: IntersectionObserver[] = [];
     chapter.parts.forEach(part => {
       const el = partRefs.current[part.id];
@@ -310,7 +390,7 @@ export default function ChapterReader({
       observers.push(obs);
     });
     return () => observers.forEach(o => o.disconnect());
-  }, [chapter.parts]);
+  }, [chapter.parts, progressLoading]);
 
   // Navigation helpers
   const prevChapter = chapterIndex > 0 ? course.chapters[chapterIndex - 1] : null;
@@ -323,14 +403,12 @@ export default function ChapterReader({
 
   const handleContinue = () => {
     if (nextPartInChapter) {
-      // Scroll to next part in chapter
       const el = partRefs.current[nextPartInChapter.id];
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         setActivePartId(nextPartInChapter.id);
       }
     }
-    // Navigation to next chapter is handled via the Link below
   };
 
   const courseHref = `/world/courses/${course.courseId}`;
@@ -387,6 +465,7 @@ export default function ChapterReader({
               totalParts={chapter.parts.length}
               done={completedParts.has(part.id)}
               note={notes[part.id] ?? ''}
+              error={partErrors[part.id]}
               onToggle={() => togglePart(part.id)}
               onNoteChange={v => updateNote(part.id, v)}
               onNoteBlur={() => saveNoteNow(part.id)}

@@ -40,6 +40,8 @@ export interface CoursePart {
   title: string;
   type: 'text' | 'video';
   videoUrl?: string;
+  /** Optional aspect ratio override for video parts. Shorts auto-detect 9:16 when absent. */
+  aspect?: '16:9' | '9:16';
 }
 
 export interface CourseChapter {

@@ -58,6 +58,27 @@ describe('getUserCourseProgress()', () => {
     expect(phase1.lastPartId).toBe('p1-l2');
   });
 
+  // I1: notes are included in the GET response
+  it('(I1) includes notes from the Firestore doc in each progress entry', async () => {
+    const docs = {
+      [`course_progress/${TEST_UID}/courses/phase-1`]: {
+        completedParts: ['p1-l1'],
+        lastPartId: 'p1-l1',
+        notes: { 'p1-l1': 'My first note' },
+      },
+    };
+    const result = await getUserCourseProgress(TEST_UID, makeDeps(docs));
+    const phase1 = result.find(r => r.courseId === 'phase-1')!;
+    expect(phase1.notes).toEqual({ 'p1-l1': 'My first note' });
+  });
+
+  it('(I1) returns empty notes object when doc has no notes field', async () => {
+    const result = await getUserCourseProgress(TEST_UID, makeDeps({}));
+    for (const entry of result) {
+      expect(entry.notes).toEqual({});
+    }
+  });
+
   it('courseIds in response match journey phase slugs', async () => {
     const result = await getUserCourseProgress(TEST_UID, makeDeps({}));
     const ids = result.map(r => r.courseId);

@@ -10,9 +10,6 @@
  *   notes: Record<partId, string>   ← optional per-part note
  * }
  *
- * The total part count is derived from journeyData (1 part per lesson) so
- * this module works pre-seed with no Firestore docs.
- *
  * All deps are injectable — unit tests never touch real Firebase.
  */
 
@@ -34,6 +31,8 @@ export interface CourseProgress {
   lastPartId: string | null;
   /** Total parts in the course (derived from journeyData — 1 part per lesson). */
   totalParts: number;
+  /** Per-part notes keyed by partId. */
+  notes: Record<string, string>;
 }
 
 export interface ProgressDeps {
@@ -49,7 +48,12 @@ export interface ProgressDeps {
 export interface MarkPartPayload {
   courseId: string;
   partId: string;
-  done: boolean;
+  /**
+   * When provided: toggles completedParts (true = add, false = remove).
+   * When omitted: only the note is updated; completedParts is untouched.
+   * I2 fix: decouples note debounce saves from done-toggle to prevent stale-closure races.
+   */
+  done?: boolean;
   note?: string;
 }
 
@@ -59,10 +63,16 @@ export type WriteProgressResult =
 
 /**
  * Writable dep — merges a partial doc into course_progress/{uid}/courses/{courseId}.
+ * Must NEVER receive undefined values (firebase-admin rejects them).
  */
 export interface WriteProgressDeps {
   setDoc: (path: string, data: Partial<ProgressDoc> & { updatedAt: unknown }) => Promise<void>;
   getDoc: (path: string) => Promise<ProgressDoc | null>;
+  /**
+   * Injectable for I4: look up the set of valid partIds for a course.
+   * Returns null to fall back to journeyData lesson ids.
+   */
+  getCoursePartIds?: (courseId: string) => Promise<string[] | null>;
 }
 
 // ---------- Default Firestore dep ----------
@@ -94,7 +104,7 @@ function totalPartsMap(): Record<string, number> {
 
 /**
  * Fetch per-phase progress for a user.
- * Returns one entry per journey phase.
+ * Returns one entry per journey phase, including notes (I1 fix).
  */
 export async function getUserCourseProgress(
   uid: string,
@@ -111,6 +121,7 @@ export async function getUserCourseProgress(
         completedParts: doc?.completedParts ?? [],
         lastPartId: doc?.lastPartId ?? null,
         totalParts: totals[phase.courseId] ?? 0,
+        notes: doc?.notes ?? {},
       } satisfies CourseProgress;
     }),
   );
@@ -129,44 +140,89 @@ export async function defaultSetDoc(
   await db.doc(path).set(data, { merge: true });
 }
 
-// ---------- Write helper ----------
+/**
+ * Default injectable for I4: resolves actual part IDs from the seeded course doc.
+ * Falls back to journeyData lesson IDs (via returning null) when db is unavailable.
+ */
+export async function defaultGetCoursePartIds(courseId: string): Promise<string[] | null> {
+  try {
+    // Dynamically import to keep this module server-only and avoid circular deps at test time
+    const { getCourseDoc } = await import('./courses');
+    const doc = await getCourseDoc(courseId);
+    if (!doc) return null;
+    return doc.chapters.flatMap(ch => ch.parts.map(p => p.id));
+  } catch {
+    return null;
+  }
+}
+
+// ---------- Validation ----------
 
 /**
- * Validate that:
- * - courseId is a known journey phase
- * - partId exists within that course's lessons
+ * Validate courseId + partId.
  *
- * Returns an error string on failure, undefined on success.
- * Validates against journeyData only (always available, no Firestore needed).
+ * I4 fix: validates courseId cheaply against journeyData; validates partId against
+ * the actual course doc's parts (via getCoursePartIds dep), falling back to
+ * journeyData lesson ids when the dep returns null.
+ *
+ * @param getCoursePartIds - injectable; return null to use journeyData fallback
  */
-function validateCourseAndPart(courseId: string, partId: string): string | undefined {
+async function validateCourseAndPart(
+  courseId: string,
+  partId: string,
+  getCoursePartIds: (courseId: string) => Promise<string[] | null>,
+): Promise<string | undefined> {
+  // Cheap courseId check against journeyData
   const phase = getPhaseById(courseId);
   if (!phase) return `Unknown courseId: "${courseId}"`;
-  const partExists = phase.lessons.some(l => l.id === partId);
+
+  // Part validation: prefer actual course doc, fall back to journeyData
+  let validPartIds: string[] | null = await getCoursePartIds(courseId);
+  if (!validPartIds) {
+    // Fallback: journeyData lesson ids (one part per lesson)
+    validPartIds = phase.lessons.map(l => l.id);
+  }
+
+  const partExists = validPartIds.includes(partId);
   if (!partExists) return `Unknown partId: "${partId}" for course "${courseId}"`;
   return undefined;
 }
 
+// ---------- Write helper ----------
+
 /**
  * Mark a part as done or not-done, optionally saving a note.
  *
- * - done=true  → arrayUnion-style: adds partId if not already present; dedupes
+ * - done=true  → adds partId if not already present; dedupes
  * - done=false → removes partId from completedParts
+ * - done=undefined → note-only save; completedParts untouched (I2 fix)
  * - note       → persisted to notes.{partId} (empty string clears it)
- * - lastPartId → always set to partId on done=true
+ * - lastPartId → only set when done=true
  *
- * Validates courseId and partId against journeyData (fast, no Firestore read).
+ * I3 fix: lastPartId is omitted from the Firestore payload (never undefined written).
+ *
  * Returns WriteProgressResult — never throws.
  */
 export async function markPartDone(
   uid: string,
   payload: MarkPartPayload,
-  deps: WriteProgressDeps = { getDoc: defaultGetDoc, setDoc: defaultSetDoc },
+  deps: WriteProgressDeps = {
+    getDoc: defaultGetDoc,
+    setDoc: defaultSetDoc,
+    getCoursePartIds: defaultGetCoursePartIds,
+  },
 ): Promise<WriteProgressResult> {
   const { courseId, partId, done, note } = payload;
 
-  // Validate inputs
-  const validationError = validateCourseAndPart(courseId, partId);
+  // I5: note length cap (defense-in-depth; route also validates before calling this)
+  const NOTE_CAP = 5000;
+  if (typeof note === 'string' && note.length > NOTE_CAP) {
+    return { success: false, error: 'note_too_long', status: 400 };
+  }
+
+  // Validate inputs (I4 fix: uses injectable getCoursePartIds)
+  const getPartIds = deps.getCoursePartIds ?? defaultGetCoursePartIds;
+  const validationError = await validateCourseAndPart(courseId, partId, getPartIds);
   if (validationError) {
     return { success: false, error: validationError, status: 400 };
   }
@@ -174,25 +230,26 @@ export async function markPartDone(
   const docPath = `course_progress/${uid}/courses/${courseId}`;
 
   try {
-    // Read current state (so we can compute the new completedParts client-side)
+    // Read current state
     const current = await deps.getDoc(docPath);
     const existing: string[] = current?.completedParts ?? [];
     const existingNotes: Record<string, string> = current?.notes ?? {};
 
-    // Compute new completedParts
+    // Compute new completedParts (only when done is specified)
     let newCompleted: string[];
-    if (done) {
-      // arrayUnion — add and dedupe
-      newCompleted = existing.includes(partId)
-        ? existing
-        : [...existing, partId];
-    } else {
-      // remove
+    if (done === true) {
+      newCompleted = existing.includes(partId) ? existing : [...existing, partId];
+    } else if (done === false) {
       newCompleted = existing.filter(id => id !== partId);
+    } else {
+      // done === undefined → note-only save, leave completedParts unchanged
+      newCompleted = existing;
     }
 
-    // Determine new lastPartId
-    const newLastPartId = done ? partId : (current?.lastPartId ?? null);
+    // Determine new lastPartId — only update when marking done=true
+    // I3 fix: never write undefined to Firestore; conditionally include key
+    const newLastPartId: string | null =
+      done === true ? partId : (current?.lastPartId ?? null);
 
     // Build notes patch
     const newNotes: Record<string, string> = { ...existingNotes };
@@ -200,13 +257,17 @@ export async function markPartDone(
       newNotes[partId] = note;
     }
 
-    // Write merged doc
-    await deps.setDoc(docPath, {
+    // Build write payload — omit lastPartId key when null (I3 fix)
+    const writePayload: Partial<ProgressDoc> & { updatedAt: unknown } = {
       completedParts: newCompleted,
-      lastPartId: newLastPartId ?? undefined,
       notes: newNotes,
       updatedAt: new Date().toISOString(),
-    });
+    };
+    if (newLastPartId !== null) {
+      writePayload.lastPartId = newLastPartId;
+    }
+
+    await deps.setDoc(docPath, writePayload);
 
     return {
       success: true,

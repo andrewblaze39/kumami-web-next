@@ -4,55 +4,114 @@
  * PiPVideo — Embeds a video (YouTube iframe or direct <video>) and activates a
  * fixed Picture-in-Picture mini-player when the video scrolls out of view.
  *
- * PiP strategy: CSS-only class swap on the same element.
- *   - No clone/move: the same DOM node stays mounted so playback is never interrupted.
- *   - We toggle a `.w-pip-active` class on the wrapper div; CSS makes it fixed-position
- *     in the bottom-right corner.
- *   - Works for both iframes and <video> elements without touching the media element itself.
+ * PiP strategy: sentinel + inner wrapper CSS class swap.
+ *   - An outer "sentinel" div always stays in normal document flow, preserving layout.
+ *     The sentinel has an aspect-ratio so it holds its space (no layout shift).
+ *   - We observe the SENTINEL; when it leaves the viewport we add .w-pip-active to the
+ *     inner wrapper. The inner wrapper is what becomes position:fixed.
+ *   - The media element (iframe/<video>) sits inside the inner wrapper and never
+ *     remounts, so playback is never interrupted.
  *
  * PiP activation note for iframes (YouTube):
  *   IntersectionObserver cannot reliably detect whether a YouTube iframe is currently
  *   playing — cross-origin restrictions prevent reading playback state. Therefore, PiP
  *   activates on scroll-out regardless of playback state. This is acceptable UX because
- *   the mini player is small and has a close button. If the user isn't playing yet, the
- *   mini player will simply show a paused frame.
+ *   the mini player is small and has a close button.
  *
- * For direct <video> elements, we additionally listen to the `play` / `pause` events
+ * For direct <video> elements we additionally listen to the `play` / `pause` events
  * to only activate PiP while the video is actually playing.
+ *
+ * URL handling (I6):
+ *   - youtube.com / youtu.be / www.youtube.com / youtube-nocookie.com / youtu.be →
+ *     converted to https://www.youtube-nocookie.com/embed/<id>
+ *   - shorts/<id> → embed + 9:16 aspect (auto)
+ *   - Non-YouTube http(s) → <video>
+ *   - Invalid / other scheme → render nothing
  */
 
 import { useRef, useEffect, useState, useCallback } from 'react';
+
+const NOTE_CAP = 5000; // kept here for reference; cap is enforced in textarea maxLength
 
 interface PiPVideoProps {
   /** Full YouTube URL or direct video file URL */
   src: string;
   /** Title for accessibility */
   title: string;
-  /** Aspect ratio hint — auto-detected from the URL if possible */
+  /** Explicit aspect ratio override. Auto-detected for Shorts URLs if absent. */
   aspect?: '16:9' | '9:16';
   className?: string;
 }
 
-/** Detect if the URL is a YouTube link. */
-function isYouTubeUrl(url: string): boolean {
-  return /youtu(be\.com|\.be)/i.test(url);
+// ---------- URL parsing helpers (I6) ----------
+
+interface ParsedVideo {
+  type: 'youtube' | 'direct' | 'invalid';
+  /** Embed URL (youtube only) */
+  embedSrc?: string;
+  /** Auto-detected aspect from URL (Shorts → 9:16) */
+  detectedAspect?: '16:9' | '9:16';
 }
 
-/** Convert a YouTube watch URL to its embed form. */
-function toYouTubeEmbed(url: string): string {
-  // Already an embed URL
-  if (url.includes('youtube.com/embed/')) return url;
-  // youtu.be/<id>
-  const shortMatch = url.match(/youtu\.be\/([^?&]+)/);
-  if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
-  // youtube.com/watch?v=<id>
-  const watchMatch = url.match(/[?&]v=([^&]+)/);
-  if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
-  return url;
+const YT_HOSTNAMES = new Set([
+  'www.youtube.com',
+  'youtube.com',
+  'youtu.be',
+  'www.youtu.be',
+  'www.youtube-nocookie.com',
+  'youtube-nocookie.com',
+]);
+
+function parseVideoUrl(raw: string): ParsedVideo {
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return { type: 'invalid' };
+  }
+
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+    return { type: 'invalid' };
+  }
+
+  const hostname = url.hostname.toLowerCase();
+
+  if (!YT_HOSTNAMES.has(hostname)) {
+    // Non-YouTube — treat as direct video
+    return { type: 'direct' };
+  }
+
+  // ---- YouTube ----
+  const path = url.pathname; // e.g. /watch, /embed/abc, /shorts/abc, /abc (youtu.be)
+
+  let videoId: string | null = null;
+  let detectedAspect: '16:9' | '9:16' = '16:9';
+
+  if (path.startsWith('/embed/')) {
+    // Already embed
+    videoId = path.slice('/embed/'.length).split('/')[0].split('?')[0];
+  } else if (path.startsWith('/shorts/')) {
+    videoId = path.slice('/shorts/'.length).split('/')[0].split('?')[0];
+    detectedAspect = '9:16';
+  } else if (hostname === 'youtu.be' || hostname === 'www.youtu.be') {
+    // youtu.be/<id>
+    videoId = path.slice(1).split('/')[0].split('?')[0];
+  } else {
+    // youtube.com/watch?v=<id>
+    videoId = url.searchParams.get('v');
+  }
+
+  if (!videoId) return { type: 'invalid' };
+
+  return {
+    type: 'youtube',
+    embedSrc: `https://www.youtube-nocookie.com/embed/${videoId}`,
+    detectedAspect,
+  };
 }
 
-export default function PiPVideo({ src, title, aspect = '16:9', className }: PiPVideoProps) {
-  const wrapperRef = useRef<HTMLDivElement>(null);
+export default function PiPVideo({ src, title, aspect, className }: PiPVideoProps) {
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // PiP state
@@ -62,25 +121,28 @@ export default function PiPVideo({ src, title, aspect = '16:9', className }: PiP
   // For direct <video>: only activate PiP while playing
   const [playing, setPlaying] = useState(false);
 
-  const isYT = isYouTubeUrl(src);
-  const embedSrc = isYT ? toYouTubeEmbed(src) : null;
+  const parsed = parseVideoUrl(src);
+  const isYT = parsed.type === 'youtube';
+  const isValid = parsed.type !== 'invalid';
 
-  // Observe scroll-out on the wrapper
+  // Aspect: explicit prop wins, then auto-detected from URL, then 16:9 default
+  const resolvedAspect: '16:9' | '9:16' = aspect ?? parsed.detectedAspect ?? '16:9';
+  const aspectClass = resolvedAspect === '9:16' ? 'w-video-aspect-916' : 'w-video-aspect-169';
+
+  // C1 FIX: Observe the SENTINEL (always in flow), not the inner wrapper.
+  // The sentinel stays put regardless of pip state, so no oscillation.
   useEffect(() => {
-    const el = wrapperRef.current;
-    if (!el) return;
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         const outOfView = !entry.isIntersecting;
         if (outOfView && !pipClosed) {
-          // For iframes: activate regardless (can't detect play state cross-origin).
-          // For direct videos: only activate if playing.
           if (isYT || playing) {
             setPipActive(true);
           }
         } else {
-          // Back in view → restore and un-close
           setPipActive(false);
           setPipClosed(false);
         }
@@ -88,7 +150,7 @@ export default function PiPVideo({ src, title, aspect = '16:9', className }: PiP
       { threshold: 0.15 },
     );
 
-    observer.observe(el);
+    observer.observe(sentinel);
     return () => observer.disconnect();
   }, [isYT, playing, pipClosed]);
 
@@ -114,51 +176,70 @@ export default function PiPVideo({ src, title, aspect = '16:9', className }: PiP
     setPipClosed(true);
   }, []);
 
-  const aspectClass = aspect === '9:16' ? 'w-video-aspect-916' : 'w-video-aspect-169';
+  if (!isValid) return null;
 
   return (
+    /*
+     * SENTINEL — always in document flow.
+     * Holds space via aspect-ratio so no layout shift when inner wrapper goes fixed.
+     * We observe THIS element, not the inner wrapper.
+     */
     <div
-      ref={wrapperRef}
-      className={[
-        'w-pip-wrapper',
-        aspectClass,
-        pipActive ? 'w-pip-active' : '',
-        className ?? '',
-      ]
-        .filter(Boolean)
-        .join(' ')}
+      ref={sentinelRef}
+      className={['w-pip-sentinel', aspectClass, className ?? ''].filter(Boolean).join(' ')}
+      aria-hidden={pipActive}
     >
-      {pipActive && (
-        <button
-          className="w-pip-close"
-          onClick={closePiP}
-          aria-label="Close mini player"
-          title="Close mini player"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M18 6 6 18M6 6l12 12" />
-          </svg>
-        </button>
-      )}
+      {/*
+       * INNER WRAPPER — gets .w-pip-active for the fixed position CSS.
+       * Never remounts; media element inside is untouched.
+       */}
+      <div
+        className={[
+          'w-pip-wrapper',
+          aspectClass,
+          pipActive ? 'w-pip-active' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        {pipActive && (
+          <button
+            className="w-pip-close"
+            onClick={closePiP}
+            aria-label="Close mini player"
+            title="Close mini player"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        )}
 
-      {isYT ? (
-        <iframe
-          src={embedSrc!}
-          title={title}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-          className="w-video-frame"
-        />
-      ) : (
-        <video
-          ref={videoRef}
-          src={src}
-          title={title}
-          controls
-          className="w-video-frame"
-          playsInline
-        />
-      )}
+        {isYT ? (
+          <iframe
+            src={parsed.embedSrc!}
+            title={title}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            className="w-video-frame"
+          />
+        ) : (
+          <video
+            ref={videoRef}
+            src={src}
+            title={title}
+            controls
+            className="w-video-frame"
+            playsInline
+          />
+        )}
+      </div>
     </div>
   );
 }
+
+// Export for test access
+export { parseVideoUrl };
+export type { ParsedVideo };
+// NOTE_CAP export for client-side defensive slicing
+export { NOTE_CAP };

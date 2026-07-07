@@ -4891,10 +4891,21 @@
    PiP Video
    ====================================================================== */
 
-/* ---- Video wrapper ---- */
+/*
+ * SENTINEL — always stays in document flow.
+ * Holds the space of the video so no layout shift when inner wrapper goes fixed.
+ * The IntersectionObserver watches this element, not the inner wrapper.
+ */
+.world-root .w-pip-sentinel {
+  position: relative;
+  width: 100%;
+}
+
+/* ---- Video wrapper (inner) ---- */
 .world-root .w-pip-wrapper {
   position: relative;
   width: 100%;
+  height: 100%;
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: #000;
@@ -4907,10 +4918,10 @@
     box-shadow 0.25s ease;
 }
 
-/* 16:9 aspect (default) */
+/* 16:9 aspect (default) — applied to sentinel to hold space */
 .world-root .w-video-aspect-169 { aspect-ratio: 16 / 9; }
 
-/* 9:16 (portrait/vertical) */
+/* 9:16 (portrait/vertical) — applied to sentinel to hold space */
 .world-root .w-video-aspect-916 {
   aspect-ratio: 9 / 16;
   max-width: 360px;

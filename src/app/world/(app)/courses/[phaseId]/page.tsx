@@ -58,6 +58,7 @@ export default async function CoursePhase({ params }: Props) {
     completedParts: [],
     lastPartId: null,
     totalParts: course.chapters.reduce((sum, ch) => sum + ch.parts.length, 0),
+    notes: {},
   };
 
   return (
