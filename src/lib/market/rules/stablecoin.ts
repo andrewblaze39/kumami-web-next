@@ -5,35 +5,33 @@
  *
  * 30D supply change bands (fractional, e.g. 0.05 = +5%):
  *
- *   > +5%     → "Dry Powder Building"   (green)
- *   +1% to +5% → "Mild Capital Inflow"  (grey-green)
- *   ±1%       → "Neutral"               (grey)
- *   −1% to −5% → "Capital Deploying"   (grey)
- *   < −5%     → "Stablecoin Drain"      (amber)
+ *   ≥ +5%     → "Dry Powder Building"   (green)    [+5% inclusive outer band]
+ *   +1% to <+5% → "Mild Capital Inflow"  (grey-green)
+ *   ±1%       → "Neutral"               (grey)     [strictly −1% < x < +1%]
+ *   −1% to >−5% → "Capital Deploying"  (grey)
+ *   ≤ −5%     → "Stablecoin Drain"      (amber)    [−5% inclusive outer band]
  *
- * Boundary decisions:
- *   - Doc writes ">+5%" for Dry Powder Building, so +5% exactly is "Mild Capital Inflow".
- *   - Doc writes "+1–5%" for Mild Capital Inflow — lower bound +1% inclusive.
- *   - Doc writes "flat" / "±1%" for Neutral — ±1% both endpoints inclusive.
- *   - Doc writes "−1 to −5%" for Capital Deploying — upper bound −1% inclusive (i.e. the
- *     same −1% that is the lower boundary of Neutral; the symmetric convention applied
- *     here: −1% belongs to Capital Deploying, mirroring +1% belonging to Mild Capital
- *     Inflow not Neutral).
+ * Boundary decisions (inclusive-outer-band convention, symmetric with etf.ts):
+ *   - +5% exactly → "Dry Powder Building" (outer band gets endpoint; ≥+5%).
+ *   - +1% exactly → "Mild Capital Inflow" (outer band; strictly < +5%).
+ *   - Neutral: strictly between −1% and +1% (both endpoints excluded).
+ *   - −1% exactly → "Capital Deploying" (outer band; mirrors +1% → Mild Capital Inflow).
+ *   - −5% exactly → "Stablecoin Drain" (outer band; ≤−5%).
  *
- *   Wait — doc line 878 says "30D change -1–5% → Capital Deploying" after "flat ±1% →
- *   Neutral".  The symmetry convention used elsewhere (outer band gets boundary) would
- *   put −1% in Capital Deploying and +1% in Mild Capital Inflow, leaving the true
- *   "near-zero" Neutral band strictly between −1% and +1% exclusive.
+ *   Doc line 878 says "30D change −1–5% → Capital Deploying" after "flat ±1% → Neutral".
+ *   Applying the consistent inclusive-outer-band convention: outer bands (Dry Powder /
+ *   Stablecoin Drain) own their ±5% boundaries, making the scale fully symmetric.
  *
- *   Final boundary table (strict vs inclusive):
- *     change > +0.05              → Dry Powder Building
- *     +0.01 ≤ change ≤ +0.05     → Mild Capital Inflow
+ *   Final boundary table (inclusive-outer-band convention, consistent with etf.ts):
+ *     change ≥ +0.05              → Dry Powder Building   (+5% belongs to outer band)
+ *     +0.01 ≤ change < +0.05      → Mild Capital Inflow
  *     −0.01 < change < +0.01      → Neutral  [strictly between ±1%]
- *     −0.05 ≤ change ≤ −0.01     → Capital Deploying
- *     change < −0.05              → Stablecoin Drain
+ *     −0.05 < change ≤ −0.01      → Capital Deploying
+ *     change ≤ −0.05              → Stablecoin Drain      (−5% belongs to outer band)
  *
- *   This makes ±1% belong to the adjacent outer band (consistent with the Mild
- *   Capital Inflow / Capital Deploying labels, not Neutral).
+ *   This makes ±5% belong to the outer bands (Dry Powder Building / Stablecoin Drain)
+ *   and ±1% belong to the adjacent inner bands (Mild Capital Inflow / Capital Deploying),
+ *   symmetric and consistent with the inclusive-outer-band convention.
  *
  * Note on "Capital Deploying" color:
  *   Doc says "grey — could be bullish if being used to buy, or bearish if leaving
@@ -66,7 +64,7 @@ export function computeStablecoin(inputs: StablecoinInputs): StablecoinResult {
 
   let verdict: Verdict;
 
-  if (change30d > PCT5) {
+  if (change30d >= PCT5) {
     verdict = { label: 'Dry Powder Building',  color: 'green' };
   } else if (change30d >= PCT1) {
     verdict = { label: 'Mild Capital Inflow',  color: 'grey-green' };
@@ -75,7 +73,7 @@ export function computeStablecoin(inputs: StablecoinInputs): StablecoinResult {
   } else if (change30d > -PCT5) {
     verdict = { label: 'Capital Deploying',    color: 'grey' };
   } else {
-    // change30d <= -PCT5  (−5% belongs to Stablecoin Drain — outer band)
+    // change30d <= -PCT5  (≤−5% belongs to Stablecoin Drain — outer band, symmetric with ≥+5%)
     verdict = { label: 'Stablecoin Drain',     color: 'amber' };
   }
 

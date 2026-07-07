@@ -180,6 +180,29 @@ describe('computeRadarWatchlist — ranking', () => {
   });
 });
 
+describe('computeRadarWatchlist — LOW-only filtering', () => {
+  it('asset with only LOW-severity events does not appear in output (score = 0)', () => {
+    const r = computeRadarWatchlist({
+      events: [
+        makeEvent('LOW_ONLY', 'Outflow', 'LOW', AGO_1H),
+        makeEvent('BTC', 'Outflow', 'HIGH', AGO_7H),
+      ],
+      now: NOW,
+    });
+    const assets = r.entries.map(e => e.asset);
+    expect(assets).not.toContain('LOW_ONLY');
+    expect(assets).toContain('BTC');
+  });
+
+  it('asset with only LOW events and no other assets produces empty output', () => {
+    const r = computeRadarWatchlist({
+      events: [makeEvent('LOW_ONLY', 'Accumulation', 'LOW', AGO_1H)],
+      now: NOW,
+    });
+    expect(r.entries).toHaveLength(0);
+  });
+});
+
 describe('computeRadarWatchlist — signal labels', () => {
   it('Smart Money → "Smart Money Long"', () => {
     const r = computeRadarWatchlist({

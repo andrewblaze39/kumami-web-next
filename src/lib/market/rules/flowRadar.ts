@@ -165,7 +165,7 @@ export function computeFlowRadar(inputs: FlowRadarInputs): FlowRadarResult {
     case 'netflow_flip': {
       // Always MED (doc lines 144–145, 1121–1123)
       const direction: FlowEvent['direction'] = flippedPositive ? 'Buy Pressure' : 'Sell Pressure';
-      const label = flippedPositive ? 'buy→sell flip' : 'sell→buy flip';
+      const label = flippedPositive ? 'sell→buy flip' : 'buy→sell flip';
       const description = `${asset} netflow flip: ${label}`;
       return { severity: 'MED', direction, description };
     }

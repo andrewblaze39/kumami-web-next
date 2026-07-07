@@ -12,16 +12,14 @@
  *   −$100M–−$500M → "ETF Redemptions"            (red)
  *   < −$500M    → "Heavy Institutional Exit"      (red)
  *
- * Boundary decisions:
- *   - $500M exactly → "Solid ETF Inflow" (Heavy requires strictly > $500M).
- *   - $100M exactly → "Solid ETF Inflow" (lower bound inclusive).
- *   - $10M exactly  → "Neutral Flow"     (lower bound of Neutral band).
- *   - −$10M exactly → "Neutral Flow"     (upper bound of Neutral band).
- *   - −$100M exactly → "ETF Redemptions" (mirror of +$100M boundary: the outer
- *     band gets the endpoint — Mild Outflow range is −$10M to −$100M exclusive).
- *   - −$500M exactly → "ETF Redemptions" (mirror of +$500M; Heavy Exit requires
- *     strictly < −$500M).
- *   - Doc writes "−$10M to +$10M" for Neutral — both endpoints inclusive.
+ * Boundary decisions (inclusive-outer-band convention):
+ *   - $500M exactly → "Heavy Institutional Buying" (outer band gets endpoint; ≥$500M).
+ *   - $100M exactly → "Solid ETF Inflow" (outer band; range is $100M–<$500M inclusive lower).
+ *   - $10M exactly  → "Mild Inflow"      (outer band; range is $10M–<$100M inclusive lower).
+ *   - −$10M exactly → "Mild Outflow"     (outer band; Neutral is strictly between −$10M and +$10M).
+ *   - −$100M exactly → "ETF Redemptions" (outer band; Mild Outflow range is −$10M exclusive to −$100M exclusive).
+ *   - −$500M exactly → "Heavy Institutional Exit" (outer band; ≤−$500M).
+ *   - Neutral band: strictly −$10M < flow < +$10M (both ±$10M belong to adjacent outer bands).
  *
  * 7D cumulative bands:
  *   > +$1B      → "Sustained Institutional Accumulation"

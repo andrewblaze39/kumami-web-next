@@ -3,7 +3,7 @@ import { computeEtf, type EtfInputs } from '../etf';
 
 // Doc lines 801–856.
 // Daily bands (positive = inflow):
-//   > +$500M    → "Heavy Institutional Buying"  green   ($500M→Solid)
+//   ≥ +$500M    → "Heavy Institutional Buying"  green   ($500M→Heavy, outer band)
 //   +$100M–$500M → "Solid ETF Inflow"           green   ($100M→Solid)
 //   +$10M–$100M  → "Mild Inflow"                grey-green ($10M→Mild)
 //   −$10M < x < +$10M → "Neutral Flow"          grey    (±$10M → adjacent outer band)

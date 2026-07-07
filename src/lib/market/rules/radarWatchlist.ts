@@ -131,13 +131,16 @@ export function computeRadarWatchlist(inputs: WatchlistInputs): RadarWatchlistRe
     }
   }
 
-  // Step 4: rank, take top 4
+  // Step 4: filter zero-score assets (LOW-only), rank, take top 4
+  // PM doc line ~142: LOW-severity events are "filtered out" — an asset whose only
+  // events are LOW contributes score=0 and must not occupy a top-4 slot.
   const ranked = Array.from(assetScores.entries())
     .map(([asset, data]) => ({
       asset,
       signal: data.topSignal,
       score: data.score,
     }))
+    .filter(entry => entry.score > 0)
     .sort((a, b) => b.score - a.score || a.asset.localeCompare(b.asset));
 
   return { entries: ranked.slice(0, TOP_N) };

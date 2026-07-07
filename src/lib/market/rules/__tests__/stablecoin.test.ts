@@ -3,11 +3,11 @@ import { computeStablecoin } from '../stablecoin';
 
 // Doc lines 871–881, 327–335.
 // 30D change bands (fraction, e.g. 0.05 = 5%):
-//   > +5%      → "Dry Powder Building"   green
-//   +1%–+5%    → "Mild Capital Inflow"   grey-green  (+5% boundary → Mild; +1% → Mild)
+//   ≥ +5%      → "Dry Powder Building"   green       (+5% boundary → Dry Powder Building, outer band)
+//   +1%–<+5%   → "Mild Capital Inflow"   grey-green  (+1% → Mild; strictly < +5%)
 //   strictly −1% to +1% → "Neutral"     grey        (both ±1% belong to adjacent band)
 //   −5%–−1%    → "Capital Deploying"    grey        (−1% → Capital Deploying)
-//   < −5%      → "Stablecoin Drain"     amber       (−5% → Stablecoin Drain)
+//   ≤ −5%      → "Stablecoin Drain"     amber       (−5% → Stablecoin Drain, outer band)
 
 describe('computeStablecoin — base verdict bands', () => {
   it('Dry Powder Building when change > +5%', () => {
@@ -16,10 +16,10 @@ describe('computeStablecoin — base verdict bands', () => {
     expect(r.verdict.color).toBe('green');
   });
 
-  it('Mild Capital Inflow at exactly +5% (boundary belongs to outer band = Mild)', () => {
+  it('Dry Powder Building at exactly +5% (inclusive-outer-band: +5% → outer band)', () => {
     const r = computeStablecoin({ change30d: 0.05 });
-    expect(r.verdict.label).toBe('Mild Capital Inflow');
-    expect(r.verdict.color).toBe('grey-green');
+    expect(r.verdict.label).toBe('Dry Powder Building');
+    expect(r.verdict.color).toBe('green');
   });
 
   it('Mild Capital Inflow at +3%', () => {

@@ -132,6 +132,16 @@ describe('computeFlowRadar — netflow_flip', () => {
     const r = computeFlowRadar({ type: 'netflow_flip', asset: 'BTC', amountUsd: 0, flippedPositive: false });
     expect(r.direction).toBe('Sell Pressure');
   });
+
+  it('description says "sell→buy flip" when flippedPositive=true (flipping TO buy pressure)', () => {
+    const r = computeFlowRadar({ type: 'netflow_flip', asset: 'BTC', amountUsd: 0, flippedPositive: true });
+    expect(r.description).toContain('sell→buy flip');
+  });
+
+  it('description says "buy→sell flip" when flippedPositive=false (flipping TO sell pressure)', () => {
+    const r = computeFlowRadar({ type: 'netflow_flip', asset: 'BTC', amountUsd: 0, flippedPositive: false });
+    expect(r.description).toContain('buy→sell flip');
+  });
 });
 
 describe('computeFlowRadar — whale_wall', () => {
