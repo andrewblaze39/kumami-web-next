@@ -4557,3 +4557,448 @@
   .world-root .w-course-instructor { flex-direction: column; align-items: center; text-align: center; }
   .world-root .w-course-title { font-size: 22px; }
 }
+
+/* ======================================================================
+   Chapter Reader
+   ====================================================================== */
+
+/* ---- Layout ---- */
+.world-root .w-chapter-reader {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 0 60px;
+}
+
+/* ---- Breadcrumb ---- */
+.world-root .w-reader-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 28px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.world-root .w-reader-breadcrumb-link {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.12s;
+}
+.world-root .w-reader-breadcrumb-link:hover { color: var(--accent); }
+.world-root .w-reader-breadcrumb-link svg { width: 14px; height: 14px; }
+.world-root .w-reader-breadcrumb-sep { opacity: 0.5; font-size: 15px; }
+.world-root .w-reader-breadcrumb-current {
+  color: var(--ink);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 280px;
+}
+
+/* ---- Chapter header ---- */
+.world-root .w-reader-header { margin-bottom: 36px; }
+.world-root .w-reader-chapter-num {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 8px;
+}
+.world-root .w-reader-title {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.2;
+  margin: 0 0 12px;
+  color: var(--ink);
+}
+.world-root .w-reader-meta {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+}
+.world-root .w-reader-meta-done { color: var(--accent); font-weight: 600; }
+
+/* ---- Parts list ---- */
+.world-root .w-reader-parts {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* ---- Part block ---- */
+.world-root .w-chapter-part {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.15s;
+  outline: none;
+}
+.world-root .w-chapter-part:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.world-root .w-chapter-part.done { border-color: rgba(94, 233, 168, 0.3); }
+.world-root .w-chapter-part.w-chapter-part-active { border-color: var(--border-2); }
+
+/* Part header */
+.world-root .w-part-header {
+  padding: 22px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.world-root .w-part-index-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.world-root .w-part-type-svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+}
+.world-root .w-part-title {
+  font-size: 19px;
+  font-weight: 800;
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.3;
+}
+
+/* Part body (text) */
+.world-root .w-part-body {
+  padding: 20px 24px;
+}
+.world-root .w-part-placeholder-text {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin: 0 0 12px;
+}
+.world-root .w-part-placeholder-sub {
+  font-size: 13.5px;
+  color: var(--muted-2);
+  margin: 0;
+}
+
+/* Part video */
+.world-root .w-part-video-wrap {
+  padding: 20px 24px;
+}
+
+/* Placeholder states */
+.world-root .w-part-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  padding: 40px 24px;
+  color: var(--muted);
+}
+.world-root .w-part-placeholder svg {
+  width: 36px;
+  height: 36px;
+  color: var(--muted-2);
+  stroke-width: 1.5;
+}
+.world-root .w-part-placeholder p {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+.world-root .w-part-placeholder span { font-size: 13px; }
+
+/* Notes */
+.world-root .w-part-notes {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+}
+.world-root .w-part-notes-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.world-root .w-part-notes-input {
+  width: 100%;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--ink);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.12s;
+  min-height: 72px;
+  box-sizing: border-box;
+}
+.world-root .w-part-notes-input::placeholder { color: var(--muted-2); }
+.world-root .w-part-notes-input:focus { border-color: var(--accent); }
+
+/* Part footer — completion */
+.world-root .w-part-footer {
+  padding: 14px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.world-root .w-part-check-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--muted);
+  user-select: none;
+  transition: color 0.12s;
+}
+.world-root .w-chapter-part.done .w-part-check-label { color: var(--accent); }
+.world-root .w-part-check-label:hover { color: var(--ink); }
+.world-root .w-part-check-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.world-root .w-part-check-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 2px solid var(--border-2);
+  background: var(--bg-2);
+  transition: background 0.12s, border-color 0.12s;
+  flex-shrink: 0;
+}
+.world-root .w-chapter-part.done .w-part-check-box {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.world-root .w-part-check-box svg {
+  width: 13px;
+  height: 13px;
+  stroke: var(--bg);
+  stroke-width: 2.5;
+}
+
+/* ---- Skeleton loading ---- */
+.world-root .w-chapter-part-skeleton {
+  pointer-events: none;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.world-root .w-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--panel-2) 25%,
+    var(--panel-3) 50%,
+    var(--panel-2) 75%
+  );
+  background-size: 400% 100%;
+  border-radius: 8px;
+  animation: w-shimmer 1.4s ease infinite;
+}
+@keyframes w-shimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+.world-root .w-skeleton-title  { height: 22px; width: 65%; }
+.world-root .w-skeleton-body   { height: 14px; width: 100%; }
+.world-root .w-skeleton-short  { width: 80%; }
+
+/* ---- Nav actions (Continue / Next chapter) ---- */
+.world-root .w-reader-nav-actions {
+  margin-top: 40px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ---- Chapter prev/next nav ---- */
+.world-root .w-reader-chapter-nav {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 32px;
+}
+.world-root .w-reader-chapter-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13.5px;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+.world-root .w-reader-chapter-nav-btn:hover {
+  border-color: var(--border-2);
+  color: var(--ink);
+  background: var(--panel-2);
+}
+.world-root .w-reader-chapter-nav-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.world-root .w-reader-chapter-nav-btn.next { justify-content: flex-end; text-align: right; }
+.world-root .w-reader-nav-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 700;
+  opacity: 0.7;
+  margin-bottom: 2px;
+}
+.world-root .w-reader-nav-title {
+  display: block;
+  font-weight: 700;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+/* ======================================================================
+   PiP Video
+   ====================================================================== */
+
+/* ---- Video wrapper ---- */
+.world-root .w-pip-wrapper {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: #000;
+  transition:
+    width 0.25s ease,
+    height 0.25s ease,
+    bottom 0.25s ease,
+    right 0.25s ease,
+    border-radius 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+/* 16:9 aspect (default) */
+.world-root .w-video-aspect-169 { aspect-ratio: 16 / 9; }
+
+/* 9:16 (portrait/vertical) */
+.world-root .w-video-aspect-916 {
+  aspect-ratio: 9 / 16;
+  max-width: 360px;
+}
+
+/* ---- Video / iframe inside wrapper ---- */
+.world-root .w-video-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: none;
+  object-fit: contain;
+}
+
+/* ---- PiP active state ---- */
+/*
+ * CSS-only fixed positioning: no DOM clone/move, no playback interruption.
+ * The same element transitions from flow-positioned to fixed.
+ * z-index sits above KumaDock (which is z: 200) at 300.
+ */
+.world-root .w-pip-active {
+  position: fixed !important;
+  bottom: 20px;
+  right: 20px;
+  width: 280px;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7);
+  z-index: 300;
+  overflow: visible;
+}
+
+/* Portrait PiP */
+.world-root .w-pip-active.w-video-aspect-916 {
+  width: 160px;
+  height: auto;
+  aspect-ratio: 9 / 16;
+}
+
+/* The video/iframe inside pip must still fill the container */
+.world-root .w-pip-active .w-video-frame {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- PiP close button ---- */
+.world-root .w-pip-close {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--panel-3);
+  border: 1px solid var(--border-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1;
+  padding: 0;
+  transition: background 0.12s;
+}
+.world-root .w-pip-close:hover { background: var(--danger); border-color: var(--danger); }
+.world-root .w-pip-close svg {
+  width: 12px;
+  height: 12px;
+  stroke: var(--ink);
+  stroke-width: 2.5;
+}
+
+/* ======================================================================
+   Chapter Reader — Responsive
+   ====================================================================== */
+@media (max-width: 700px) {
+  .world-root .w-chapter-reader { padding: 0 0 40px; }
+  .world-root .w-reader-title { font-size: 22px; }
+  .world-root .w-part-header { padding: 18px 16px 14px; }
+  .world-root .w-part-body,
+  .world-root .w-part-video-wrap { padding: 16px; }
+  .world-root .w-part-notes { padding: 14px 16px; }
+  .world-root .w-part-footer { padding: 12px 16px; }
+  .world-root .w-reader-chapter-nav { grid-template-columns: 1fr; }
+  .world-root .w-reader-chapter-nav-btn.next { justify-content: flex-start; text-align: left; }
+  .world-root .w-pip-active { width: 200px; right: 12px; bottom: 12px; }
+}
