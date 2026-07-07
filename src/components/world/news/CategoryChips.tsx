@@ -51,7 +51,7 @@ export default function CategoryChips({ active }: CategoryChipsProps) {
                 ? '1px solid var(--accent)'
                 : '1px solid var(--border-2)',
               background: isActive
-                ? 'rgba(94,233,168,0.12)'
+                ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
                 : 'var(--panel-2)',
               color: isActive ? 'var(--accent)' : 'var(--muted)',
               textDecoration: 'none',

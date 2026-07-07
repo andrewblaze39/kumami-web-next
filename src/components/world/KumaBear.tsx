@@ -49,7 +49,7 @@ export default function KumaBear({
       <circle cx="124" cy="94" r="5" fill="#06241a" />
       <circle cx="126" cy="92" r="2" fill="#f1f7f4" />
       {/* Nose */}
-      <ellipse cx="100" cy="118" rx="14" ry="10" fill="#5ee9a8" opacity="0.85" />
+      <ellipse cx="100" cy="118" rx="14" ry="10" fill="#00c2c7" opacity="0.85" />
       <circle cx="100" cy="116" r="4" fill="#06241a" />
       {/* Mouth */}
       <path
@@ -60,9 +60,9 @@ export default function KumaBear({
         fill="none"
       />
       {/* Cheek blush left */}
-      <ellipse cx="68" cy="122" rx="12" ry="7" fill="#5ee9a8" opacity="0.18" />
+      <ellipse cx="68" cy="122" rx="12" ry="7" fill="#00c2c7" opacity="0.18" />
       {/* Cheek blush right */}
-      <ellipse cx="132" cy="122" rx="12" ry="7" fill="#5ee9a8" opacity="0.18" />
+      <ellipse cx="132" cy="122" rx="12" ry="7" fill="#00c2c7" opacity="0.18" />
     </svg>
   );
 }

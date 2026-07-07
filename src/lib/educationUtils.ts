@@ -49,5 +49,5 @@ export function getChaptersForLevel(levelNum: number): string[] {
  */
 export function getLevelColor(levelNum: number): string {
   const phase = getLevelData(levelNum)
-  return phase?.hex ?? '#5ee9a8'
+  return phase?.hex ?? '#00c2c7'
 }

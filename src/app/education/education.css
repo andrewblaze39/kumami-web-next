@@ -14,10 +14,10 @@
   --text: #f1f7f4;
   --muted: #8ea69c;
   --muted-2: #5f786e;
-  --mint: #5ee9a8;
-  --mint-2: #34d399;
-  --mint-soft: #bff5db;
-  --l1: #5ee9a8;
+  --mint: #00c2c7;
+  --mint-2: #40e0d0;
+  --mint-soft: #aafafc;
+  --l1: #00c2c7;
   --l2: #2dd4bf;
   --l3: #56dfe6;
   --l4: #a78bfa;
@@ -31,7 +31,7 @@
   display: flex;
   min-height: 100vh;
   background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(94, 233, 168, 0.06), transparent 60%),
+    radial-gradient(1200px 600px at 80% -10%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 60%),
     radial-gradient(900px 500px at -5% 20%, rgba(167, 139, 250, 0.05), transparent 60%),
     var(--bg);
   color: var(--text);
@@ -282,9 +282,9 @@
 }
 
 .edu-pill-free {
-  background: rgba(94, 233, 168, 0.12);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
   color: var(--mint);
-  border-color: rgba(94, 233, 168, 0.25);
+  border-color: color-mix(in srgb, var(--accent) 25%, transparent);
   border-radius: 999px;
   padding: 5px 12px;
   font-size: 12.5px;
@@ -404,7 +404,7 @@
 }
 
 .edu-lv-card.edu-current {
-  border-color: rgba(var(--c-raw, 94, 233, 168), 0.4);
+  border-color: rgba(var(--c-raw, 0, 194, 199), 0.4);
   background: var(--surface-2);
 }
 
@@ -924,8 +924,8 @@
   align-items: flex-start;
   padding: 16px 20px;
   border-radius: var(--radius-sm);
-  background: rgba(94, 233, 168, 0.06);
-  border: 1px solid rgba(94, 233, 168, 0.2);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
   margin: 20px 0;
 }
 
@@ -1021,7 +1021,7 @@
   font-size: 15px;
   border: none;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(94, 233, 168, 0.3);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 30%, transparent);
   font-family: inherit;
   text-decoration: none;
   transition: 0.18s;
@@ -1030,7 +1030,7 @@
 .edu-complete-btn:hover {
   background: var(--mint-2);
   transform: translateY(-1px);
-  box-shadow: 0 12px 28px rgba(94, 233, 168, 0.4);
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 /* ── COMING SOON BANNER ── */
@@ -1330,8 +1330,8 @@
   padding: 18px 22px;
   margin-top: 24px;
   border-radius: var(--radius-sm);
-  background: rgba(94, 233, 168, 0.08);
-  border: 1px solid rgba(94, 233, 168, 0.25);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
   color: var(--mint);
 }
 

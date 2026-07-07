@@ -102,7 +102,7 @@ export default function LongShortChart({ seriesGlobal, seriesTop }: Props) {
           <polyline
             points={globalPts}
             fill="none"
-            stroke="var(--accent, #5ee9a8)"
+            stroke="var(--accent, #00c2c7)"
             strokeWidth={2}
             strokeLinejoin="round"
             strokeLinecap="round"

@@ -197,7 +197,7 @@ function PremiumChart({ series }: { series: Pt[] }) {
       <path d={greenArea} fill="rgba(70,227,160,0.14)" stroke="none" />
       <path d={redArea}   fill="rgba(255,107,129,0.12)" stroke="none" />
       <line x1={0} y1={zeroY} x2={W} y2={zeroY} stroke="rgba(142,166,156,0.35)" strokeWidth={1} strokeDasharray="3 3" />
-      <path d={path} fill="none" stroke="var(--accent,#5ee9a8)" strokeWidth={2} strokeLinejoin="round" />
+      <path d={path} fill="none" stroke="var(--accent)" strokeWidth={2} strokeLinejoin="round" />
     </svg>
   );
 }
@@ -258,11 +258,11 @@ function OITrendChart({ seriesOI, seriesPrice }: { seriesOI: Pt[]; seriesPrice: 
       >
         {/* Divergence shading between OI and price */}
         {divPts && (
-          <polygon points={divPts} fill="rgba(94,233,168,0.07)" stroke="none" />
+          <polygon points={divPts} fill="color-mix(in srgb, var(--accent) 7%, transparent)" stroke="none" />
         )}
         <path d={oiPath} fill="none" stroke="rgba(86,223,230,0.7)" strokeWidth={1.5} strokeDasharray="4 2" />
         {prPath && (
-          <path d={prPath} fill="none" stroke="var(--accent,#5ee9a8)" strokeWidth={2} />
+          <path d={prPath} fill="none" stroke="var(--accent)" strokeWidth={2} />
         )}
       </svg>
       <div className="w-oc-chart-legend">
@@ -305,8 +305,8 @@ function StablecoinChart({ series }: { series: Pt[] }) {
         aria-label="Stablecoin supply"
         role="img"
       >
-        <path d={areaPath} fill="rgba(94,233,168,0.1)" stroke="none" />
-        <path d={path} fill="none" stroke="var(--accent,#5ee9a8)" strokeWidth={1.8} />
+        <path d={areaPath} fill="color-mix(in srgb, var(--accent) 10%, transparent)" stroke="none" />
+        <path d={path} fill="none" stroke="var(--accent)" strokeWidth={1.8} />
       </svg>
     </div>
   );

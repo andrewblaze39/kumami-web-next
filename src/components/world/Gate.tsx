@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import KumaBear from './KumaBear';
 import { SignUpModal, LogInModal } from './AuthModals';
 
@@ -15,7 +16,15 @@ export default function Gate() {
       <div className="w-gate">
         {/* Logo badge */}
         <span className="w-gate-logo">
-          kūmami <small>WORLD</small>
+          <Image
+            src="/logo-kumami-white.png"
+            alt="Kumami World"
+            width={66}
+            height={28}
+            style={{ height: 28, width: 'auto' }}
+            priority
+          />
+          <small>WORLD</small>
         </span>
 
         {/* Kuma bear mascot */}

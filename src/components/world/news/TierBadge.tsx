@@ -21,7 +21,7 @@ export function AdvancedBadge({ articleId }: TierBadgeProps) {
         textTransform: 'uppercase',
         color: 'var(--accent)',
         border: '1px solid var(--accent)',
-        background: 'rgba(94,233,168,0.06)',
+        background: 'color-mix(in srgb, var(--accent) 6%, transparent)',
         lineHeight: 1.6,
         cursor: articleId ? 'pointer' : 'default',
         textDecoration: 'none',

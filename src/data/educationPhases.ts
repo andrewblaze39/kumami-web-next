@@ -19,7 +19,7 @@ export const PHASES: Phase[] = [
     slug: 'start-here',
     level: 'LEVEL 01',
     tag: 'Beginner',
-    hex: '#5ee9a8',
+    hex: '#00c2c7',
     title: 'Start Here',
     blurb: 'Get your first crypto safely. No theory yet.',
     detail:

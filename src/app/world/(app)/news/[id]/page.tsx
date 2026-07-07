@@ -373,8 +373,8 @@ export default async function WorldNewsDetailPage({ params }: PageProps) {
               borderRadius: '16px',
               overflow: 'hidden',
               background: 'linear-gradient(135deg, #0c2119 0%, #081510 100%)',
-              border: '1px solid rgba(94,233,168,0.22)',
-              boxShadow: '0 0 32px rgba(94,233,168,0.06)',
+              border: '1px solid color-mix(in srgb, var(--accent) 22%, transparent)',
+              boxShadow: '0 0 32px color-mix(in srgb, var(--accent) 6%, transparent)',
               position: 'relative',
             }}
           >
@@ -388,7 +388,7 @@ export default async function WorldNewsDetailPage({ params }: PageProps) {
                 height: 140,
                 borderRadius: '50%',
                 background:
-                  'radial-gradient(circle, rgba(94,233,168,0.12) 0%, transparent 70%)',
+                  'radial-gradient(circle, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 70%)',
                 pointerEvents: 'none',
               }}
             />
@@ -399,7 +399,7 @@ export default async function WorldNewsDetailPage({ params }: PageProps) {
                 alignItems: 'center',
                 gap: '12px',
                 padding: '14px 18px',
-                borderBottom: '1px solid rgba(94,233,168,0.12)',
+                borderBottom: '1px solid color-mix(in srgb, var(--accent) 12%, transparent)',
               }}
             >
               <div
@@ -454,8 +454,8 @@ export default async function WorldNewsDetailPage({ params }: PageProps) {
                   gap: '6px',
                   padding: '4px 10px',
                   borderRadius: '999px',
-                  background: 'rgba(94,233,168,0.08)',
-                  border: '1px solid rgba(94,233,168,0.18)',
+                  background: 'color-mix(in srgb, var(--accent) 8%, transparent)',
+                  border: '1px solid color-mix(in srgb, var(--accent) 18%, transparent)',
                 }}
               >
                 <div

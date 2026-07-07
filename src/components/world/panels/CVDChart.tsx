@@ -75,7 +75,7 @@ export default function CVDChart({ seriesPrice, seriesCVD }: Props) {
           {divPts && (
             <polygon
               points={divPts}
-              fill="rgba(94,233,168,0.07)"
+              fill="color-mix(in srgb, var(--accent) 7%, transparent)"
               stroke="none"
             />
           )}
@@ -94,7 +94,7 @@ export default function CVDChart({ seriesPrice, seriesCVD }: Props) {
           <path
             d={pricePath}
             fill="none"
-            stroke="var(--accent, #5ee9a8)"
+            stroke="var(--accent, #00c2c7)"
             strokeWidth={2}
             strokeLinejoin="round"
           />

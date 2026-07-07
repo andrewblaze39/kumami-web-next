@@ -70,7 +70,7 @@ function levelColor(n: number): string {
 
 function levelHex(n: number): string {
   const phase = PHASES.find(p => p.n === n)
-  return phase?.hex ?? '#5ee9a8'
+  return phase?.hex ?? '#00c2c7'
 }
 
 // ── Progress bar ──────────────────────────────────────────────────────────────

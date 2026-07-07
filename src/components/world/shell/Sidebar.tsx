@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { useWorldMode } from '@/contexts/WorldModeContext';
@@ -236,7 +237,15 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
           aria-haspopup="true"
         >
           <span className="w-brand-logo">
-            kūmami <small>WORLD</small>
+            <Image
+              src="/logo-kumami-white.png"
+              alt="Kumami World"
+              width={52}
+              height={22}
+              style={{ height: 22, width: 'auto' }}
+              priority
+            />
+            <small>WORLD</small>
           </span>
           <svg className="w-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
             <path d="m6 9 6 6 6-6" />

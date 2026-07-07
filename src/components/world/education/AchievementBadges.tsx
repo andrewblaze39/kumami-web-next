@@ -8,7 +8,7 @@
  *
  * Badge designs are SVG medallions using world design tokens.
  * Each has a unique accent colour matching the phase level:
- *   Phase 1 (Beginner)     — green   (#5ee9a8  accent)
+ *   Phase 1 (Beginner)     — turquoise (#00c2c7  accent)
  *   Phase 2 (Elementary)   — teal    (#56dfe6  accent2)
  *   Phase 3 (Intermediate) — purple  (#b9a4ff  purple)
  *   Phase 4 (Advanced)     — gold    (#f0cd7e  gold)
@@ -23,7 +23,7 @@ interface AchievementBadgesProps {
 }
 
 // Badge colours per phase index
-const BADGE_COLOURS = ['#5ee9a8', '#56dfe6', '#b9a4ff', '#f0cd7e', '#ff9a6c'];
+const BADGE_COLOURS = ['#00c2c7', '#56dfe6', '#b9a4ff', '#f0cd7e', '#ff9a6c'];
 
 // Inner icon paths (simple geometric) per phase
 function BadgeIcon({ phase, earned }: { phase: number; earned: boolean }) {

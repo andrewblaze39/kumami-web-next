@@ -150,7 +150,7 @@ export default function AllEducationArticles() {
                   border: active
                     ? `1.5px solid ${color ?? 'var(--mint)'}`
                     : '1.5px solid var(--border)',
-                  background: active ? 'rgba(94,233,168,0.08)' : 'transparent',
+                  background: active ? 'color-mix(in srgb, var(--accent) 8%, transparent)' : 'transparent',
                   color: active ? (color ?? 'var(--mint)') : 'var(--muted)',
                   cursor: 'pointer',
                   transition: 'all 0.15s',
