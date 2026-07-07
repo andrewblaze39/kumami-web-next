@@ -2,11 +2,11 @@
 
 /**
  * ETFFlowChart — 30D daily bars + price line overlay.
- * BTC/ETH toggle. Shows 7D-net headline stat.
+ * BTC toggle only (ETH button disabled — ETH ETF data not yet wired to provider).
+ * Shows 7D-net headline stat from extra.net7dUsd when available.
  * Note: always 30D regardless of global range selector.
  */
 
-import { useState } from 'react';
 import type { Series } from '@/lib/market/contracts';
 import { computeDomain, scaleX, scaleY, buildSmoothPath } from './chart-utils';
 import { formatUsd } from './format';
@@ -18,11 +18,11 @@ const BAR_H = 70; // bars in lower portion; price line uses full height
 type Props = {
   series: Series;      // ETF flow bars (positive = inflow, negative = outflow)
   seriesPrice: Series; // price overlay
-  asset: string;
+  /** net7dUsd from panel extra — structured value, no regex fallback */
+  net7dUsd?: number;
 };
 
-export default function ETFFlowChart({ series, seriesPrice, asset }: Props) {
-  const [view, setView] = useState<'btc' | 'eth'>('btc');
+export default function ETFFlowChart({ series, seriesPrice, net7dUsd }: Props) {
 
   if (series.length === 0) {
     return <div className="w-oc-chart" style={{ height: H }} />;
@@ -33,34 +33,32 @@ export default function ETFFlowChart({ series, seriesPrice, asset }: Props) {
   const n = series.length;
   const barWidth = Math.max(2, W / n - 1.5);
 
-  // 7D net stat from last 7 points
-  const last7 = series.slice(-7);
-  const net7d = last7.reduce((acc, pt) => acc + pt.v, 0);
-
   const pricePath = buildSmoothPath(seriesPrice, W, H, priceDomain);
 
   return (
     <div className="w-oc-chart-wrap">
-      {/* 7D net headline */}
+      {/* 7D net headline — from structured extra.net7dUsd, never fabricated */}
       <div className="w-oc-etf-stat">
         <span className="w-oc-etf-stat-label">7D Net</span>
-        <span className={`w-oc-etf-stat-val ${net7d >= 0 ? 'w-bull' : 'w-bear'}`}>
-          {formatUsd(net7d)}
-        </span>
+        {net7dUsd !== undefined ? (
+          <span className={`w-oc-etf-stat-val ${net7dUsd >= 0 ? 'w-bull' : 'w-bear'}`}>
+            {formatUsd(net7dUsd)}
+          </span>
+        ) : (
+          <span className="w-oc-etf-stat-val">—</span>
+        )}
       </div>
 
-      {/* BTC / ETH toggle */}
+      {/* BTC toggle active; ETH disabled until live provider wires ETH ETF data */}
       <div className="w-oc-toggle-row">
         <div className="w-oc-toggle">
-          <button
-            className={`w-oc-toggle-btn${view === 'btc' ? ' on' : ''}`}
-            onClick={() => setView('btc')}
-          >
+          <button className="w-oc-toggle-btn on">
             BTC
           </button>
           <button
-            className={`w-oc-toggle-btn${view === 'eth' ? ' on' : ''}`}
-            onClick={() => setView('eth')}
+            className="w-oc-toggle-btn"
+            disabled
+            title="ETH ETF data coming with live provider"
           >
             ETH
           </button>

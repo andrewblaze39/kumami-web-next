@@ -330,7 +330,8 @@ const ONCHAIN_PANEL_CONFIGS: Array<{
   },
   {
     key: 'liquidations',
-    headline: (prng) => `$${(rnd(prng, 50, 800)).toFixed(0)}M liquidated in 24h — ${rnd(prng, 55, 75).toFixed(0)}% longs`,
+    // headline no longer encodes longPct — structured value lives in extra.longPct
+    headline: (prng) => `$${(rnd(prng, 50, 800)).toFixed(0)}M liquidated in 24h — long-heavy session`,
     verdictLabel: 'Long-Heavy Liquidations',
     color: 'grey-red',
     tags: [verdict('· Rising Fast', 'red')],
@@ -411,20 +412,67 @@ export function makeOnChainPayload(
   const intervalMs =
     range === '24h' ? 3_600_000 : range === '7d' ? 4 * 3_600_000 : 12 * 3_600_000;
 
+  // ETF panel is always 30 daily points regardless of requested range.
+  // This makes the "Always 30D" label true — it never inherits the range-
+  // dependent point count used by the other panels.
+  const ETF_POINTS = 30;
+  const ETF_INTERVAL_MS = 24 * 3_600_000; // 1 day
+
   const panels = {} as OnChainPayload['panels'];
 
   for (const cfg of ONCHAIN_PANEL_CONFIGS) {
+    // Build per-panel structured extras
+    let extra: Record<string, number | string> = { asset, range };
+
+    let series2: Series | undefined;
+
+    if (cfg.key === 'funding') {
+      const currentRatePct = parseFloat(rnd(prng, -0.05, 0.15).toFixed(4));
+      extra = { asset, range, currentRatePct };
+    } else if (cfg.key === 'liquidations') {
+      const totalUsd = Math.round(rnd(prng, 50_000_000, 800_000_000));
+      const longPct  = parseFloat(rnd(prng, 55, 75).toFixed(1));
+      extra = { asset, range, totalUsd, longPct };
+    } else if (cfg.key === 'netflow') {
+      const netUsd = Math.round(rnd(prng, -500_000_000, 500_000_000));
+      extra = { asset, range, netUsd };
+    } else if (cfg.key === 'longshort') {
+      // series2 is also needed for longshort
+      series2 = makeSeries(prng, points, 50, 15, intervalMs); // top-trader ~25–75%
+    } else if (cfg.key === 'cvd') {
+      series2 = makeSeries(prng, points, 0.5, 0.35, intervalMs);
+    } else if (cfg.key === 'etf') {
+      const net7dUsd = Math.round(rnd(prng, -800_000_000, 800_000_000));
+      extra = { asset, range: '30d', net7dUsd };
+      // series2 = price overlay for the ETF chart (30 daily price points)
+      // Use a realistic BTC price base so the overlay looks sensible regardless
+      // of the selected asset — ETF data is always BTC (spot ETF)
+      const btcBase = rnd(prng, 60_000, 70_000);
+      series2 = makeSeries(prng, ETF_POINTS, btcBase, btcBase * 0.04, ETF_INTERVAL_MS);
+    } else if (cfg.key === 'oi') {
+      // series2 = price series alongside OI for divergence shading
+      const priceBase = rnd(prng, 60_000, 70_000);
+      series2 = makeSeries(prng, points, priceBase, priceBase * 0.04, intervalMs);
+    }
+
+    // LongShort series: percent scale ~25–75 so ref lines at 30/50/70 fall
+    // within the data range and the chart renders without squashing.
+    const mainSeries =
+      cfg.key === 'longshort'
+        ? makeSeries(prng, points, 50, 15, intervalMs) // values ~25–75
+        : cfg.key === 'etf'
+          ? makeSeries(prng, ETF_POINTS, 0, 300_000_000, ETF_INTERVAL_MS) // ±300M USD flow bars
+          : makeSeries(prng, points, 0.5, 0.4, intervalMs);
+
     panels[cfg.key] = {
       verdict: verdict(cfg.verdictLabel, cfg.color),
       tags: cfg.tags,
       confidence: cfg.confidence,
       updatedAt: isoAgo(rndInt(prng, 60_000, 300_000)),
       headline: cfg.headline(prng),
-      series: makeSeries(prng, points, 0.5, 0.4, intervalMs),
-      ...(cfg.key === 'longshort' || cfg.key === 'cvd'
-        ? { series2: makeSeries(prng, points, 0.5, 0.35, intervalMs) }
-        : {}),
-      extra: { asset, range },
+      series: mainSeries,
+      ...(series2 !== undefined ? { series2 } : {}),
+      extra,
     };
   }
 

@@ -2,12 +2,12 @@
 
 /**
  * CVDChart — dual-line (price vs CVD) with shaded divergence zone.
- * Futures/Spot toggle selects which secondary series to display.
+ * Futures only — spot CVD series is not available from the current provider.
+ * The Futures/Spot toggle has been removed to avoid dead UI.
  */
 
-import { useState } from 'react';
 import type { Series } from '@/lib/market/contracts';
-import { buildSmoothPath, buildAreaPath, computeDomain, scaleX, scaleY } from './chart-utils';
+import { buildSmoothPath, computeDomain, scaleX, scaleY } from './chart-utils';
 
 const W = 320;
 const H = 110;
@@ -20,8 +20,6 @@ type Props = {
 };
 
 export default function CVDChart({ seriesPrice, seriesCVD }: Props) {
-  const [mode, setMode] = useState<'futures' | 'spot'>('futures');
-
   if (seriesPrice.length === 0) {
     return <div className="w-oc-chart" style={{ height: H }} />;
   }
@@ -64,31 +62,13 @@ export default function CVDChart({ seriesPrice, seriesCVD }: Props) {
 
   return (
     <div className="w-oc-chart-wrap">
-      {/* Futures / Spot toggle */}
-      <div className="w-oc-toggle-row">
-        <div className="w-oc-toggle">
-          <button
-            className={`w-oc-toggle-btn${mode === 'futures' ? ' on' : ''}`}
-            onClick={() => setMode('futures')}
-          >
-            Futures
-          </button>
-          <button
-            className={`w-oc-toggle-btn${mode === 'spot' ? ' on' : ''}`}
-            onClick={() => setMode('spot')}
-          >
-            Spot
-          </button>
-        </div>
-      </div>
-
       <div className="w-oc-chart">
         <svg
           viewBox={`0 0 ${W} ${H}`}
           width="100%"
           height={H}
           preserveAspectRatio="none"
-          aria-label={`CVD vs Price chart (${mode})`}
+          aria-label="CVD vs Price chart (Futures)"
           role="img"
         >
           {/* Divergence shading */}

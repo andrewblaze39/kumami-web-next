@@ -206,14 +206,46 @@ function PremiumChart({ series }: { series: Pt[] }) {
 // OI Trend — dual-axis line + divergence shading
 // ---------------------------------------------------------------------------
 
-function OITrendChart({ seriesOI, seriesPrice }: { seriesOI: Pt[]; seriesPrice: Pt[] }) {
+function OITrendChart({ seriesOI, seriesPrice }: { seriesOI: Pt[]; seriesPrice: Pt[] | null }) {
   const W = 320;
   const H = 100;
   if (!seriesOI || seriesOI.length === 0) return null;
-  const oiDomain = computeDomain(seriesOI);
-  const prDomain = computeDomain(seriesPrice.length > 0 ? seriesPrice : seriesOI);
-  const oiPath   = buildSmoothPath(seriesOI, W, H, oiDomain);
-  const prPath   = buildSmoothPath(seriesPrice.length > 0 ? seriesPrice : seriesOI, W, H, prDomain);
+
+  // Normalise both series to 0–1 so they overlay on the same axis
+  const normalise = (series: Pt[]): Pt[] => {
+    const mn = Math.min(...series.map(p => p.v));
+    const mx = Math.max(...series.map(p => p.v));
+    const range = mx - mn;
+    if (range === 0) return series.map(p => ({ ...p, v: 0.5 }));
+    return series.map(p => ({ ...p, v: (p.v - mn) / range }));
+  };
+
+  const normDomain = { min: 0, max: 1 };
+  const normOI = normalise(seriesOI);
+  const normPrice = seriesPrice && seriesPrice.length > 0 ? normalise(seriesPrice) : null;
+
+  const oiPath = buildSmoothPath(normOI, W, H, normDomain);
+  const prPath = normPrice ? buildSmoothPath(normPrice, W, H, normDomain) : null;
+
+  // Divergence shading — shade between OI and price lines (same technique as CVDChart)
+  const divPts = (() => {
+    if (!normPrice) return '';
+    const n = Math.min(normOI.length, normPrice.length);
+    if (n === 0) return '';
+    const fwd = Array.from({ length: n }, (_, i) => {
+      const x = scaleX(i, n, W);
+      const y = scaleY(normOI[i].v, normDomain, H);
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    });
+    const rev = Array.from({ length: n }, (_, i) => {
+      const j = n - 1 - i;
+      const x = scaleX(j, n, W);
+      const y = scaleY(normPrice[j].v, normDomain, H);
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    });
+    return [...fwd, ...rev].join(' ');
+  })();
+
   return (
     <div className="w-oc-chart">
       <svg
@@ -224,14 +256,25 @@ function OITrendChart({ seriesOI, seriesPrice }: { seriesOI: Pt[]; seriesPrice: 
         aria-label="OI Trend"
         role="img"
       >
+        {/* Divergence shading between OI and price */}
+        {divPts && (
+          <polygon points={divPts} fill="rgba(94,233,168,0.07)" stroke="none" />
+        )}
         <path d={oiPath} fill="none" stroke="rgba(86,223,230,0.7)" strokeWidth={1.5} strokeDasharray="4 2" />
-        <path d={prPath} fill="none" stroke="var(--accent,#5ee9a8)" strokeWidth={2} />
+        {prPath && (
+          <path d={prPath} fill="none" stroke="var(--accent,#5ee9a8)" strokeWidth={2} />
+        )}
       </svg>
       <div className="w-oc-chart-legend">
-        <span className="w-oc-legend-item" style={{ color: 'var(--accent)' }}>Price</span>
+        {normPrice && (
+          <span className="w-oc-legend-item" style={{ color: 'var(--accent)' }}>Price</span>
+        )}
         <span className="w-oc-legend-item" style={{ color: 'rgba(86,223,230,0.9)', fontStyle: 'italic' }}>
           OI
         </span>
+        {normPrice && (
+          <span className="w-oc-legend-item w-oc-legend-divergence">Divergence zone</span>
+        )}
       </div>
     </div>
   );
@@ -365,7 +408,9 @@ export default function OnChainPage() {
             <>
               <div className="w-oc-big-number">
                 <span className="w-oc-big-val">
-                  {p('funding')!.headline.match(/[-\d.]+%/)?.[0] ?? '—'}
+                  {typeof p('funding')!.extra?.currentRatePct === 'number'
+                    ? `${(p('funding')!.extra!.currentRatePct as number).toFixed(3)}%`
+                    : '—'}
                 </span>
                 <span className="w-oc-big-sub">per 8h</span>
               </div>
@@ -394,13 +439,22 @@ export default function OnChainPage() {
             <>
               <div className="w-oc-big-number">
                 <span className="w-oc-big-val w-bear">
-                  {p('liquidations')!.headline.match(/\$[\d.]+[MBK]/)?.[0] ?? '—'}
+                  {(() => {
+                    const totalUsd = p('liquidations')!.extra?.totalUsd;
+                    if (typeof totalUsd === 'number') {
+                      return totalUsd >= 1e9
+                        ? `$${(totalUsd / 1e9).toFixed(2)}B`
+                        : `$${(totalUsd / 1e6).toFixed(0)}M`;
+                    }
+                    return '—';
+                  })()}
                 </span>
                 <span className="w-oc-big-sub">liquidated</span>
               </div>
               {(() => {
-                const m = p('liquidations')!.headline.match(/(\d+)%\s+longs/);
-                const longPct  = m ? parseInt(m[1]) : 60;
+                // Read structured longPct from extra — never fabricate a fallback
+                const longPct = p('liquidations')!.extra?.longPct;
+                if (typeof longPct !== 'number') return null;
                 const shortPct = 100 - longPct;
                 return (
                   <div className="w-oc-liq-split">
@@ -410,7 +464,7 @@ export default function OnChainPage() {
                     </div>
                     <div className="w-oc-liq-labels">
                       <span className="w-bear">Longs {longPct}%</span>
-                      <span className="w-bull">Shorts {shortPct}%</span>
+                      <span className="w-bull">Shorts {shortPct.toFixed(1)}%</span>
                     </div>
                   </div>
                 );
@@ -518,8 +572,12 @@ export default function OnChainPage() {
           {p('etf') && (
             <ETFFlowChart
               series={p('etf')!.series ?? []}
-              seriesPrice={p('etf')!.series2 ?? p('etf')!.series ?? []}
-              asset={asset}
+              seriesPrice={p('etf')!.series2 ?? []}
+              net7dUsd={
+                typeof p('etf')!.extra?.net7dUsd === 'number'
+                  ? (p('etf')!.extra!.net7dUsd as number)
+                  : undefined
+              }
             />
           )}
         </MetricPanel>
@@ -566,7 +624,7 @@ export default function OnChainPage() {
               {p('oi') && (
                 <OITrendChart
                   seriesOI={p('oi')!.series ?? []}
-                  seriesPrice={p('oi')!.series2 ?? p('oi')!.series ?? []}
+                  seriesPrice={p('oi')!.series2 ?? null}
                 />
               )}
             </MetricPanel>

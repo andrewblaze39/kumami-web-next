@@ -88,6 +88,85 @@ describe('onchain()', () => {
       expect(() => new Date(ts).toISOString()).not.toThrow();
     }
   });
+
+  // ── Structured extra fields (issue 3) ──────────────────────────────────────
+
+  it('funding panel extra.currentRatePct is a finite number', async () => {
+    const data = await provider.onchain('BTC', '24h');
+    const { extra } = data.panels.funding;
+    expect(typeof extra?.currentRatePct).toBe('number');
+    expect(isFinite(extra!.currentRatePct as number)).toBe(true);
+  });
+
+  it('liquidations panel extra has numeric totalUsd and longPct', async () => {
+    const data = await provider.onchain('BTC', '24h');
+    const { extra } = data.panels.liquidations;
+    expect(typeof extra?.totalUsd).toBe('number');
+    expect(typeof extra?.longPct).toBe('number');
+    // longPct must be 55–75 per fixture config
+    expect(extra!.longPct as number).toBeGreaterThanOrEqual(55);
+    expect(extra!.longPct as number).toBeLessThanOrEqual(75);
+  });
+
+  it('netflow panel extra.netUsd is a finite number', async () => {
+    const data = await provider.onchain('BTC', '24h');
+    const { extra } = data.panels.netflow;
+    expect(typeof extra?.netUsd).toBe('number');
+    expect(isFinite(extra!.netUsd as number)).toBe(true);
+  });
+
+  it('etf panel extra.net7dUsd is a finite number', async () => {
+    const data = await provider.onchain('BTC', '24h');
+    const { extra } = data.panels.etf;
+    expect(typeof extra?.net7dUsd).toBe('number');
+    expect(isFinite(extra!.net7dUsd as number)).toBe(true);
+  });
+
+  // ── ETF series always 30 daily points regardless of requested range (issue 1) ─
+
+  it('etf panel always emits exactly 30 series points regardless of range', async () => {
+    const d24 = await provider.onchain('BTC', '24h');
+    const d7  = await provider.onchain('BTC', '7d');
+    const d30 = await provider.onchain('BTC', '30d');
+    expect(d24.panels.etf.series).toHaveLength(30);
+    expect(d7.panels.etf.series).toHaveLength(30);
+    expect(d30.panels.etf.series).toHaveLength(30);
+  });
+
+  it('etf panel series2 (price overlay) always emits exactly 30 points', async () => {
+    const data = await provider.onchain('BTC', '24h');
+    expect(data.panels.etf.series2).toHaveLength(30);
+  });
+
+  // ── LongShort percent scale (issue 4) ───────────────────────────────────────
+
+  it('longshort series values are in ~25–75 percent range', async () => {
+    const data = await provider.onchain('BTC', '24h');
+    const series = data.panels.longshort.series!;
+    for (const pt of series) {
+      // Allow a small tolerance above/below given ±15 spread
+      expect(pt.v).toBeGreaterThan(0);
+      expect(pt.v).toBeLessThan(100);
+    }
+    // At least some points must be above 30 and below 70 (i.e. ref lines are meaningful)
+    expect(series.some(pt => pt.v > 30)).toBe(true);
+    expect(series.some(pt => pt.v < 70)).toBe(true);
+  });
+
+  it('longshort series2 (top-trader) has same length as series', async () => {
+    const data = await provider.onchain('BTC', '24h');
+    expect(data.panels.longshort.series2).toBeDefined();
+    expect(data.panels.longshort.series2!.length).toBe(data.panels.longshort.series!.length);
+  });
+
+  // ── OI series2 (price overlay) (issue 5) ────────────────────────────────────
+
+  it('oi panel emits series2 (price overlay)', async () => {
+    const data = await provider.onchain('BTC', '24h');
+    expect(data.panels.oi.series2).toBeDefined();
+    expect(data.panels.oi.series2!.length).toBeGreaterThan(0);
+    expect(data.panels.oi.series2!.length).toBe(data.panels.oi.series!.length);
+  });
 });
 
 // ---------------------------------------------------------------------------
