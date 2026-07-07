@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "seed:courses": "npx tsx scripts/seed-courses.ts"
   },
   "dependencies": {
     "@firebase/analytics": "^0.10.21",
