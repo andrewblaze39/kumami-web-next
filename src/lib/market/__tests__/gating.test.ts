@@ -151,8 +151,7 @@ describe('watchlistSlots', () => {
     expect(watchlistSlots('free')).toBe(5);
   });
 
-  it('pro: returns a positive number or Infinity (no specific count in docs)', () => {
-    const slots = watchlistSlots('pro');
-    expect(slots).toBeGreaterThan(5);
+  it('pro: unlimited slots (Infinity)', () => {
+    expect(watchlistSlots('pro')).toBe(Infinity);
   });
 });

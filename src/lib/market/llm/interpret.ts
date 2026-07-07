@@ -11,6 +11,7 @@
  * Line references are noted per template.
  */
 
+import 'server-only';
 import type { MetricPanelKey } from '../contracts';
 
 // ---------------------------------------------------------------------------
