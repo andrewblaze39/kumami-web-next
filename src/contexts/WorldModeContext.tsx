@@ -33,14 +33,25 @@ export function useWorldMode() {
 // ---------- Route classification helpers ----------
 
 // Routes that belong exclusively to each mode
-const BEGINNER_ROUTES = ['/world/news', '/world/courses', '/world/education', '/world/ailabs', '/world/games'];
+const BEGINNER_ROUTES = ['/world/news', '/world/courses', '/world/dashboard', '/world/education', '/world/ailabs', '/world/games'];
 const ADVANCED_ROUTES = ['/world/console', '/world/onchain', '/world/intel', '/world/watchlist'];
 const PRO_ROUTES = ['/world/pro'];
+// Shared routes: visible in every mode — visiting them never changes the mode.
+const SHARED_ROUTES = ['/world/about', '/world/blogs', '/world/profile'];
+
+// Match a route prefix on segment boundaries so e.g. '/world/profile'
+// does NOT match the '/world/pro' prefix.
+function matchesRoute(pathname: string, route: string): boolean {
+  return pathname === route || pathname.startsWith(route + '/');
+}
 
 function detectModeFromPath(pathname: string): WorldMode | null {
-  if (PRO_ROUTES.some(r => pathname.startsWith(r))) return 'pro';
-  if (ADVANCED_ROUTES.some(r => pathname.startsWith(r))) return 'advanced';
-  if (BEGINNER_ROUTES.some(r => pathname.startsWith(r))) return 'beginner';
+  // Shared routes never force a mode — keep whatever mode is current.
+  if (SHARED_ROUTES.some(r => matchesRoute(pathname, r))) return null;
+  if (PRO_ROUTES.some(r => matchesRoute(pathname, r))) return 'pro';
+  if (ADVANCED_ROUTES.some(r => matchesRoute(pathname, r))) return 'advanced';
+  if (BEGINNER_ROUTES.some(r => matchesRoute(pathname, r))) return 'beginner';
+  // Unknown route: keep the current mode (caller treats null as "no change").
   return null;
 }
 

@@ -589,6 +589,15 @@
 .world-root .w-bm-item svg { width: 17px; height: 17px; flex: 0 0 17px; }
 .world-root .w-bm-sep { height: 1px; background: var(--border); margin: 5px 6px; }
 
+/* ---- About Kumami (own small section directly under brand) ---- */
+.world-root .w-nav-about {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
 /* ---- Nav group / items ---- */
 .world-root .w-nav-group {
   display: flex;
@@ -647,19 +656,6 @@
   padding-top: 12px;
   border-top: 1px solid var(--border);
 }
-.world-root .w-foot-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 10px;
-  padding: 0 4px 10px;
-}
-.world-root .w-foot-link {
-  font-size: 11.5px;
-  color: var(--muted-2);
-  text-decoration: none;
-  transition: 0.14s;
-}
-.world-root .w-foot-link:hover { color: var(--muted); }
 .world-root .w-profile {
   display: flex;
   align-items: center;
@@ -668,18 +664,22 @@
   border-radius: 13px;
   cursor: pointer;
   transition: 0.16s;
+  text-decoration: none;
+  color: inherit;
 }
 .world-root .w-profile:hover { background: var(--panel); }
 .world-root .w-avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1c3a30, #0f1d18);
+  background: linear-gradient(135deg, #123a3c, #0f1d18);
   display: flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 36px;
   border: 1px solid var(--border-2);
+  font-weight: 800;
+  font-size: 13px;
   overflow: hidden;
 }
 .world-root .w-profile-meta { min-width: 0; }

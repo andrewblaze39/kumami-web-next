@@ -109,16 +109,25 @@ const Icons = {
       <rect x="4.5" y="10.5" width="15" height="10" rx="2.5" /><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
     </svg>
   ),
+  info: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.5h.01" />
+    </svg>
+  ),
+  pen: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 3.5 20.5 7 8 19.5 3.5 20.5 4.5 16 17 3.5Z" /><path d="m14.5 6 3.5 3.5" />
+    </svg>
+  ),
 };
 
 const BEGINNER_NAV: NavGroup[] = [
   {
     grp: 'Discover',
     items: [
-      { k: 'dashboard', label: 'Dashboard', href: '/world/dashboard', icon: Icons.home },
       { k: 'news', label: 'News Portal', href: '/world/news', icon: Icons.news },
-      { k: 'courses', label: 'Courses', href: '/world/courses', icon: Icons.book },
       { k: 'education', label: 'Education', href: '/world/education', icon: Icons.grad },
+      { k: 'blogs', label: 'Blogs', href: '/world/blogs', icon: Icons.pen },
     ],
   },
   {
@@ -162,13 +171,9 @@ const PRO_NAV_ITEMS = [
   { label: 'Flow Radar', icon: Icons.bolt },
 ];
 
-// Company menu links
+// Brand dropdown menu links
 const COMPANY_LINKS = [
-  { label: 'About Kumami', href: '#', icon: Icons.building },
-  { label: 'How it works', href: '#', icon: Icons.spark },
-  { label: 'Careers', href: '#', icon: Icons.users },
-  { label: 'Blog', href: '/news', icon: Icons.news },
-  { label: 'Contact', href: '#', icon: Icons.doc },
+  { label: 'About Kumami', href: '/world/about', icon: Icons.building },
 ];
 
 interface SidebarProps {
@@ -217,12 +222,20 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
 
   const isActive = (href: string) => pathname.startsWith(href);
 
-  // Determine display name
+  // Determine display name + avatar initials (1-2 letters)
   const displayName = userData?.displayName || currentUser?.displayName || currentUser?.email?.split('@')[0] || 'You';
-  const tierLabel =
-    mode === 'pro' ? 'Pro · Live' :
-    mode === 'advanced' ? 'Advanced · Live' :
-    'Free plan';
+  const initials = (() => {
+    const source = userData?.displayName || currentUser?.displayName;
+    if (source) {
+      const parts = source.trim().split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+    const email = currentUser?.email;
+    if (email) return email.slice(0, 2).toUpperCase();
+    return 'K';
+  })();
+  const modeLabel = mode === 'pro' ? 'Pro' : mode === 'advanced' ? 'Advanced' : 'Beginner';
 
   return (
     <aside className={`w-sidebar${mode === 'advanced' ? ' is-adv' : mode === 'pro' ? ' is-pro' : ''}${sidebarOpen ? ' open' : ''}`} id="w-sidebar">
@@ -256,10 +269,10 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
           <div ref={menuDropRef} className="w-brand-menu">
             <div className="w-bm-head">Company</div>
             {COMPANY_LINKS.map(link => (
-              <a key={link.label} href={link.href} className="w-bm-item" onClick={() => setMenuOpen(false)}>
+              <Link key={link.label} href={link.href} className="w-bm-item" onClick={() => setMenuOpen(false)}>
                 {link.icon}
                 {link.label}
-              </a>
+              </Link>
             ))}
             <div className="w-bm-sep" />
             <button className="w-bm-item" onClick={() => { setMenuOpen(false); logout(); }}>
@@ -270,6 +283,18 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
             </button>
           </div>
         )}
+      </div>
+
+      {/* ---- About Kumami (all modes, directly under brand) ---- */}
+      <div className="w-nav-about">
+        <Link
+          href="/world/about"
+          className={`w-nav-item${isActive('/world/about') ? ' active' : ''}`}
+          onClick={onClose}
+        >
+          {Icons.info}
+          <span>About Kumami</span>
+        </Link>
       </div>
 
       {/* ---- Nav items ---- */}
@@ -305,32 +330,22 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
         )}
       </nav>
 
-      {/* ---- Footer ---- */}
+      {/* ---- Footer: profile block (links to /world/profile) ---- */}
       <div className="w-sidebar-foot">
-        {/* Small company links in footer */}
-        <div className="w-foot-links">
-          {COMPANY_LINKS.slice(0, 3).map(l => (
-            <a key={l.label} href={l.href} className="w-foot-link">{l.label}</a>
-          ))}
-        </div>
-
-        {/* Profile */}
-        <div className="w-profile">
+        <Link href="/world/profile" className="w-profile" onClick={onClose}>
           <span className="w-avatar">
             {currentUser?.photoURL ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={currentUser.photoURL} alt={displayName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
             ) : (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18, color: 'var(--accent)' }}>
-                <circle cx="12" cy="8" r="4" /><path d="M4 20a8 8 0 0 1 16 0" />
-              </svg>
+              <span style={{ color: 'var(--accent)' }}>{initials}</span>
             )}
           </span>
           <span className="w-profile-meta">
             <b>{displayName}</b>
-            <span>{tierLabel}</span>
+            <span>{modeLabel}</span>
           </span>
-        </div>
+        </Link>
       </div>
     </aside>
   );
