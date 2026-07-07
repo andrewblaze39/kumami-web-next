@@ -27,6 +27,7 @@ import type {
   Verdict,
   WatchlistPayload,
 } from '../contracts';
+import { classifyFearGreed } from '../rules/regime';
 
 // ---------------------------------------------------------------------------
 // PRNG — mulberry32
@@ -182,31 +183,16 @@ export function makeConsolePayload(prng: () => number): ConsolePayload {
   const spxPrice = rnd(prng, 5_000, 5_400);
 
   const fearGreed = rndInt(prng, 10, 90);
-  const fearGreedColor: Verdict['color'] =
-    fearGreed >= 75
-      ? 'red'
-      : fearGreed >= 60
-        ? 'amber'
-        : fearGreed >= 40
-          ? 'grey-green'
-          : fearGreed >= 25
-            ? 'grey'
-            : 'grey-red';
-
-  const fearGreedLabel =
-    fearGreed >= 75
-      ? 'Extreme Greed'
-      : fearGreed >= 60
-        ? 'Greed'
-        : fearGreed >= 40
-          ? 'Neutral'
-          : fearGreed >= 25
-            ? 'Fear'
-            : 'Extreme Fear';
+  const fg = classifyFearGreed(fearGreed);
+  // Map FearGreedClassification.color → Verdict.color for the panel verdict chip
+  const fgVerdictColor: Verdict['color'] =
+    fg.color === 'lime' ? 'grey-green' : fg.color;
 
   return {
     marketConditions: {
-      verdict: verdict(fearGreedLabel, fearGreedColor),
+      verdict: verdict(fg.label, fgVerdictColor),
+      fearGreedLabel: fg.label,
+      fearGreedColor: fg.color,
       tags: [
         verdict('· Rising Fast', 'amber'),
         verdict('· Smart Money Fading', 'grey-red'),

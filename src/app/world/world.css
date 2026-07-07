@@ -443,7 +443,7 @@
 .world-root .w-error {
   background: rgba(255, 122, 122, 0.08);
   border: 1px solid rgba(255, 122, 122, 0.25);
-  color: #ff9999;
+  color: var(--danger);
   border-radius: 10px;
   padding: 10px 14px;
   font-size: 13.5px;
@@ -1696,7 +1696,7 @@
 }
 
 .world-root .w-console-error-msg {
-  color: #ff9999;
+  color: var(--danger);
   font-size: 14.5px;
   margin: 0;
 }

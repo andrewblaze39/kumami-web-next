@@ -105,6 +105,33 @@ function computeConfidence(components: RegimeComponents, score: number): number 
   return agreeing / values.length;
 }
 
+// ---------------------------------------------------------------------------
+// Fear & Greed display classification (for ConsolePayload server fields)
+// ---------------------------------------------------------------------------
+
+export type FearGreedClassification = {
+  label: string;
+  /** CSS color token name used by the design system bar fill. */
+  color: 'green' | 'lime' | 'grey' | 'amber' | 'red';
+};
+
+/**
+ * Classify a Fear & Greed index value (0–100) into a display label and color.
+ * Thresholds match the original MarketConditions.tsx client-side logic.
+ * >=75 → Extreme Greed / red
+ * >=60 → Greed / amber
+ * >=40 → Neutral / grey
+ * >=25 → Fear / lime
+ *  <25 → Extreme Fear / green  (contrarian: green = good signal)
+ */
+export function classifyFearGreed(value: number): FearGreedClassification {
+  if (value >= 75) return { label: 'Extreme Greed', color: 'red' };
+  if (value >= 60) return { label: 'Greed',         color: 'amber' };
+  if (value >= 40) return { label: 'Neutral',        color: 'grey' };
+  if (value >= 25) return { label: 'Fear',           color: 'lime' };
+  return             { label: 'Extreme Fear',      color: 'green' };
+}
+
 export function computeRegime(inputs: RegimeInputs): RegimeResult {
   const components: RegimeComponents = {
     fearGreed: scoreFearGreed(inputs.fearGreed),

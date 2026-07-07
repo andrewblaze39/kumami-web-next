@@ -3,32 +3,23 @@
 import type { ConsolePayload } from '@/lib/market/contracts';
 import { formatUsd, formatChange, formatConfidence, relativeTime, verdictColorClass } from './format';
 
-type Props = {
-  data: ConsolePayload['marketConditions'];
-  loading?: boolean;
+// Fear & Greed bar color token map.
+// FearGreedClassification.color → CSS custom property used for the bar fill.
+// 'lime' maps to --accent (teal-green) as a mid-positive tone; others map directly.
+const FG_BAR_COLOR: Record<string, string> = {
+  red:   'var(--danger)',
+  amber: 'var(--amber)',
+  grey:  'var(--muted)',
+  lime:  'var(--muted-2)',
+  green: 'var(--bull)',
 };
 
-export default function MarketConditions({ data, loading }: Props) {
-  if (loading) {
-    return (
-      <div className="w-panel w-panel-market-conditions" aria-busy="true">
-        <div className="w-panel-skeleton w-panel-skeleton-mc" />
-      </div>
-    );
-  }
+type Props = {
+  data: ConsolePayload['marketConditions'];
+};
 
-  const { verdict, tags, confidence, interpretation, updatedAt, fearGreed, tiles } = data;
-  const fearGreedLabel =
-    fearGreed >= 75 ? 'Extreme Greed' :
-    fearGreed >= 60 ? 'Greed' :
-    fearGreed >= 40 ? 'Neutral' :
-    fearGreed >= 25 ? 'Fear' : 'Extreme Fear';
-
-  const fearGreedBarColor =
-    fearGreed >= 75 ? 'var(--danger)' :
-    fearGreed >= 60 ? 'var(--amber)' :
-    fearGreed >= 40 ? 'var(--muted)' :
-    fearGreed >= 25 ? 'var(--muted-2)' : 'var(--bear)';
+export default function MarketConditions({ data }: Props) {
+  const { verdict, tags, confidence, interpretation, updatedAt, fearGreed, fearGreedLabel, fearGreedColor, tiles } = data;
 
   return (
     <section
@@ -92,7 +83,7 @@ export default function MarketConditions({ data, loading }: Props) {
             className="w-fg-fill"
             style={{
               width: `${fearGreed}%`,
-              background: fearGreedBarColor,
+              background: FG_BAR_COLOR[fearGreedColor] ?? 'var(--muted)',
             }}
           />
         </div>
@@ -100,7 +91,7 @@ export default function MarketConditions({ data, loading }: Props) {
 
       {/* Metric tiles */}
       <div className="w-tiles">
-        {/* ETF Flow 7d */}
+        {/* ETF Flow 7d — sign determines bull/bear (pure formatting, not judgment) */}
         <div className="w-tile">
           <span
             className="w-tile-label"
@@ -145,7 +136,7 @@ export default function MarketConditions({ data, loading }: Props) {
           )}
         </div>
 
-        {/* On-Chain Bias */}
+        {/* On-Chain Bias — neutral coloring; pctLong >= 50 is sign-based formatting only */}
         <div className="w-tile">
           <span
             className="w-tile-label"
@@ -153,7 +144,7 @@ export default function MarketConditions({ data, loading }: Props) {
           >
             On-Chain Bias
           </span>
-          <span className={`w-tile-value ${tiles.onChainBias.pctLong >= 50 ? 'w-bull' : 'w-bear'}`}>
+          <span className="w-tile-value">
             {tiles.onChainBias.pctLong.toFixed(1)}% Long
           </span>
           <span
@@ -164,7 +155,7 @@ export default function MarketConditions({ data, loading }: Props) {
           </span>
         </div>
 
-        {/* Liquidations 24h */}
+        {/* Liquidations 24h — neutral coloring; pctVsAvg7d sign shown as +/- only */}
         <div className="w-tile">
           <span
             className="w-tile-label"
@@ -176,7 +167,7 @@ export default function MarketConditions({ data, loading }: Props) {
             {formatUsd(tiles.liq24h.totalUsd)}
           </span>
           <span
-            className={`w-tile-change ${tiles.liq24h.pctVsAvg7d >= 0 ? 'w-bear' : 'w-bull'}`}
+            className="w-tile-change w-muted"
             title="Change vs 7-day average liquidation volume"
           >
             {formatChange(tiles.liq24h.pctVsAvg7d)} vs 7d avg

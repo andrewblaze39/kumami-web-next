@@ -15,8 +15,8 @@ export default function ConsolePage() {
   const hasError = market.status === 'error' && !market.data;
   const data = market.data;
 
-  // A shared updatedAt fallback when we have stale data or no data yet
-  const updatedAt = data?.marketConditions.updatedAt ?? new Date().toISOString();
+  // Pass the real payload timestamp only; undefined while loading so panels hide <time>
+  const updatedAt = data?.marketConditions.updatedAt;
 
   if (hasError) {
     return (

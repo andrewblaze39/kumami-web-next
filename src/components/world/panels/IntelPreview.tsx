@@ -6,7 +6,7 @@ import { relativeTime } from './format';
 
 type Props = {
   briefs: ConsolePayload['intelPreview'];
-  updatedAt: string;
+  updatedAt?: string;
   loading?: boolean;
 };
 
@@ -27,9 +27,11 @@ export default function IntelPreview({ briefs, updatedAt, loading }: Props) {
     <section className="w-panel w-panel-intel" aria-label="Intelligence Preview">
       <div className="w-panel-header">
         <span className="w-panel-eyebrow">Intelligence</span>
-        <time className="w-panel-ts" dateTime={updatedAt} title={updatedAt}>
-          {relativeTime(updatedAt)}
-        </time>
+        {updatedAt && (
+          <time className="w-panel-ts" dateTime={updatedAt} title={updatedAt}>
+            {relativeTime(updatedAt)}
+          </time>
+        )}
       </div>
 
       {loading ? (

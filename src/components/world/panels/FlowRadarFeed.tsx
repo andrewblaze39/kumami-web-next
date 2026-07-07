@@ -5,7 +5,7 @@ import { formatUsd, relativeTime } from './format';
 
 type Props = {
   events: ConsolePayload['flowRadar'];
-  updatedAt: string;
+  updatedAt?: string;
   loading?: boolean;
 };
 
@@ -65,9 +65,11 @@ export default function FlowRadarFeed({ events, updatedAt, loading }: Props) {
             </div>
           )}
         </div>
-        <time className="w-panel-ts" dateTime={updatedAt} title={updatedAt}>
-          {relativeTime(updatedAt)}
-        </time>
+        {updatedAt && (
+          <time className="w-panel-ts" dateTime={updatedAt} title={updatedAt}>
+            {relativeTime(updatedAt)}
+          </time>
+        )}
       </div>
 
       {loading ? (

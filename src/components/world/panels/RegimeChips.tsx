@@ -25,6 +25,14 @@ export default function RegimeChips({ chips, loading }: Props) {
     );
   }
 
+  if (chips.length === 0) {
+    return (
+      <div className="w-regime-row w-regime-empty" role="status">
+        <span className="w-muted">No regime data</span>
+      </div>
+    );
+  }
+
   return (
     <div className="w-regime-row" role="list" aria-label="Asset regime overview">
       {chips.map(chip => (

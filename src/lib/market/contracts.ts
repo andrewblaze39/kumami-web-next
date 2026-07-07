@@ -30,6 +30,10 @@ export type Series = { t: number; v: number }[];
 export type ConsolePayload = {
   marketConditions: PanelVerdict & {
     fearGreed: number;
+    /** Server-derived label for the Fear & Greed value (e.g. "Extreme Greed"). */
+    fearGreedLabel: string;
+    /** Server-derived color token for the Fear & Greed bar fill. */
+    fearGreedColor: 'green' | 'lime' | 'grey' | 'amber' | 'red';
     tiles: {
       etfFlow7d: { usd: number; pctVsPrev: number };
       /** null until macro data source is wired */

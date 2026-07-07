@@ -5,7 +5,7 @@ import { formatPrice, formatChange, relativeTime } from './format';
 
 type Props = {
   items: ConsolePayload['radarWatchlist'];
-  updatedAt: string;
+  updatedAt?: string;
   loading?: boolean;
 };
 
@@ -17,9 +17,11 @@ export default function RadarWatchlist({ items, updatedAt, loading }: Props) {
           {/* PM requirement: exact header text — users must not confuse with curated list */}
           <span className="w-panel-eyebrow">Radar Watchlist · auto-detected</span>
         </div>
-        <time className="w-panel-ts" dateTime={updatedAt} title={updatedAt}>
-          {relativeTime(updatedAt)}
-        </time>
+        {updatedAt && (
+          <time className="w-panel-ts" dateTime={updatedAt} title={updatedAt}>
+            {relativeTime(updatedAt)}
+          </time>
+        )}
       </div>
 
       {loading ? (
