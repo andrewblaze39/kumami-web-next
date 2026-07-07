@@ -1659,20 +1659,362 @@
 }
 
 /* ============================================================
-   NEWS PAGE — responsive grid
+   NEWS PORTAL — reference-parity layout
    ============================================================ */
-@media (min-width: 900px) {
-  .world-root .w-news-grid {
-    grid-template-columns: 1fr 320px !important;
+
+/* — Header — */
+.world-root .w-np-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 12px;
+  margin-bottom: 4px;
+}
+.world-root .w-np-top h1 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.world-root .w-np-top-ico {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.world-root .w-np-date {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* — Crypto ticker — */
+.world-root .w-np-ticker {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 14px 0 22px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 9px 14px;
+  font-size: 13px;
+}
+.world-root .w-tk-label {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--accent);
+  color: var(--on-accent);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.world-root .w-tk-track {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.world-root .w-tk-move {
+  display: flex;
+  width: max-content;
+  animation: w-tk-marquee 40s linear infinite;
+}
+.world-root .w-np-ticker:hover .w-tk-move {
+  animation-play-state: paused;
+}
+.world-root .w-tk-seq {
+  display: flex;
+  gap: 26px;
+  white-space: nowrap;
+  padding-right: 26px;
+}
+@keyframes w-tk-marquee {
+  to {
+    transform: translateX(-50%);
   }
 }
-.world-root .w-news-hero-link:hover {
-  border-color: var(--border-2) !important;
-  box-shadow: 0 8px 32px -12px rgba(0, 0, 0, 0.5) !important;
+.world-root .w-tk-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-weight: 600;
 }
-.world-root .w-headline-card:hover {
-  opacity: 0.8 !important;
+.world-root .w-tk-item b {
+  color: var(--ink);
 }
+.world-root .w-tk-item .up {
+  color: var(--bull);
+}
+.world-root .w-tk-item .down {
+  color: var(--bear);
+}
+
+/* — Category capsules — */
+.world-root .w-np-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 22px;
+}
+.world-root .w-np-cat {
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 12.5px;
+  padding: 7px 14px;
+  border-radius: 9px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.14s, background 0.14s, border-color 0.14s;
+}
+.world-root .w-np-cat:hover {
+  color: var(--ink);
+}
+.world-root .w-np-cat.is-active {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--on-accent);
+}
+
+/* — Main grid — */
+.world-root .w-np-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  gap: 26px;
+  align-items: start;
+}
+
+/* — Hero lead card — */
+.world-root .w-np-lead {
+  display: block;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.18s;
+}
+.world-root .w-np-lead:hover {
+  border-color: var(--border-2);
+}
+.world-root .w-np-lead-ph {
+  position: relative;
+  height: 300px;
+  display: flex;
+  align-items: flex-end;
+  padding: 22px 24px;
+  background-size: cover;
+  background-position: center;
+}
+.world-root .w-np-lead-badges {
+  position: absolute;
+  top: 16px;
+  left: 18px;
+  display: flex;
+  gap: 6px;
+}
+.world-root .w-np-lead-ph h2 {
+  margin: 0;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+  color: #fff;
+  max-width: 22ch;
+}
+.world-root .w-np-lead-body {
+  padding: 16px 24px 22px;
+}
+.world-root .w-np-lead-excerpt {
+  margin: 0 0 12px;
+  font-size: 14.5px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+/* — Aside — */
+.world-root .w-np-aside-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  border-bottom: 2px solid var(--border-2);
+  padding-bottom: 9px;
+  margin: 0;
+}
+
+/* — Article row — */
+.world-root .w-np-row {
+  display: flex;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: inherit;
+}
+.world-root .w-np-row:hover h3 {
+  color: var(--accent);
+}
+.world-root .w-np-thumb {
+  position: relative;
+  flex: 0 0 116px;
+  height: 84px;
+  border-radius: 11px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-image: linear-gradient(130deg, #0d2b2c, #0d201b);
+}
+.world-root .w-np-thumb-badge {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+}
+.world-root .w-np-row-body {
+  min-width: 0;
+  flex: 1;
+}
+.world-root .w-np-kicker {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.world-root .w-np-row-body h3 {
+  margin: 5px 0 8px;
+  font-size: 15.5px;
+  font-weight: 700;
+  line-height: 1.28;
+  color: var(--ink);
+  transition: color 0.14s;
+}
+.world-root .w-np-meta {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-2);
+}
+
+/* — River — */
+.world-root .w-np-river {
+  margin-top: 30px;
+}
+.world-root .w-np-river-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 30px;
+}
+
+/* — Tier badges — */
+.world-root .w-tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 7px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.world-root .w-tag-adv {
+  background: linear-gradient(
+    120deg,
+    rgba(231, 192, 106, 0.22),
+    rgba(231, 192, 106, 0.1)
+  );
+  color: #f0cd7e;
+  border: 1px solid rgba(231, 192, 106, 0.35);
+}
+.world-root .w-tag-pro {
+  background: linear-gradient(
+    120deg,
+    rgba(167, 139, 250, 0.22),
+    rgba(167, 139, 250, 0.1)
+  );
+  color: #c4b3ff;
+  border: 1px solid rgba(167, 139, 250, 0.4);
+}
+
+/* — Locked PRO rows — */
+.world-root .w-locked-wrap {
+  position: relative;
+}
+.world-root .w-locked .w-np-row-body,
+.world-root .w-locked .w-np-lead-body {
+  opacity: 0.62;
+}
+.world-root .w-locked .w-np-thumb,
+.world-root .w-locked .w-np-lead-ph {
+  filter: grayscale(0.3);
+}
+.world-root .w-lock-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: linear-gradient(180deg, rgba(10, 8, 20, 0.55), rgba(10, 8, 20, 0.86));
+  backdrop-filter: blur(3px);
+  border-radius: 12px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.world-root .w-lock-ico {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #a78bfa, #c4b3ff);
+  color: #1b1330;
+}
+.world-root .w-lock-veil b {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+}
+.world-root .w-lock-sub {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* — Responsive — */
+@media (max-width: 1080px) {
+  .world-root .w-np-grid {
+    grid-template-columns: 1fr;
+  }
+  .world-root .w-np-river-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Latest rail card (article detail page) */
 .world-root .w-latest-card:hover {
   background: var(--panel-3) !important;
   border-color: var(--border-2) !important;

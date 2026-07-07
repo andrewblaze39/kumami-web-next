@@ -1,8 +1,12 @@
 import type { Metadata } from 'next';
-import { getPublishedNews } from '@/lib/news';
+import { Newspaper, Zap } from 'lucide-react';
+import { getPublishedNews, getNewsCategories } from '@/lib/news';
 import CategoryChips from '@/components/world/news/CategoryChips';
 import NewsHero from '@/components/world/news/NewsHero';
-import { HeadlineCard, LatestCard, NewsEmptyState } from '@/components/world/news/NewsList';
+import NewsTicker from '@/components/world/news/NewsTicker';
+import ProGate from '@/components/world/news/ProGate';
+import { NewsRow, NewsEmptyState } from '@/components/world/news/NewsList';
+import type { NewsArticle } from '@/lib/news';
 
 // Force dynamic so Firestore is read at request-time, not build-time.
 // (Firebase Admin SDK needs runtime env vars.)
@@ -30,102 +34,103 @@ interface PageProps {
   searchParams: Promise<{ category?: string }>;
 }
 
+function isProArticle(article: NewsArticle): boolean {
+  return Boolean(article.isPro || article.isPremium);
+}
+
 export default async function WorldNewsPage({ searchParams }: PageProps) {
   const { category } = await searchParams;
   const activeCategory = category || 'All';
 
-  // Fetch published articles — returns [] gracefully if Firestore unavailable
-  const articles = await getPublishedNews({
-    category: activeCategory === 'All' ? undefined : activeCategory,
-    limit: 40,
-  });
+  // 'Most Popular' behaves as latest-ordering for now.
+  // popularity metric TBD — latest for now
+  const isRealCategoryFilter =
+    activeCategory !== 'All' && activeCategory !== 'Most Popular';
+
+  // Unfiltered latest page — always fetched so capsules reflect real articles
+  // even while a category filter is active. When no filter is applied the
+  // same fetch doubles as the display list (single query).
+  const latest = await getPublishedNews({ limit: 40 });
+  const articles = isRealCategoryFilter
+    ? await getPublishedNews({ category: activeCategory, limit: 40 })
+    : latest;
+
+  // Capsules derived from real article data — never hardcoded.
+  const categories = getNewsCategories(latest);
 
   const hero = articles[0];
-  // Main list: articles 1–12 (left 2-col dense list)
-  const mainList = articles.slice(1, 13);
-  // Latest rail: articles 13–22 (right sidebar)
-  const latestRail = articles.slice(13, 23);
+  const asideList = articles.slice(1, 7);
+  const river = articles.slice(7);
+
+  const dateLabel = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
 
   return (
     <div className="w-content-inner">
       {/* Page header */}
-      <div style={{ marginBottom: '20px' }}>
-        <h1 className="w-page-title" style={{ marginBottom: '4px' }}>
-          News Portal
+      <div className="w-np-top">
+        <h1>
+          <Newspaper size={16} className="w-np-top-ico" />
+          News
         </h1>
-        <p className="w-page-sub">
-          Latest crypto, Web3 &amp; finance news — live.
-        </p>
+        <span className="w-np-date">{dateLabel} · Updated live</span>
       </div>
 
-      {/* Category filter chips */}
-      <CategoryChips active={activeCategory} />
+      {/* Crypto ticker */}
+      <NewsTicker />
+
+      {/* Category capsules — derived from real articles */}
+      <CategoryChips active={activeCategory} categories={categories} />
 
       {articles.length === 0 ? (
         <NewsEmptyState category={activeCategory} />
       ) : (
         <>
-          {/* Hero story */}
-          {hero && <NewsHero article={hero} />}
-
-          {/* 2-col layout: dense headline list + latest rail */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr',
-              gap: '28px',
-            }}
-            className="w-news-grid"
-          >
-            {/* Left: dense headline list */}
-            {mainList.length > 0 && (
-              <div>
-                <h3
-                  style={{
-                    margin: '0 0 4px',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    letterSpacing: '0.16em',
-                    textTransform: 'uppercase',
-                    color: 'var(--muted-2)',
-                  }}
-                >
-                  Headlines
-                </h3>
-                <div>
-                  {mainList.map((article) => (
-                    <HeadlineCard key={article.id} article={article} />
-                  ))}
-                </div>
-              </div>
+          {/* Main grid: hero lead + latest aside */}
+          <div className="w-np-grid">
+            {hero && (
+              <ProGate locked={isProArticle(hero)}>
+                <NewsHero article={hero} />
+              </ProGate>
             )}
 
-            {/* Right: Latest rail */}
-            {latestRail.length > 0 && (
-              <div>
-                <h3
-                  style={{
-                    margin: '0 0 10px',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    letterSpacing: '0.16em',
-                    textTransform: 'uppercase',
-                    color: 'var(--muted-2)',
-                  }}
-                >
-                  Latest
-                </h3>
-                <div>
-                  {latestRail.map((article) => (
-                    <LatestCard key={article.id} article={article} />
-                  ))}
+            {asideList.length > 0 && (
+              <aside className="w-np-aside">
+                <div className="w-np-aside-h">
+                  <Zap size={16} className="w-np-top-ico" />
+                  LATEST
                 </div>
-              </div>
+                {asideList.map((article) => (
+                  <ProGate key={article.id} locked={isProArticle(article)}>
+                    <NewsRow article={article} />
+                  </ProGate>
+                ))}
+              </aside>
             )}
           </div>
+
+          {/* River — remaining articles */}
+          {river.length > 0 && (
+            <div className="w-np-river">
+              <div className="w-np-aside-h">
+                <Newspaper size={16} className="w-np-top-ico" />
+                MORE NEWS
+              </div>
+              <div className="w-np-river-grid">
+                {river.map((article) => (
+                  <ProGate key={article.id} locked={isProArticle(article)}>
+                    <NewsRow article={article} />
+                  </ProGate>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
-
     </div>
   );
 }

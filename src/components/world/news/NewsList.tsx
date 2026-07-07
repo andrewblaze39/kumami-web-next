@@ -3,7 +3,11 @@ import type { NewsArticle } from '@/lib/news';
 import { timestampToDate, resolveTimestamp } from '@/lib/news';
 import { AdvancedBadge, ProBadge } from './TierBadge';
 
-function formatRelativeTime(article: NewsArticle): string {
+/** Fallback gradient used where an article has no imageUrl. */
+export const FALLBACK_THUMB_GRADIENT =
+  'linear-gradient(130deg, #0d2b2c, #0d201b)';
+
+export function formatRelativeTime(article: NewsArticle): string {
   const ts = resolveTimestamp(article);
   const date = timestampToDate(ts);
   if (!date) return '';
@@ -22,108 +26,52 @@ function formatRelativeTime(article: NewsArticle): string {
   });
 }
 
-// ---------- Dense headline card (left 2-col) ----------
+// ---------- Article row (aside + river) ----------
 
-interface HeadlineCardProps {
+interface NewsRowProps {
   article: NewsArticle;
 }
 
-export function HeadlineCard({ article }: HeadlineCardProps) {
+/** Thumb + body article row — `.w-np-row`. */
+export function NewsRow({ article }: NewsRowProps) {
   const timeLabel = formatRelativeTime(article);
   const isProTier = article.isPro || article.isPremium;
   const isAdvancedTier = article.isAdvanced;
 
+  const thumbBackground = article.imageUrl
+    ? `url(${JSON.stringify(article.imageUrl)})`
+    : FALLBACK_THUMB_GRADIENT;
+
   return (
-    <Link
-      href={`/world/news/${article.id}`}
-      style={{
-        display: 'flex',
-        gap: '12px',
-        padding: '12px 0',
-        borderBottom: '1px solid var(--border)',
-        textDecoration: 'none',
-        color: 'inherit',
-        alignItems: 'flex-start',
-        transition: 'opacity 0.14s',
-      }}
-      className="w-headline-card"
-    >
-      {/* Thumbnail */}
-      {article.imageUrl && (
-        <div
-          style={{
-            flexShrink: 0,
-            width: '80px',
-            height: '58px',
-            borderRadius: '10px',
-            overflow: 'hidden',
-            background: 'var(--panel-2)',
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={article.imageUrl}
-            alt={article.title ?? ''}
-            loading="lazy"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        </div>
-      )}
-
-      {/* Text */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Badges */}
+    <Link href={`/world/news/${article.id}`} className="w-np-row">
+      <div
+        className="w-np-thumb"
+        style={{ backgroundImage: thumbBackground }}
+        role="img"
+        aria-label={article.title ?? ''}
+      >
         {(isAdvancedTier || isProTier) && (
-          <div style={{ display: 'flex', gap: '5px', marginBottom: '4px' }}>
-            {isAdvancedTier && <AdvancedBadge articleId={article.id} />}
-            {isProTier && <ProBadge />}
-          </div>
+          <span className="w-np-thumb-badge">
+            {isProTier ? <ProBadge link={false} /> : <AdvancedBadge />}
+          </span>
         )}
+      </div>
 
-        <h4
-          style={{
-            margin: '0 0 5px',
-            fontSize: '13.5px',
-            fontWeight: 700,
-            lineHeight: 1.35,
-            letterSpacing: '-0.01em',
-            color: 'var(--ink)',
-            overflow: 'hidden',
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-          }}
-        >
-          {article.title}
-        </h4>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          {article.category && (
-            <span
-              style={{
-                fontSize: '10px',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.09em',
-                color: 'var(--accent)',
-                opacity: 0.8,
-              }}
-            >
-              {article.category}
-            </span>
-          )}
-          {timeLabel && (
-            <span style={{ fontSize: '11px', color: 'var(--muted-2)' }}>
-              {timeLabel}
-            </span>
-          )}
+      <div className="w-np-row-body">
+        {article.category && (
+          <span className="w-np-kicker">{article.category}</span>
+        )}
+        <h3>{article.title}</h3>
+        <div className="w-np-meta">
+          {article.source && <span>{article.source}</span>}
+          {timeLabel && <span>{timeLabel}</span>}
         </div>
       </div>
     </Link>
   );
 }
 
-// ---------- "Latest" rail card (right sidebar) ----------
+// ---------- "Latest" rail card (used by the article detail page) ----------
 
 interface LatestCardProps {
   article: NewsArticle;

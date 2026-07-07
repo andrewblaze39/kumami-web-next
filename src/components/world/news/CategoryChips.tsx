@@ -1,64 +1,35 @@
 import Link from 'next/link';
 
-const CATEGORIES = [
-  'All',
-  'Macro',
-  'Markets',
-  'Regulation',
-  'Security',
-  'Trading',
-  'Web3',
-  'On-chain',
-  'Learn',
-];
-
 interface CategoryChipsProps {
-  /** Currently active category — 'All' or a category name */
+  /** Currently active category — 'All', 'Most Popular' or a real category name */
   active?: string;
+  /** Real category values derived from published articles (getNewsCategories) */
+  categories: string[];
 }
 
-export default function CategoryChips({ active }: CategoryChipsProps) {
-  // Parent passes active down via server props; Link renders ?category= filter server-side
+/**
+ * Category capsules — `All`, then real categories derived from articles,
+ * then `Most Popular`. Selection is server-driven via the `?category=` param.
+ */
+export default function CategoryChips({ active, categories }: CategoryChipsProps) {
   const current = active || 'All';
+  // popularity metric TBD — latest for now
+  const chips = ['All', ...categories, 'Most Popular'];
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: '6px',
-        flexWrap: 'wrap',
-        marginBottom: '20px',
-      }}
-    >
-      {CATEGORIES.map((cat) => {
-        const isActive = cat === current || (cat === 'All' && current === 'All');
+    <div className="w-np-cats">
+      {chips.map((cat) => {
+        const isActive = cat === current;
         const href =
-          cat === 'All' ? '/world/news' : `/world/news?category=${encodeURIComponent(cat)}`;
+          cat === 'All'
+            ? '/world/news'
+            : `/world/news?category=${encodeURIComponent(cat)}`;
 
         return (
           <Link
             key={cat}
             href={href}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '5px 13px',
-              borderRadius: '999px',
-              fontSize: '12px',
-              fontWeight: 700,
-              letterSpacing: '0.02em',
-              border: isActive
-                ? '1px solid var(--accent)'
-                : '1px solid var(--border-2)',
-              background: isActive
-                ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
-                : 'var(--panel-2)',
-              color: isActive ? 'var(--accent)' : 'var(--muted)',
-              textDecoration: 'none',
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-              whiteSpace: 'nowrap',
-            }}
+            className={`w-np-cat${isActive ? ' is-active' : ''}`}
           >
             {cat}
           </Link>

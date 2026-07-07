@@ -77,6 +77,25 @@ export function timestampToDate(ts: FirestoreTimestampLike | undefined): Date | 
   return null;
 }
 
+/**
+ * Derive the category capsule list from real articles (pure helper).
+ * Distinct, non-empty, trimmed `category` values ordered by
+ * frequency desc, then alphabetically.
+ */
+export function getNewsCategories(
+  articles: Pick<NewsArticle, 'category'>[]
+): string[] {
+  const counts = new Map<string, number>();
+  for (const article of articles) {
+    const cat = (article.category ?? '').trim();
+    if (!cat) continue;
+    counts.set(cat, (counts.get(cat) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([cat]) => cat);
+}
+
 // ---------- Queries ----------
 
 interface GetPublishedNewsOptions {
