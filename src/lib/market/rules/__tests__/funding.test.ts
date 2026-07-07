@@ -168,6 +168,75 @@ describe('computeFunding — Rising Fast tag', () => {
   });
 });
 
+describe('computeFunding — Unwinding tag', () => {
+  // Doc lines 448–449: funding falling from extreme back toward zero
+  // → append "· Unwinding" (often precedes relief rally or dump)
+  // Condition: band.isExtreme (Overheated Long or Extreme Short) AND delta24h
+  // is opposite sign to avg3Cycle (avg>0 with delta24h<0, or avg<0 with delta24h>0).
+
+  it('adds Unwinding tag for Overheated Long with negative delta (moving toward zero)', () => {
+    const r = computeFunding({ avg3Cycle: 0.2, cycleHistory: [], delta24h: -0.03 });
+    expect(r.tags.some(t => t.label === '· Unwinding')).toBe(true);
+  });
+
+  it('Unwinding tag color is amber', () => {
+    const r = computeFunding({ avg3Cycle: 0.2, cycleHistory: [], delta24h: -0.03 });
+    const tag = r.tags.find(t => t.label === '· Unwinding');
+    expect(tag?.color).toBe('amber');
+  });
+
+  it('adds Unwinding tag for Extreme Short with positive delta (moving toward zero)', () => {
+    const r = computeFunding({ avg3Cycle: -0.15, cycleHistory: [], delta24h: 0.03 });
+    expect(r.tags.some(t => t.label === '· Unwinding')).toBe(true);
+  });
+
+  it('no Unwinding tag for Overheated Long with positive delta (funding still rising)', () => {
+    const r = computeFunding({ avg3Cycle: 0.2, cycleHistory: [], delta24h: 0.03 });
+    expect(r.tags.some(t => t.label === '· Unwinding')).toBe(false);
+  });
+
+  it('no Unwinding tag for Extreme Short with negative delta (funding still falling)', () => {
+    const r = computeFunding({ avg3Cycle: -0.15, cycleHistory: [], delta24h: -0.03 });
+    expect(r.tags.some(t => t.label === '· Unwinding')).toBe(false);
+  });
+
+  it('no Unwinding tag for non-extreme bands (Crowded Long) even with opposite-sign delta', () => {
+    const r = computeFunding({ avg3Cycle: 0.1, cycleHistory: [], delta24h: -0.03 });
+    expect(r.tags.some(t => t.label === '· Unwinding')).toBe(false);
+  });
+
+  it('no Unwinding tag for non-extreme bands (Crowded Short) even with positive delta', () => {
+    const r = computeFunding({ avg3Cycle: -0.08, cycleHistory: [], delta24h: 0.03 });
+    expect(r.tags.some(t => t.label === '· Unwinding')).toBe(false);
+  });
+
+  it('no Unwinding tag when delta24h is zero (no movement)', () => {
+    const r = computeFunding({ avg3Cycle: 0.2, cycleHistory: [], delta24h: 0 });
+    expect(r.tags.some(t => t.label === '· Unwinding')).toBe(false);
+  });
+
+  it('Unwinding and Rising Fast are mutually exclusive for Overheated Long (Rising Fast requires delta>+0.05, Unwinding requires delta<0)', () => {
+    // delta > 0.05 with positive avg → Rising Fast fires, Unwinding cannot (delta not < 0)
+    const r = computeFunding({ avg3Cycle: 0.2, cycleHistory: [], delta24h: 0.06 });
+    expect(r.tags.some(t => t.label === '· Rising Fast')).toBe(true);
+    expect(r.tags.some(t => t.label === '· Unwinding')).toBe(false);
+  });
+
+  it('Unwinding and Rising Fast are mutually exclusive for Extreme Short: delta>0.05 triggers Rising Fast not Unwinding', () => {
+    // For Extreme Short: Unwinding = delta > 0, Rising Fast = delta > 0.05
+    // When delta > 0.05, Rising Fast fires and Unwinding should NOT (Rising Fast supersedes)
+    const r = computeFunding({ avg3Cycle: -0.15, cycleHistory: [], delta24h: 0.06 });
+    expect(r.tags.some(t => t.label === '· Rising Fast')).toBe(true);
+    expect(r.tags.some(t => t.label === '· Unwinding')).toBe(false);
+  });
+
+  it('Extreme Short with small positive delta (0 < delta <= 0.05) triggers Unwinding not Rising Fast', () => {
+    const r = computeFunding({ avg3Cycle: -0.15, cycleHistory: [], delta24h: 0.03 });
+    expect(r.tags.some(t => t.label === '· Unwinding')).toBe(true);
+    expect(r.tags.some(t => t.label === '· Rising Fast')).toBe(false);
+  });
+});
+
 describe('computeFunding — combined modifiers', () => {
   it('both Persistently prefix and Rising Fast tag can coexist', () => {
     const r = computeFunding({
@@ -177,6 +246,16 @@ describe('computeFunding — combined modifiers', () => {
     });
     expect(r.verdict.label).toBe('Persistently Overheated Long');
     expect(r.tags.some(t => t.label === '· Rising Fast')).toBe(true);
+  });
+
+  it('both Persistently prefix and Unwinding tag can coexist', () => {
+    const r = computeFunding({
+      avg3Cycle: 0.2,
+      cycleHistory: [0.18, 0.19, 0.21],
+      delta24h: -0.03,
+    });
+    expect(r.verdict.label).toBe('Persistently Overheated Long');
+    expect(r.tags.some(t => t.label === '· Unwinding')).toBe(true);
   });
 
   it('no tags when neutral with low delta', () => {

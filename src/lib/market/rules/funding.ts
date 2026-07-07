@@ -78,6 +78,13 @@ export function computeFunding(inputs: FundingInputs): FundingResult {
   const tags: Verdict[] = [];
   if (delta24h > 0.05) {
     tags.push({ label: '· Rising Fast', color: 'amber' });
+  } else if (band.isExtreme && delta24h !== 0 && Math.sign(delta24h) !== Math.sign(avg3Cycle)) {
+    // Funding moving back toward zero from an extreme band → Unwinding signal.
+    // "Rising Fast" (delta > +0.05) supersedes Unwinding when it fires — they are
+    // mutually exclusive: for Overheated Long, Unwinding needs delta < 0 so no overlap;
+    // for Extreme Short, Unwinding needs delta > 0 but Rising Fast needs delta > 0.05,
+    // so the else-if ensures Rising Fast wins when delta > 0.05.
+    tags.push({ label: '· Unwinding', color: 'amber' });
   }
 
   return { verdict, tags };
