@@ -5013,3 +5013,783 @@
   .world-root .w-reader-chapter-nav-btn.next { justify-content: flex-start; text-align: left; }
   .world-root .w-pip-active { width: 200px; right: 12px; bottom: 12px; }
 }
+
+/* ======================================================================
+   Learner Dashboard  (/world/dashboard)
+   ====================================================================== */
+
+/* ---- Page root ---- */
+.world-root .w-dash-root {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.world-root .w-dash-header {
+  margin-bottom: -10px;
+}
+
+/* ---- Section ---- */
+.world-root .w-dash-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.world-root .w-dash-section-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.015em;
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ---- Empty state ---- */
+.world-root .w-dash-empty {
+  padding: 24px;
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.world-root .w-dash-empty p { margin: 0; }
+
+/* ---- Placement Quiz ---- */
+.world-root .w-dash-quiz-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 22px 24px;
+  background: var(--panel);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  flex-wrap: wrap;
+}
+.world-root .w-dash-quiz-card.w-dash-quiz-active,
+.world-root .w-dash-quiz-card.w-dash-quiz-result {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.world-root .w-dash-quiz-icon {
+  flex-shrink: 0;
+}
+
+.world-root .w-dash-quiz-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.world-root .w-dash-card-title {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+
+.world-root .w-dash-card-desc {
+  font-size: 13.5px;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* Quiz result phase number badge */
+.world-root .w-dash-quiz-result-phase {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.world-root .w-dash-quiz-phase-num {
+  font-size: 22px;
+  font-weight: 900;
+  color: #06241a;
+  letter-spacing: -0.02em;
+}
+
+.world-root .w-dash-quiz-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Quiz active state */
+.world-root .w-dash-quiz-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+.world-root .w-dash-quiz-qnum {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted-2);
+  white-space: nowrap;
+}
+.world-root .w-dash-quiz-bar-track {
+  flex: 1;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--border-2);
+  overflow: hidden;
+}
+.world-root .w-dash-quiz-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.world-root .w-dash-quiz-question {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 4px 0 0;
+  line-height: 1.4;
+}
+
+.world-root .w-dash-quiz-btns {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+/* ---- Phase badge (small label) ---- */
+.world-root .w-dash-phase-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+/* ---- Continue Learning ---- */
+.world-root .w-dash-continue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.world-root .w-dash-continue-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto auto auto;
+  gap: 6px 14px;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.14s;
+}
+.world-root .w-dash-continue-item:hover {
+  border-color: var(--border-2);
+}
+
+.world-root .w-dash-continue-meta {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.world-root .w-dash-continue-level {
+  font-size: 11.5px;
+  color: var(--muted-2);
+  font-weight: 600;
+}
+
+.world-root .w-dash-continue-title {
+  grid-column: 1 / 3;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.world-root .w-dash-continue-bar-wrap {
+  grid-column: 1 / 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.world-root .w-dash-continue-bar-wrap .w-progress-bar-track {
+  flex: 1;
+  height: 6px;
+  background: var(--border-2);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.world-root .w-dash-continue-bar-wrap .w-progress-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 0.4s ease;
+}
+
+.world-root .w-dash-continue-pct {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.world-root .w-dash-continue-item > .w-btn {
+  grid-column: 3;
+  grid-row: 2 / 4;
+  align-self: center;
+}
+
+/* ---- Learning History ---- */
+.world-root .w-dash-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.world-root .w-dash-history-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 12px 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.world-root .w-dash-history-meta {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.world-root .w-dash-history-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.world-root .w-dash-history-level {
+  font-size: 11px;
+  color: var(--muted-2);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.world-root .w-dash-history-bar-wrap {
+  grid-column: 1 / 3;
+}
+.world-root .w-dash-history-bar-wrap .w-progress-bar-track {
+  height: 5px;
+  background: var(--border-2);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.world-root .w-dash-history-bar-wrap .w-progress-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 0.4s ease;
+}
+
+.world-root .w-dash-history-pct {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+  text-align: right;
+}
+
+.world-root .w-dash-history-count {
+  font-size: 11.5px;
+  color: var(--muted-2);
+  white-space: nowrap;
+}
+
+/* ---- My Insights ---- */
+.world-root .w-dash-insights {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.world-root .w-dash-stat {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  gap: 6px;
+  text-align: center;
+}
+
+.world-root .w-dash-stat-num {
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.world-root .w-dash-stat-label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* ---- Achievements ---- */
+.world-root .w-badge-grid {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.world-root .w-badge-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 14px 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  min-width: 90px;
+  flex: 1;
+  opacity: 0.55;
+  transition: opacity 0.18s, border-color 0.18s;
+}
+
+.world-root .w-badge-item.earned {
+  opacity: 1;
+  border-color: var(--border-2);
+}
+
+.world-root .w-badge-svg {
+  display: block;
+}
+
+.world-root .w-badge-label {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--ink);
+  text-align: center;
+  letter-spacing: -0.01em;
+}
+
+.world-root .w-badge-sublabel {
+  font-size: 11px;
+  color: var(--muted-2);
+  font-weight: 600;
+}
+
+/* ---- New & Updated Courses ---- */
+.world-root .w-dash-courses-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+
+.world-root .w-dash-course-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: border-color 0.14s, background 0.14s, transform 0.14s;
+}
+.world-root .w-dash-course-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: var(--panel-2);
+  transform: translateY(-1px);
+}
+
+.world-root .w-dash-course-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.world-root .w-dash-course-updated {
+  font-size: 10.5px;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.world-root .w-dash-course-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  margin-top: 4px;
+}
+
+.world-root .w-dash-course-meta {
+  font-size: 11px;
+  color: var(--muted-2);
+  font-weight: 600;
+}
+
+.world-root .w-dash-course-level {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+  margin-top: auto;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+/* ======================================================================
+   Education Tab  (/world/education)
+   ====================================================================== */
+
+.world-root .w-edu-root {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+/* ---- Section ---- */
+.world-root .w-edu-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.world-root .w-edu-section-head {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+
+.world-root .w-edu-section-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  margin: 0 0 4px;
+}
+
+.world-root .w-edu-section-sub {
+  font-size: 13.5px;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* ---- Research card grid ---- */
+.world-root .w-edu-research-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.world-root .w-edu-research-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  text-decoration: none;
+  transition: border-color 0.14s, transform 0.14s, box-shadow 0.14s;
+  cursor: pointer;
+}
+.world-root .w-edu-research-card:hover {
+  border-color: color-mix(in srgb, var(--accent2) 38%, transparent);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px -16px rgba(0, 0, 0, 0.5);
+}
+
+.world-root .w-edu-research-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--panel-2);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.world-root .w-edu-research-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.world-root .w-edu-research-body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.world-root .w-edu-research-cat {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent2);
+}
+
+.world-root .w-edu-research-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.world-root .w-edu-research-desc {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Skeleton card variant */
+.world-root .w-edu-skeleton-card {
+  pointer-events: none;
+}
+.world-root .w-edu-skeleton-card .w-edu-research-thumb {
+  background: var(--panel-2);
+  animation: w-shimmer 1.4s ease infinite;
+  background: linear-gradient(
+    90deg,
+    var(--panel-2) 25%,
+    var(--panel-3) 50%,
+    var(--panel-2) 75%
+  );
+  background-size: 400% 100%;
+}
+
+/* ---- Empty state ---- */
+.world-root .w-edu-empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.world-root .w-edu-empty p { margin: 0; }
+
+/* ---- Glossary ---- */
+.world-root .w-edu-glossary {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.world-root .w-edu-glossary-search {
+  position: relative;
+  max-width: 360px;
+}
+
+.world-root .w-edu-glossary-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  color: var(--muted-2);
+  pointer-events: none;
+  stroke-width: 2;
+}
+
+.world-root .w-edu-glossary-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 36px 0 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border-2);
+  background: var(--panel);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.14s;
+}
+.world-root .w-edu-glossary-input:focus {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.world-root .w-edu-glossary-input::placeholder {
+  color: var(--muted-2);
+}
+
+.world-root .w-edu-glossary-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: none;
+  background: var(--panel-2);
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.12s;
+}
+.world-root .w-edu-glossary-clear:hover {
+  background: var(--panel-3);
+  color: var(--ink);
+}
+
+.world-root .w-edu-glossary-count {
+  font-size: 12px;
+  color: var(--muted-2);
+  margin: 0;
+  font-weight: 600;
+}
+
+.world-root .w-edu-glossary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.world-root .w-edu-glossary-card {
+  padding: 14px 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.14s;
+}
+.world-root .w-edu-glossary-card:hover {
+  border-color: var(--border-2);
+}
+
+.world-root .w-edu-glossary-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.world-root .w-edu-glossary-term {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.world-root .w-edu-glossary-cat {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--purple);
+  flex-shrink: 0;
+}
+
+.world-root .w-edu-glossary-def {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ======================================================================
+   Dashboard + Education — Responsive
+   ====================================================================== */
+@media (max-width: 900px) {
+  .world-root .w-dash-courses-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .world-root .w-edu-research-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .world-root .w-edu-glossary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .world-root .w-dash-courses-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .world-root .w-dash-continue-item {
+    grid-template-columns: 1fr;
+  }
+  .world-root .w-dash-continue-item > .w-btn {
+    grid-column: 1;
+    grid-row: auto;
+    align-self: auto;
+    width: max-content;
+  }
+  .world-root .w-dash-history-row {
+    grid-template-columns: auto 1fr;
+  }
+  .world-root .w-dash-history-bar-wrap {
+    grid-column: 1 / -1;
+  }
+  .world-root .w-dash-history-pct,
+  .world-root .w-dash-history-count {
+    font-size: 11px;
+  }
+  .world-root .w-badge-grid {
+    gap: 10px;
+  }
+  .world-root .w-badge-item {
+    min-width: 72px;
+  }
+  .world-root .w-edu-research-grid {
+    grid-template-columns: 1fr;
+  }
+  .world-root .w-edu-glossary-grid {
+    grid-template-columns: 1fr;
+  }
+}

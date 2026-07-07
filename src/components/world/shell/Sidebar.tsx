@@ -114,6 +114,7 @@ const BEGINNER_NAV: NavGroup[] = [
   {
     grp: 'Discover',
     items: [
+      { k: 'dashboard', label: 'Dashboard', href: '/world/dashboard', icon: Icons.home },
       { k: 'news', label: 'News Portal', href: '/world/news', icon: Icons.news },
       { k: 'courses', label: 'Courses', href: '/world/courses', icon: Icons.book },
       { k: 'education', label: 'Education', href: '/world/education', icon: Icons.grad },
