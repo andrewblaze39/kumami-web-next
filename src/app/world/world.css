@@ -865,6 +865,36 @@
 }
 .world-root .w-content-inner { animation: w-fadeUp 0.3s ease; }
 
+/* ---- Legacy embeds (About / Blogs / Profile / AI Labs / Games) ----
+   Old marketing/content components were built as standalone full pages
+   (fixed navbar offset + min-h-screen). Inside the shell they render in
+   .w-content, so we isolate their stacking context and neutralize the
+   full-page assumptions with scoped overrides instead of editing them. */
+.world-root .w-legacy-embed {
+  isolation: isolate;
+  min-height: auto;
+}
+/* min-h-screen was needed when the component WAS the page; the shell's
+   content column already fills the viewport. */
+.world-root .w-legacy-embed .min-h-screen {
+  min-height: auto;
+}
+/* pt-28 on legacy roots was clearance for the old fixed Navbar+CryptoTicker,
+   which are no longer mounted. Keep a modest breathing space instead. */
+.world-root .w-legacy-embed > .pt-28,
+.world-root .w-legacy-embed .pt-28 {
+  padding-top: 2rem;
+}
+/* Full-bleed opt-out: .w-content caps pages at 1180px with 30/40px padding.
+   The About page (old marketing homepage) is designed edge-to-edge, so when
+   the direct child of .w-content is a .w-legacy-fullbleed embed we lift the
+   cap and padding from the parent via :has() — the cleanest mechanism here,
+   since the constraint lives on the layout-owned wrapper, not the page. */
+.world-root .w-content:has(> .w-legacy-fullbleed) {
+  max-width: none;
+  padding: 0;
+}
+
 /* ---- Mode crossfade (news ↔ intel and all route changes) ---- */
 /* Base: transition always present so fade-in is smooth even without the fading class */
 .world-root .w-content-fade {
