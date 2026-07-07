@@ -11,10 +11,9 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { getAuth } from 'firebase/auth';
 import JourneyPath from '@/components/world/education/JourneyPath';
 import { JOURNEY_PHASES } from '@/lib/education/journeyData';
-import type { CourseProgress } from '@/lib/education/progress';
+import { useEducationProgress } from '@/components/world/education/useEducationProgress';
 import Link from 'next/link';
 
 // ---------- Search filter ----------
@@ -56,33 +55,10 @@ function searchMatches(query: string): SearchMatch[] {
 // ---------- Component ----------
 
 export default function CoursesClient() {
-  const [progress, setProgress] = useState<CourseProgress[]>([]);
+  const progress = useEducationProgress();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
-
-  // Fetch progress on mount
-  useEffect(() => {
-    let cancelled = false;
-    async function fetchProgress() {
-      try {
-        const auth = getAuth();
-        const user = auth.currentUser;
-        if (!user) return;
-        const token = await user.getIdToken();
-        const res = await fetch('/api/education/progress', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!cancelled) setProgress(data.progress ?? []);
-      } catch {
-        // Silently fall back to empty progress
-      }
-    }
-    fetchProgress();
-    return () => { cancelled = true; };
-  }, []);
 
   // Focus search input when opened
   useEffect(() => {

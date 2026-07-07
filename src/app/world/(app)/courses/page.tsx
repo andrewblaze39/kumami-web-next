@@ -5,9 +5,9 @@
  * - Warm-up content goes BELOW the journey.
  * - Search: floating magnifying-glass FAB that expands to an input (client-side
  *   filter over lessons/phases). No big search bar, no "Browse all" button.
- * - Progress data is fetched server-side from the /api/education/progress
- *   endpoint via the user's ID token. Falls back gracefully to empty progress
- *   if the user is not authenticated or the API is unavailable.
+ * - Progress data is fetched client-side from the /api/education/progress
+ *   endpoint via the user's ID token. CoursesClient uses useEducationProgress()
+ *   which waits for AuthContext hydration before fetching.
  */
 
 import { Suspense } from 'react';

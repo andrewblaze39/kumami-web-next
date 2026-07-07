@@ -18,6 +18,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import ProgressBar from './ProgressBar';
+import { useEducationProgress } from './useEducationProgress';
 import type { CourseDoc } from '@/lib/education/courses';
 import type { CourseProgress } from '@/lib/education/progress';
 
@@ -41,15 +42,16 @@ type TabKey = 'overview' | 'details' | 'instructor' | 'reviews' | 'faq';
 
 // ---------- Helpers ----------
 
-function buildResumeHref(courseId: string, lastPartId: string | null): string | null {
+function buildResumeHref(
+  courseId: string,
+  lastPartId: string | null,
+  chapters: CourseDoc['chapters'],
+): string | null {
   if (!lastPartId) return null;
-  // lastPartId format: "p1-l3" → chapter implied from course structure.
-  // For now we can't determine chapterId without the full course doc structure,
-  // so we use the phaseId and let Task 5.3's page resolve the chapter.
-  // Pattern: /world/courses/[phaseId]/[chapterId] — chapterId derived from lastPartId prefix.
-  // e.g. lastPartId = "phase-1-ch-1-part-1" or "p1-l3"
-  // Simple heuristic: use the part id directly; Task 5.3 will handle deep linking.
-  return `/world/courses/${courseId}/resume?part=${lastPartId}`;
+  const ch =
+    chapters.find(c => c.parts.some(p => p.id === lastPartId)) ?? chapters[0];
+  if (!ch) return null;
+  return `/world/courses/${courseId}/${ch.id}?part=${lastPartId}`;
 }
 
 // ---------- Tab: Overview ----------
@@ -243,15 +245,21 @@ function FaqTab({ faq }: { faq: CourseDoc['faq'] }) {
 
 // ---------- Main component ----------
 
-export default function CoursePage({ course, progress, reviews }: CoursePageProps) {
+export default function CoursePage({ course, progress: initialProgress, reviews }: CoursePageProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
+
+  // Hydrate progress client-side; fall back to SSR-provided initial (empty) progress
+  // until auth and the API response are ready.
+  const allProgress = useEducationProgress();
+  const liveEntry = allProgress.find(p => p.courseId === course.courseId);
+  const progress: CourseProgress = liveEntry ?? initialProgress;
 
   const pct =
     progress.totalParts > 0
       ? Math.round((progress.completedParts.length / progress.totalParts) * 100)
       : 0;
 
-  const resumeHref = buildResumeHref(course.courseId, progress.lastPartId);
+  const resumeHref = buildResumeHref(course.courseId, progress.lastPartId, course.chapters);
 
   const hasInstructor = !!course.instructor;
   const hasFaq = (course.faq?.length ?? 0) > 0;
@@ -295,7 +303,7 @@ export default function CoursePage({ course, progress, reviews }: CoursePageProp
           </div>
         )}
 
-        {/* Resume button — links to deep-link for last part (may 404 until Task 5.3) */}
+        {/* Resume button */}
         <div className="w-course-header-actions">
           {resumeHref && progress.completedParts.length > 0 ? (
             <Link href={resumeHref} className="w-btn w-btn-primary">

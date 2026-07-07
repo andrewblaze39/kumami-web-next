@@ -82,3 +82,58 @@ describe('getPhaseById()', () => {
     expect(getPhaseById('phase-99')).toBeUndefined();
   });
 });
+
+describe('first and last lesson titles per phase (verbatim from PM doc)', () => {
+  it('phase 1 first lesson', () => {
+    expect(JOURNEY_PHASES[0].lessons[0].title).toBe(
+      'How most beginners actually get into crypto',
+    );
+  });
+
+  it('phase 1 last lesson', () => {
+    const p1 = JOURNEY_PHASES[0];
+    expect(p1.lessons[p1.lessons.length - 1].title).toBe('HANDS-ON: Buy your first Bitcoin');
+  });
+
+  it('phase 2 first lesson', () => {
+    expect(JOURNEY_PHASES[1].lessons[0].title).toBe('What is blockchain');
+  });
+
+  it('phase 2 last lesson', () => {
+    const p2 = JOURNEY_PHASES[1];
+    expect(p2.lessons[p2.lessons.length - 1].title).toBe(
+      'HANDS-ON: Move your Bitcoin to your own wallet',
+    );
+  });
+
+  it('phase 3 first lesson', () => {
+    expect(JOURNEY_PHASES[2].lessons[0].title).toBe('What are altcoins');
+  });
+
+  it('phase 3 last lesson', () => {
+    const p3 = JOURNEY_PHASES[2];
+    expect(p3.lessons[p3.lessons.length - 1].title).toBe(
+      'HANDS-ON: Research and buy your first altcoin',
+    );
+  });
+
+  it('phase 4 first lesson', () => {
+    expect(JOURNEY_PHASES[3].lessons[0].title).toBe('How crypto market cycles work');
+  });
+
+  it('phase 4 last lesson', () => {
+    const p4 = JOURNEY_PHASES[3];
+    expect(p4.lessons[p4.lessons.length - 1].title).toBe(
+      'HANDS-ON: Build your first investment thesis',
+    );
+  });
+
+  it('phase 5 first lesson', () => {
+    expect(JOURNEY_PHASES[4].lessons[0].title).toBe('How smart contracts work');
+  });
+
+  it('phase 5 last lesson', () => {
+    const p5 = JOURNEY_PHASES[4];
+    expect(p5.lessons[p5.lessons.length - 1].title).toBe('HANDS-ON: Ship something in Web3');
+  });
+});

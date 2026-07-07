@@ -8,14 +8,12 @@
  *    - Firestore doc doesn't exist yet (pre-seed)
  *    This fallback makes the UI work before running `npm run seed:courses`.
  *
- * 2. Progress from `course_progress/{uid}/courses/{phaseId}`.
- *    Falls back to empty progress if user session is unavailable server-side.
- *    (Progress is also loaded client-side via the API route as fallback.)
+ * 2. Progress: not available server-side (no user session in App Router server
+ *    components). An empty CourseProgress is passed as the initial prop;
+ *    CoursePage hydrates real progress client-side via useEducationProgress()
+ *    once the Firebase auth state resolves.
  *
  * 3. Reviews subcollection — empty array on failure.
- *
- * NOTE: The "Resume course" button deep-links to /world/courses/[phaseId]/[chapterId]
- * which is built in Task 5.3. The link may 404 until then.
  */
 
 import { notFound } from 'next/navigation';
@@ -52,9 +50,9 @@ export default async function CoursePhase({ params }: Props) {
   // Fetch reviews (empty array if subcollection is empty or on error)
   const reviews = await getCourseReviews(phaseId);
 
-  // Progress: server-side we don't have the user session in App Router server components
-  // without passing the token. The client-side CoursePage will re-fetch if needed.
-  // For the initial render we use empty progress (graceful degradation).
+  // Progress: not available server-side. CoursePage hydrates real progress
+  // client-side via useEducationProgress() once auth state resolves.
+  // Pass empty progress as the initial SSR prop.
   const emptyProgress: CourseProgress = {
     courseId: phaseId,
     completedParts: [],
