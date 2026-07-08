@@ -32,13 +32,6 @@ export default async function WorldEducationPage() {
 
   return (
     <div className="w-content-inner">
-      <header style={{ marginBottom: '24px' }}>
-        <h1 className="w-page-title">Education</h1>
-        <p className="w-page-sub">
-          Your learning hub — journey, courses, research and glossary in one place.
-        </p>
-      </header>
-
       <EducationTabs initialArticles={articles} />
     </div>
   );
