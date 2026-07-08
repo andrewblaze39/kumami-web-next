@@ -6,12 +6,12 @@
 
 .world-root {
   /* ── Colour tokens ── */
-  --bg: #0a1411;
-  --bg-2: #08110e;
-  --topbar: #060d0b;
-  --panel: #0f1d18;
-  --panel-2: #142a22;
-  --panel-3: #193127;
+  --bg: #0a0a0f;
+  --bg-2: #060609;
+  --topbar: #050508;
+  --panel: #101014;
+  --panel-2: #15151b;
+  --panel-3: #1a1a22;
   --ink: #f1f7f4;
   --muted: #8ea69c;
   --muted-2: #5f786e;
@@ -26,7 +26,7 @@
   --amber: #f0cd7e;
   --bull: #46e3a0;
   --bear: #ff6b81;
-  --line: rgba(142, 166, 156, 0.18);
+  --line: rgba(150, 158, 170, 0.18);
   --border: rgba(255, 255, 255, 0.08);
   --border-2: rgba(255, 255, 255, 0.14);
 
@@ -308,7 +308,7 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: rgba(4, 9, 7, 0.72);
+  background: rgba(4, 4, 6, 0.72);
   backdrop-filter: blur(8px);
 }
 
@@ -468,7 +468,7 @@
    ============================================================ */
 
 /* ---- shell tokens (advanced/pro overrides) ---- */
-.world-root .w-sidebar.is-adv { --bg-2: #040d09; }
+.world-root .w-sidebar.is-adv { --bg-2: #040407; }
 .world-root .w-sidebar.is-pro { --bg-2: #06050d; }
 
 /* ---- layout: sidebar | main | kuma-dock ----
@@ -685,7 +685,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #123a3c, #0f1d18);
+  background: linear-gradient(135deg, #123a3c, #101014);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -731,12 +731,12 @@
   align-items: center;
   gap: 16px;
   padding: 0 28px;
-  background: rgba(8, 17, 14, 0.78);
+  background: rgba(6, 6, 9, 0.78);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
-.world-root .w-sidebar.is-adv ~ .w-main .w-topbar { background: rgba(5, 16, 12, 0.82); }
+.world-root .w-sidebar.is-adv ~ .w-main .w-topbar { background: rgba(4, 4, 7, 0.82); }
 .world-root .w-sidebar.is-pro ~ .w-main .w-topbar { background: rgba(10, 8, 20, 0.82); }
 .world-root .w-topbar-spacer { flex: 1; }
 .world-root .w-topbar-actions {
@@ -786,7 +786,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(150deg, #123024, #0c1f18);
+  background: linear-gradient(150deg, #17171e, #0e0e12);
   border: 1px solid var(--border-2);
   cursor: pointer;
   transition: 0.16s;
@@ -1378,7 +1378,7 @@
   position: fixed;
   inset: 0;
   z-index: 29;
-  background: rgba(4, 9, 7, 0.55);
+  background: rgba(4, 4, 6, 0.55);
   backdrop-filter: blur(3px);
 }
 .world-root .w-sidebar-backdrop.show {
@@ -1599,7 +1599,7 @@
   inset: 0;
   backdrop-filter: blur(9px);
   -webkit-backdrop-filter: blur(9px);
-  background: rgba(15, 29, 24, 0.52);
+  background: rgba(16, 16, 20, 0.52);
   pointer-events: none;
 }
 
@@ -1951,7 +1951,7 @@
   overflow: hidden;
   background-size: cover;
   background-position: center;
-  background-image: linear-gradient(130deg, #0d2b2c, #0d201b);
+  background-image: linear-gradient(130deg, #0d2b2c, #0f0f13);
 }
 .world-root .w-np-thumb-badge {
   position: absolute;

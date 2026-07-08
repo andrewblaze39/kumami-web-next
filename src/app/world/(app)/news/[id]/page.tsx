@@ -318,7 +318,7 @@ export default async function WorldNewsDetailPage({ params }: PageProps) {
                   alignItems: 'center',
                   justifyContent: 'center',
                   background:
-                    'linear-gradient(to bottom, transparent 0%, rgba(10,20,17,0.92) 40%)',
+                    'linear-gradient(to bottom, transparent 0%, rgba(10,10,15,0.92) 40%)',
                   borderRadius: '12px',
                   gap: '12px',
                   padding: '24px',

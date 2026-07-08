@@ -5,7 +5,7 @@ import { AdvancedBadge, ProBadge } from './TierBadge';
 
 /** Fallback gradient used where an article has no imageUrl. */
 export const FALLBACK_THUMB_GRADIENT =
-  'linear-gradient(130deg, #0d2b2c, #0d201b)';
+  'linear-gradient(130deg, #0d2b2c, #0f0f13)';
 
 export function formatRelativeTime(article: NewsArticle): string {
   const ts = resolveTimestamp(article);

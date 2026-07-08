@@ -14,8 +14,8 @@ export default function NewsHero({ article }: NewsHeroProps) {
   const isAdvancedTier = article.isAdvanced;
 
   const phBackground = article.imageUrl
-    ? `linear-gradient(180deg, rgba(8,17,14,0) 35%, rgba(8,17,14,.92)), url(${JSON.stringify(article.imageUrl)})`
-    : `linear-gradient(180deg, rgba(8,17,14,0) 35%, rgba(8,17,14,.92)), ${FALLBACK_THUMB_GRADIENT}`;
+    ? `linear-gradient(180deg, rgba(6,6,9,0) 35%, rgba(6,6,9,.92)), url(${JSON.stringify(article.imageUrl)})`
+    : `linear-gradient(180deg, rgba(6,6,9,0) 35%, rgba(6,6,9,.92)), ${FALLBACK_THUMB_GRADIENT}`;
 
   return (
     <Link href={`/world/news/${article.id}`} className="w-np-lead">
