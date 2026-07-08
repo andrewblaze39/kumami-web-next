@@ -1,8 +1,17 @@
 # Kumami Web — Next.js (Active)
 
-> **This is the active migration target.** The original CRA project lives at `/Users/andrew/Documents/kumami-web`. Public-facing pages are being migrated here incrementally. Admin and Pro Dashboard stay in CRA permanently.
+> **This is the active app.** The original CRA project lives at `/Users/andrew/Documents/kumami-web` and is being sunset — it survives only as the source reference for the Pro Dashboard (already migrated here as the `/world/pro` tab) and the Admin panel. All user-facing product lives in the **Kumami World shell** in this repo.
 
-Crypto/Web3 education and news platform. Live at https://kumami.world (eventually — currently CRA is live, this replaces it page by page).
+Crypto/Web3 education and news platform. Live at https://kumami.world. Accent color: turquoise `#00c2c7`.
+
+## World-First Architecture
+
+The entire product is a single-page-app-style shell ("Kumami World"):
+
+- **`/` is the gate** — a branded landing page (`src/app/HomeGateClient.tsx` + `src/components/world/Gate.tsx`) with login/signup modals. Signed-in users enter the shell.
+- **`/world/*` is the shell** — persistent sidebar (248px) + topbar (62px) with a Beginner/Advanced/Pro mode toggle (`src/contexts/WorldModeContext.tsx`). All content pages render inside `src/app/world/(app)/` under this layout.
+- **All legacy routes redirect into the shell** — `/news`, `/research`, `/education/*`, `/games`, `/game-details`, `/ai-labs/*`, `/blogs`, `/profile`, `/login`, `/signup` are thin `redirect()` pages. Old components in `src/components/` (Navbar, CryptoTicker, GamesPortal, etc.) still exist but are intentionally unrouted or embedded via `w-legacy-embed`.
+- **Exceptions (still standalone):** `/research/[id]` and `/blogs/[id]` article detail pages — they are linked from inside the shell (Education → Research tab, Blogs grid) and have no world-native detail route yet.
 
 ## Tech Stack
 
@@ -19,34 +28,44 @@ Crypto/Web3 education and news platform. Live at https://kumami.world (eventuall
 |------|---------|
 | `src/app/` | All routes — each folder = a route segment |
 | `src/app/layout.tsx` | Root layout — wraps every page with AuthProvider + NotificationProvider |
-| `src/app/page.tsx` | Home page (`/`) |
-| `src/app/login/page.tsx` | Login page (`/login`) |
-| `src/app/signup/page.tsx` | Signup page (`/signup`) |
-| `src/components/` | Shared UI components (Navbar, CryptoTicker, etc.) |
+| `src/app/page.tsx` | World gate (`/`) — landing + auth modals |
+| `src/app/world/(app)/` | All shell pages (console, news, education, pro, …) |
+| `src/app/world/world.css` | World design tokens + all `w-*` component CSS |
+| `src/components/world/` | Shell components (Sidebar, Gate, panels, education, pro, kuma) |
+| `src/components/` | Legacy CRA-era components (some embedded in shell, some unrouted) |
 | `src/components/ProtectedRoute.tsx` | Auth guard — wraps pages that require login |
 | `src/contexts/AuthContext.tsx` | Firebase auth state + isAdmin + isPremium |
+| `src/contexts/WorldModeContext.tsx` | Beginner / Advanced / Pro mode state |
 | `src/contexts/NotificationContext.tsx` | In-app notifications |
 | `src/lib/firebase.ts` | Firebase initialization |
+| `src/lib/market/` | Market data providers + rule engines for console/intel/watchlist |
 
 ## Routing Conventions (App Router)
 
 ```
 src/app/
-  page.tsx                  → /
-  layout.tsx                → wraps all pages
-  login/page.tsx            → /login
-  signup/page.tsx           → /signup
-  news/page.tsx             → /news
-  news/[id]/page.tsx        → /news/:id  (dynamic)
-  research/page.tsx         → /research
-  research/[id]/page.tsx    → /research/:id
-  education/page.tsx        → /education
-  games/page.tsx            → /games
-  game-details/page.tsx     → /game-details
-  ai-labs/
-    page.tsx                → /ai-labs
-    module/[id]/page.tsx    → /ai-labs/module/:id
+  page.tsx                          → /            (World gate — landing + auth modals)
+  layout.tsx                        → wraps all pages (AuthProvider + NotificationProvider)
+  world/
+    page.tsx                        → /world       (redirects back to the gate at /)
+    (app)/layout                    → shell: sidebar + topbar + mode toggle + Kuma dock
+    (app)/console/page.tsx          → /world/console    (market console, Advanced)
+    (app)/news/page.tsx             → /world/news       (news portal: ticker, capsules, hero/aside/river)
+    (app)/news/[id]/page.tsx        → /world/news/:id
+    (app)/intel/page.tsx            → /world/intel      (intelligence feed, tiered)
+    (app)/watchlist/page.tsx        → /world/watchlist
+    (app)/onchain/page.tsx          → /world/onchain
+    (app)/education/page.tsx        → /world/education  (subtabs via ?tab= — see below)
+    (app)/courses/[phaseId]/...     → /world/courses/:phaseId[/:chapterId]
+    (app)/pro/page.tsx              → /world/pro        (Portfolio / Alpha Room / Market Analysis / Market Cap)
+    (app)/about|blogs|profile|ailabs|games/page.tsx → rendered inside the shell
+  news, research, education, games, game-details,
+  ai-labs, blogs, profile, login, signup            → redirect() into /world/* or /
 ```
+
+**Education subtabs** — `/world/education?tab=` one of `dashboard` (default), `journey`, `courses`, `achievements`, `research`, `glossary` (`src/app/world/(app)/education/EducationTabs.tsx`).
+
+**Pro tab** — `/world/pro` is live for premium users (`isPremium`), migrated from the CRA Pro Dashboard: Portfolio manager, Alpha Room, Market Analysis, Market Cap tool (`src/components/world/pro/`). Non-premium users see the locked teaser.
 
 ## Server vs Client Components
 
@@ -101,14 +120,18 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 
 | Page / Feature | Status |
 |---|---|
-| Home, Navbar, CryptoTicker | ✅ Done |
-| Login, Signup | ✅ Done |
-| News portal (`/news`) | 🔄 Mock data — needs Firebase |
-| News detail (`/news/[id]`) | 🔄 Mock data — needs Firebase |
-| Education, Research, Blogs | ⏳ Pending |
-| Games, AI Labs | ⏳ Pending |
-| Pro Dashboard | 🔒 Stays in CRA |
+| World gate at `/` + auth modals | ✅ Done |
+| Shell (sidebar/topbar/mode toggle, profile block, About) | ✅ Done |
+| Console, Intel, Watchlist, On-chain (mock market platform) | ✅ Done |
+| News portal + detail (`/world/news`) — live Firestore | ✅ Done |
+| Education tab with subtabs + courses/chapter reader | ✅ Done |
+| Pro tab (Portfolio, Alpha Room, Market Analysis, Market Cap) | ✅ Done — premium-gated |
+| About, Blogs, Profile, AI Labs, Games (in shell) | ✅ Done |
+| Legacy route redirects into shell | ✅ Done |
+| Research/Blog article detail inside shell | ⏳ Pending — still standalone pages |
+| Market data — real provider (currently mock fixtures) | ⏳ Pending |
 | Admin panel | 🔒 Stays in CRA |
+| Pro Dashboard (CRA original) | 🌅 Sunset — migrated to `/world/pro`; CRA copy kept as source reference |
 
 ## Firebase Firestore Collections
 
