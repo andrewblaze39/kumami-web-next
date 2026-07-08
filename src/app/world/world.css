@@ -517,25 +517,10 @@
   text-align: left;
 }
 .world-root .w-brand:hover { background: var(--panel); }
+/* Plain logo — no capsule background, no WORLD wordmark (Andrew 2026-07-08) */
 .world-root .w-brand-logo {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-weight: 800;
-  font-size: 18px;
-  letter-spacing: -0.02em;
-  padding: 7px 11px;
-  border-radius: 11px;
-}
-.world-root .w-brand-logo small {
-  font-size: 9px;
-  letter-spacing: 0.18em;
-  font-weight: 700;
-  align-self: flex-end;
-  margin-bottom: 2px;
-  opacity: 0.85;
 }
 .world-root .w-caret {
   margin-left: auto;

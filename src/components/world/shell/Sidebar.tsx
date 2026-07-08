@@ -290,12 +290,11 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
             <Image
               src="/logo-kumami-white.png"
               alt="Kumami World"
-              width={52}
-              height={22}
-              style={{ height: 22, width: 'auto' }}
+              width={66}
+              height={28}
+              style={{ height: 28, width: 'auto' }}
               priority
             />
-            <small>WORLD</small>
           </span>
           <svg className="w-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
             <path d="m6 9 6 6 6-6" />
