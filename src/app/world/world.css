@@ -1288,15 +1288,23 @@
   }
 }
 
-/* ---- WorldProtected loading state ---- */
+/* ---- Branded loading state (gate redirect + WorldProtected) ---- */
 .world-root .w-loading {
   position: fixed;
   inset: 0;
   z-index: 200;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 22px;
   background: var(--bg);
+}
+.world-root .w-loading-logo {
+  width: 120px;
+  height: auto;
+  animation: w-logo-pulse 1.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--accent) 35%, transparent));
 }
 .world-root .w-loading::after {
   content: '';
@@ -1309,6 +1317,10 @@
 }
 @keyframes w-spin {
   to { transform: rotate(360deg); }
+}
+@keyframes w-logo-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(0.97); }
+  50% { opacity: 1; transform: scale(1); }
 }
 
 /* ---- Mobile sidebar backdrop ---- */

@@ -238,8 +238,12 @@ export function LogInModal({ onClose, onSwitchToSignUp }: LogInModalProps) {
       setError('');
       setLoading(true);
       await login(email, password);
-      onClose();
+      // Success: keep the modal open and the button in its "Signing in…" busy
+      // state while navigation completes. Calling onClose() here would flash
+      // the gate/blank background before the shell renders. The whole page
+      // (modal included) is unmounted by router.replace, so no cleanup needed.
       router.replace(REDIRECT_TARGET);
+      return;
     } catch (err: unknown) {
       const code = (err as { code?: string }).code;
       if (code === 'auth/user-not-found') setError('No account found with this email.');
@@ -260,13 +264,13 @@ export function LogInModal({ onClose, onSwitchToSignUp }: LogInModalProps) {
       // I2: Login flow owns its redirect imperatively; no sessionStorage needed
       // here — the gate page's useEffect is not involved for login.
       await loginWithGoogle();
-      onClose();
+      // Success: stay busy (no onClose) until router.replace unmounts the gate,
+      // so there is no flash of the gate background mid-navigation.
       router.replace(REDIRECT_TARGET);
+      return;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Google sign-in failed.';
       setError(msg);
-    } finally {
-      // I1: Always clear loading; if sign-in succeeded the page will navigate away.
       setLoading(false);
     }
   }

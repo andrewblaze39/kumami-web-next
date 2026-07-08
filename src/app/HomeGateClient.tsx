@@ -45,7 +45,12 @@ export default function HomeGateClient() {
     <div className={`world-root ${jakarta.variable}`}>
       <Gate />
       {/* Redirect in flight — cover the gate with the branded loader */}
-      {currentUser && <div className="w-loading" aria-label="Loading…" />}
+      {currentUser && (
+        <div className="w-loading" aria-label="Loading…">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-kumami-white.png" alt="Kumami" className="w-loading-logo" />
+        </div>
+      )}
     </div>
   );
 }
