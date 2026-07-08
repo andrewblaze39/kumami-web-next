@@ -212,7 +212,7 @@ function ProSubnav({ onClose }: { onClose: () => void }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const raw = searchParams.get('tab');
-  const active = pathname.startsWith('/world/pro')
+  const active = pathname === '/world/pro'
     ? (PRO_SUBTABS.some(t => t.key === raw) ? raw : 'portfolio')
     : null;
 
