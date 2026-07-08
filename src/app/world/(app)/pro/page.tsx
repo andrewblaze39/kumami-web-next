@@ -1,4 +1,4 @@
-import ProTeaser from '@/components/world/pro/ProTeaser';
+import ProTabs from '@/components/world/pro/ProTabs';
 
 export const metadata = {
   title: 'Kumami Pro Features',
@@ -8,7 +8,7 @@ export const metadata = {
 export default function ProPage() {
   return (
     <div className="w-content-inner">
-      <ProTeaser />
+      <ProTabs />
     </div>
   );
 }
