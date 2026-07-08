@@ -194,6 +194,46 @@ function EducationSubnav({ onClose }: { onClose: () => void }) {
   );
 }
 
+// PRO subtabs (premium users) — keys must match ?tab= read by WorldProContent.
+const PRO_SUBTABS = [
+  { key: 'portfolio', label: 'AI Portfolio', icon: Icons.trophy },
+  { key: 'alpha', label: 'Alpha Room', icon: Icons.bolt },
+  { key: 'market', label: 'Market Analysis', icon: Icons.doc },
+  { key: 'kumaai', label: 'Kuma AI Chat', icon: Icons.spark },
+  { key: 'marketcap', label: 'Market Cap Tool', icon: Icons.layers },
+] as const;
+
+/**
+ * Pro sub-nav (premium users) — reads ?tab= to highlight the active tab
+ * (default: portfolio) while on /world/pro. Needs useSearchParams, so it is
+ * mounted inside <Suspense/>.
+ */
+function ProSubnav({ onClose }: { onClose: () => void }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const raw = searchParams.get('tab');
+  const active = pathname.startsWith('/world/pro')
+    ? (PRO_SUBTABS.some(t => t.key === raw) ? raw : 'portfolio')
+    : null;
+
+  return (
+    <>
+      {PRO_SUBTABS.map(t => (
+        <Link
+          key={t.key}
+          href={`/world/pro?tab=${t.key}`}
+          className={`w-nav-item${active === t.key ? ' active' : ''}`}
+          aria-current={active === t.key ? 'page' : undefined}
+          onClick={onClose}
+        >
+          {t.icon}
+          <span>{t.label}</span>
+        </Link>
+      ))}
+    </>
+  );
+}
+
 // PRO nav items — all link to /world/pro (locked)
 const PRO_NAV_ITEMS = [
   { label: 'Alpha Room', icon: Icons.bolt },
@@ -256,6 +296,12 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
   }, [menuOpen]);
 
   const nav = mode === 'beginner' ? BEGINNER_NAV : mode === 'advanced' ? ADV_NAV : null;
+
+  // Premium predicate — same as WorldProContent's gate.
+  const isPremium =
+    userData?.isPremium === true ||
+    userData?.role === 'admin' ||
+    userData?.role === 'superadmin';
 
   const isActive = (href: string) => pathname.startsWith(href);
 
@@ -338,13 +384,19 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
         {mode === 'pro' ? (
           <>
             <div className="w-nav-label">PRO</div>
-            {PRO_NAV_ITEMS.map(item => (
-              <Link key={item.label} href="/world/pro" className="w-nav-item" onClick={onClose}>
-                {item.icon}
-                <span>{item.label}</span>
-                <span className="w-nav-lock">{Icons.lock}</span>
-              </Link>
-            ))}
+            {isPremium ? (
+              <Suspense fallback={null}>
+                <ProSubnav onClose={onClose} />
+              </Suspense>
+            ) : (
+              PRO_NAV_ITEMS.map(item => (
+                <Link key={item.label} href="/world/pro" className="w-nav-item" onClick={onClose}>
+                  {item.icon}
+                  <span>{item.label}</span>
+                  <span className="w-nav-lock">{Icons.lock}</span>
+                </Link>
+              ))
+            )}
           </>
         ) : (
           nav?.map(group => (

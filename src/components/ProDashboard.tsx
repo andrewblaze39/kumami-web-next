@@ -158,7 +158,7 @@ function Sidebar({
 }
 
 // ─── Portfolio Tab ───────────────────────────────────────────────────────────
-function PortfolioTab() {
+export function PortfolioTab() {
   const { currentUser, userData } = useAuth();
   const [portfolio, setPortfolio] = useState<PortfolioCoin[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);

@@ -1,4 +1,4 @@
-import ProTabs from '@/components/world/pro/ProTabs';
+import WorldProContent from '@/components/world/pro/WorldProContent';
 
 export const metadata = {
   title: 'Kumami Pro Features',
@@ -6,9 +6,7 @@ export const metadata = {
 };
 
 export default function ProPage() {
-  return (
-    <div className="w-content-inner">
-      <ProTabs />
-    </div>
-  );
+  // No w-content-inner: the Pro dashboard is wide, so it renders at full
+  // content width (world.css lifts the .w-content cap for .w-pro-root).
+  return <WorldProContent />;
 }

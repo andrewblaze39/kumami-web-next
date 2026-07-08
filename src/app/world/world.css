@@ -880,6 +880,16 @@
 }
 .world-root .w-content-inner { animation: w-fadeUp 0.3s ease; }
 
+/* Pro dashboard (/world/pro premium view) is wide — lift the 1180px cap when
+   .w-content hosts it, keeping the standard content padding. */
+.world-root .w-content:has(> .w-pro-root) {
+  max-width: none;
+}
+.world-root .w-pro-root {
+  color: #fff;
+  animation: w-fadeUp 0.3s ease;
+}
+
 /* ---- Legacy embeds (About / Blogs / Profile / AI Labs / Games) ----
    Old marketing/content components were built as standalone full pages
    (fixed navbar offset + min-h-screen). Inside the shell they render in
