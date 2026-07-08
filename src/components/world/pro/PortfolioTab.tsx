@@ -21,6 +21,7 @@ import DonutChart from './DonutChart';
 import AddCryptoModal from './AddCryptoModal';
 import EditCryptoModal from './EditCryptoModal';
 import { CirclePlus, Triangle, RefreshCw } from 'lucide-react';
+import { computePortfolio24hDelta } from './portfolioDelta';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface PortfolioCoin {
@@ -284,17 +285,10 @@ export default function PortfolioTab() {
 
   const totalValue = portfolio.reduce((sum, item) => sum + (item?.value || 0), 0);
 
-  // Real 24h P&L: sum of (value - value / (1 + change24h/100)) per holding that has price data
-  const holdingsWithPriceData = portfolio.filter(
-    (item) => item.change24h !== undefined && item.value > 0
-  );
-  const hasPriceData = holdingsWithPriceData.length > 0;
-  const deltaValue = hasPriceData
-    ? holdingsWithPriceData.reduce((sum, item) => {
-        const pct = item.change24h as number;
-        return sum + (item.value - item.value / (1 + pct / 100));
-      }, 0)
-    : 0;
+  // Real 24h P&L: sum of (value - value / (1 + change24h/100)) per holding that has price data.
+  // Uses computePortfolio24hDelta which guards against pct <= -100 (dead tokens from CoinGecko)
+  // and excludes null change24h values (CoinGecko returns null for some coins).
+  const { hasPriceData, deltaValue } = computePortfolio24hDelta(portfolio);
 
   const isIncrease = deltaValue >= 0;
   const totalStr = totalValue.toFixed(2);
