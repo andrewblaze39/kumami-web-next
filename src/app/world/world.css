@@ -471,12 +471,15 @@
 .world-root .w-sidebar.is-adv { --bg-2: #040d09; }
 .world-root .w-sidebar.is-pro { --bg-2: #06050d; }
 
-/* ---- layout: sidebar | main | kuma-dock ---- */
+/* ---- layout: sidebar | main | kuma-dock ----
+   Fixed-viewport flex row; ONLY .w-main scrolls. The sidebar can never
+   scroll away because the window itself never scrolls inside the shell. */
 .world-root .w-app {
   display: flex;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
   width: 100%;
+  overflow: hidden;
 }
 
 /* ---- Sidebar ---- */
@@ -485,9 +488,7 @@
   flex: 0 0 var(--sidebar, 248px);
   background: var(--bg-2);
   border-right: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   padding: 18px 14px;
@@ -731,6 +732,8 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  overflow-y: auto; /* the ONLY scroll container in the shell */
 }
 
 /* ---- Topbar ---- */
@@ -1391,7 +1394,9 @@
 @media (max-width: 1080px) {
   .world-root .w-sidebar {
     position: fixed;
+    top: 0;
     left: 0;
+    height: 100dvh;
     transform: translateX(-100%);
     transition: 0.25s;
   }

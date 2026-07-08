@@ -470,7 +470,9 @@ html,
 body {
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  /* `clip` (not `hidden`) — hidden turns body into a scroll container,
+     which breaks position:sticky on the world sidebar/topbar */
+  overflow-x: clip;
 }
 
 body {

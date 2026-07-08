@@ -15,11 +15,16 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
   const [fading, setFading] = useState(false);
   const pathname = usePathname();
   const prevPathRef = useRef(pathname);
+  const mainRef = useRef<HTMLDivElement>(null);
 
   // Crossfade when pathname changes (covers all navigation incl. mode switches)
   useEffect(() => {
     if (prevPathRef.current === pathname) return;
     prevPathRef.current = pathname;
+
+    // .w-main is the shell's scroll container (window never scrolls), so
+    // reset it manually — Next's scroll restoration only handles the window.
+    mainRef.current?.scrollTo({ top: 0 });
 
     // Trigger fade-out immediately, then fade back in after 150ms
     setFading(true);
@@ -40,7 +45,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
       <Sidebar sidebarOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main area */}
-      <div className="w-main">
+      <div className="w-main" ref={mainRef}>
         <Topbar onMenuClick={() => setSidebarOpen(v => !v)} />
         {/*
           w-content-fade: base class adds opacity transition.
