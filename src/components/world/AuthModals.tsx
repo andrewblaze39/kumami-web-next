@@ -227,10 +227,10 @@ export function LogInModal({ onClose, onSwitchToSignUp }: LogInModalProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     cardRef.current?.focus();
-    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !loading) onClose(); };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [onClose]);
+  }, [onClose, loading]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -292,7 +292,7 @@ export function LogInModal({ onClose, onSwitchToSignUp }: LogInModalProps) {
   }
 
   return (
-    <div className="w-auth-ov" onClick={onClose}>
+    <div className="w-auth-ov" onClick={() => { if (!loading) onClose(); }}>
       <div
         className="w-auth-card"
         onClick={(e) => e.stopPropagation()}
@@ -302,7 +302,7 @@ export function LogInModal({ onClose, onSwitchToSignUp }: LogInModalProps) {
         ref={cardRef}
         tabIndex={-1}
       >
-        <button className="w-auth-x" onClick={onClose} aria-label="Close">
+        <button className="w-auth-x" onClick={() => { if (!loading) onClose(); }} aria-label="Close">
           ✕
         </button>
 
