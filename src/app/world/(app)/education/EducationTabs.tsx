@@ -5,16 +5,13 @@
  *
  * Subtabs (fixed order): Dashboard | My Journey | My Courses | Achievements |
  * Research | Glossary. The active subtab is driven by the `?tab=` query param
- * (default: dashboard). Switching tabs updates the URL via router.replace so
- * deep links work without a full navigation.
- *
- * The tab bar reuses the News-portal capsule chip styles (.w-np-cats/.w-np-cat)
- * per the design spec: 12.5px/700, 7px 14px padding, 9px radius, active =
- * accent background + on-accent text.
+ * (default: dashboard). The subtab NAVIGATION lives in the left sidebar
+ * (Sidebar.tsx renders the six links nested under the Education nav item);
+ * this component only reads `?tab=` and renders the matching content.
  */
 
 import { Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import type { ResearchArticle } from '@/lib/research';
 import DashboardTab from '@/components/world/education/DashboardTab';
 import CoursesTab from '@/components/world/education/CoursesTab';
@@ -64,39 +61,13 @@ function EducationTabsInner({
 }: {
   initialArticles: ResearchArticle[];
 }) {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const raw = searchParams.get('tab');
   const active: TabKey = isTabKey(raw) ? raw : 'dashboard';
 
-  const selectTab = (key: TabKey) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('tab', key);
-    router.replace(`/world/education?${params.toString()}`, { scroll: false });
-  };
-
   return (
     <div className="w-edu-tabs-root">
-      <nav
-        className="w-np-cats w-edu-subtabs"
-        role="tablist"
-        aria-label="Education sections"
-      >
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            role="tab"
-            aria-selected={active === t.key}
-            className={`w-np-cat${active === t.key ? ' is-active' : ''}`}
-            onClick={() => selectTab(t.key)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </nav>
-
       {active === 'dashboard' && <DashboardTab />}
       {active === 'journey' && <JourneyTab />}
       {active === 'courses' && <CoursesTab />}

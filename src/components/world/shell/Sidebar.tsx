@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useWorldMode } from '@/contexts/WorldModeContext';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -156,6 +156,43 @@ const ADV_NAV: NavGroup[] = [
     ],
   },
 ];
+
+// Education subtabs — nested under the Education nav item when it is active.
+// Keys must match the ?tab= values read by EducationTabs.tsx.
+const EDU_SUBTABS = [
+  { key: 'dashboard', label: 'Dashboard' },
+  { key: 'journey', label: 'My Journey' },
+  { key: 'courses', label: 'My Courses' },
+  { key: 'achievements', label: 'Achievements' },
+  { key: 'research', label: 'Research' },
+  { key: 'glossary', label: 'Glossary' },
+] as const;
+
+/**
+ * Education sub-nav — reads ?tab= to highlight the active subtab (default:
+ * dashboard). Needs useSearchParams, so it is mounted inside <Suspense/>.
+ */
+function EducationSubnav({ onClose }: { onClose: () => void }) {
+  const searchParams = useSearchParams();
+  const raw = searchParams.get('tab');
+  const active = EDU_SUBTABS.some(t => t.key === raw) ? raw : 'dashboard';
+
+  return (
+    <div className="w-nav-sub" role="group" aria-label="Education sections">
+      {EDU_SUBTABS.map(t => (
+        <Link
+          key={t.key}
+          href={`/world/education?tab=${t.key}`}
+          className={`w-nav-subitem${active === t.key ? ' active' : ''}`}
+          aria-current={active === t.key ? 'page' : undefined}
+          onClick={onClose}
+        >
+          {t.label}
+        </Link>
+      ))}
+    </div>
+  );
+}
 
 // PRO nav items — all link to /world/pro (locked)
 const PRO_NAV_ITEMS = [
@@ -315,15 +352,22 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
             <div key={group.grp}>
               <div className="w-nav-label">{group.grp}</div>
               {group.items.map(item => (
-                <Link
-                  key={item.k}
-                  href={item.href}
-                  className={`w-nav-item${isActive(item.href) ? ' active' : ''}`}
-                  onClick={onClose}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </Link>
+                <div key={item.k}>
+                  <Link
+                    href={item.k === 'education' ? '/world/education?tab=dashboard' : item.href}
+                    className={`w-nav-item${isActive(item.href) ? ' active' : ''}`}
+                    onClick={onClose}
+                  >
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </Link>
+                  {/* Education subtabs — expanded only while Education is the active route */}
+                  {item.k === 'education' && isActive(item.href) && (
+                    <Suspense fallback={null}>
+                      <EducationSubnav onClose={onClose} />
+                    </Suspense>
+                  )}
+                </div>
               ))}
             </div>
           ))

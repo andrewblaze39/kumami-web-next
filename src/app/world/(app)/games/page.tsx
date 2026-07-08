@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function GamesPage() {
   return (
-    <div className="w-legacy-embed">
+    <div className="w-legacy-embed w-legacy-fullbleed">
       <GamesPortal />
     </div>
   );

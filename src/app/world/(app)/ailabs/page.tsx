@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function AILabsPage() {
   return (
-    <div className="w-legacy-embed">
+    <div className="w-legacy-embed w-legacy-fullbleed">
       <AILabsContent />
     </div>
   );

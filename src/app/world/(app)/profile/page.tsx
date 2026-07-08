@@ -13,7 +13,7 @@ export const metadata: Metadata = {
  */
 export default function WorldProfilePage() {
   return (
-    <div className="w-legacy-embed">
+    <div className="w-legacy-embed w-legacy-fullbleed w-embed-profile">
       <ProfileContent />
     </div>
   );

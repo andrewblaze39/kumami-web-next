@@ -650,6 +650,33 @@
 }
 .world-root .w-nav-lock svg { width: 14px; height: 14px; }
 
+/* ---- Nav sub-items (Education subtabs nested under the Education item) ---- */
+.world-root .w-nav-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 0 6px;
+  /* Indent past the icon column: 12px item padding + 19px icon + 12px gap */
+  padding-left: 43px;
+}
+.world-root .w-nav-subitem {
+  display: block;
+  padding: 6px 10px;
+  border-radius: 9px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.world-root .w-nav-subitem:hover {
+  background: var(--panel);
+  color: var(--ink);
+}
+.world-root .w-nav-subitem.active {
+  background: var(--panel-2);
+  color: var(--accent);
+}
+
 /* ---- Sidebar footer ---- */
 .world-root .w-sidebar-foot {
   margin-top: auto;
@@ -886,13 +913,37 @@
   padding-top: 2rem;
 }
 /* Full-bleed opt-out: .w-content caps pages at 1180px with 30/40px padding.
-   The About page (old marketing homepage) is designed edge-to-edge, so when
-   the direct child of .w-content is a .w-legacy-fullbleed embed we lift the
-   cap and padding from the parent via :has() — the cleanest mechanism here,
-   since the constraint lives on the layout-owned wrapper, not the page. */
+   Legacy embeds (About / Blogs / Profile / AI Labs / Games) bring their own
+   dark backgrounds and are designed edge-to-edge, so when the direct child
+   of .w-content is a .w-legacy-fullbleed embed we lift the cap and padding
+   from the parent via :has() — the cleanest mechanism here, since the
+   constraint lives on the layout-owned wrapper, not the page. The flex
+   column + flex:1 chain makes short embeds stretch so their dark background
+   fills the content column with no shell-bg gap at the bottom. */
 .world-root .w-content:has(> .w-legacy-fullbleed) {
   max-width: none;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.world-root .w-legacy-fullbleed {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.world-root .w-legacy-fullbleed > * {
+  flex: 1 0 auto;
+}
+/* Profile embed: the legacy ProfileContent is a centered card without its own
+   full-width dark backdrop, so give the fullbleed wrapper one and keep modest
+   side padding so the card never sits flush against the sidebar. The card
+   keeps its natural height (no stretch). */
+.world-root .w-legacy-fullbleed.w-embed-profile {
+  background: #101010;
+  padding: 0 16px;
+}
+.world-root .w-legacy-fullbleed.w-embed-profile > * {
+  flex: 0 0 auto;
 }
 
 /* ---- Mode crossfade (news ↔ intel and all route changes) ---- */
