@@ -5916,6 +5916,21 @@
    Education Tab  (/world/education)
    ====================================================================== */
 
+/* ---- Embedded legacy education app (Andrew's original /education pages
+   rendered in the shell main view via EduEmbed). education.css assumes a
+   full-page flex layout with its own sidebar; neutralize that here without
+   touching education.css itself. ---- */
+.w-edu-tabs-root .edu-app.edu-embed {
+  display: block;
+  min-height: 0;
+  background: transparent;
+}
+
+.w-edu-tabs-root .edu-embed .edu-content {
+  padding: 4px 0 60px;
+  max-width: none;
+}
+
 .world-root .w-edu-root {
   display: flex;
   flex-direction: column;
