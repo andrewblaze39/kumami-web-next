@@ -76,7 +76,7 @@ const Footer = () => {
           </div>
 
           {/* Right Side Menu Columns */}
-          <div className="flex flex-col md:flex-row gap-10 lg:gap-16 lg:ml-auto lg:mr-16">
+          <div className="flex flex-col md:flex-row gap-10 lg:gap-16 ml-7 lg:ml-auto lg:mr-16">
             {/* Menu 1 */}
             <div>
               <h3 className="text-lg font-bold mb-3 ">Documentation</h3>
