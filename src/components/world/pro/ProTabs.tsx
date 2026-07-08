@@ -17,6 +17,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import ProTeaser from './ProTeaser';
 import PortfolioTab from './PortfolioTab';
+import AlphaRoomTab from './AlphaRoomTab';
+import MarketAnalysisTab from './MarketAnalysisTab';
 
 const TABS = [
   { key: 'portfolio', label: 'Portfolio' },
@@ -66,6 +68,8 @@ function ProTabsInner() {
       </nav>
 
       {active === 'portfolio' && <PortfolioTab />}
+      {active === 'alpha' && <AlphaRoomTab />}
+      {active === 'market' && <MarketAnalysisTab />}
     </div>
   );
 }
