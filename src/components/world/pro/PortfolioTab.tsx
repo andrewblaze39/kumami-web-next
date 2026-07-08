@@ -162,10 +162,14 @@ export default function PortfolioTab() {
     try {
       setIsPriceLoading(true);
       setPriceError(null);
-      const response = await fetch(
-        'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false'
-      );
-      if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+      // Retry up to 3 times with exponential backoff for 429s
+      let response: Response | null = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (attempt > 0) await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+        response = await fetch('/api/coingecko/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1');
+        if (response.status !== 429) break;
+      }
+      if (!response || !response.ok) throw new Error(`API request failed with status ${response?.status ?? 'unknown'}`);
       const data = await response.json();
       const pricesMap: Record<string, MarketPriceEntry> = {};
       (data as Array<{
@@ -279,14 +283,30 @@ export default function PortfolioTab() {
   };
 
   const totalValue = portfolio.reduce((sum, item) => sum + (item?.value || 0), 0);
-  const deltaValue = totalValue > 0 ? Math.round(totalValue * 0.023) : 0;
+
+  // Real 24h P&L: sum of (value - value / (1 + change24h/100)) per holding that has price data
+  const holdingsWithPriceData = portfolio.filter(
+    (item) => item.change24h !== undefined && item.value > 0
+  );
+  const hasPriceData = holdingsWithPriceData.length > 0;
+  const deltaValue = hasPriceData
+    ? holdingsWithPriceData.reduce((sum, item) => {
+        const pct = item.change24h as number;
+        return sum + (item.value - item.value / (1 + pct / 100));
+      }, 0)
+    : 0;
+
   const isIncrease = deltaValue >= 0;
   const totalStr = totalValue.toFixed(2);
   const [intPart, fracPart] = totalStr.split('.');
   const formattedInt = Number(intPart).toLocaleString();
-  const formattedDeltaValue = Number(deltaValue.toFixed(2)).toLocaleString();
+  const formattedDeltaValue = hasPriceData
+    ? Math.abs(deltaValue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : '—';
   const increaseInPercent =
-    totalValue > 0 ? Math.abs((deltaValue / totalValue) * 100).toFixed(2) : '0.00';
+    hasPriceData && totalValue > 0
+      ? Math.abs((deltaValue / totalValue) * 100).toFixed(2)
+      : '0.00';
 
   return (
     <>
@@ -349,11 +369,14 @@ export default function PortfolioTab() {
                     <div
                       className={cn(
                         'flex items-center justify-center gap-1 text-[#46e3a0] text-xs font-semibold',
-                        !isIncrease && 'text-[#ff6b81]'
+                        !isIncrease && hasPriceData && 'text-[#ff6b81]'
                       )}
                     >
-                      {isIncrease ? <Triangle size={6} fill="#46e3a0" /> : '-'}$
-                      {formattedDeltaValue} ({increaseInPercent}%)
+                      {hasPriceData ? (
+                        <>{isIncrease ? <Triangle size={6} fill="#46e3a0" /> : '-'}${formattedDeltaValue} ({increaseInPercent}%)</>
+                      ) : (
+                        <span className="text-white/50">{formattedDeltaValue}</span>
+                      )}
                     </div>
                   </div>
                 </DonutChart>
@@ -375,11 +398,14 @@ export default function PortfolioTab() {
                     <div
                       className={cn(
                         'flex items-center justify-center gap-1 text-[#46e3a0] text-[15px] font-semibold',
-                        !isIncrease && 'text-[#ff6b81]'
+                        !isIncrease && hasPriceData && 'text-[#ff6b81]'
                       )}
                     >
-                      {isIncrease ? <Triangle size={8} fill="#46e3a0" /> : '-'}$
-                      {formattedDeltaValue} ({increaseInPercent}%)
+                      {hasPriceData ? (
+                        <>{isIncrease ? <Triangle size={8} fill="#46e3a0" /> : '-'}${formattedDeltaValue} ({increaseInPercent}%)</>
+                      ) : (
+                        <span className="text-white/50">{formattedDeltaValue}</span>
+                      )}
                     </div>
                   </div>
                 </DonutChart>
