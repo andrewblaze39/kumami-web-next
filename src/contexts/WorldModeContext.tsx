@@ -33,7 +33,10 @@ export function useWorldMode() {
 // ---------- Route classification helpers ----------
 
 // Routes that belong exclusively to each mode
-const BEGINNER_ROUTES = ['/world/news', '/world/courses', '/world/dashboard', '/world/education', '/world/ailabs', '/world/games'];
+// NOTE: '/world/courses' stays for the course-reader deep links
+// (/world/courses/[phaseId]/…). The bare /world/courses and /world/dashboard
+// pages now redirect to /world/education subtabs.
+const BEGINNER_ROUTES = ['/world/news', '/world/courses', '/world/education', '/world/ailabs', '/world/games'];
 const ADVANCED_ROUTES = ['/world/console', '/world/onchain', '/world/intel', '/world/watchlist'];
 const PRO_ROUTES = ['/world/pro'];
 // Shared routes: visible in every mode — visiting them never changes the mode.

@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * WorldEducationClient — client component for the /world/education page.
+ * WorldEducationClient — Research + Glossary sections for the /world/education
+ * page. Rendered as the "Research" and "Glossary" subtabs by EducationTabs.
  *
- * Renders two sections:
  *   1. Research card grid (server-fetched articles passed as props)
  *   2. Glossary with client-side text filter
  *
@@ -61,7 +61,7 @@ function ResearchSkeleton() {
   );
 }
 
-function ResearchSection({ articles }: { articles: ResearchArticle[] }) {
+export function ResearchSection({ articles }: { articles: ResearchArticle[] }) {
   if (articles.length === 0) {
     return (
       <div className="w-edu-empty">
@@ -81,7 +81,7 @@ function ResearchSection({ articles }: { articles: ResearchArticle[] }) {
 
 // ---------- Glossary Section ----------
 
-function GlossarySection() {
+export function GlossarySection() {
   const [filter, setFilter] = useState('');
 
   const filtered = useMemo(() => {
@@ -164,7 +164,7 @@ function GlossarySection() {
 
 // ---------- Section wrapper ----------
 
-function EduSection({
+export function EduSection({
   title,
   subtitle,
   children,
@@ -184,24 +184,24 @@ function EduSection({
   );
 }
 
-// ---------- Main client component ----------
+// ---------- Subtab wrappers ----------
 
-interface WorldEducationClientProps {
-  initialArticles: ResearchArticle[];
-}
-
-export default function WorldEducationClient({
-  initialArticles,
-}: WorldEducationClientProps) {
+export function ResearchTab({ articles }: { articles: ResearchArticle[] }) {
   return (
     <div className="w-edu-root">
       <EduSection
         title="Research"
         subtitle="In-depth analysis and project deep-dives."
       >
-        <ResearchSection articles={initialArticles} />
+        <ResearchSection articles={articles} />
       </EduSection>
+    </div>
+  );
+}
 
+export function GlossaryTab() {
+  return (
+    <div className="w-edu-root">
       <EduSection
         title="Glossary"
         subtitle="147 crypto and Web3 terms — from Alpha to Zero-knowledge."

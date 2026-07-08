@@ -1,7 +1,9 @@
 'use client';
 
 /**
- * CoursesClient — client wrapper for the Courses page.
+ * CoursesTab — "My Courses" subtab of /world/education.
+ * (Formerly CoursesClient on the standalone /world/courses page, which now
+ * redirects to /world/education?tab=courses.)
  *
  * Responsibilities:
  * 1. Fetches progress from /api/education/progress using the Firebase ID token.
@@ -54,7 +56,7 @@ function searchMatches(query: string): SearchMatch[] {
 
 // ---------- Component ----------
 
-export default function CoursesClient() {
+export default function CoursesTab() {
   const progress = useEducationProgress();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');

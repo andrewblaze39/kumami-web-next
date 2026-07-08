@@ -277,7 +277,7 @@ export default function CoursePage({ course, progress: initialProgress, reviews 
       {/* ---- Header ---- */}
       <header className="w-course-header">
         <div className="w-course-header-top">
-          <Link href="/world/courses" className="w-course-back">
+          <Link href="/world/education?tab=courses" className="w-course-back">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M19 12H5M11 6l-6 6 6 6" />
             </svg>

@@ -1,33 +1,17 @@
 /**
- * /world/courses — Courses landing page (server component).
+ * /world/courses — legacy route.
  *
- * - Journey path is the primary content (replaces featured lessons per PM doc).
- * - Warm-up content goes BELOW the journey.
- * - Search: floating magnifying-glass FAB that expands to an input (client-side
- *   filter over lessons/phases). No big search bar, no "Browse all" button.
- * - Progress data is fetched client-side from the /api/education/progress
- *   endpoint via the user's ID token. CoursesClient uses useEducationProgress()
- *   which waits for AuthContext hydration before fetching.
+ * The courses landing (journey path + search) now lives as the "My Courses"
+ * subtab of the Education parent tab. This route redirects there. The content
+ * component is src/components/world/education/CoursesTab.tsx.
+ *
+ * NOTE: the course reader routes /world/courses/[phaseId] and
+ * /world/courses/[phaseId]/[chapterId] remain fully functional — only the
+ * bare /world/courses listing moved.
  */
 
-import { Suspense } from 'react';
-import CoursesClient from './CoursesClient';
-
-export const dynamic = 'force-dynamic';
+import { redirect } from 'next/navigation';
 
 export default function CoursesPage() {
-  return (
-    <div className="w-content-inner">
-      <header className="w-courses-header">
-        <h1 className="w-page-title">Your Learning Journey</h1>
-        <p className="w-page-sub">
-          Five phases. From buying your first Bitcoin to going professional in Web3.
-        </p>
-      </header>
-
-      <Suspense fallback={<div className="w-courses-loading">Loading…</div>}>
-        <CoursesClient />
-      </Suspense>
-    </div>
-  );
+  redirect('/world/education?tab=courses');
 }

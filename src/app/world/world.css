@@ -1787,6 +1787,15 @@
   color: var(--on-accent);
 }
 
+/* — Education subtab bar — reuses the capsule chips as <button>s */
+.world-root .w-edu-subtabs {
+  margin-bottom: 26px;
+}
+.world-root .w-edu-subtabs .w-np-cat {
+  font-family: inherit;
+  cursor: pointer;
+}
+
 /* — Main grid — */
 .world-root .w-np-grid {
   display: grid;
