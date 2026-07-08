@@ -7,6 +7,24 @@ import { updateProfile } from 'firebase/auth';
 
 const REDIRECT_TARGET = '/world/news';
 
+/**
+ * Read and consume the sessionStorage deep-link saved by WorldProtected.
+ * Only accepts internal paths (starts with `/` but not `//`) to prevent
+ * open-redirect attacks. Falls back to REDIRECT_TARGET.
+ */
+function consumeRedirectTarget(): string {
+  try {
+    const stored = sessionStorage.getItem('redirectAfterSignup');
+    sessionStorage.removeItem('redirectAfterSignup');
+    if (stored && stored.startsWith('/') && !stored.startsWith('//')) {
+      return stored;
+    }
+  } catch {
+    // sessionStorage unavailable (e.g. private-browsing restrictions)
+  }
+  return REDIRECT_TARGET;
+}
+
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
     <path
@@ -242,7 +260,7 @@ export function LogInModal({ onClose, onSwitchToSignUp }: LogInModalProps) {
       // state while navigation completes. Calling onClose() here would flash
       // the gate/blank background before the shell renders. The whole page
       // (modal included) is unmounted by router.replace, so no cleanup needed.
-      router.replace(REDIRECT_TARGET);
+      router.replace(consumeRedirectTarget());
       return;
     } catch (err: unknown) {
       const code = (err as { code?: string }).code;
@@ -266,7 +284,7 @@ export function LogInModal({ onClose, onSwitchToSignUp }: LogInModalProps) {
       await loginWithGoogle();
       // Success: stay busy (no onClose) until router.replace unmounts the gate,
       // so there is no flash of the gate background mid-navigation.
-      router.replace(REDIRECT_TARGET);
+      router.replace(consumeRedirectTarget());
       return;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Google sign-in failed.';
