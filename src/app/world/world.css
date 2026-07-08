@@ -1812,6 +1812,13 @@
   color: var(--muted);
   font-weight: 600;
 }
+.world-root .w-tk-logo {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  object-fit: contain;
+  flex: 0 0 16px;
+}
 .world-root .w-tk-item b {
   color: var(--ink);
 }
