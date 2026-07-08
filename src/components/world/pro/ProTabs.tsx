@@ -19,6 +19,7 @@ import ProTeaser from './ProTeaser';
 import PortfolioTab from './PortfolioTab';
 import AlphaRoomTab from './AlphaRoomTab';
 import MarketAnalysisTab from './MarketAnalysisTab';
+import MarketCapTab from './MarketCapTab';
 
 const TABS = [
   { key: 'portfolio', label: 'Portfolio' },
@@ -70,6 +71,7 @@ function ProTabsInner() {
       {active === 'portfolio' && <PortfolioTab />}
       {active === 'alpha' && <AlphaRoomTab />}
       {active === 'market' && <MarketAnalysisTab />}
+      {active === 'marketcap' && <MarketCapTab />}
     </div>
   );
 }
