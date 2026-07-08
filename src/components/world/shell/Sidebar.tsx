@@ -288,11 +288,11 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
         >
           <span className="w-brand-logo">
             <Image
-              src="/logo-kumami-white.png"
+              src="/logo-kumami-final.png"
               alt="Kumami World"
-              width={66}
-              height={28}
-              style={{ height: 28, width: 'auto' }}
+              width={84}
+              height={36}
+              style={{ height: 36, width: 'auto' }}
               priority
             />
           </span>
