@@ -4,19 +4,20 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { updateProfile } from 'firebase/auth';
+import { isSafeInternalPath } from '@/lib/safeInternalPath';
 
 const REDIRECT_TARGET = '/world/news';
 
 /**
  * Read and consume the sessionStorage deep-link saved by WorldProtected.
- * Only accepts internal paths (starts with `/` but not `//`) to prevent
- * open-redirect attacks. Falls back to REDIRECT_TARGET.
+ * Only accepts safe internal paths (starts with `/`, second char is neither
+ * `/` nor `\`) to prevent open-redirect attacks. Falls back to REDIRECT_TARGET.
  */
 function consumeRedirectTarget(): string {
   try {
     const stored = sessionStorage.getItem('redirectAfterSignup');
     sessionStorage.removeItem('redirectAfterSignup');
-    if (stored && stored.startsWith('/') && !stored.startsWith('//')) {
+    if (isSafeInternalPath(stored)) {
       return stored;
     }
   } catch {
@@ -103,7 +104,11 @@ export function SignUpModal({ onClose, onSwitchToLogin }: SignUpModalProps) {
       // I2: Set the redirect target so world/page.tsx useEffect can pick it up
       // after currentUser resolves. No imperative router.replace here — the
       // gate page's useEffect owns the redirect to avoid a double-navigation race.
-      sessionStorage.setItem('redirectAfterSignup', REDIRECT_TARGET);
+      // Only write the fallback if a deep-link is not already stored — we must
+      // not overwrite a valid deep-link saved by WorldProtected.
+      if (!sessionStorage.getItem('redirectAfterSignup')) {
+        sessionStorage.setItem('redirectAfterSignup', REDIRECT_TARGET);
+      }
       await loginWithGoogle();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Google sign-in failed.';
@@ -139,7 +144,12 @@ export function SignUpModal({ onClose, onSwitchToLogin }: SignUpModalProps) {
             <button
               className="w-btn w-btn-primary"
               onClick={() => {
-                sessionStorage.setItem('redirectAfterSignup', REDIRECT_TARGET);
+                // Only write the fallback if a deep-link is not already stored
+                // so that an existing deep-link is preserved through the
+                // email-signup → login flow.
+                if (!sessionStorage.getItem('redirectAfterSignup')) {
+                  sessionStorage.setItem('redirectAfterSignup', REDIRECT_TARGET);
+                }
                 onClose();
                 onSwitchToLogin();
               }}

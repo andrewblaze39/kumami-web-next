@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { isSafeInternalPath } from '@/lib/safeInternalPath';
 
 function LoginForm() {
   const [email, setEmail] = useState('');
@@ -17,17 +18,18 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Resolve returnUrl from query param or sessionStorage
+  // Resolve returnUrl from query param or sessionStorage.
+  // Validate against open-redirect: only accept safe internal paths.
   useEffect(() => {
     const queryReturn = searchParams.get('returnUrl');
     if (queryReturn) {
-      setReturnUrl(queryReturn);
+      setReturnUrl(isSafeInternalPath(queryReturn) ? queryReturn : '/');
     } else {
       const stored = sessionStorage.getItem('redirectAfterSignup') || sessionStorage.getItem('redirectAfterLogin');
-      if (stored) {
+      sessionStorage.removeItem('redirectAfterSignup');
+      sessionStorage.removeItem('redirectAfterLogin');
+      if (isSafeInternalPath(stored)) {
         setReturnUrl(stored);
-        sessionStorage.removeItem('redirectAfterSignup');
-        sessionStorage.removeItem('redirectAfterLogin');
       }
     }
   }, [searchParams]);

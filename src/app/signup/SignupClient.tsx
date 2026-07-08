@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { isSafeInternalPath } from '@/lib/safeInternalPath';
 
 export default function SignupClient() {
   const [email, setEmail] = useState('');
@@ -16,12 +17,13 @@ export default function SignupClient() {
   const { signup, loginWithGoogle, currentUser } = useAuth();
   const router = useRouter();
 
-  // Redirect after Google sign-in (auth state resolves asynchronously)
+  // Redirect after Google sign-in (auth state resolves asynchronously).
+  // Validate against open-redirect: only accept safe internal paths.
   useEffect(() => {
     if (currentUser) {
-      const returnUrl = sessionStorage.getItem('redirectAfterSignup') || '/';
+      const stored = sessionStorage.getItem('redirectAfterSignup');
       sessionStorage.removeItem('redirectAfterSignup');
-      router.replace(returnUrl);
+      router.replace(isSafeInternalPath(stored) ? stored : '/');
     }
   }, [currentUser, router]);
 
@@ -74,7 +76,8 @@ export default function SignupClient() {
             <p>Please check your inbox and verify your email before logging in.</p>
             <button
               onClick={() => {
-                const returnUrl = sessionStorage.getItem('redirectAfterSignup') || '/';
+                const stored = sessionStorage.getItem('redirectAfterSignup');
+                const returnUrl = isSafeInternalPath(stored) ? stored : '/';
                 router.push(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
               }}
               className="w-full mt-2 bg-[#96EDD6] text-black font-semibold py-2.5 rounded-lg hover:bg-[#7de0c5] transition"
