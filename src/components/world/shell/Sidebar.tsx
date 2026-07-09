@@ -251,6 +251,7 @@ const PRO_NAV_ITEMS = [
 // Brand dropdown menu links
 const COMPANY_LINKS = [
   { label: 'About Kumami', href: '/world/about', icon: Icons.building },
+  { label: 'Our Partners', href: '/world/partners', icon: Icons.users },
 ];
 
 interface SidebarProps {

@@ -104,7 +104,7 @@ export default function ProTeaser() {
             Real-time alpha, smart money tracking and exclusive access — all in one place.
           </p>
         </div>
-        <Link href="/subscribe" className="w-btn w-btn-pro w-btn-lg">
+        <Link href="/world/subscribe" className="w-btn w-btn-pro w-btn-lg">
           <Sparkles size={16} />
           Get Kumami Pro
         </Link>
@@ -122,7 +122,7 @@ export default function ProTeaser() {
         <p className="w-pro-footer-copy">
           Everything you need to stay ahead of the market — and the people moving it.
         </p>
-        <Link href="/subscribe" className="w-btn w-btn-pro w-btn-lg">
+        <Link href="/world/subscribe" className="w-btn w-btn-pro w-btn-lg">
           <Sparkles size={16} />
           Get Kumami Pro
         </Link>

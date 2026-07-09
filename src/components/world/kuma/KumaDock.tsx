@@ -160,7 +160,7 @@ export default function KumaDock() {
   // ── Upsell handler ──────────────────────────────────────────────────────────
 
   const handleUnlock = () => {
-    router.push(currentUser ? '/subscribe' : '/signup');
+    router.push(currentUser ? '/world/subscribe' : '/signup');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

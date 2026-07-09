@@ -1,37 +1,6 @@
-import type { Metadata } from 'next'
-import Footer from '@/components/Footer'
-import PartnersGrid from '@/components/PartnersGrid'
+import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = {
-  title: 'Partners — Kumami World',
-  description:
-    "Meet Kumami World's ecosystem partners and collaborators.",
-  openGraph: {
-    title: 'Partners — Kumami World',
-    description:
-      "Meet Kumami World's ecosystem partners and collaborators.",
-    url: 'https://kumami.world/partners',
-    siteName: 'Kumami World',
-    locale: 'en_US',
-    images: [{ url: 'https://kumami.world/og-default.png', width: 1200, height: 630, alt: 'Partners — Kumami World' }],
-  },
-  alternates: {
-    canonical: 'https://kumami.world/partners',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Partners — Kumami World',
-    description:
-      "Meet Kumami World's ecosystem partners and collaborators.",
-    images: ['https://kumami.world/og-default.png'],
-  },
-}
-
-export default function PartnersPage() {
-  return (
-    <>
-      <PartnersGrid />
-      <Footer />
-    </>
-  )
+// Legacy route — the partners page lives inside the world shell.
+export default function PartnersRedirect() {
+  redirect('/world/partners');
 }
