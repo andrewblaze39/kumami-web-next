@@ -113,7 +113,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: `https://kumami.world/world/news/${id}`,
       type: 'article',
       ...(date && { publishedTime: date.toISOString() }),
-      ...(article.author && { authors: [article.author] }),
       images: article.imageUrl
         ? [{ url: article.imageUrl, width: 1200, height: 630, alt: article.title || 'Kumami News' }]
         : [{ url: 'https://kumami.world/og-default.png', width: 1200, height: 630, alt: 'Kumami News' }],
@@ -256,11 +255,6 @@ export default async function WorldNewsDetailPage({ params }: PageProps) {
               <time style={{ fontSize: '12px', color: 'var(--muted)' }}>
                 {formattedDate}
               </time>
-            )}
-            {article.author && (
-              <span style={{ fontSize: '12px', color: 'var(--muted-2)' }}>
-                By {article.author}
-              </span>
             )}
           </div>
 

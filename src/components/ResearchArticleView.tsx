@@ -353,11 +353,6 @@ export default function ResearchArticleView({ articleId }: Props) {
                   {formattedFullDate}
                 </time>
               )}
-              {article.author && (
-                <span className="text-gray-400 text-sm">
-                  By {article.author}
-                </span>
-              )}
             </div>
 
             {/* Title */}

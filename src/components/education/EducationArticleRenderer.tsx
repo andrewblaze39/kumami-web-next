@@ -270,12 +270,9 @@ export default function EducationArticleRenderer({
                 )}
                 <h1>{article.title}</h1>
                 <div className="edu-l-meta">
-                  <span style={{ fontSize: 13.5, color: 'var(--muted)' }}>
-                    By {article.author || 'Kumami Team'}
-                  </span>
                   {article.minutes && article.minutes > 0 ? (
                     <span style={{ fontSize: 13.5, color: 'var(--muted)' }}>
-                      · {article.minutes} min read
+                      {article.minutes} min read
                     </span>
                   ) : null}
                 </div>
