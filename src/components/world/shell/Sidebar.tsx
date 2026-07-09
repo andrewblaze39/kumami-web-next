@@ -263,10 +263,38 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
   const { currentUser, userData, logout } = useAuth();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   // Refs for click-outside detection on the brand dropdown
   const menuBtnRef = useRef<HTMLButtonElement>(null);
   const menuDropRef = useRef<HTMLDivElement>(null);
+
+  // Refs for click-outside detection on the profile dropdown (bottom of sidebar)
+  const profileBtnRef = useRef<HTMLButtonElement>(null);
+  const profileDropRef = useRef<HTMLDivElement>(null);
+
+  // Close profile dropdown on click-outside or Escape
+  useEffect(() => {
+    if (!profileOpen) return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (profileBtnRef.current && profileBtnRef.current.contains(target)) return;
+      if (profileDropRef.current && profileDropRef.current.contains(target)) return;
+      setProfileOpen(false);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setProfileOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [profileOpen]);
 
   // Close brand dropdown on click-outside or Escape
   useEffect(() => {
@@ -356,13 +384,6 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
                 {link.label}
               </Link>
             ))}
-            <div className="w-bm-sep" />
-            <button className="w-bm-item" onClick={() => { setMenuOpen(false); logout(); }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5V3h4" /><path d="M14 17l5-5-5-5M19 12H9" />
-              </svg>
-              Log out
-            </button>
           </div>
         )}
       </div>
@@ -425,9 +446,39 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
         )}
       </nav>
 
-      {/* ---- Footer: profile block (links to /world/profile) ---- */}
+      {/* ---- Footer: profile block — dropdown with My Profile + Log out ---- */}
       <div className="w-sidebar-foot">
-        <Link href="/world/profile" className="w-profile" onClick={onClose}>
+        {profileOpen && (
+          <div ref={profileDropRef} className="w-profile-menu">
+            <Link
+              href="/world/profile"
+              className="w-bm-item"
+              onClick={() => { setProfileOpen(false); onClose(); }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" />
+              </svg>
+              My Profile
+            </Link>
+            <button
+              className="w-bm-item"
+              onClick={() => { setProfileOpen(false); logout(); }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5V3h4" /><path d="M14 17l5-5-5-5M19 12H9" />
+              </svg>
+              Log out
+            </button>
+          </div>
+        )}
+        <button
+          ref={profileBtnRef}
+          type="button"
+          className="w-profile"
+          onClick={() => setProfileOpen(v => !v)}
+          aria-expanded={profileOpen}
+          aria-haspopup="true"
+        >
           <span className="w-avatar">
             {currentUser?.photoURL ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -440,7 +491,10 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
             <b>{displayName}</b>
             <span>{modeLabel}</span>
           </span>
-        </Link>
+          <svg className={`w-caret${profileOpen ? ' up' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="m6 15 6-6 6 6" />
+          </svg>
+        </button>
       </div>
     </aside>
   );

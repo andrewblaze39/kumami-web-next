@@ -668,6 +668,7 @@
   margin-top: auto;
   padding-top: 12px;
   border-top: 1px solid var(--border);
+  position: relative;
 }
 .world-root .w-profile {
   display: flex;
@@ -679,6 +680,30 @@
   transition: 0.16s;
   text-decoration: none;
   color: inherit;
+  width: 100%;
+  background: none;
+  border: none;
+  font-family: inherit;
+  text-align: left;
+}
+.world-root .w-profile .w-caret {
+  margin-left: auto;
+  transition: 0.2s;
+}
+.world-root .w-profile .w-caret.up { transform: rotate(180deg); }
+/* Profile dropdown — opens upward, anchored above the profile block */
+.world-root .w-profile-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 6px);
+  z-index: 40;
+  background: var(--panel);
+  border: 1px solid var(--border-2);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+  animation: w-pop 0.16s ease;
 }
 .world-root .w-profile:hover { background: var(--panel); }
 .world-root .w-avatar {
