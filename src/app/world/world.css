@@ -2120,12 +2120,6 @@
   }
 }
 
-/* Latest rail card (article detail page) */
-.world-root .w-latest-card:hover {
-  background: var(--panel-3) !important;
-  border-color: var(--border-2) !important;
-}
-
 /* ============================================================
    NEWS DETAIL PAGE — article + sidebar grid
    ============================================================ */

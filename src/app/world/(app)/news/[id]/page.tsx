@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { getNewsById, getPublishedNews, timestampToDate, resolveTimestamp } from '@/lib/news';
-import { LatestCard } from '@/components/world/news/NewsList';
+import { NewsRow } from '@/components/world/news/NewsList';
 import { AdvancedBadge, ProBadge } from '@/components/world/news/TierBadge';
 
 export const dynamic = 'force-dynamic';
@@ -500,9 +500,11 @@ export default async function WorldNewsDetailPage({ params }: PageProps) {
             >
               More News
             </h3>
-            {related.map((a) => (
-              <LatestCard key={a.id} article={a} />
-            ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {related.map((a) => (
+                <NewsRow key={a.id} article={a} />
+              ))}
+            </div>
             <Link
               href="/world/news"
               style={{

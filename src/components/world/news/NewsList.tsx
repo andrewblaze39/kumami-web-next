@@ -71,69 +71,6 @@ export function NewsRow({ article }: NewsRowProps) {
   );
 }
 
-// ---------- "Latest" rail card (used by the article detail page) ----------
-
-interface LatestCardProps {
-  article: NewsArticle;
-}
-
-export function LatestCard({ article }: LatestCardProps) {
-  const timeLabel = formatRelativeTime(article);
-
-  return (
-    <Link
-      href={`/world/news/${article.id}`}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '6px',
-        padding: '12px',
-        borderRadius: '12px',
-        background: 'var(--panel-2)',
-        border: '1px solid var(--border)',
-        textDecoration: 'none',
-        color: 'inherit',
-        transition: 'background 0.14s, border-color 0.14s',
-        marginBottom: '8px',
-      }}
-      className="w-latest-card"
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-        {article.category && (
-          <span
-            style={{
-              fontSize: '10px',
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              color: 'var(--accent2)',
-            }}
-          >
-            {article.category}
-          </span>
-        )}
-        <span style={{ fontSize: '10px', color: 'var(--muted-2)', marginLeft: 'auto' }}>
-          {timeLabel}
-        </span>
-      </div>
-      <span
-        style={{
-          fontSize: '12.5px',
-          fontWeight: 700,
-          lineHeight: 1.4,
-          color: 'var(--ink)',
-          overflow: 'hidden',
-          display: '-webkit-box',
-          WebkitLineClamp: 3,
-          WebkitBoxOrient: 'vertical',
-        }}
-      >
-        {article.title}
-      </span>
-    </Link>
-  );
-}
-
 // ---------- Empty state ----------
 
 export function NewsEmptyState({ category }: { category?: string }) {
