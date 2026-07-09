@@ -45,6 +45,12 @@ export default function ModeToggle() {
     <div className={modeClass} ref={switchRef}>
       <span className="w-knob" ref={knobRef} />
       <button className={cls('beginner')} onClick={() => setMode('beginner')}>
+        {/* Seedling — beginner/starter glyph (mobile shows icons only for inactive modes) */}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 21v-8" />
+          <path d="M12 13c0-4-3-7-8-7 0 4 3 7 8 7Z" />
+          <path d="M12 10c0-3.5 2.5-6 8-6 0 3.5-2.5 6-8 6Z" />
+        </svg>
         <span>Beginner</span>
       </button>
       <button className={cls('advanced')} onClick={() => setMode('advanced')}>

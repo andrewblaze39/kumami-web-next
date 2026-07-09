@@ -1436,7 +1436,9 @@
 }
 @media (max-width: 760px) {
   .world-root .w-crumb { display: none; }
-  .world-root .w-mode-switch button span { display: none; }
+  /* Mobile: inactive modes are icon-only; the active mode keeps its label
+     so the toggle is always self-describing. */
+  .world-root .w-mode-switch button:not(.w-mode-on) span { display: none; }
   .world-root .w-kuma-side.open {
     position: fixed;
     top: 0;
