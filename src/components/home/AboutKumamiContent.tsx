@@ -18,7 +18,10 @@ export default function AboutKumamiContent() {
   return (
     <div className="min-h-screen bg-black">
       <HeroSection />
-      <EcosystemSection />
+      {/* Anchor target for the hero's "Learn More" button */}
+      <div id="kumami-ecosystem">
+        <EcosystemSection />
+      </div>
       <MovingTagline />
       <div
         className="partners-contact-section"
