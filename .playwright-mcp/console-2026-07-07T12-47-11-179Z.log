@@ -1,0 +1,20 @@
+[     153ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[     170ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[     180ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[     180ms] [LOG] Firebase project: kumami-dev @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[     201ms] [WARNING] Image with src "/logo k.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[     503ms] [LOG] WebSocket connected to Binance @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[   10914ms] [ERROR] Cross-Origin-Opener-Policy policy would block the window.closed call. @ http://localhost:3000/_next/static/chunks/node_modules_%40firebase_auth_dist_esm_09.milp._.js:9191
+[   10914ms] [ERROR] Cross-Origin-Opener-Policy policy would block the window.closed call. @ http://localhost:3000/_next/static/chunks/node_modules_%40firebase_auth_dist_esm_09.milp._.js:9191
+[   16929ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[   16989ms] [LOG] [Fast Refresh] done in 136ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[   20492ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[   20519ms] [LOG] [Fast Refresh] done in 80ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[   23934ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[   23961ms] [LOG] [Fast Refresh] done in 49ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[   31609ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[   31638ms] [LOG] [Fast Refresh] done in 50ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[   34099ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[   34185ms] [LOG] [Fast Refresh] done in 174ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[   38340ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[   38404ms] [LOG] [Fast Refresh] done in 76ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431

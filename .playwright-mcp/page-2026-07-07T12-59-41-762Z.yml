@@ -1,0 +1,252 @@
+- generic [ref=f11e1]:
+  - generic [ref=f11e15]:
+    - complementary [ref=f11e16]:
+      - button "Kumami World WORLD" [ref=f11e18] [cursor=pointer]:
+        - generic [ref=f11e19]:
+          - img "Kumami World" [ref=f11e20]
+          - generic [ref=f11e21]: WORLD
+        - img [ref=f11e22]
+      - link "About Kumami" [ref=f11e25] [cursor=pointer]:
+        - /url: /world/about
+        - img [ref=f11e26]
+        - generic [ref=f11e29]: About Kumami
+      - navigation [ref=f11e30]:
+        - generic [ref=f11e31]:
+          - generic [ref=f11e32]: Discover
+          - link "News Portal" [ref=f11e33] [cursor=pointer]:
+            - /url: /world/news
+            - img [ref=f11e34]
+            - generic [ref=f11e38]: News Portal
+          - link "Education" [ref=f11e39] [cursor=pointer]:
+            - /url: /world/education
+            - img [ref=f11e40]
+            - generic [ref=f11e43]: Education
+          - link "Blogs" [ref=f11e44] [cursor=pointer]:
+            - /url: /world/blogs
+            - img [ref=f11e45]
+            - generic [ref=f11e48]: Blogs
+        - generic [ref=f11e49]:
+          - generic [ref=f11e50]: Explore
+          - link "AI Labs" [ref=f11e51] [cursor=pointer]:
+            - /url: /world/ailabs
+            - img [ref=f11e52]
+            - generic [ref=f11e54]: AI Labs
+          - link "Games" [ref=f11e55] [cursor=pointer]:
+            - /url: /world/games
+            - img [ref=f11e56]
+            - generic [ref=f11e59]: Games
+      - link "Andrew Andrew Beginner" [ref=f11e61] [cursor=pointer]:
+        - /url: /world/profile
+        - img "Andrew" [ref=f11e63]
+        - generic [ref=f11e64]:
+          - generic [ref=f11e65]: Andrew
+          - generic [ref=f11e66]: Beginner
+    - generic [ref=f11e67]:
+      - banner [ref=f11e68]:
+        - navigation "Breadcrumb" [ref=f11e69]:
+          - generic [ref=f11e70]: World
+          - img [ref=f11e71]
+          - generic [ref=f11e73]: Courses
+        - generic [ref=f11e74]:
+          - button "Toggle Kuma AI panel" [ref=f11e75] [cursor=pointer]:
+            - img [ref=f11e76]
+          - generic [ref=f11e92]:
+            - button "Beginner" [ref=f11e94] [cursor=pointer]:
+              - generic [ref=f11e95]: Beginner
+            - button "Advanced" [ref=f11e96] [cursor=pointer]:
+              - img [ref=f11e97]
+              - generic [ref=f11e99]: Advanced
+            - button "Pro" [ref=f11e100] [cursor=pointer]:
+              - img [ref=f11e101]
+              - generic [ref=f11e103]: Pro
+      - generic [ref=f11e105]:
+        - banner [ref=f11e106]:
+          - heading "Your Learning Journey" [level=1] [ref=f11e107]
+          - paragraph [ref=f11e108]: Five phases. From buying your first Bitcoin to going professional in Web3.
+        - generic [ref=f11e109]:
+          - button "Search lessons" [ref=f11e111] [cursor=pointer]:
+            - img [ref=f11e112]
+          - generic [ref=f11e115]:
+            - generic [ref=f11e118]:
+              - generic [ref=f11e120]: "1"
+              - generic [ref=f11e121]:
+                - generic [ref=f11e122]:
+                  - generic [ref=f11e124]: Beginner
+                  - link "1. START HERE" [ref=f11e125] [cursor=pointer]:
+                    - /url: /world/courses/phase-1
+                    - heading "1. START HERE" [level=3] [ref=f11e126]:
+                      - generic [ref=f11e127]: "1."
+                      - text: START HERE
+                  - paragraph [ref=f11e128]: Get your first crypto safely. No theory yet.
+                  - generic [ref=f11e129]:
+                    - generic [ref=f11e130]: 8 lessons
+                    - generic [ref=f11e131]: ·
+                    - generic [ref=f11e132]: ~2h
+                    - generic [ref=f11e133]: ·
+                    - generic [ref=f11e134]: earns a badge
+                - button "Collapse lessons" [expanded] [active] [ref=f11e310] [cursor=pointer]:
+                  - img [ref=f11e136]
+                  - text: Hide lessons
+                - list [ref=f11e311]:
+                  - listitem [ref=f11e312]:
+                    - generic [ref=f11e313]: "1"
+                    - generic [ref=f11e314]: How most beginners actually get into crypto
+                  - listitem [ref=f11e315]:
+                    - generic [ref=f11e316]: "2"
+                    - generic [ref=f11e317]: Choosing a safe and beginner-friendly CEX
+                  - listitem [ref=f11e318]:
+                    - generic [ref=f11e319]: "3"
+                    - generic [ref=f11e320]: How to create and secure a CEX account properly
+                  - listitem [ref=f11e321]:
+                    - generic [ref=f11e322]: "4"
+                    - generic [ref=f11e323]: How to deposit money and buy your first crypto
+                  - listitem [ref=f11e324]:
+                    - generic [ref=f11e325]: "5"
+                    - generic [ref=f11e326]: Common mistakes when buying on a CEX
+                  - listitem [ref=f11e327]:
+                    - generic [ref=f11e328]: "6"
+                    - generic [ref=f11e329]: Risks of keeping your crypto on an exchange
+                  - listitem [ref=f11e330]:
+                    - generic [ref=f11e331]: "7"
+                    - generic [ref=f11e332]: Why you should eventually move to a personal wallet
+                  - listitem [ref=f11e333]:
+                    - generic [ref=f11e334]: "8"
+                    - generic [ref=f11e335]: "HANDS-ON: Buy your first Bitcoin"
+                - link "Start phase" [ref=f11e138] [cursor=pointer]:
+                  - /url: /world/courses/phase-1
+                  - text: Start phase
+                  - img [ref=f11e139]
+            - generic [ref=f11e143]:
+              - generic [ref=f11e145]: "2"
+              - generic [ref=f11e146]:
+                - generic [ref=f11e147]:
+                  - generic [ref=f11e149]: Elementary
+                  - link "2. UNDERSTAND WHAT YOU JUST BOUGHT" [ref=f11e150] [cursor=pointer]:
+                    - /url: /world/courses/phase-2
+                    - heading "2. UNDERSTAND WHAT YOU JUST BOUGHT" [level=3] [ref=f11e151]:
+                      - generic [ref=f11e152]: "2."
+                      - text: UNDERSTAND WHAT YOU JUST BOUGHT
+                  - paragraph [ref=f11e153]: Now that you own crypto — understand the technology behind it.
+                  - generic [ref=f11e154]:
+                    - generic [ref=f11e155]: 13 lessons
+                    - generic [ref=f11e156]: ·
+                    - generic [ref=f11e157]: ~3h
+                    - generic [ref=f11e158]: ·
+                    - generic [ref=f11e159]: earns a badge
+                - button "Show lessons" [ref=f11e160] [cursor=pointer]:
+                  - img [ref=f11e161]
+                  - text: See all lessons
+                - link "Start phase" [ref=f11e163] [cursor=pointer]:
+                  - /url: /world/courses/phase-2
+                  - text: Start phase
+                  - img [ref=f11e164]
+            - generic [ref=f11e168]:
+              - generic [ref=f11e170]: "3"
+              - generic [ref=f11e171]:
+                - generic [ref=f11e172]:
+                  - generic [ref=f11e174]: Intermediate
+                  - link "3. LEARN TO TRADE" [ref=f11e175] [cursor=pointer]:
+                    - /url: /world/courses/phase-3
+                    - heading "3. LEARN TO TRADE" [level=3] [ref=f11e176]:
+                      - generic [ref=f11e177]: "3."
+                      - text: LEARN TO TRADE
+                  - paragraph [ref=f11e178]: Go deeper on projects, analysis, and making informed decisions.
+                  - generic [ref=f11e179]:
+                    - generic [ref=f11e180]: 18 lessons
+                    - generic [ref=f11e181]: ·
+                    - generic [ref=f11e182]: ~4h
+                    - generic [ref=f11e183]: ·
+                    - generic [ref=f11e184]: earns a badge
+                - button "Show lessons" [ref=f11e185] [cursor=pointer]:
+                  - img [ref=f11e186]
+                  - text: See all lessons
+                - link "Start phase" [ref=f11e188] [cursor=pointer]:
+                  - /url: /world/courses/phase-3
+                  - text: Start phase
+                  - img [ref=f11e189]
+            - generic [ref=f11e193]:
+              - generic [ref=f11e195]: "4"
+              - generic [ref=f11e196]:
+                - generic [ref=f11e197]:
+                  - generic [ref=f11e199]: Advanced
+                  - link "4. THINK LIKE AN INVESTOR" [ref=f11e200] [cursor=pointer]:
+                    - /url: /world/courses/phase-4
+                    - heading "4. THINK LIKE AN INVESTOR" [level=3] [ref=f11e201]:
+                      - generic [ref=f11e202]: "4."
+                      - text: THINK LIKE AN INVESTOR
+                  - paragraph [ref=f11e203]: Stop reacting to price. Start understanding market structure.
+                  - generic [ref=f11e204]:
+                    - generic [ref=f11e205]: 13 lessons
+                    - generic [ref=f11e206]: ·
+                    - generic [ref=f11e207]: ~3h
+                    - generic [ref=f11e208]: ·
+                    - generic [ref=f11e209]: earns a badge
+                - button "Show lessons" [ref=f11e210] [cursor=pointer]:
+                  - img [ref=f11e211]
+                  - text: See all lessons
+                - link "Start phase" [ref=f11e213] [cursor=pointer]:
+                  - /url: /world/courses/phase-4
+                  - text: Start phase
+                  - img [ref=f11e214]
+            - generic [ref=f11e217]:
+              - generic [ref=f11e219]: "5"
+              - generic [ref=f11e220]:
+                - generic [ref=f11e221]:
+                  - generic [ref=f11e223]: Expert
+                  - link "5. GO DEEPER" [ref=f11e224] [cursor=pointer]:
+                    - /url: /world/courses/phase-5
+                    - heading "5. GO DEEPER" [level=3] [ref=f11e225]:
+                      - generic [ref=f11e226]: "5."
+                      - text: GO DEEPER
+                  - paragraph [ref=f11e227]: For those who want to build, earn, or go professional in Web3.
+                  - generic [ref=f11e228]:
+                    - generic [ref=f11e229]: 13 lessons
+                    - generic [ref=f11e230]: ·
+                    - generic [ref=f11e231]: ~3h
+                    - generic [ref=f11e232]: ·
+                    - generic [ref=f11e233]: earns a badge
+                - button "Show lessons" [ref=f11e234] [cursor=pointer]:
+                  - img [ref=f11e235]
+                  - text: See all lessons
+                - link "Start phase" [ref=f11e237] [cursor=pointer]:
+                  - /url: /world/courses/phase-5
+                  - text: Start phase
+                  - img [ref=f11e238]
+          - generic [ref=f11e240]:
+            - heading "Warm Up" [level=2] [ref=f11e241]
+            - paragraph [ref=f11e242]: Not sure where to start? Take a quick quiz to find out which phase suits you best.
+            - link "Start from the beginning" [ref=f11e243] [cursor=pointer]:
+              - /url: /world/courses/phase-1
+              - text: Start from the beginning
+              - img [ref=f11e244]
+    - generic [ref=f11e247]:
+      - generic [ref=f11e248]:
+        - img [ref=f11e250]
+        - generic [ref=f11e268]:
+          - generic [ref=f11e269]: Kuma AI
+          - emphasis [ref=f11e270]: On-chain copilot · always on
+        - button [ref=f11e271] [cursor=pointer]:
+          - img [ref=f11e272]
+      - generic [ref=f11e277]:
+        - img [ref=f11e278]
+        - paragraph [ref=f11e296]: Ask anything about crypto
+        - generic [ref=f11e297]:
+          - button [ref=f11e298] [cursor=pointer]: What's driving Bitcoin's price today?
+          - button [ref=f11e299] [cursor=pointer]: Explain Layer 2 scaling in simple terms
+          - button [ref=f11e300] [cursor=pointer]: Which altcoins have the most momentum?
+          - button [ref=f11e301] [cursor=pointer]: How do I read a crypto market cap chart?
+      - generic [ref=f11e302]:
+        - generic [ref=f11e303]:
+          - textbox [ref=f11e304]:
+            - /placeholder: Ask Kuma anything…
+          - button [disabled] [ref=f11e305]:
+            - img [ref=f11e306]
+        - paragraph [ref=f11e309]: Kuma can be wrong · not financial advice
+  - button "Open Next.js Dev Tools" [ref=f11e336] [cursor=pointer]:
+    - generic [ref=f11e339]:
+      - text: Compiling
+      - generic [ref=f11e340]:
+        - generic [ref=f11e341]: .
+        - generic [ref=f11e342]: .
+        - generic [ref=f11e343]: .
+  - alert [ref=f11e14]

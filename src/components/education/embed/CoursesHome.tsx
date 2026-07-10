@@ -152,9 +152,9 @@ export default function CoursesHome() {
               <Link
                 href={startHref}
                 className="edu-btn edu-btn-primary"
-                style={{ background: levelData.hex, color: '#06241a' }}
+                style={{ background: levelData.hex, color: '#00272a' }}
               >
-                <Play size={14} fill="#06241a" />
+                <Play size={14} fill="#00272a" />
                 Start course
               </Link>
             )}
@@ -214,7 +214,7 @@ export default function CoursesHome() {
                     }`}
                     style={
                       status === 'current'
-                        ? ({ background: levelData.hex, color: '#06241a' } as React.CSSProperties)
+                        ? ({ background: levelData.hex, color: '#00272a' } as React.CSSProperties)
                         : {}
                     }
                   >
@@ -396,7 +396,7 @@ export default function CoursesHome() {
                 height: 64,
                 borderRadius: '50%',
                 background: levelData.hex,
-                color: '#06241a',
+                color: '#00272a',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

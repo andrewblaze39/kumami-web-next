@@ -53,16 +53,28 @@ This document defines the visual language for Kumami World. **Mobile-first** —
 | `--line` | `rgba(150,158,170,0.18)` | Dividers, grid lines |
 
 ### Advanced Mode Surface Tokens
-Used on Console, On-Chain, Intel, Watchlist pages — green-tinted dark surfaces.
+Aliased to the standard neutral panel tokens. Used on Console, On-Chain, Intel, Watchlist pages via `--adv-*` variable names for historical reasons, but resolve to the same neutral values as the rest of the app.
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `--adv-surface` | `#0a1813` | Panel background (green tint) |
-| `--adv-surface-2` | `#0f2019` | Secondary surface |
-| `--adv-surface-3` | `#143028` | Tertiary surface |
-| `--adv-border` | `rgba(120,200,170,0.12)` | Panel borders |
-| `--adv-border-2` | `rgba(120,200,170,0.22)` | Stronger panel borders |
-| `--grid-line` | `rgba(120,200,170,0.07)` | Internal grid lines |
+| Token | Resolves to | Usage |
+|-------|------------|-------|
+| `--adv-surface` | `var(--panel)` | Panel background |
+| `--adv-surface-2` | `var(--panel-2)` | Secondary surface |
+| `--adv-surface-3` | `var(--panel-3)` | Tertiary surface |
+| `--adv-border` | `var(--border)` | Panel borders |
+| `--adv-border-2` | `var(--border-2)` | Stronger panel borders |
+| `--grid-line` | `var(--line)` | Internal grid lines |
+
+### Education Embedded Pages
+Education pages (`/world/education` subtabs, course reader) render inside an `<EduEmbed>` wrapper that applies the `edu-app` scope with its own token set in `src/app/education/education.css`. These tokens are aligned to the standard neutral palette:
+
+| Token | Hex | Matches |
+|-------|-----|---------|
+| `--bg` | `#0a0a0f` | `var(--bg)` |
+| `--bg-2` | `#060609` | `var(--bg-2)` |
+| `--surface` | `#101014` | `var(--panel)` |
+| `--surface-2` | `#15151b` | `var(--panel-2)` |
+| `--surface-3` | `#1a1a22` | `var(--panel-3)` |
+| text-on-accent | `#00272a` | `var(--on-accent)` |
 
 ### Coin Brand Colors
 Used in coin badges, chart labels, and asset selectors:
@@ -136,6 +148,11 @@ Used in coin badges, chart labels, and asset selectors:
 | Element | Value |
 |---------|-------|
 | Sidebar width | `248px` (`--sidebar`) |
+| Sidebar padding | `12px 14px` |
+| Nav item padding | `7px 12px` |
+| Nav item font | `14px / 700` |
+| Nav item icon | `17px` |
+| Nav label padding | `10px 12px 4px` |
 | Topbar height | `62px` (sticky) |
 | Content max-width | `1180px` (`--maxw`) |
 | Content padding (desktop) | `30px 40px 90px` |

@@ -51,6 +51,10 @@ function matchesRoute(pathname: string, route: string): boolean {
 function detectModeFromPath(pathname: string): WorldMode | null {
   // Shared routes never force a mode — keep whatever mode is current.
   if (SHARED_ROUTES.some(r => matchesRoute(pathname, r))) return null;
+  // Higher tiers include lower-tier routes (Pro sees everything, Advanced sees
+  // Beginner routes too), so only force a mode change if the route belongs to a
+  // HIGHER tier than the current one. Lower-tier routes are accessible without
+  // switching mode.  On first load (no stored mode) we still detect from path.
   if (PRO_ROUTES.some(r => matchesRoute(pathname, r))) return 'pro';
   if (ADVANCED_ROUTES.some(r => matchesRoute(pathname, r))) return 'advanced';
   if (BEGINNER_ROUTES.some(r => matchesRoute(pathname, r))) return 'beginner';
@@ -64,9 +68,9 @@ function defaultPageForMode(mode: WorldMode): string {
   // Cross-checking: initial ST.sec = {beginner:'news', advanced:'intel', pro:'pro'}
   // setMode sets ST.sec.pro='pro' always; for beginner/advanced it preserves continuity.
   // Default (no continuity): beginner→/world/news, advanced→/world/console (console is the "home" of advanced)
-  if (mode === 'beginner') return '/world/news';
+  if (mode === 'beginner') return '/world/education?tab=journey';
   if (mode === 'advanced') return '/world/console';
-  return '/world/pro';
+  return '/world/pro?tab=portfolio';
 }
 
 // ---------- Provider ----------
@@ -86,13 +90,16 @@ export function WorldModeProvider({ children }: { children: React.ReactNode }) {
 
   const [kumaOpen, setKumaOpen] = useState(false);
 
-  // On mount: auto-correct mode based on current deep-link path (do NOT redirect)
+  // On mount: auto-correct mode based on current deep-link path (do NOT redirect).
+  // Only correct UPWARD — a Pro user visiting /world/news should stay Pro, but a
+  // Beginner visiting /world/console should be bumped to Advanced.
   const correctedRef = useRef(false);
+  const TIER: Record<WorldMode, number> = { beginner: 0, advanced: 1, pro: 2 };
   useEffect(() => {
     if (correctedRef.current) return;
     correctedRef.current = true;
     const detected = detectModeFromPath(pathname);
-    if (detected && detected !== mode) {
+    if (detected && TIER[detected] > TIER[mode]) {
       setModeState(detected);
       localStorage.setItem('kumami_world_mode', detected);
     }
@@ -114,21 +121,32 @@ export function WorldModeProvider({ children }: { children: React.ReactNode }) {
     (newMode: WorldMode) => {
       if (newMode === mode) return;
 
-      // ---------- Continuity logic (from mockup setMode) ----------
+      const TIER_NUM: Record<WorldMode, number> = { beginner: 0, advanced: 1, pro: 2 };
+
+      // ---------- Continuity logic ----------
+      // Higher tiers include lower-tier pages. If the current page is visible in
+      // the new mode (i.e. switching to a higher tier, or staying on a shared
+      // route), stay on the same page instead of redirecting.
+      const detected = detectModeFromPath(pathname);
+      const currentPageTier = detected ? TIER_NUM[detected] : -1;
+      const stayOnPage = currentPageTier >= 0 && currentPageTier <= TIER_NUM[newMode];
+      // Shared routes (detected === null, tier -1): always stay.
+      const isShared = SHARED_ROUTES.some(r => matchesRoute(pathname, r));
+
       let destination: string;
-      // switching to pro: always /world/pro
-      if (newMode === 'pro') {
-        destination = '/world/pro';
+      if (stayOnPage || isShared) {
+        // Current page is accessible in the new mode — stay put.
+        destination = pathname;
       }
-      // advanced → beginner: always land /world/news (beginner default) regardless of which advanced route
-      else if (mode === 'advanced' && newMode === 'beginner') {
-        destination = defaultPageForMode('beginner'); // '/world/news'
+      // Switching DOWN from a higher tier to lower: go to new mode's default
+      // because the current page isn't available in the lower tier.
+      else if (newMode === 'beginner' && pathname.startsWith('/world/news')) {
+        destination = '/world/news';
       }
-      // beginner on /world/news → switching to advanced: land /world/intel (news→intel continuity)
+      // news → intel continuity when going beginner → advanced
       else if (mode === 'beginner' && pathname.startsWith('/world/news') && newMode === 'advanced') {
         destination = '/world/intel';
       }
-      // all other cases: default page for the new mode
       else {
         destination = defaultPageForMode(newMode);
       }
@@ -136,7 +154,9 @@ export function WorldModeProvider({ children }: { children: React.ReactNode }) {
       setModeState(newMode);
       localStorage.setItem('kumami_world_mode', newMode);
       persistToFirestore(newMode);
-      router.push(destination);
+      if (destination !== pathname) {
+        router.push(destination);
+      }
     },
     [mode, pathname, router, persistToFirestore]
   );

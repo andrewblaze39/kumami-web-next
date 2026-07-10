@@ -1,0 +1,36 @@
+[     871ms] [INFO] %c[libdiscore] 
+font-weight: bold;
+color: purple;
+ [experiment_manager] Loaded experiments from cache @ https://discord.com/assets/sentry.828a62cde325237b.js:14
+[     933ms] [LOG] %c[ProcessUtilsElectron] 
+font-weight: bold;
+color: purple;
+ setMemoryInformation not available. @ https://discord.com/assets/sentry.828a62cde325237b.js:14
+[    1056ms] [LOG] %c[default] 
+font-weight: bold;
+color: purple;
+ [BUILD INFO] Release Channel: stable, Build Number: 574916, Version Hash: 8297940706596110ccca4015e698f3b9f708d3af @ https://discord.com/assets/sentry.828a62cde325237b.js:14
+[    1057ms] [LOG] AppCrashedFatalReport: getLastCrash not supported. @ https://discord.com/assets/sentry.828a62cde325237b.js:14
+[    2303ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://discord.com/api/v9/promotions?locale=en-US&platform=0:0
+[    6137ms] [WARNING] The resource https://discord.com/assets/189422196a4f8b53.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://discord.com/invite/5q3NnHFpYR:0
+[    6137ms] [WARNING] The resource https://discord.com/assets/ce3b8055f5114434.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://discord.com/invite/5q3NnHFpYR:0
+[    6138ms] [WARNING] The resource https://discord.com/assets/cb2006dbced0e246.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://discord.com/invite/5q3NnHFpYR:0
+[    6138ms] [WARNING] The resource https://discord.com/assets/7a6a566c2e88a35d.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://discord.com/invite/5q3NnHFpYR:0
+[    6138ms] [WARNING] The resource https://discord.com/assets/e52f0cba712e2fb4.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://discord.com/invite/5q3NnHFpYR:0
+[    6138ms] [WARNING] The resource https://discord.com/assets/dd24010f3cf7def7.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://discord.com/invite/5q3NnHFpYR:0
+[  242891ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:6463/?v=1' failed: WebSocket opening handshake timed out @ https://discord.com/assets/web-minimal.6122e392fd5e885f.js:23
+[  242928ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:6464/?v=1' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ https://discord.com/assets/web-minimal.6122e392fd5e885f.js:23
+[  242934ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:6465/?v=1' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ https://discord.com/assets/web-minimal.6122e392fd5e885f.js:23
+[  242935ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:6466/?v=1' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ https://discord.com/assets/web-minimal.6122e392fd5e885f.js:23
+[  242938ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:6467/?v=1' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ https://discord.com/assets/web-minimal.6122e392fd5e885f.js:23
+[  242946ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:6468/?v=1' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ https://discord.com/assets/web-minimal.6122e392fd5e885f.js:23
+[  242949ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:6469/?v=1' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ https://discord.com/assets/web-minimal.6122e392fd5e885f.js:23
+[  242954ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:6470/?v=1' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ https://discord.com/assets/web-minimal.6122e392fd5e885f.js:23
+[  242968ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:6471/?v=1' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ https://discord.com/assets/web-minimal.6122e392fd5e885f.js:23
+[  243004ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:6472/?v=1' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ https://discord.com/assets/web-minimal.6122e392fd5e885f.js:23
+[  246286ms] [WARNING] The resource https://discord.com/assets/189422196a4f8b53.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://discord.com/invite/5q3NnHFpYR:0
+[  246286ms] [WARNING] The resource https://discord.com/assets/ce3b8055f5114434.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://discord.com/invite/5q3NnHFpYR:0
+[  246286ms] [WARNING] The resource https://discord.com/assets/cb2006dbced0e246.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://discord.com/invite/5q3NnHFpYR:0
+[  246286ms] [WARNING] The resource https://discord.com/assets/7a6a566c2e88a35d.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://discord.com/invite/5q3NnHFpYR:0
+[  246286ms] [WARNING] The resource https://discord.com/assets/e52f0cba712e2fb4.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://discord.com/invite/5q3NnHFpYR:0
+[  246287ms] [WARNING] The resource https://discord.com/assets/dd24010f3cf7def7.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ https://discord.com/invite/5q3NnHFpYR:0

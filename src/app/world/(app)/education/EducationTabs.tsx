@@ -50,7 +50,7 @@ function EducationTabsInner({
   const searchParams = useSearchParams();
 
   const raw = searchParams.get('tab');
-  const active: TabKey = isTabKey(raw) ? raw : 'dashboard';
+  const active: TabKey = isTabKey(raw) ? raw : 'journey';
 
   return (
     <div className="w-edu-tabs-root">

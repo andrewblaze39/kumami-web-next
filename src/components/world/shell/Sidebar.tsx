@@ -141,18 +141,12 @@ const BEGINNER_NAV: NavGroup[] = [
 
 const ADV_NAV: NavGroup[] = [
   {
-    grp: 'Intelligence',
+    grp: 'Advanced',
     items: [
       { k: 'console', label: 'Console', href: '/world/console', icon: Icons.home },
       { k: 'onchain', label: 'On-Chain Insights', href: '/world/onchain', icon: Icons.layers },
       { k: 'intel', label: 'Intelligence', href: '/world/intel', icon: Icons.doc },
       { k: 'watchlist', label: 'Watchlist', href: '/world/watchlist', icon: Icons.bookmark },
-    ],
-  },
-  {
-    grp: 'Account',
-    items: [
-      { k: 'settings', label: 'Settings', href: '/world/settings', icon: Icons.gear },
     ],
   },
 ];
@@ -175,7 +169,7 @@ const EDU_SUBTABS = [
 function EducationSubnav({ onClose }: { onClose: () => void }) {
   const searchParams = useSearchParams();
   const raw = searchParams.get('tab');
-  const active = EDU_SUBTABS.some(t => t.key === raw) ? raw : 'dashboard';
+  const active = EDU_SUBTABS.some(t => t.key === raw) ? raw : 'journey';
 
   return (
     <div className="w-nav-sub" role="group" aria-label="Education sections">
@@ -324,7 +318,10 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
     };
   }, [menuOpen]);
 
-  const nav = mode === 'beginner' ? BEGINNER_NAV : mode === 'advanced' ? ADV_NAV : null;
+  // Build inclusive nav: higher tiers see their own tabs + all lower-tier tabs.
+  // Pro = PRO + ADV + BEGINNER, Advanced = ADV + BEGINNER, Beginner = BEGINNER only.
+  const primaryNav = mode === 'beginner' ? BEGINNER_NAV : mode === 'advanced' ? ADV_NAV : null;
+  const includedNav: NavGroup[] | null = mode === 'advanced' ? BEGINNER_NAV : mode === 'pro' ? [...ADV_NAV, ...BEGINNER_NAV] : null;
 
   // Premium predicate — same as WorldProContent's gate.
   const isPremium =
@@ -412,6 +409,7 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
 
       {/* ---- Nav items ---- */}
       <nav className="w-nav-group">
+        {/* Primary nav for current mode */}
         {mode === 'pro' ? (
           <>
             <div className="w-nav-label">PRO</div>
@@ -430,20 +428,19 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
             )}
           </>
         ) : (
-          nav?.map(group => (
+          primaryNav?.map(group => (
             <div key={group.grp}>
               <div className="w-nav-label">{group.grp}</div>
               {group.items.map(item => (
                 <div key={item.k}>
                   <Link
-                    href={item.k === 'education' ? '/world/education?tab=dashboard' : item.href}
+                    href={item.k === 'education' ? '/world/education?tab=journey' : item.href}
                     className={`w-nav-item${isActive(item.href) ? ' active' : ''}`}
                     onClick={onClose}
                   >
                     {item.icon}
                     <span>{item.label}</span>
                   </Link>
-                  {/* Education subtabs — expanded only while Education is the active route */}
                   {item.k === 'education' && isActive(item.href) && (
                     <Suspense fallback={null}>
                       <EducationSubnav onClose={onClose} />
@@ -453,6 +450,35 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
               ))}
             </div>
           ))
+        )}
+
+        {/* Included lower-tier nav groups */}
+        {includedNav && includedNav.length > 0 && (
+          <>
+            <div className="w-nav-divider" />
+            {includedNav.map(group => (
+              <div key={group.grp}>
+                <div className="w-nav-label">{group.grp}</div>
+                {group.items.map(item => (
+                  <div key={item.k}>
+                    <Link
+                      href={item.k === 'education' ? '/world/education?tab=journey' : item.href}
+                      className={`w-nav-item${isActive(item.href) ? ' active' : ''}`}
+                      onClick={onClose}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </Link>
+                    {item.k === 'education' && isActive(item.href) && (
+                      <Suspense fallback={null}>
+                        <EducationSubnav onClose={onClose} />
+                      </Suspense>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </>
         )}
       </nav>
 

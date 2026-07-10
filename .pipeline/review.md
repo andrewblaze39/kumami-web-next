@@ -1,125 +1,96 @@
-# Education System Revamp -- Final Review
+# Review: `8e7c153` — safeInternalPath redirect validation
 
 **Reviewer:** Claude Opus 4.6
-**Date:** 2026-06-20
-**Files reviewed:** 16 source files, 1 seeder script, pipeline documents
+**Date:** 2026-07-08
 
 ---
 
-## 1. Level 1-5 / Chapter / Section Hierarchy Consistency
+## Summary
 
-**PASS.** The hierarchy is consistent across all files:
-
-- `educationPhases.ts` defines `PHASES[0..4]` with `.n` = 1-5, `.chapters[]` indexed 0-based
-- Admin forms (Publish/Edit) write `level` as a number and `chapterIndex` as a 0-based integer
-- `[phase]/page.tsx` iterates `levelData.chapters` by array index and looks up `articleMap.get(ci)`
-- `[phase]/[lesson]/page.tsx` queries by `resolveLevelNumber(data.level) === levelNum && data.chapterIndex === lessonIdx`
-- `article/[id]/page.tsx` sorts siblings by `chapterIndex` ASC
-- `EducationArticleRenderer` displays `Chapter {resolvedChapterIndex + 1}: {chapterName}` (1-indexed for display, 0-indexed internally)
-- Seeder writes `level` as number and `chapterIndex` as 0-based number
-
-No mismatches found.
+New `src/lib/safeInternalPath.ts` adds an `isSafeInternalPath()` predicate to validate all redirect targets against open-redirect attacks. Applied at all four consumption sites. SignUpModal now preserves existing deep-links instead of overwriting them.
 
 ---
 
-## 2. Admin Chapter Picker Shows Actual Chapter Names
+## Build & Tests
 
-**PASS.** Both `PublishEducation.tsx` (line 269) and `EditEducation.tsx` (line 309) render:
-```
-<option key={i} value={i}>Chapter {i + 1}: {ch}</option>
-```
-where `ch` comes from `PHASES.find(p => p.n === level).chapters`. These are the real chapter names from `educationPhases.ts`.
+- `npx tsc --noEmit`: Clean (no errors)
+- `npm test`: 657 tests passed (32 test files), including the 9 new `safeInternalPath` tests
 
 ---
 
-## 3. Phase/Lesson Redirect Queries by Level Number + ChapterIndex
+## Predicate Correctness
 
-**PASS.** `[phase]/[lesson]/page.tsx` lines 40-43:
+The predicate in `src/lib/safeInternalPath.ts`:
+
 ```typescript
-data.status === 'published' &&
-resolveLevelNumber(data.level) === levelNum &&
-data.chapterIndex === lessonIdx
+export function isSafeInternalPath(path: unknown): path is string {
+  if (typeof path !== 'string' || path.length < 1) return false;
+  if (path[0] !== '/') return false;
+  const second = path[1];
+  if (second === '/' || second === '\\') return false;
+  return true;
+}
 ```
-Correctly uses `resolveLevelNumber` for backward compat and matches on `chapterIndex`.
+
+**Correctly rejects:**
+- Protocol-relative URLs (`//evil.com`)
+- Backslash-normalised variants (`/\evil.com`)
+- Absolute URLs (`https://evil.com`)
+- Empty strings, null, undefined
+- Bare domains (`evil.com`)
+
+**Correctly accepts:**
+- Normal internal paths (`/world/pro`)
+- Root slash (`/`)
+- Paths with query strings (`/world/news?tab=all`)
+
+**Edge case note:** `path[1]` on a single-char string `/` returns `undefined`, which is neither `/` nor `\`, so `/` correctly passes. This is sound.
+
+No issues found with the predicate logic. The type guard (`path is string`) is appropriate for the usage sites which pass `string | null` from `sessionStorage.getItem()`.
 
 ---
 
-## 4. Backward Compat with Old String "Level 1" Format
+## Consumption Site Coverage
 
-**PASS.** `resolveLevelNumber` is used in all read paths:
-- `[phase]/page.tsx` line 33
-- `[phase]/[lesson]/page.tsx` line 42
-- `article/[id]/page.tsx` lines 61, 122
-- `EducationGrid.tsx` lines 285, 451, 466-467
-- `AllEducationArticles.tsx` lines 29, 34, 73
-- `EditEducation.tsx` line 94 (on load, converts legacy string to number)
-- `EducationArticleRenderer.tsx` line 77
+All four redirect-consumption sites verified:
 
-The regex `/\bLevel\s*0?(\d+)\b/i` handles "Level 1", "Level 01", "level 1" etc.
+| Site | File | Validated |
+|------|------|-----------|
+| AuthModals `consumeRedirectTarget()` | `src/components/world/AuthModals.tsx` | Yes -- replaces old inline `startsWith('/') && !startsWith('//')` check |
+| HomeGateClient useEffect | `src/app/HomeGateClient.tsx` | Yes -- wraps `stored` before passing to `router.replace()` |
+| LoginClient (query param + sessionStorage) | `src/app/login/LoginClient.tsx` | Yes -- validates both `queryReturn` and `stored` paths |
+| SignupClient (useEffect + Go to Login button) | `src/app/signup/SignupClient.tsx` | Yes -- validates in both locations |
 
----
-
-## 5. TypeScript Type Consistency
-
-**PASS with one minor note.**
-
-`src/types/education.ts` defines `EducationArticleDoc` and `EducationArticle` (extends with `id: string`). These are imported in `EducationGrid.tsx` and used as the `[phase]/page.tsx` article map value type.
-
-Several files still define local `Article` or `ArticleDoc` interfaces (e.g., `article/[id]/page.tsx`, `AllEducationArticles.tsx`, `EditEducation.tsx`). These local interfaces are compatible subsets of the shared type. Not a bug, but a missed consolidation opportunity.
+**Write-side producers** (`ProtectedRoute.tsx`, `WorldProtected.tsx`) only write `window.location.pathname + window.location.search`, which is inherently same-origin and safe. No validation needed on the write side.
 
 ---
 
-## 6. Seeder Script Correctness
+## Deep-link Preservation Fix
 
-**PASS.** The seeder:
-- Writes `level` as a number (1 or 2)
-- Writes `chapterIndex` as a 0-based number
-- Writes `blurb`, `description`, `featured`, `author`, `status: 'published'`
-- Auto-computes `minutes` from word count / 200
-- Sets `featured: true` only for chapterIndex 0 of each level
-- Uses `serverTimestamp()` for `createdAt`
-- Has duplicate protection (`--force` to override)
-- Has `--dry-run`, `--level N`, `--keyfile` flags
-
-One minor note: the seeder checks duplicates with a Firestore `where('level', '==', article.level)` query. Since it writes `level` as a number, this will not find existing articles that have `level` as a string "Level 1" from legacy data. The `--force` flag handles this, and the README documents the behavior. Not a blocker.
+`SignUpModal` in `AuthModals.tsx` now guards `sessionStorage.setItem('redirectAfterSignup', REDIRECT_TARGET)` with `if (!sessionStorage.getItem('redirectAfterSignup'))` in both the Google sign-in handler and the "Go to Log In" button. This correctly preserves a deep-link that `WorldProtected` already saved, rather than overwriting it with the fallback `/world/news`.
 
 ---
 
-## 7. Security Review
+## LoginClient sessionStorage Cleanup
 
-**PASS.**
-
-- **XSS:** The `parseMarkdown` function in `EducationArticleRenderer.tsx` correctly calls `escapeHtml()` before applying regex markdown transforms. The `dangerouslySetInnerHTML` usage is safe because `$1` captures only contain already-escaped content.
-- **YouTube embeds:** `videoId` is admin-authored content interpolated into an iframe `src` attribute. Not exploitable in practice.
-- **Image URLs:** `article.thumbnail` used in CSS `backgroundImage: url(...)` could theoretically allow CSS injection if it contained `)`. Risk is minimal since content is admin-authored, not user-submitted. Not a blocker.
-- **Firestore reads:** All collection-wide fetches filter client-side. No user-supplied strings are used in Firestore queries (no injection risk).
-- **No authentication bypass:** Admin components rely on the existing `ProtectedRoute` + role-based auth in `AuthContext`.
+The LoginClient now removes sessionStorage keys immediately after reading, regardless of whether the value passes validation. This is correct -- it prevents stale redirect targets from persisting if they fail validation.
 
 ---
 
-## 8. UX Gaps
+## Test Quality
 
-**No blocking issues found.** Minor observations:
+9 unit tests covering:
+- 3 accepted paths (normal, root, with query string)
+- 6 rejected paths (protocol-relative, backslash, absolute URL, empty, null, undefined, bare domain)
 
-- **Prev/next on article page skips unpublished chapters:** `fetchSiblingIds` only finds published siblings sorted by `chapterIndex`. If chapters 0, 2, 5 are published, "next" from chapter 0 goes to chapter 2. This is correct behavior -- you navigate between what exists.
-- **"Start course" button** on `[phase]/page.tsx` links to `/education/{n}/0` which will redirect to the article if one exists, or show "coming soon" if not. Correct.
-- **No dead links found.** All internal navigation uses consistent URL patterns (`/education/{n}`, `/education/{n}/{ci}`, `/education/article/{id}`).
-
----
-
-## Findings Summary
-
-| # | Finding | Severity | File | Blocking? |
-|---|---------|----------|------|-----------|
-| 1 | Local `Article`/`ArticleDoc` interfaces not consolidated to shared type | Low | `article/[id]/page.tsx`, `AllEducationArticles.tsx`, `EditEducation.tsx` | No |
-| 2 | Seeder duplicate check uses exact `level` match (number), won't catch legacy string-level duplicates | Low | `scripts/seedEducation.ts` line 1231 | No |
-| 3 | `[phase]/page.tsx` status filter `if (data.status && data.status !== 'published')` admits articles with missing `status` field | Low | `src/app/education/[phase]/page.tsx` line 32 | No -- same pattern used in other files, and articles without status are likely old imports that should be visible |
-| 4 | CSS `backgroundImage: url(${thumbnail})` has no sanitization of parentheses/quotes | Low | `EducationArticleRenderer.tsx` line 190, `EducationGrid.tsx` line 305 | No -- admin-authored content |
-| 5 | `EditEducation.tsx` uses `item.id!` non-null assertion on content items | Low | Lines 435-502 | No -- `id` is assigned by `generateId()` in `handleEdit` |
-| 6 | `no-unused-expressions` lint warning on `[phase]/page.tsx` line 52 (`if (!levelData) notFound()`) | Low | `src/app/education/[phase]/page.tsx` | No -- valid Next.js pattern, `notFound()` throws internally |
+The tests are meaningful and cover the critical attack vectors. One minor gap: no test for paths with fragments (`/world/news#section`), but this would pass correctly and is not a security concern.
 
 ---
 
-## VERDICT: SHIP
+## Issues Found
 
-The implementation is correct, complete, and consistent with the spec. The Level/Chapter/Section hierarchy is uniform across all 16 files. Backward compatibility with legacy string `level` fields is handled via `resolveLevelNumber` at every read path. The admin forms write the correct new schema. The seeder is well-structured with proper CLI ergonomics. No security vulnerabilities, no type mismatches, no dead links. The six findings above are all low-severity and none warrant blocking the ship.
+None. No security, correctness, or performance issues identified.
+
+---
+
+VERDICT: SHIP

@@ -120,7 +120,7 @@ export default function EducationSidebar() {
                     borderRadius: 6,
                     background: isActive ? phase.hex : 'transparent',
                     border: `1.5px solid ${isActive ? phase.hex : 'var(--border)'}`,
-                    color: isActive ? '#06241a' : phase.hex,
+                    color: isActive ? '#00272a' : phase.hex,
                     fontSize: 11,
                     fontWeight: 800,
                     flexShrink: 0,

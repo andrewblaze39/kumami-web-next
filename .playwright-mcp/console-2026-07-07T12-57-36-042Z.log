@@ -1,0 +1,5 @@
+[    1518ms] [LOG] %c%s color: red; background: yellow; font-size: 24px; WARNING! @ https://www.gstatic.com/_/mss/boq-identity/_/js/k=boq-identity.AccountsSignInUi.en._CsTs9m6Au8.es5.O/am=EQUAAICBopABwPj_vwEACCDIdsD3LIAmQMgAAAAAAAAAAIAlAABoBA/d=1/excm=_b,_tp,accountchooserview/ed=1/dg=0/wt=2/ujg=1/rs=AOaEmlFUhfhCu953qxWZg_LPuS5TE1d3PQ/dti=1/m=_b,_tp:550
+[    1518ms] [LOG] %c%s font-size: 18px; Using this console may allow attackers to impersonate you and steal your information using an attack called Self-XSS.
+Do not enter or paste code that you do not understand. @ https://www.gstatic.com/_/mss/boq-identity/_/js/k=boq-identity.AccountsSignInUi.en._CsTs9m6Au8.es5.O/am=EQUAAICBopABwPj_vwEACCDIdsD3LIAmQMgAAAAAAAAAAIAlAABoBA/d=1/excm=_b,_tp,accountchooserview/ed=1/dg=0/wt=2/ujg=1/rs=AOaEmlFUhfhCu953qxWZg_LPuS5TE1d3PQ/dti=1/m=_b,_tp:550
+[    4240ms] [ERROR] Cross-Origin-Opener-Policy policy would block the window.top call. @ https://kumami-dev.firebaseapp.com/__/auth/handler.js:212
+[    4240ms] [ERROR] Cross-Origin-Opener-Policy policy would block the window.top call. @ https://kumami-dev.firebaseapp.com/__/auth/handler.js:212

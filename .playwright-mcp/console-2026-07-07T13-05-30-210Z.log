@@ -1,0 +1,1641 @@
+[     204ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[     238ms] [LOG] [Fast Refresh] done in 135ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[     359ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[     372ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[     390ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[     390ms] [LOG] Firebase project: kumami-dev @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[     500ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[     542ms] [LOG] [Fast Refresh] done in 143ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[    1461ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[    7811ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[    7842ms] [LOG] [Fast Refresh] done in 132ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[   86429ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[   86620ms] [LOG] [Fast Refresh] done in 197ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[   96265ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[   96331ms] [LOG] [Fast Refresh] done in 167ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[  117653ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[  117676ms] [LOG] [Fast Refresh] done in 124ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[  126475ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[  126568ms] [LOG] [Fast Refresh] done in 62ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[  136173ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[  136209ms] [LOG] [Fast Refresh] done in 53ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[  147683ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[  147687ms] [LOG] [Fast Refresh] done in 105ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[  159212ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[  159677ms] [ERROR] ./src/components/world/news/NewsHero.tsx:4:1
+Export FALLBACK_THUMB_GRADIENT doesn't exist in target module
+  2 | import type { NewsArticle } from '@/lib/news';
+  3 | import { AdvancedBadge, ProBadge } from './TierBadge';
+> 4 | import { formatRelativeTime, FALLBACK_THUMB_GRADIENT } from './NewsList';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | interface NewsHeroProps {
+  7 |   article: NewsArticle;
+
+The export FALLBACK_THUMB_GRADIENT was not found in module [project]/src/components/world/news/NewsList.tsx [app-rsc] (ecmascript).
+Did you mean to import LatestCard?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import trace:
+  Server Component:
+    ./src/components/world/news/NewsHero.tsx
+    ./src/app/world/(app)/news/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[  159677ms] [ERROR] ./src/components/world/news/NewsHero.tsx:4:1
+Export formatRelativeTime doesn't exist in target module
+  2 | import type { NewsArticle } from '@/lib/news';
+  3 | import { AdvancedBadge, ProBadge } from './TierBadge';
+> 4 | import { formatRelativeTime, FALLBACK_THUMB_GRADIENT } from './NewsList';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | interface NewsHeroProps {
+  7 |   article: NewsArticle;
+
+The export formatRelativeTime was not found in module [project]/src/components/world/news/NewsList.tsx [app-rsc] (ecmascript).
+Did you mean to import LatestCard?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import trace:
+  Server Component:
+    ./src/components/world/news/NewsHero.tsx
+    ./src/app/world/(app)/news/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[  159747ms] [ERROR] ./src/components/world/news/NewsHero.tsx:4:1
+Export FALLBACK_THUMB_GRADIENT doesn't exist in target module
+  2 | import type { NewsArticle } from '@/lib/news';
+  3 | import { AdvancedBadge, ProBadge } from './TierBadge';
+> 4 | import { formatRelativeTime, FALLBACK_THUMB_GRADIENT } from './NewsList';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | interface NewsHeroProps {
+  7 |   article: NewsArticle;
+
+The export FALLBACK_THUMB_GRADIENT was not found in module [project]/src/components/world/news/NewsList.tsx [app-rsc] (ecmascript).
+Did you mean to import LatestCard?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import trace:
+  Server Component:
+    ./src/components/world/news/NewsHero.tsx
+    ./src/app/world/(app)/news/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[  159747ms] [ERROR] ./src/components/world/news/NewsHero.tsx:4:1
+Export formatRelativeTime doesn't exist in target module
+  2 | import type { NewsArticle } from '@/lib/news';
+  3 | import { AdvancedBadge, ProBadge } from './TierBadge';
+> 4 | import { formatRelativeTime, FALLBACK_THUMB_GRADIENT } from './NewsList';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | interface NewsHeroProps {
+  7 |   article: NewsArticle;
+
+The export formatRelativeTime was not found in module [project]/src/components/world/news/NewsList.tsx [app-rsc] (ecmascript).
+Did you mean to import LatestCard?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import trace:
+  Server Component:
+    ./src/components/world/news/NewsHero.tsx
+    ./src/app/world/(app)/news/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[  159752ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/world/education?_rsc=1pqu9:0
+[  159785ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/world/education?_rsc=1pqu9:0
+[  159831ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/world/education:0
+[  159920ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_react-dom_0bruynb._.js:15305
+[  159962ms] Error: ./src/components/world/news/NewsHero.tsx:4:1
+Export FALLBACK_THUMB_GRADIENT doesn't exist in target module
+  2 | import type { NewsArticle } from '@/lib/news';
+  3 | import { AdvancedBadge, ProBadge } from './TierBadge';
+> 4 | import { formatRelativeTime, FALLBACK_THUMB_GRADIENT } from './NewsList';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | interface NewsHeroProps {
+  7 |   article: NewsArticle;
+
+The export FALLBACK_THUMB_GRADIENT was not found in module [project]/src/components/world/news/NewsList.tsx [app-rsc] (ecmascript).
+Did you mean to import LatestCard?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import trace:
+  Server Component:
+    ./src/components/world/news/NewsHero.tsx
+    ./src/app/world/(app)/news/page.tsx
+
+
+    at <unknown> (Error: ./src/components/world/news/NewsHero.tsx:4:1)
+    at Object.getCompilationErrors (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/dev/hot-reloader-turbopack.js:1186:59)
+    at DevBundlerService.getCompilationError (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/lib/dev-bundler-service.js:44:55)
+    at DevServer.getCompilationError (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/dev/next-dev-server.js:719:42)
+    at DevServer.findPageComponents (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/dev/next-dev-server.js:689:43)
+    at async DevServer.renderErrorToResponseImpl (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/base-server.js:1745:26)
+[  159955ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[  160015ms] [ERROR] ./src/components/world/news/NewsHero.tsx:4:1
+Export FALLBACK_THUMB_GRADIENT doesn't exist in target module
+  2 | import type { NewsArticle } from '@/lib/news';
+  3 | import { AdvancedBadge, ProBadge } from './TierBadge';
+> 4 | import { formatRelativeTime, FALLBACK_THUMB_GRADIENT } from './NewsList';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | interface NewsHeroProps {
+  7 |   article: NewsArticle;
+
+The export FALLBACK_THUMB_GRADIENT was not found in module [project]/src/components/world/news/NewsList.tsx [app-rsc] (ecmascript).
+Did you mean to import LatestCard?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import trace:
+  Server Component:
+    ./src/components/world/news/NewsHero.tsx
+    ./src/app/world/(app)/news/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[  160015ms] [ERROR] ./src/components/world/news/NewsHero.tsx:4:1
+Export formatRelativeTime doesn't exist in target module
+  2 | import type { NewsArticle } from '@/lib/news';
+  3 | import { AdvancedBadge, ProBadge } from './TierBadge';
+> 4 | import { formatRelativeTime, FALLBACK_THUMB_GRADIENT } from './NewsList';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | interface NewsHeroProps {
+  7 |   article: NewsArticle;
+
+The export formatRelativeTime was not found in module [project]/src/components/world/news/NewsList.tsx [app-rsc] (ecmascript).
+Did you mean to import LatestCard?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import trace:
+  Server Component:
+    ./src/components/world/news/NewsHero.tsx
+    ./src/app/world/(app)/news/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[  160049ms] [ERROR] ./src/components/world/news/NewsHero.tsx:4:1
+Export FALLBACK_THUMB_GRADIENT doesn't exist in target module
+  2 | import type { NewsArticle } from '@/lib/news';
+  3 | import { AdvancedBadge, ProBadge } from './TierBadge';
+> 4 | import { formatRelativeTime, FALLBACK_THUMB_GRADIENT } from './NewsList';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | interface NewsHeroProps {
+  7 |   article: NewsArticle;
+
+The export FALLBACK_THUMB_GRADIENT was not found in module [project]/src/components/world/news/NewsList.tsx [app-rsc] (ecmascript).
+Did you mean to import LatestCard?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import trace:
+  Server Component:
+    ./src/components/world/news/NewsHero.tsx
+    ./src/app/world/(app)/news/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[  160049ms] [ERROR] ./src/components/world/news/NewsHero.tsx:4:1
+Export formatRelativeTime doesn't exist in target module
+  2 | import type { NewsArticle } from '@/lib/news';
+  3 | import { AdvancedBadge, ProBadge } from './TierBadge';
+> 4 | import { formatRelativeTime, FALLBACK_THUMB_GRADIENT } from './NewsList';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | interface NewsHeroProps {
+  7 |   article: NewsArticle;
+
+The export formatRelativeTime was not found in module [project]/src/components/world/news/NewsList.tsx [app-rsc] (ecmascript).
+Did you mean to import LatestCard?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import trace:
+  Server Component:
+    ./src/components/world/news/NewsHero.tsx
+    ./src/app/world/(app)/news/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[  160121ms] [ERROR] ./src/components/world/news/NewsHero.tsx:4:1
+Export FALLBACK_THUMB_GRADIENT doesn't exist in target module
+  2 | import type { NewsArticle } from '@/lib/news';
+  3 | import { AdvancedBadge, ProBadge } from './TierBadge';
+> 4 | import { formatRelativeTime, FALLBACK_THUMB_GRADIENT } from './NewsList';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | interface NewsHeroProps {
+  7 |   article: NewsArticle;
+
+The export FALLBACK_THUMB_GRADIENT was not found in module [project]/src/components/world/news/NewsList.tsx [app-rsc] (ecmascript).
+Did you mean to import LatestCard?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import trace:
+  Server Component:
+    ./src/components/world/news/NewsHero.tsx
+    ./src/app/world/(app)/news/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[  160121ms] [ERROR] ./src/components/world/news/NewsHero.tsx:4:1
+Export formatRelativeTime doesn't exist in target module
+  2 | import type { NewsArticle } from '@/lib/news';
+  3 | import { AdvancedBadge, ProBadge } from './TierBadge';
+> 4 | import { formatRelativeTime, FALLBACK_THUMB_GRADIENT } from './NewsList';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | interface NewsHeroProps {
+  7 |   article: NewsArticle;
+
+The export formatRelativeTime was not found in module [project]/src/components/world/news/NewsList.tsx [app-rsc] (ecmascript).
+Did you mean to import LatestCard?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import trace:
+  Server Component:
+    ./src/components/world/news/NewsHero.tsx
+    ./src/app/world/(app)/news/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[  160150ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[  180497ms] [ERROR] ./src/app/world/(app)/news/page.tsx:5:1
+Export HeadlineCard doesn't exist in target module
+  3 | import CategoryChips from '@/components/world/news/CategoryChips';
+  4 | import NewsHero from '@/components/world/news/NewsHero';
+> 5 | import { HeadlineCard, LatestCard, NewsEmptyState } from '@/components/world/news/NewsList';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 |
+  7 | // Force dynamic so Firestore is read at request-time, not build-time.
+  8 | // (Firebase Admin SDK needs runtime env vars.)
+
+The export HeadlineCard was not found in module [project]/src/components/world/news/NewsList.tsx [app-rsc] (ecmascript).
+Did you mean to import LatestCard?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[  180504ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[  201301ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[  201843ms] [LOG] [Fast Refresh] done in 283ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[  203010ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[  203025ms] [LOG] [Fast Refresh] done in 116ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[  203092ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[  203101ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[  203108ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[  203108ms] [LOG] Firebase project: kumami-dev @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[  234548ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[  249321ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[  249435ms] [LOG] [Fast Refresh] done in 185ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[ 2038998ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52058117ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52058477ms] [LOG] [Fast Refresh] done in 463ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52058931ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:117
+[52058993ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52059447ms] [LOG] [Fast Refresh] done in 555ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52271976ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52272303ms] [LOG] [Fast Refresh] done in 429ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52280362ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52281254ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[52281325ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[52281434ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52281455ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[52281456ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/world/education?_rsc=1pqu9:0
+[52281486ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/world/education?_rsc=1pqu9:0
+[52281538ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/world/education?_rsc=1pqu9:0
+[52281564ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52281579ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[52281602ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/world/education:0
+[52281655ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_react-dom_0bruynb._.js:15305
+[52281677ms] Error: ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (Error: ./src/app/world/(app)/courses/page.tsx:14:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at Object.getCompilationErrors (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/dev/hot-reloader-turbopack.js:1186:59)
+    at DevBundlerService.getCompilationError (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/lib/dev-bundler-service.js:44:55)
+    at DevServer.getCompilationError (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/dev/next-dev-server.js:719:42)
+    at DevServer.findPageComponents (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/dev/next-dev-server.js:689:43)
+    at async DevServer.renderErrorToResponseImpl (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/base-server.js:1745:26)
+[52281677ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52281698ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52281731ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52281792ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52303545ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52303568ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52303822ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52303854ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52315574ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52315650ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52316820ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52316876ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52318236ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52318272ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52318914ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52318958ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52329179ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52329242ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52351057ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52351058ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52365844ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52366145ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52366201ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52366243ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/world/education:0
+[52366305ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_react-dom_0bruynb._.js:15305
+[52366311ms] Error: ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (Error: ./src/app/world/(app)/courses/page.tsx:14:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at Object.getCompilationErrors (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/dev/hot-reloader-turbopack.js:1186:59)
+    at DevBundlerService.getCompilationError (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/lib/dev-bundler-service.js:44:55)
+    at DevServer.getCompilationError (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/dev/next-dev-server.js:719:42)
+    at DevServer.findPageComponents (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/dev/next-dev-server.js:689:43)
+    at async DevServer.renderErrorToResponseImpl (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/base-server.js:1745:26)
+[52366323ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52366330ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52366359ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52366429ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52367664ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52367838ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52367878ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52367915ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52367938ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/world/education:0
+[52367969ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_react-dom_0bruynb._.js:15305
+[52367972ms] Error: ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (Error: ./src/app/world/(app)/courses/page.tsx:14:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at Object.getCompilationErrors (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/dev/hot-reloader-turbopack.js:1186:59)
+    at DevBundlerService.getCompilationError (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/lib/dev-bundler-service.js:44:55)
+    at DevServer.getCompilationError (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/dev/next-dev-server.js:719:42)
+    at DevServer.findPageComponents (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/dev/next-dev-server.js:689:43)
+    at async DevServer.renderErrorToResponseImpl (file:///Users/andrew/Documents/kumami-web-next/node_modules/next/dist/server/base-server.js:1745:26)
+[52367974ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52367979ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52368008ms] [ERROR] ./src/app/world/(app)/courses/page.tsx:14:1
+Module not found: Can't resolve './CoursesClient'
+  12 |
+  13 | import { Suspense } from 'react';
+> 14 | import CoursesClient from './CoursesClient';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  15 |
+  16 | export const dynamic = 'force-dynamic';
+  17 |
+
+https://nextjs.org/docs/messages/module-not-found @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[52368080ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52369937ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52370416ms] [LOG] [Fast Refresh] done in 63ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52371125ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52371245ms] [LOG] [Fast Refresh] done in 221ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1226
+[52371599ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52371653ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52371780ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52371780ms] [LOG] Firebase project: kumami-dev @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52380461ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52380572ms] [LOG] [Fast Refresh] done in 170ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52391704ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52391798ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52391798ms] [LOG] [Fast Refresh] done in 102ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52405873ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52405967ms] [LOG] [Fast Refresh] done in 166ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52461984ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52462643ms] [LOG] [Fast Refresh] done in 760ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52470740ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52470982ms] [LOG] [Fast Refresh] done in 340ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52483277ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52483339ms] [LOG] [Fast Refresh] done in 162ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52487444ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52487480ms] [WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52487743ms] [WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52487744ms] [LOG] [Fast Refresh] done in 400ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52488148ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52488171ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52488184ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52488184ms] [LOG] Firebase project: kumami-dev @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52489175ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52495861ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52496086ms] [WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52496088ms] [LOG] [Fast Refresh] done in 324ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52496277ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52496319ms] [LOG] [Fast Refresh] done in 141ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52496392ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52496401ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52496417ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52496417ms] [LOG] Firebase project: kumami-dev @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52497223ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52621936ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52626104ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/world/education?_rsc=1pqu9:0
+[52628100ms] [LOG] [Fast Refresh] done in 6250ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52628462ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/world/education?_rsc=1pqu9:0
+[52628580ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52628797ms] [LOG] [Fast Refresh] done in 318ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52628894ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/world/education:0
+[52629334ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52629457ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52629489ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52629489ms] [LOG] Firebase project: kumami-dev @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52629515ms] [WARNING] Image with src "/logo k.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52629575ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52629618ms] [LOG] [Fast Refresh] done in 143ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52629639ms] [LOG] WebSocket connected to Binance @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52641856ms] [LOG] WebSocket connection closed @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52642914ms] [LOG] WebSocket connected to Binance @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52658076ms] [LOG] WebSocket connection closed @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52659123ms] [LOG] WebSocket connected to Binance @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52669856ms] [LOG] WebSocket connection closed @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52670929ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52670955ms] [LOG] [Fast Refresh] done in 127ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52670993ms] [LOG] WebSocket connected to Binance @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52685857ms] [LOG] WebSocket connection closed @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52686902ms] [LOG] WebSocket connected to Binance @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52694091ms] [LOG] WebSocket connection closed @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52695145ms] [LOG] WebSocket connected to Binance @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52706153ms] [LOG] WebSocket connection closed @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52707221ms] [LOG] WebSocket connected to Binance @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52717029ms] [LOG] WebSocket connection closed @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52718125ms] [LOG] WebSocket connected to Binance @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52726122ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52726325ms] [LOG] [Fast Refresh] done in 276ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52726426ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52726989ms] [LOG] WebSocket connection closed @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52727657ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/world/education?_rsc=1nkcf:0
+[52727663ms] [LOG] [Fast Refresh] done in 1070ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52728089ms] [LOG] WebSocket connected to Binance @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52729108ms] [WARNING] [HMR] Invalid message: {"isTrusted":true}
+TypeError: Cannot convert undefined or null to object
+    at Object.keys (<anonymous>)
+    at extractModulesFromTurbopackMessage (http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13631:39)
+    at TurbopackHmr.onTurbopackMessage (http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13578:32)
+    at processMessage (http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13936:30)
+    at WebSocket.handleMessage (http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13335:52) @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52729211ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52729316ms] [LOG] [Fast Refresh] done in 206ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52729558ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52729570ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52729580ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52729580ms] [LOG] Firebase project: kumami-dev @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52753566ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52753767ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[52753782ms] [LOG] [Fast Refresh] done in 116ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[53005469ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[53005643ms] [LOG] [Fast Refresh] done in 232ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[53123424ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[53123712ms] [LOG] [Fast Refresh] done in 389ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[53197802ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[53197931ms] [LOG] [Fast Refresh] done in 223ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[53226986ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[53227141ms] [LOG] [Fast Refresh] done in 251ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[53849990ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[58777419ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[58777428ms] [LOG] [Fast Refresh] done in 113ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[58836690ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[58837021ms] [LOG] [Fast Refresh] done in 433ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[58857175ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[58857181ms] [LOG] [Fast Refresh] done in 108ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59081501ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59081751ms] [LOG] [Fast Refresh] done in 353ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59110373ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59110536ms] [LOG] [Fast Refresh] done in 222ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59111140ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59111179ms] [LOG] [Fast Refresh] done in 141ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59122349ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59122464ms] [LOG] [Fast Refresh] done in 188ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59168202ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59168385ms] [LOG] [Fast Refresh] done in 287ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59168648ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59169637ms] [LOG] [Fast Refresh] done in 1090ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59667909ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59668457ms] [LOG] [Fast Refresh] done in 646ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59668473ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59669238ms] [LOG] [Fast Refresh] done in 779ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59669257ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59669308ms] [LOG] [Fast Refresh] done in 65ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59669412ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59670166ms] [LOG] [Fast Refresh] done in 854ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59670267ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59670591ms] [LOG] [Fast Refresh] done in 424ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59671392ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59671532ms] [LOG] [Fast Refresh] done in 239ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59672243ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59672429ms] [LOG] [Fast Refresh] done in 277ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59673504ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59673743ms] [LOG] [Fast Refresh] done in 341ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59675820ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59675926ms] [LOG] [Fast Refresh] done in 193ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59700529ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59700993ms] [LOG] [Fast Refresh] done in 567ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59863073ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[59863074ms] [LOG] [Fast Refresh] done in 102ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60427453ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60427590ms] [LOG] [Fast Refresh] done in 240ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60434245ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60434270ms] [LOG] [Fast Refresh] done in 127ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60445297ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60445495ms] [LOG] [Fast Refresh] done in 299ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60445600ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60445660ms] [LOG] [Fast Refresh] done in 160ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60806941ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60808896ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60808911ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60808911ms] [LOG] Firebase project: kumami-dev @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60808914ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60810324ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60813726ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60813748ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60813776ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60813776ms] [LOG] Firebase project: kumami-dev @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60815026ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:117
+[60815034ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60818630ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60819794ms] [LOG] [Fast Refresh] done in 1266ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60820368ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60820368ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60849296ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:117
+[60858848ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60858862ms] [LOG] [Fast Refresh] done in 115ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60869239ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60869397ms] [LOG] [Fast Refresh] done in 260ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60869649ms] [INFO] %c%s%c [courses.ts] getCourseDoc: no Firestore doc for "phase-1". Using journeyData-derived fallback. Run `npm run seed:courses` to populate. background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60902759ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60903185ms] [LOG] [Fast Refresh] done in 447ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60935525ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60935610ms] [LOG] [Fast Refresh] done in 186ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60938989ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60939093ms] [LOG] [Fast Refresh] done in 204ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[60940947ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:117
+[61192191ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[61192225ms] [LOG] [Fast Refresh] done in 109ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[61201414ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[61201443ms] [LOG] [Fast Refresh] done in 34ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[61215054ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[61215246ms] [LOG] [Fast Refresh] done in 270ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[61222997ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[61223009ms] [LOG] [Fast Refresh] done in 87ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[61233614ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[61233657ms] [LOG] [Fast Refresh] done in 116ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[61246168ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[61246201ms] [LOG] [Fast Refresh] done in 45ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[61256486ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[61256567ms] [LOG] [Fast Refresh] done in 34ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62202774ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62202984ms] [LOG] [Fast Refresh] done in 313ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62251779ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62251957ms] [LOG] [Fast Refresh] done in 279ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62326138ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62326416ms] [LOG] [Fast Refresh] done in 379ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62326748ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62330366ms] [LOG] [Fast Refresh] done in 3245ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62330577ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62330686ms] [LOG] [Fast Refresh] done in 212ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62438777ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62438898ms] [LOG] [Fast Refresh] done in 183ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62451063ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62451096ms] [LOG] [Fast Refresh] done in 76ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62466992ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62467047ms] [LOG] [Fast Refresh] done in 93ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62483687ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62483967ms] [LOG] [Fast Refresh] done in 352ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62488821ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62488851ms] [LOG] [Fast Refresh] done in 45ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62517697ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62517857ms] [LOG] [Fast Refresh] done in 235ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62526145ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62526245ms] [LOG] [Fast Refresh] done in 202ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62590305ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62590344ms] [LOG] [Fast Refresh] done in 118ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62621665ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62621711ms] [LOG] [Fast Refresh] done in 146ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62633591ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62633649ms] [LOG] [Fast Refresh] done in 159ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62730386ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62741086ms] [LOG] [Fast Refresh] done in 10801ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62816286ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62818768ms] [LOG] [Fast Refresh] done in 2598ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62834473ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62835336ms] [LOG] [Fast Refresh] done in 907ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62841518ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62842102ms] ReferenceError: QA_BYPASS is not defined
+    at WorldProtected (http://localhost:3000/_next/static/chunks/src_0hves--._.js?id=%255Bproject%255D%252Fsrc%252Fcomponents%252Fworld%252Fshell%252FWorldProtected.tsx+%255Bapp-client%255D+%2528ecmascript%2529:64:5)
+    at Object.react_stack_bottom_frame (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15037:24)
+    at renderWithHooks (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:4620:24)
+    at updateFunctionComponent (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6081:21)
+    at beginWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6691:24)
+    at runWithFiberInDEV (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at performUnitOfWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9555:97)
+    at workLoopSync (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9449:40)
+    at renderRootSync (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9433:13)
+    at performWorkOnRoot (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9098:47)
+    at performSyncWorkOnRoot (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10263:9)
+    at flushSyncWorkAcrossRoots_impl (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10179:316)
+    at flushSyncWork$1 (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9230:86)
+    at Object.scheduleRefresh (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:299:13)
+    at http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:391:33
+    at Set.forEach (<anonymous>)
+    at Object.performReactRefresh (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:384:38)
+    at applyUpdate (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:878:31)
+    at http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:886:13
+[62841851ms] [WARNING] [Fast Refresh] performing full reload because your application had an unrecoverable error @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62842220ms] ReferenceError: QA_BYPASS is not defined
+    at WorldProtected (http://localhost:3000/_next/static/chunks/src_0hves--._.js?id=%255Bproject%255D%252Fsrc%252Fcomponents%252Fworld%252Fshell%252FWorldProtected.tsx+%255Bapp-client%255D+%2528ecmascript%2529:64:5)
+    at Object.react_stack_bottom_frame (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15037:24)
+    at renderWithHooks (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:4620:24)
+    at updateFunctionComponent (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6081:21)
+    at beginWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6691:24)
+    at runWithFiberInDEV (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at performUnitOfWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9555:97)
+    at workLoopSync (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9449:40)
+    at renderRootSync (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9433:13)
+    at performWorkOnRoot (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9098:47)
+    at performSyncWorkOnRoot (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10263:9)
+    at flushSyncWorkAcrossRoots_impl (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10179:316)
+    at flushSyncWork$1 (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9230:86)
+    at Object.scheduleRefresh (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:299:13)
+    at http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:391:33
+    at Set.forEach (<anonymous>)
+    at Object.performReactRefresh (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:384:38)
+    at applyUpdate (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:878:31)
+    at http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:886:13
+[62841887ms] [LOG] [Fast Refresh] done in 434ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62842734ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62847920ms] [LOG] [Fast Refresh] done in 5287ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62848021ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62848024ms] [WARNING] [Fast Refresh] performing full reload because your application had an unrecoverable error @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62848121ms] [LOG] [Fast Refresh] done in 100ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62848635ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62848705ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62848981ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62848981ms] [LOG] Firebase project: kumami-dev @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62849042ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62849106ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62849112ms] [LOG] [Fast Refresh] done in 107ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62851587ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62851618ms] [LOG] [Fast Refresh] done in 132ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62854625ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62854772ms] [LOG] [Fast Refresh] done in 249ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62876703ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62876732ms] [LOG] [Fast Refresh] done in 130ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62931541ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62931618ms] [LOG] [Fast Refresh] done in 179ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62936354ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62936495ms] [LOG] [Fast Refresh] done in 242ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62941338ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62941443ms] [LOG] [Fast Refresh] done in 208ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62966675ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62966972ms] ReferenceError: QA_BYPASS is not defined
+    at WorldProtected (http://localhost:3000/_next/static/chunks/src_0hves--._.js?id=%255Bproject%255D%252Fsrc%252Fcomponents%252Fworld%252Fshell%252FWorldProtected.tsx+%255Bapp-client%255D+%2528ecmascript%2529:64:5)
+    at Object.react_stack_bottom_frame (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15037:24)
+    at renderWithHooks (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:4620:24)
+    at updateFunctionComponent (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6081:21)
+    at beginWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6691:24)
+    at runWithFiberInDEV (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at performUnitOfWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9555:97)
+    at workLoopSync (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9449:40)
+    at renderRootSync (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9433:13)
+    at performWorkOnRoot (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9098:47)
+    at performSyncWorkOnRoot (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10263:9)
+    at flushSyncWorkAcrossRoots_impl (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10179:316)
+    at flushSyncWork$1 (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9230:86)
+    at Object.scheduleRefresh (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:299:13)
+    at http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:391:33
+    at Set.forEach (<anonymous>)
+    at Object.performReactRefresh (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:384:38)
+    at applyUpdate (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:878:31)
+    at http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:886:13
+[62966971ms] [LOG] [Fast Refresh] done in 313ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62967118ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62967820ms] [LOG] [Fast Refresh] done in 803ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62968115ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62968146ms] [WARNING] [Fast Refresh] performing full reload because your application had an unrecoverable error @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62968254ms] ReferenceError: QA_BYPASS is not defined
+    at WorldProtected (http://localhost:3000/_next/static/chunks/src_0hves--._.js?id=%255Bproject%255D%252Fsrc%252Fcomponents%252Fworld%252Fshell%252FWorldProtected.tsx+%255Bapp-client%255D+%2528ecmascript%2529:63:5)
+    at Object.react_stack_bottom_frame (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15037:24)
+    at renderWithHooks (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:4620:24)
+    at updateFunctionComponent (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6081:21)
+    at beginWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6691:24)
+    at runWithFiberInDEV (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at performUnitOfWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9555:97)
+    at workLoopSync (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9449:40)
+    at renderRootSync (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9433:13)
+    at performWorkOnRoot (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9098:47)
+    at performSyncWorkOnRoot (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10263:9)
+    at flushSyncWorkAcrossRoots_impl (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10179:316)
+    at flushSyncWork$1 (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9230:86)
+    at Object.scheduleRefresh (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:299:13)
+    at http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:391:33
+    at Set.forEach (<anonymous>)
+    at Object.performReactRefresh (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:384:38)
+    at applyUpdate (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:878:31)
+    at http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:886:13
+[62968249ms] [LOG] [Fast Refresh] done in 133ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62968352ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62968553ms] [LOG] [Fast Refresh] done in 303ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62968909ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/world/blogs:0
+[62968965ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62969000ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62969080ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62969080ms] [LOG] Firebase project: kumami-dev @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62969243ms] ReferenceError: QA_BYPASS is not defined
+    at WorldProtected (http://localhost:3000/_next/static/chunks/src_0hves--._.js:64:5)
+    at Object.react_stack_bottom_frame (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15037:24)
+    at renderWithHooks (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:4620:24)
+    at updateFunctionComponent (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6081:21)
+    at beginWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6691:24)
+    at runWithFiberInDEV (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at performUnitOfWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9555:97)
+    at workLoopSync (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9449:40)
+    at renderRootSync (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9433:13)
+    at performWorkOnRoot (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9098:47)
+    at performWorkOnRootViaSchedulerTask (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10255:9)
+    at MessagePort.performWorkUntilDeadline (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:2647:64)
+[62969297ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62969327ms] [LOG] [Fast Refresh] done in 131ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62969832ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62970093ms] [WARNING] [Fast Refresh] performing full reload because your application had an unrecoverable error @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62970099ms] [LOG] [Fast Refresh] done in 357ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62970232ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62970234ms] [LOG] [Fast Refresh] done in 102ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62970398ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62970417ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62970475ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62970475ms] [LOG] Firebase project: kumami-dev @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62971206ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[62976509ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=ctAfhOzgj0JStt_B9cPz6' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[62977511ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=ctAfhOzgj0JStt_B9cPz6' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[62978515ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=ctAfhOzgj0JStt_B9cPz6' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[62979520ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=ctAfhOzgj0JStt_B9cPz6' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[62980524ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=ctAfhOzgj0JStt_B9cPz6' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[62985528ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=ctAfhOzgj0JStt_B9cPz6' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[62990533ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=ctAfhOzgj0JStt_B9cPz6' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[62995538ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=ctAfhOzgj0JStt_B9cPz6' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[63000542ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=ctAfhOzgj0JStt_B9cPz6' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[63005550ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=ctAfhOzgj0JStt_B9cPz6' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[63010568ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[63017730ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[63017804ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[63017880ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[63017880ms] [LOG] Firebase project: kumami-dev @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[63018827ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65038784ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65038976ms] [LOG] [Fast Refresh] done in 296ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65039079ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65039245ms] [LOG] [Fast Refresh] done in 269ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65042829ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65042842ms] [LOG] [Fast Refresh] done in 115ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65042966ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65042997ms] [LOG] [Fast Refresh] done in 132ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65158483ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65158781ms] [LOG] [Fast Refresh] done in 400ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65192745ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65193465ms] [LOG] [Fast Refresh] done in 746ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65200411ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65200609ms] [LOG] [Fast Refresh] done in 251ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65269652ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65269750ms] [LOG] [Fast Refresh] done in 164ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65269947ms] [WARNING] Image with src "/logo-kumami-final.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65428341ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65441108ms] [LOG] [Fast Refresh] done in 12868ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65546464ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65546653ms] [LOG] [Fast Refresh] done in 289ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65555174ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65555206ms] [LOG] [Fast Refresh] done in 133ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65555308ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65555361ms] [LOG] [Fast Refresh] done in 154ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65560478ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65560490ms] [LOG] [Fast Refresh] done in 112ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65563090ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65563168ms] [LOG] [Fast Refresh] done in 180ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65583687ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65584962ms] [LOG] [Fast Refresh] done in 1280ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65585289ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65585347ms] [LOG] [Fast Refresh] done in 158ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65586576ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65587124ms] [LOG] [Fast Refresh] done in 649ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65587228ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65587236ms] [LOG] [Fast Refresh] done in 109ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65594688ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65594717ms] [LOG] [Fast Refresh] done in 56ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65602737ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65603298ms] [LOG] [Fast Refresh] done in 659ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65635985ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65636056ms] [LOG] [Fast Refresh] done in 131ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65644367ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65645157ms] [LOG] [Fast Refresh] done in 888ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65645362ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65645364ms] [LOG] [Fast Refresh] done in 102ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65645541ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65645571ms] [LOG] [Fast Refresh] done in 129ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65646453ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65646535ms] [LOG] [Fast Refresh] done in 183ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65646637ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65646656ms] [LOG] [Fast Refresh] done in 120ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65646830ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65646902ms] [LOG] [Fast Refresh] done in 172ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65647020ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65647023ms] [LOG] [Fast Refresh] done in 104ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65647128ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65647144ms] [LOG] [Fast Refresh] done in 115ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65700449ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[65700884ms] [LOG] [Fast Refresh] done in 539ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66081454ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66082020ms] [LOG] [Fast Refresh] done in 669ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66091400ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66091426ms] [LOG] [Fast Refresh] done in 127ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66102692ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66103948ms] [LOG] [Fast Refresh] done in 1351ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66104108ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66104137ms] [LOG] [Fast Refresh] done in 130ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66104427ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66104457ms] [LOG] [Fast Refresh] done in 131ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66115210ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66115246ms] [LOG] [Fast Refresh] done in 95ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66127073ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66127099ms] [LOG] [Fast Refresh] done in 61ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66134877ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66134898ms] [LOG] [Fast Refresh] done in 80ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66137084ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66137108ms] [LOG] [Fast Refresh] done in 54ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66165242ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66165925ms] [LOG] [Fast Refresh] done in 788ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66192664ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66192734ms] [ERROR] ./src/components/world/pro/WorldProContent.tsx:19:1
+Export PortfolioTab doesn't exist in target module
+  17 | import { useAuth } from '@/contexts/AuthContext';
+  18 | import ProTeaser from './ProTeaser';
+> 19 | import { PortfolioTab } from '@/components/ProDashboard';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  20 | import AlphaRoom from '@/components/AlphaRoom';
+  21 | import MarketAnalysis from '@/components/MarketAnalysis';
+  22 | import KumaAIChatTab from '@/components/KumaAIChatTab';
+
+The export PortfolioTab was not found in module [project]/src/components/ProDashboard.tsx [app-client] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import trace:
+  Server Component:
+    ./src/components/world/pro/WorldProContent.tsx
+    ./src/app/world/(app)/pro/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[66192735ms] [ERROR] ./src/components/world/pro/WorldProContent.tsx:19:1
+Export PortfolioTab doesn't exist in target module
+  17 | import { useAuth } from '@/contexts/AuthContext';
+  18 | import ProTeaser from './ProTeaser';
+> 19 | import { PortfolioTab } from '@/components/ProDashboard';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  20 | import AlphaRoom from '@/components/AlphaRoom';
+  21 | import MarketAnalysis from '@/components/MarketAnalysis';
+  22 | import KumaAIChatTab from '@/components/KumaAIChatTab';
+
+The export PortfolioTab was not found in module [project]/src/components/ProDashboard.tsx [app-ssr] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import trace:
+  Server Component:
+    ./src/components/world/pro/WorldProContent.tsx
+    ./src/app/world/(app)/pro/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[66192800ms] [ERROR] ./src/components/world/pro/WorldProContent.tsx:19:1
+Export PortfolioTab doesn't exist in target module
+  17 | import { useAuth } from '@/contexts/AuthContext';
+  18 | import ProTeaser from './ProTeaser';
+> 19 | import { PortfolioTab } from '@/components/ProDashboard';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  20 | import AlphaRoom from '@/components/AlphaRoom';
+  21 | import MarketAnalysis from '@/components/MarketAnalysis';
+  22 | import KumaAIChatTab from '@/components/KumaAIChatTab';
+
+The export PortfolioTab was not found in module [project]/src/components/ProDashboard.tsx [app-client] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import trace:
+  Server Component:
+    ./src/components/world/pro/WorldProContent.tsx
+    ./src/app/world/(app)/pro/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[66192801ms] [ERROR] ./src/components/world/pro/WorldProContent.tsx:19:1
+Export PortfolioTab doesn't exist in target module
+  17 | import { useAuth } from '@/contexts/AuthContext';
+  18 | import ProTeaser from './ProTeaser';
+> 19 | import { PortfolioTab } from '@/components/ProDashboard';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  20 | import AlphaRoom from '@/components/AlphaRoom';
+  21 | import MarketAnalysis from '@/components/MarketAnalysis';
+  22 | import KumaAIChatTab from '@/components/KumaAIChatTab';
+
+The export PortfolioTab was not found in module [project]/src/components/ProDashboard.tsx [app-ssr] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import trace:
+  Server Component:
+    ./src/components/world/pro/WorldProContent.tsx
+    ./src/app/world/(app)/pro/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[66192869ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66193937ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66194269ms] [LOG] [Fast Refresh] done in 52ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66403594ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66403627ms] [LOG] [Fast Refresh] done in 94ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66404860ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66405402ms] [LOG] [Fast Refresh] done in 611ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66410161ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66410232ms] [LOG] [Fast Refresh] done in 130ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66411659ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66411692ms] [LOG] [Fast Refresh] done in 46ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66412971ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66413062ms] [LOG] [Fast Refresh] done in 153ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66414390ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66414462ms] [LOG] [Fast Refresh] done in 124ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66415510ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66415547ms] [LOG] [Fast Refresh] done in 48ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66416682ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66416719ms] [LOG] [Fast Refresh] done in 38ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66418104ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66418140ms] [LOG] [Fast Refresh] done in 45ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66419552ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66419619ms] [LOG] [Fast Refresh] done in 117ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66420488ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66420617ms] [LOG] [Fast Refresh] done in 145ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66435076ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66435114ms] [LOG] [Fast Refresh] done in 97ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66447790ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66447870ms] [LOG] [Fast Refresh] done in 37ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66487214ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66487268ms] [LOG] [Fast Refresh] done in 157ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66552308ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[66552330ms] [LOG] [Fast Refresh] done in 83ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[68147588ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[68147795ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[68147911ms] [LOG] [Fast Refresh] done in 218ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[74184580ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[74185201ms] [LOG] [Fast Refresh] done in 726ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[74212636ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[74213798ms] [LOG] [Fast Refresh] done in 977ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[74221511ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[74221522ms] [LOG] [Fast Refresh] done in 112ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[74251464ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[74251517ms] [LOG] [Fast Refresh] done in 129ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[74259096ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[74259123ms] [LOG] [Fast Refresh] done in 54ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[74282954ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[74283141ms] [LOG] [Fast Refresh] done in 226ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[74313496ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[74313648ms] [LOG] [Fast Refresh] done in 137ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[75269737ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[75269816ms] [LOG] [Fast Refresh] done in 180ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[75303525ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[75303740ms] [LOG] [Fast Refresh] done in 314ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[75303911ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[75304156ms] [LOG] [Fast Refresh] done in 385ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[75337228ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[75337283ms] [LOG] [Fast Refresh] done in 147ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[76905569ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[76905640ms] [LOG] [Fast Refresh] done in 173ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[95145788ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[95145993ms] [LOG] [Fast Refresh] done in 309ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[95146156ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[95146156ms] [LOG] [Fast Refresh] done in 122ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[95146435ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[95146435ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[102902727ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138811031ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138811131ms] [LOG] [Fast Refresh] done in 202ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138811245ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138811260ms] [LOG] [Fast Refresh] done in 117ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138813588ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138813609ms] [LOG] [Fast Refresh] done in 121ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138874428ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[138885882ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138885915ms] [LOG] [Fast Refresh] done in 134ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138935786ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138935835ms] [LOG] [Fast Refresh] done in 150ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138935936ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138935979ms] [LOG] [Fast Refresh] done in 143ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138947274ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138949616ms] [LOG] [Fast Refresh] done in 1960ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138949669ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138949732ms] [LOG] [Fast Refresh] done in 115ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138950114ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138950378ms] [LOG] [Fast Refresh] done in 365ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138979929ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138980002ms] [LOG] [Fast Refresh] done in 74ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138980986ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[138981036ms] [LOG] [Fast Refresh] done in 40ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139023764ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139024058ms] [LOG] [Fast Refresh] done in 395ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139026918ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139027048ms] [LOG] [Fast Refresh] done in 232ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139027329ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139027407ms] [LOG] [Fast Refresh] done in 179ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139045972ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139046092ms] [LOG] [Fast Refresh] done in 225ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139081403ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139081518ms] [LOG] [Fast Refresh] done in 195ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139085673ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139088883ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139088908ms] [LOG] [Fast Refresh] done in 87ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139104729ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139106292ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139106339ms] [LOG] [Fast Refresh] done in 100ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139106480ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139114804ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139121381ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139123515ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139123664ms] [LOG] [Fast Refresh] done in 217ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139163347ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139175591ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139175627ms] [LOG] [Fast Refresh] done in 88ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139186768ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139186805ms] [LOG] [Fast Refresh] done in 104ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139225406ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139225768ms] [LOG] [Fast Refresh] done in 273ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139227263ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139227396ms] [LOG] [Fast Refresh] done in 140ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139227557ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139227600ms] [LOG] [Fast Refresh] done in 144ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139239126ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139239221ms] [LOG] [Fast Refresh] done in 142ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139252477ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139252548ms] [LOG] [Fast Refresh] done in 117ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139445874ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139445883ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139445894ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139445894ms] [LOG] Firebase project: kumami-dev @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139446784ms] [WARNING] Image with src "/logo-kumami-final.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139467001ms] [WARNING] Blocked aria-hidden on an element because its descendant retained focus. The focus must not be hidden from assistive technology users. Avoid using aria-hidden on a focused element or its ancestor. Consider using the inert attribute instead, which will also prevent focus. For more details, see the aria-hidden section of the WAI-ARIA specification at https://w3c.github.io/aria/#aria-hidden.
+Element with focus: <button.w-kuma-close>
+Ancestor with aria-hidden: <aside.w-kuma-side> @ http://localhost:3000/world/pro:0
+[139481572ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139481576ms] [LOG] [Fast Refresh] done in 105ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139481626ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139483411ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139484141ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139485460ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139485874ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139486511ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139486863ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139487661ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139491352ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139491461ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139491461ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139504283ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139504283ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139509218ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139509218ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139509939ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139509939ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139510449ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139510449ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139510659ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139510659ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139510777ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139510777ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139511673ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139511673ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139519215ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139519215ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139520614ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139520614ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139524953ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139524953ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139526888ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139528143ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139528194ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139528194ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139530241ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139530392ms] [LOG] [Fast Refresh] done in 253ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139530495ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139530587ms] [LOG] [Fast Refresh] done in 193ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139544968ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139547013ms] [WARNING] WebSocket connection to 'wss://tickerworker.kumamiworldapp.workers.dev/' failed: WebSocket is closed before the connection is established. @ http://localhost:3000/_next/static/chunks/src_components_world_news_0wfcvth._.js:130
+[139547095ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139547095ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139549070ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139549079ms] [LOG] [Fast Refresh] done in 110ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139549180ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139549272ms] [LOG] [Fast Refresh] done in 192ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139551576ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139551577ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139557857ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139557888ms] [LOG] [Fast Refresh] done in 132ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139564815ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139564822ms] [LOG] [Fast Refresh] done in 108ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139576975ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139577172ms] [LOG] [Fast Refresh] done in 252ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139578866ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139578906ms] [LOG] [Fast Refresh] done in 46ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139580113ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139580159ms] [LOG] [Fast Refresh] done in 52ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139603723ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139615320ms] [LOG] [Fast Refresh] done in 11697ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139626072ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139626096ms] [LOG] [Fast Refresh] done in 125ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139634613ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139635287ms] [WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139635394ms] [WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139636104ms] [LOG] [Fast Refresh] done in 1590ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139637152ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139637199ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139637308ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139637308ms] [LOG] Firebase project: kumami-dev @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139637453ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139637500ms] [LOG] [Fast Refresh] done in 147ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139637958ms] [WARNING] Image with src "/logo-kumami-final.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139637958ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139638092ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139638092ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139638354ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139638358ms] [LOG] [Fast Refresh] done in 106ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139638460ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139638488ms] [LOG] [Fast Refresh] done in 128ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139638760ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139638915ms] [LOG] [Fast Refresh] done in 256ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139639017ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139639038ms] [LOG] [Fast Refresh] done in 123ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139639359ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139639533ms] [LOG] [Fast Refresh] done in 274ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139639710ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139639977ms] [LOG] [Fast Refresh] done in 369ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139640230ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139640502ms] [LOG] [Fast Refresh] done in 373ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139640775ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139640974ms] [LOG] [Fast Refresh] done in 300ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139641146ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139641233ms] [LOG] [Fast Refresh] done in 189ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139641387ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139641403ms] [LOG] [Fast Refresh] done in 117ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139641586ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139641627ms] [LOG] [Fast Refresh] done in 141ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139641807ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139641953ms] [LOG] [Fast Refresh] done in 246ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139642343ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139642357ms] [LOG] [Fast Refresh] done in 116ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139642560ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139642675ms] [LOG] [Fast Refresh] done in 217ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139642866ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139642867ms] [LOG] [Fast Refresh] done in 102ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139642999ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139643114ms] [LOG] [Fast Refresh] done in 217ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139694298ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139694319ms] [LOG] [Fast Refresh] done in 123ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139785271ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139785985ms] [LOG] [Fast Refresh] done in 811ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139786123ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139786200ms] [LOG] [Fast Refresh] done in 177ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139789643ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139789686ms] [LOG] [Fast Refresh] done in 144ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139797844ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139797850ms] [LOG] [Fast Refresh] done in 107ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139799101ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139799143ms] [LOG] [Fast Refresh] done in 113ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139842905ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139843215ms] [LOG] [Fast Refresh] done in 245ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139843222ms] [WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139843326ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139843369ms] [LOG] [Fast Refresh] done in 145ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139844000ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139844044ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139844088ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139844089ms] [LOG] Firebase project: kumami-dev @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139844247ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139844292ms] [LOG] [Fast Refresh] done in 147ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139844743ms] [WARNING] Image with src "/logo-kumami-final.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139844743ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139844922ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139844922ms] [LOG] Trending news loaded: 4 items @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139845799ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139845859ms] [LOG] [Fast Refresh] done in 135ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139906329ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139906360ms] [LOG] [Fast Refresh] done in 132ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139913155ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139914660ms] [LOG] [Fast Refresh] done in 1177ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139914712ms] [WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139915255ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139915282ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139915333ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139915334ms] [LOG] Firebase project: kumami-6df47 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139916028ms] [WARNING] Image with src "/logo-kumami-final.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139916028ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139916175ms] [ERROR] Error loading latest blog posts FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[139916176ms] [ERROR] Error loading latest blog posts FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[139916184ms] [ERROR] Index error in trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[139916184ms] [LOG] Trying fallback query without ordering @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139916184ms] [ERROR] Index error in trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[139916184ms] [LOG] Trying fallback query without ordering @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139916185ms] [ERROR] Error loading homepage partners: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[139916185ms] [ERROR] Error loading homepage partners: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[139916271ms] Missing or insufficient permissions.
+[139916372ms] [ERROR] Error fetching trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[139916372ms] [ERROR] Error fetching trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[139932114ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=QCWxENgpB0vnVCGXBroCD' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[139933940ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139936706ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139936749ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139936797ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139936797ms] [LOG] Firebase project: kumami-6df47 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139937552ms] [WARNING] Image with src "/logo-kumami-final.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139937552ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139937601ms] [ERROR] Index error in trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[139937601ms] [LOG] Trying fallback query without ordering @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139937601ms] [ERROR] Index error in trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[139937602ms] [LOG] Trying fallback query without ordering @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139937617ms] Missing or insufficient permissions.
+[139937619ms] [ERROR] Error loading homepage partners: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[139937619ms] [ERROR] Error loading homepage partners: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[139937628ms] [ERROR] Error loading latest blog posts FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[139937628ms] [ERROR] Error loading latest blog posts FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[139937661ms] [ERROR] Error fetching trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[139937662ms] [ERROR] Error fetching trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[139942701ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139942737ms] [LOG] [Fast Refresh] done in 137ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139961629ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139961696ms] [LOG] [Fast Refresh] done in 168ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139961969ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139962010ms] [LOG] [Fast Refresh] done in 143ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139963300ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139965285ms] [LOG] [Fast Refresh] done in 2086ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[139988409ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=Pts_UTDk6t968k9mT53Y4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[139989412ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=Pts_UTDk6t968k9mT53Y4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[139990414ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=Pts_UTDk6t968k9mT53Y4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[139991416ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=Pts_UTDk6t968k9mT53Y4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[139992419ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=Pts_UTDk6t968k9mT53Y4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[139997422ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=Pts_UTDk6t968k9mT53Y4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[140002425ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=Pts_UTDk6t968k9mT53Y4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[140007427ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=Pts_UTDk6t968k9mT53Y4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[140012430ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=Pts_UTDk6t968k9mT53Y4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[140017433ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=Pts_UTDk6t968k9mT53Y4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[140022435ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=Pts_UTDk6t968k9mT53Y4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[140027438ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=Pts_UTDk6t968k9mT53Y4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[140063998ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140064011ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140064025ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140064025ms] [LOG] Firebase project: kumami-6df47 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140064153ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140064175ms] [LOG] [Fast Refresh] done in 123ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140064853ms] [WARNING] Image with src "/logo-kumami-final.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140064857ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140064999ms] [ERROR] Index error in trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140065000ms] [LOG] Trying fallback query without ordering @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140065000ms] [ERROR] Index error in trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140065000ms] [LOG] Trying fallback query without ordering @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140065017ms] [ERROR] Error loading latest blog posts FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140065017ms] [ERROR] Error loading latest blog posts FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140065020ms] Missing or insufficient permissions.
+[140065018ms] [ERROR] Error loading homepage partners: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140065018ms] [ERROR] Error loading homepage partners: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140065062ms] [ERROR] Error fetching trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140065062ms] [ERROR] Error fetching trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140065115ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140065120ms] [LOG] [Fast Refresh] done in 106ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140083148ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140083176ms] [LOG] [Fast Refresh] done in 129ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140108264ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140108308ms] [LOG] [Fast Refresh] done in 146ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140108824ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140108910ms] [LOG] [Fast Refresh] done in 187ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140506951ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140506953ms] [LOG] [Fast Refresh] done in 104ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140969504ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140971341ms] [LOG] [Fast Refresh] done in 1727ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140971360ms] [WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140971577ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140971763ms] [LOG] [Fast Refresh] done in 288ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140971905ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140971934ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140971988ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140971988ms] [LOG] Firebase project: kumami-6df47 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140972756ms] [WARNING] Image with src "/logo-kumami-final.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140972756ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140972881ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140972944ms] [LOG] [Fast Refresh] done in 163ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140973013ms] [ERROR] Index error in trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140973014ms] [LOG] Trying fallback query without ordering @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140973014ms] [ERROR] Index error in trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140973014ms] [LOG] Trying fallback query without ordering @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140973024ms] Missing or insufficient permissions.
+[140973022ms] [ERROR] Error loading latest blog posts FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140973023ms] [ERROR] Error loading latest blog posts FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140973024ms] [ERROR] Error loading homepage partners: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140973024ms] [ERROR] Error loading homepage partners: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140973090ms] [ERROR] Error fetching trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140973090ms] [ERROR] Error fetching trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140975018ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=rKiGQXfHkmPjd5jH2pbvw' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[140976020ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=rKiGQXfHkmPjd5jH2pbvw' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[140977022ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=rKiGQXfHkmPjd5jH2pbvw' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[140978025ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=rKiGQXfHkmPjd5jH2pbvw' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[140979029ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=rKiGQXfHkmPjd5jH2pbvw' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[140984031ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=rKiGQXfHkmPjd5jH2pbvw' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[140989034ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=rKiGQXfHkmPjd5jH2pbvw' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[140994039ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140995971ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140995984ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140996038ms] [LOG] Initializing Firebase for development environment @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140996038ms] [LOG] Firebase project: kumami-6df47 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140996726ms] [ERROR] Index error in trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140996726ms] [LOG] Trying fallback query without ordering @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140996726ms] [ERROR] Index error in trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140996726ms] [LOG] Trying fallback query without ordering @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140996734ms] [ERROR] Error loading latest blog posts FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140996734ms] [ERROR] Error loading latest blog posts FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140996735ms] [ERROR] Error loading homepage partners: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140996735ms] [ERROR] Error loading homepage partners: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140996743ms] [WARNING] Image with src "/logo-kumami-final.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140996965ms] Missing or insufficient permissions.
+[140996758ms] [WARNING] Image with src "/logo-kumami-white.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[140996773ms] [ERROR] Error fetching trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[140996773ms] [ERROR] Error fetching trending news: FirebaseError: Missing or insufficient permissions. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[141005547ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[141005880ms] [LOG] [Fast Refresh] done in 434ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[141211685ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[141212098ms] [LOG] [Fast Refresh] done in 515ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[141213542ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[141213677ms] [LOG] [Fast Refresh] done in 236ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[141213905ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[141214562ms] [LOG] [Fast Refresh] done in 759ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[141852307ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431
+[141854535ms] [LOG] [Fast Refresh] done in 2329ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2431

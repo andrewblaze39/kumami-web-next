@@ -414,7 +414,7 @@ function DashboardInner() {
                     style={{
                       background: earned ? hex : 'var(--surface-3)',
                       border: `2px solid ${earned ? hex : 'var(--border-2)'}`,
-                      color: earned ? '#06241a' : 'var(--muted-2)',
+                      color: earned ? '#00272a' : 'var(--muted-2)',
                     }}
                   >
                     {earned ? (

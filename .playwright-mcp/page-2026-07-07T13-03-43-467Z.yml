@@ -1,0 +1,135 @@
+- generic [ref=f13e1]:
+  - generic [ref=f13e15]:
+    - complementary [ref=f13e16]:
+      - button "Kumami World WORLD" [ref=f13e18] [cursor=pointer]:
+        - generic [ref=f13e19]:
+          - img "Kumami World" [ref=f13e20]
+          - generic [ref=f13e21]: WORLD
+        - img [ref=f13e22]
+      - link "About Kumami" [ref=f13e25] [cursor=pointer]:
+        - /url: /world/about
+        - img [ref=f13e26]
+        - generic [ref=f13e29]: About Kumami
+      - navigation [ref=f13e30]:
+        - generic [ref=f13e31]:
+          - generic [ref=f13e32]: Discover
+          - link "News Portal" [ref=f13e33] [cursor=pointer]:
+            - /url: /world/news
+            - img [ref=f13e34]
+            - generic [ref=f13e38]: News Portal
+          - link "Education" [ref=f13e39] [cursor=pointer]:
+            - /url: /world/education
+            - img [ref=f13e40]
+            - generic [ref=f13e43]: Education
+          - link "Blogs" [ref=f13e44] [cursor=pointer]:
+            - /url: /world/blogs
+            - img [ref=f13e45]
+            - generic [ref=f13e48]: Blogs
+        - generic [ref=f13e49]:
+          - generic [ref=f13e50]: Explore
+          - link "AI Labs" [ref=f13e51] [cursor=pointer]:
+            - /url: /world/ailabs
+            - img [ref=f13e52]
+            - generic [ref=f13e54]: AI Labs
+          - link "Games" [ref=f13e55] [cursor=pointer]:
+            - /url: /world/games
+            - img [ref=f13e56]
+            - generic [ref=f13e59]: Games
+      - link "Andrew Andrew Beginner" [ref=f13e61] [cursor=pointer]:
+        - /url: /world/profile
+        - img "Andrew" [ref=f13e63]
+        - generic [ref=f13e64]:
+          - generic [ref=f13e65]: Andrew
+          - generic [ref=f13e66]: Beginner
+    - generic [ref=f13e67]:
+      - banner [ref=f13e68]:
+        - navigation "Breadcrumb" [ref=f13e69]:
+          - generic [ref=f13e70]: World
+          - img [ref=f13e71]
+          - generic [ref=f13e73]: Courses
+          - img [ref=f13e74]
+          - generic [ref=f13e76]: Phase 1
+        - generic [ref=f13e77]:
+          - button "Toggle Kuma AI panel" [ref=f13e78] [cursor=pointer]:
+            - img [ref=f13e79]
+          - generic [ref=f13e95]:
+            - button "Beginner" [ref=f13e97] [cursor=pointer]:
+              - generic [ref=f13e98]: Beginner
+            - button "Advanced" [ref=f13e99] [cursor=pointer]:
+              - img [ref=f13e100]
+              - generic [ref=f13e102]: Advanced
+            - button "Pro" [ref=f13e103] [cursor=pointer]:
+              - img [ref=f13e104]
+              - generic [ref=f13e106]: Pro
+      - generic [ref=f13e109]:
+        - navigation "Breadcrumb" [ref=f13e110]:
+          - 'link "Phase 1: START HERE" [ref=f13e111] [cursor=pointer]':
+            - /url: /world/courses/phase-1
+            - img [ref=f13e112]
+            - text: "Phase 1: START HERE"
+          - generic [ref=f13e114]: ›
+          - generic [ref=f13e115]: How most beginners actually get into crypto
+        - banner [ref=f13e116]:
+          - generic [ref=f13e117]: Chapter 1 of 8
+          - heading "How most beginners actually get into crypto" [level=1] [ref=f13e118]
+          - paragraph [ref=f13e119]:
+            - text: 1 part
+            - generic [ref=f13e120]: · 1/1 complete
+        - 'region "Part 1 of 1: How most beginners actually get into crypto" [ref=f13e122]':
+          - generic [ref=f13e123]:
+            - generic [ref=f13e124]:
+              - img [ref=f13e125]
+              - text: Part 1
+            - heading "How most beginners actually get into crypto" [level=2] [ref=f13e128]
+          - generic [ref=f13e129]:
+            - paragraph [ref=f13e130]:
+              - text: This lesson is being written. Check back soon for the full article on
+              - emphasis [ref=f13e131]: How most beginners actually get into crypto
+              - text: .
+            - paragraph [ref=f13e132]: In the meantime, mark this part as complete once you have reviewed any supporting materials, or return later when the content is live.
+          - generic [ref=f13e133]:
+            - generic [ref=f13e134]: Your notes
+            - textbox "Your notes" [ref=f13e135]:
+              - /placeholder: Add a note for this part…
+              - text: QA test note — verifying note persistence.
+          - generic [ref=f13e137] [cursor=pointer]:
+            - checkbox "Mark as complete" [checked] [active]
+            - img [ref=f13e215]
+            - text: Mark as complete
+        - 'link "Next chapter: Choosing a safe and beginner-friendly CEX" [ref=f13e140] [cursor=pointer]':
+          - /url: /world/courses/phase-1/ch-2
+          - text: "Next chapter: Choosing a safe and beginner-friendly CEX"
+          - img [ref=f13e141]
+        - navigation "Chapter navigation" [ref=f13e143]:
+          - link "Next Choosing a safe and beginner-friendly CEX" [ref=f13e145] [cursor=pointer]:
+            - /url: /world/courses/phase-1/ch-2
+            - generic [ref=f13e146]:
+              - generic [ref=f13e147]: Next
+              - generic [ref=f13e148]: Choosing a safe and beginner-friendly CEX
+            - img [ref=f13e149]
+    - generic [ref=f13e152]:
+      - generic [ref=f13e153]:
+        - img [ref=f13e155]
+        - generic [ref=f13e173]:
+          - generic [ref=f13e174]: Kuma AI
+          - emphasis [ref=f13e175]: On-chain copilot · always on
+        - button [ref=f13e176] [cursor=pointer]:
+          - img [ref=f13e177]
+      - generic [ref=f13e182]:
+        - img [ref=f13e183]
+        - paragraph [ref=f13e201]: Ask anything about crypto
+        - generic [ref=f13e202]:
+          - button [ref=f13e203] [cursor=pointer]: What's driving Bitcoin's price today?
+          - button [ref=f13e204] [cursor=pointer]: Explain Layer 2 scaling in simple terms
+          - button [ref=f13e205] [cursor=pointer]: Which altcoins have the most momentum?
+          - button [ref=f13e206] [cursor=pointer]: How do I read a crypto market cap chart?
+      - generic [ref=f13e207]:
+        - generic [ref=f13e208]:
+          - textbox [ref=f13e209]:
+            - /placeholder: Ask Kuma anything…
+          - button [disabled] [ref=f13e210]:
+            - img [ref=f13e211]
+        - paragraph [ref=f13e214]: Kuma can be wrong · not financial advice
+  - button "Open Next.js Dev Tools" [ref=f13e10] [cursor=pointer]:
+    - img [ref=f13e11]
+  - alert [ref=f13e14]

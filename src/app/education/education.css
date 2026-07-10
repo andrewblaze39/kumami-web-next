@@ -4,11 +4,11 @@
    ============================================================ */
 
 .edu-app {
-  --bg: #0a1411;
-  --bg-2: #08110e;
-  --surface: #0f1d18;
-  --surface-2: #142a22;
-  --surface-3: #193127;
+  --bg: #0a0a0f;
+  --bg-2: #060609;
+  --surface: #101014;
+  --surface-2: #15151b;
+  --surface-3: #1a1a22;
   --border: rgba(255, 255, 255, 0.08);
   --border-2: rgba(255, 255, 255, 0.14);
   --text: #f1f7f4;
@@ -81,7 +81,7 @@
   align-items: center;
   gap: 8px;
   background: var(--mint);
-  color: #06241a;
+  color: #00272a;
   font-weight: 800;
   font-size: 18px;
   letter-spacing: -0.02em;
@@ -170,7 +170,7 @@
   align-items: center;
   gap: 16px;
   padding: 0 28px;
-  background: rgba(8, 17, 14, 0.78);
+  background: rgba(6, 6, 9, 0.78);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
@@ -234,7 +234,7 @@
 
 .edu-btn-primary {
   background: var(--mint);
-  color: #06241a;
+  color: #00272a;
 }
 
 .edu-btn-primary:hover {
@@ -413,7 +413,7 @@
   height: 52px;
   border-radius: 50%;
   background: var(--c, var(--mint));
-  color: #06241a;
+  color: #00272a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -688,12 +688,12 @@
 
 .edu-ch-no-done {
   background: var(--mint);
-  color: #06241a;
+  color: #00272a;
 }
 
 .edu-ch-no-current {
   background: var(--c, var(--mint));
-  color: #06241a;
+  color: #00272a;
 }
 
 .edu-ch-title {
@@ -743,7 +743,7 @@
 .edu-pdot-done {
   background: var(--mint);
   border-color: var(--mint);
-  color: #06241a;
+  color: #00272a;
 }
 
 .edu-ptype {
@@ -835,7 +835,7 @@
   height: 64px;
   border-radius: 50%;
   background: var(--mint);
-  color: #06241a;
+  color: #00272a;
   border: none;
   display: flex;
   align-items: center;
@@ -999,7 +999,7 @@
 
 .edu-rail-no-done {
   background: var(--mint);
-  color: #06241a;
+  color: #00272a;
 }
 
 .edu-complete-bar {
@@ -1016,7 +1016,7 @@
   padding: 14px 24px;
   border-radius: 14px;
   background: var(--mint);
-  color: #06241a;
+  color: #00272a;
   font-weight: 800;
   font-size: 15px;
   border: none;
@@ -1288,7 +1288,7 @@
 
 .edu-step-overview-done {
   background: var(--mint);
-  color: #06241a;
+  color: #00272a;
 }
 
 .edu-step-start {

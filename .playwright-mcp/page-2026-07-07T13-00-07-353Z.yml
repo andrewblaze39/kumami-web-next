@@ -1,0 +1,104 @@
+- generic [ref=f11e1]:
+  - generic [ref=f11e15]:
+    - complementary [ref=f11e16]:
+      - button "Kumami World WORLD" [ref=f11e18] [cursor=pointer]:
+        - generic [ref=f11e19]:
+          - img "Kumami World" [ref=f11e20]
+          - generic [ref=f11e21]: WORLD
+        - img [ref=f11e22]
+      - link "About Kumami" [ref=f11e25] [cursor=pointer]:
+        - /url: /world/about
+        - img [ref=f11e26]
+        - generic [ref=f11e29]: About Kumami
+      - navigation [ref=f11e30]:
+        - generic [ref=f11e344]:
+          - generic [ref=f11e345]: Intelligence
+          - link "Console" [ref=f11e346] [cursor=pointer]:
+            - /url: /world/console
+            - img [ref=f11e347]
+            - generic [ref=f11e351]: Console
+          - link "On-Chain Insights" [ref=f11e352] [cursor=pointer]:
+            - /url: /world/onchain
+            - img [ref=f11e353]
+            - generic [ref=f11e356]: On-Chain Insights
+          - link "Intelligence" [ref=f11e357] [cursor=pointer]:
+            - /url: /world/intel
+            - img [ref=f11e358]
+            - generic [ref=f11e361]: Intelligence
+          - link "Watchlist" [ref=f11e362] [cursor=pointer]:
+            - /url: /world/watchlist
+            - img [ref=f11e363]
+            - generic [ref=f11e365]: Watchlist
+        - generic [ref=f11e366]:
+          - generic [ref=f11e367]: Account
+          - link "Settings" [ref=f11e368] [cursor=pointer]:
+            - /url: /world/settings
+            - img [ref=f11e369]
+            - generic [ref=f11e372]: Settings
+      - link "Andrew Andrew Advanced" [ref=f11e373] [cursor=pointer]:
+        - /url: /world/profile
+        - img "Andrew" [ref=f11e63]
+        - generic [ref=f11e64]:
+          - generic [ref=f11e65]: Andrew
+          - generic [ref=f11e66]: Advanced
+    - generic [ref=f11e67]:
+      - banner [ref=f11e68]:
+        - navigation "Breadcrumb" [ref=f11e69]:
+          - generic [ref=f11e70]: World
+          - img [ref=f11e71]
+          - generic [ref=f11e73]: Market Intelligence
+        - generic [ref=f11e74]:
+          - button "Toggle Kuma AI panel" [ref=f11e75] [cursor=pointer]:
+            - img [ref=f11e76]
+          - generic [ref=f11e92]:
+            - button "Beginner" [ref=f11e94] [cursor=pointer]:
+              - generic [ref=f11e95]: Beginner
+            - button "Advanced" [active] [ref=f11e96] [cursor=pointer]:
+              - img [ref=f11e97]
+              - generic [ref=f11e99]: Advanced
+            - button "Pro" [ref=f11e100] [cursor=pointer]:
+              - img [ref=f11e101]
+              - generic [ref=f11e103]: Pro
+      - generic [ref=f11e374]:
+        - generic [ref=f11e375]:
+          - heading "Market Intelligence" [level=1] [ref=f11e376]
+          - paragraph [ref=f11e377]: Real-time macro, regime and market structure overview.
+        - generic [ref=f11e385]:
+          - region "Heatmap Preview" [ref=f11e386]:
+            - generic [ref=f11e388]: Liquidation Heatmap
+            - link "Open full insights →" [ref=f11e391] [cursor=pointer]:
+              - /url: /world/onchain
+          - region "Flow Radar" [ref=f11e392]:
+            - generic [ref=f11e395]: Flow Radar
+          - region "Intelligence Preview" [ref=f11e397]:
+            - generic [ref=f11e399]: Intelligence
+            - link "View all intelligence →" [ref=f11e402] [cursor=pointer]:
+              - /url: /world/intel
+          - region "Radar Watchlist" [ref=f11e403]:
+            - generic [ref=f11e406]: Radar Watchlist · auto-detected
+    - generic [ref=f11e247]:
+      - generic [ref=f11e248]:
+        - img [ref=f11e250]
+        - generic [ref=f11e268]:
+          - generic [ref=f11e269]: Kuma AI
+          - emphasis [ref=f11e270]: On-chain copilot · always on
+        - button [ref=f11e271] [cursor=pointer]:
+          - img [ref=f11e272]
+      - generic [ref=f11e277]:
+        - img [ref=f11e278]
+        - paragraph [ref=f11e296]: Ask anything about crypto
+        - generic [ref=f11e297]:
+          - button [ref=f11e298] [cursor=pointer]: What's driving Bitcoin's price today?
+          - button [ref=f11e299] [cursor=pointer]: Explain Layer 2 scaling in simple terms
+          - button [ref=f11e300] [cursor=pointer]: Which altcoins have the most momentum?
+          - button [ref=f11e301] [cursor=pointer]: How do I read a crypto market cap chart?
+      - generic [ref=f11e302]:
+        - generic [ref=f11e303]:
+          - textbox [ref=f11e304]:
+            - /placeholder: Ask Kuma anything…
+          - button [disabled] [ref=f11e305]:
+            - img [ref=f11e306]
+        - paragraph [ref=f11e309]: Kuma can be wrong · not financial advice
+  - button "Open Next.js Dev Tools" [ref=f11e10] [cursor=pointer]:
+    - img [ref=f11e11]
+  - alert [ref=f11e14]

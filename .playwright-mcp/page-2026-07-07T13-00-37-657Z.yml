@@ -1,0 +1,161 @@
+- generic [ref=f11e1]:
+  - generic [ref=f11e15]:
+    - complementary [ref=f11e16]:
+      - button "Kumami World WORLD" [ref=f11e18] [cursor=pointer]:
+        - generic [ref=f11e19]:
+          - img "Kumami World" [ref=f11e20]
+          - generic [ref=f11e21]: WORLD
+        - img [ref=f11e22]
+      - link "About Kumami" [ref=f11e25] [cursor=pointer]:
+        - /url: /world/about
+        - img [ref=f11e26]
+        - generic [ref=f11e29]: About Kumami
+      - navigation [ref=f11e30]:
+        - generic [ref=f11e653]:
+          - generic [ref=f11e654]: Discover
+          - link "News Portal" [ref=f11e655] [cursor=pointer]:
+            - /url: /world/news
+            - img [ref=f11e656]
+            - generic [ref=f11e660]: News Portal
+          - link "Education" [ref=f11e661] [cursor=pointer]:
+            - /url: /world/education
+            - img [ref=f11e662]
+            - generic [ref=f11e665]: Education
+          - link "Blogs" [ref=f11e666] [cursor=pointer]:
+            - /url: /world/blogs
+            - img [ref=f11e667]
+            - generic [ref=f11e670]: Blogs
+        - generic [ref=f11e671]:
+          - generic [ref=f11e672]: Explore
+          - link "AI Labs" [ref=f11e673] [cursor=pointer]:
+            - /url: /world/ailabs
+            - img [ref=f11e674]
+            - generic [ref=f11e676]: AI Labs
+          - link "Games" [ref=f11e677] [cursor=pointer]:
+            - /url: /world/games
+            - img [ref=f11e678]
+            - generic [ref=f11e681]: Games
+      - link "Andrew Andrew Beginner" [ref=f11e682] [cursor=pointer]:
+        - /url: /world/profile
+        - img "Andrew" [ref=f11e63]
+        - generic [ref=f11e64]:
+          - generic [ref=f11e65]: Andrew
+          - generic [ref=f11e66]: Beginner
+    - generic [ref=f11e67]:
+      - banner [ref=f11e68]:
+        - navigation "Breadcrumb" [ref=f11e69]:
+          - generic [ref=f11e70]: World
+          - img [ref=f11e71]
+          - generic [ref=f11e73]: News Portal
+        - generic [ref=f11e74]:
+          - button "Toggle Kuma AI panel" [ref=f11e75] [cursor=pointer]:
+            - img [ref=f11e76]
+          - generic [ref=f11e92]:
+            - button "Beginner" [active] [ref=f11e94] [cursor=pointer]:
+              - generic [ref=f11e95]: Beginner
+            - button "Advanced" [ref=f11e96] [cursor=pointer]:
+              - img [ref=f11e97]
+              - generic [ref=f11e99]: Advanced
+            - button "Pro" [ref=f11e100] [cursor=pointer]:
+              - img [ref=f11e101]
+              - generic [ref=f11e103]: Pro
+      - generic [ref=f11e683]:
+        - generic [ref=f11e684]:
+          - heading "News Portal" [level=1] [ref=f11e685]
+          - paragraph [ref=f11e686]: Latest crypto, Web3 & finance news — live.
+        - generic [ref=f11e687]:
+          - link "All" [ref=f11e688] [cursor=pointer]:
+            - /url: /world/news
+          - link "Macro" [ref=f11e689] [cursor=pointer]:
+            - /url: /world/news?category=Macro
+          - link "Markets" [ref=f11e690] [cursor=pointer]:
+            - /url: /world/news?category=Markets
+          - link "Regulation" [ref=f11e691] [cursor=pointer]:
+            - /url: /world/news?category=Regulation
+          - link "Security" [ref=f11e692] [cursor=pointer]:
+            - /url: /world/news?category=Security
+          - link "Trading" [ref=f11e693] [cursor=pointer]:
+            - /url: /world/news?category=Trading
+          - link "Web3" [ref=f11e694] [cursor=pointer]:
+            - /url: /world/news?category=Web3
+          - link "On-chain" [ref=f11e695] [cursor=pointer]:
+            - /url: /world/news?category=On-chain
+          - link "Learn" [ref=f11e696] [cursor=pointer]:
+            - /url: /world/news?category=Learn
+        - link "asdf Tech asdf andrewblaze39@gmail.com Jun 8" [ref=f11e697] [cursor=pointer]:
+          - /url: /world/news/P0TjfowIeVfVm4MVNs3V
+          - img "asdf" [ref=f11e699]
+          - generic [ref=f11e701]:
+            - generic [ref=f11e703]: Tech
+            - heading "asdf" [level=2] [ref=f11e704]
+            - generic [ref=f11e705]:
+              - generic [ref=f11e706]: andrewblaze39@gmail.com
+              - generic [ref=f11e707]: Jun 8
+        - generic [ref=f11e709]:
+          - heading "Headlines" [level=3] [ref=f11e710]
+          - generic [ref=f11e711]:
+            - link "Visa and Mastercard withdrawal services have been temporarily halted for Ukrainian Binance users Visa and Mastercard withdrawal services have been temporarily halted for Ukrainian Binance users News Dec 31, 2025" [ref=f11e712] [cursor=pointer]:
+              - /url: /world/news/6erwxbjJUaAGJukRYMZ9
+              - img "Visa and Mastercard withdrawal services have been temporarily halted for Ukrainian Binance users" [ref=f11e714]
+              - generic [ref=f11e715]:
+                - heading "Visa and Mastercard withdrawal services have been temporarily halted for Ukrainian Binance users" [level=4] [ref=f11e716]
+                - generic [ref=f11e717]:
+                  - generic [ref=f11e718]: News
+                  - generic [ref=f11e719]: Dec 31, 2025
+            - link "asdf asdf Tech Dec 31, 2025" [ref=f11e720] [cursor=pointer]:
+              - /url: /world/news/D3lmAH1glwYtxlUX5SWt
+              - img "asdf" [ref=f11e722]
+              - generic [ref=f11e723]:
+                - heading "asdf" [level=4] [ref=f11e724]
+                - generic [ref=f11e725]:
+                  - generic [ref=f11e726]: Tech
+                  - generic [ref=f11e727]: Dec 31, 2025
+            - link "asd Tech Dec 15, 2025" [ref=f11e728] [cursor=pointer]:
+              - /url: /world/news/x3yXxxJ2HbrbEmDb8toJ
+              - generic [ref=f11e729]:
+                - heading "asd" [level=4] [ref=f11e730]
+                - generic [ref=f11e731]:
+                  - generic [ref=f11e732]: Tech
+                  - generic [ref=f11e733]: Dec 15, 2025
+            - link "Test - Quick Crypto Brief — June 21, 2025 Test - Quick Crypto Brief — June 21, 2025 News Aug 9, 2025" [ref=f11e734] [cursor=pointer]:
+              - /url: /world/news/03qQyGr0hOsaY2wBpvS9
+              - img "Test - Quick Crypto Brief — June 21, 2025" [ref=f11e736]
+              - generic [ref=f11e737]:
+                - heading "Test - Quick Crypto Brief — June 21, 2025" [level=4] [ref=f11e738]
+                - generic [ref=f11e739]:
+                  - generic [ref=f11e740]: News
+                  - generic [ref=f11e741]: Aug 9, 2025
+            - 'link "Test - 🚨 Breaking Today: Trump Orders U.S. Airstrikes on Iranian Nuclear Sites Test - 🚨 Breaking Today: Trump Orders U.S. Airstrikes on Iranian Nuclear Sites Trending Aug 9, 2025" [ref=f11e742] [cursor=pointer]':
+              - /url: /world/news/WmzwkciPWqQbBzoDcsr2
+              - 'img "Test - 🚨 Breaking Today: Trump Orders U.S. Airstrikes on Iranian Nuclear Sites" [ref=f11e744]'
+              - generic [ref=f11e745]:
+                - 'heading "Test - 🚨 Breaking Today: Trump Orders U.S. Airstrikes on Iranian Nuclear Sites" [level=4] [ref=f11e746]'
+                - generic [ref=f11e747]:
+                  - generic [ref=f11e748]: Trending
+                  - generic [ref=f11e749]: Aug 9, 2025
+    - generic [ref=f11e247]:
+      - generic [ref=f11e248]:
+        - img [ref=f11e250]
+        - generic [ref=f11e268]:
+          - generic [ref=f11e269]: Kuma AI
+          - emphasis [ref=f11e270]: On-chain copilot · always on
+        - button [ref=f11e271] [cursor=pointer]:
+          - img [ref=f11e272]
+      - generic [ref=f11e277]:
+        - img [ref=f11e278]
+        - paragraph [ref=f11e296]: Ask anything about crypto
+        - generic [ref=f11e297]:
+          - button [ref=f11e298] [cursor=pointer]: What's driving Bitcoin's price today?
+          - button [ref=f11e299] [cursor=pointer]: Explain Layer 2 scaling in simple terms
+          - button [ref=f11e300] [cursor=pointer]: Which altcoins have the most momentum?
+          - button [ref=f11e301] [cursor=pointer]: How do I read a crypto market cap chart?
+      - generic [ref=f11e302]:
+        - generic [ref=f11e303]:
+          - textbox [ref=f11e304]:
+            - /placeholder: Ask Kuma anything…
+          - button [disabled] [ref=f11e305]:
+            - img [ref=f11e306]
+        - paragraph [ref=f11e309]: Kuma can be wrong · not financial advice
+  - button "Open Next.js Dev Tools" [ref=f11e10] [cursor=pointer]:
+    - img [ref=f11e11]
+  - alert [ref=f11e14]: News — Kumami World

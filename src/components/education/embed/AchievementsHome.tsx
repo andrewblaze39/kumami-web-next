@@ -60,7 +60,7 @@ function AchievementCard({ phase }: { phase: typeof PHASES[number] }) {
           alignItems: 'center',
           justifyContent: 'center',
           fontSize: 28,
-          color: earned ? '#06241a' : 'var(--muted-2)',
+          color: earned ? '#00272a' : 'var(--muted-2)',
           flexShrink: 0,
           position: 'relative',
           zIndex: 1,
