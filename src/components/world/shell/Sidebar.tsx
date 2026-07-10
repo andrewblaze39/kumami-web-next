@@ -377,6 +377,9 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
               priority
             />
           </span>
+          <span className={`w-mode-badge w-mode-badge-${mode}`}>
+            {mode === 'pro' ? 'PRO' : mode === 'advanced' ? 'ADV' : 'FREE'}
+          </span>
           <svg className="w-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
             <path d="m6 9 6 6 6-6" />
           </svg>

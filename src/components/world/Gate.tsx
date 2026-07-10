@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import KumaBear from './KumaBear';
 import { SignUpModal, LogInModal } from './AuthModals';
 
 type Modal = 'signup' | 'login' | null;
@@ -26,8 +25,16 @@ export default function Gate() {
           />
         </span>
 
-        {/* Kuma bear mascot */}
-        <KumaBear className="w-gate-bear" width={150} height={150} />
+        {/* Wordmark logo */}
+        <Image
+          className="w-gate-bear"
+          src="/logo-kumami-final.png"
+          alt="Kumami World"
+          width={220}
+          height={80}
+          style={{ height: 80, width: 'auto' }}
+          priority
+        />
 
         {/* Wordmark */}
         <h1>Kumami World</h1>
