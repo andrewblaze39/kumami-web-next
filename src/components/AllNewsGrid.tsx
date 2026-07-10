@@ -385,7 +385,7 @@ export default function AllNewsGrid() {
               return (
                 <Link
                   key={article.id}
-                  href={`/news/${article.id}`}
+                  href={`/world/news/${article.id}`}
                   ref={isLast ? lastCardRef : null}
                   className="flex flex-row rounded-[10px] overflow-hidden bg-[#1a1a1a]/80 border border-white/10 transition-all hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(0,0,0,0.2)] no-underline group relative"
                 >

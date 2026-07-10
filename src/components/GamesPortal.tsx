@@ -123,7 +123,7 @@ function getGameImage(game: Game): string | undefined {
 }
 
 function gameDetailUrl(title: string | undefined): string {
-  return `/game-details?name=${encodeURIComponent(title ?? '')}`
+  return `/world/games/details?name=${encodeURIComponent(title ?? '')}`
 }
 
 /* ------------------------------------------------------------------ */
@@ -297,7 +297,7 @@ export default function GamesPortal() {
 
   /* ---- Open game detail ---- */
   const openGame = (title: string | undefined) => {
-    window.open(gameDetailUrl(title), '_blank')
+    router.push(gameDetailUrl(title))
   }
 
   /* ---------------------------------------------------------------- */
@@ -307,7 +307,7 @@ export default function GamesPortal() {
     return (
       <div
         className="min-h-screen text-white font-sans flex justify-center items-center"
-        style={{ background: '#050608' }}
+        style={{ background: 'linear-gradient(180deg, #000 0%, #0a1a1a 40%, #102425 75%, #000 100%)' }}
       >
         <div className="flex flex-col items-center">
           <Loader className="h-16 w-16 text-[#96EDD6] animate-spin" />
@@ -323,7 +323,7 @@ export default function GamesPortal() {
   return (
     <div
       className="min-h-screen text-white font-sans"
-      style={{ background: 'linear-gradient(135deg, #102425 0%, #050608 100%)' }}
+      style={{ background: 'linear-gradient(180deg, #000 0%, #0a1a1a 40%, #102425 75%, #000 100%)' }}
     >
       {/* ============================================================ */}
       {/*  HERO — Mobile Carousel                                       */}
@@ -498,8 +498,7 @@ export default function GamesPortal() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center justify-end w-full relative">
             <div
-              className="flex items-center rounded-full px-4 py-2 max-w-[320px] w-full"
-              style={{ background: 'rgba(46,97,98,0.6)' }}
+              className="flex items-center rounded-full px-4 py-2 max-w-[320px] w-full border border-white/[0.12] bg-white/[0.06]"
             >
               <Search className="w-5 h-5 text-white/80 mr-2 shrink-0" />
               <input
@@ -522,7 +521,7 @@ export default function GamesPortal() {
                 className="absolute right-0 top-[calc(100%+8px)] z-[9999]"
                 ref={filterRef}
               >
-                <div className="bg-[#3A7573] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.15)] p-3 w-[200px] text-white">
+                <div className="bg-[#141a1a] border border-white/[0.12] rounded-[10px] shadow-[0_8px_24px_rgba(0,0,0,0.45)] p-3 w-[200px] text-white">
                   <div className="font-bold text-base mb-1.5">Platform</div>
                   {(['PC', 'Website', 'Mobile App'] as const).map((platform) => (
                     <label
@@ -566,7 +565,7 @@ export default function GamesPortal() {
           <h2 className="text-xl md:text-2xl font-bold">All Games</h2>
           <button
             className="rounded-lg px-4 py-1.5 md:px-6 md:py-2.5 text-xs md:text-sm transition-all duration-300 ease-in-out border border-[#96EDD6] bg-transparent text-[#96EDD6] hover:bg-[#96EDD6] hover:text-[#102425]"
-            onClick={() => router.push('/all-games')}
+            onClick={() => router.push('/world/games/all')}
           >
             View More
           </button>

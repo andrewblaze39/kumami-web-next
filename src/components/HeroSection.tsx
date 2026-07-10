@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 
 export default function HeroSection() {
   return (
@@ -25,8 +26,7 @@ export default function HeroSection() {
                   Access real-time news, AI research, crypto insight, education, interactive games and all related to Web3 in one seamless platform
                 </p>
                 <div className="hero-buttons">
-                  {/* Scrolls to the ecosystem section below — the hero already lives on the About page */}
-                  <a href="#kumami-ecosystem" className="btn-outline">Learn More</a>
+                  <Link href="/world/about" className="btn-outline">Learn More</Link>
                 </div>
               </div>
             </div>

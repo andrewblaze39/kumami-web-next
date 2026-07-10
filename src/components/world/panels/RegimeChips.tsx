@@ -1,17 +1,20 @@
 'use client';
 
+import type { CSSProperties } from 'react';
 import type { ConsolePayload } from '@/lib/market/contracts';
-import { formatPrice, formatChange, formatConfidence } from './format';
+import { formatPrice, formatChange } from './format';
+import { coinC } from './console-ui';
 
 type Props = {
   chips: ConsolePayload['regimeChips'];
   loading?: boolean;
 };
 
-const REGIME_CLASS: Record<string, string> = {
-  Bullish: 'w-regime-bullish',
-  Neutral: 'w-regime-neutral',
-  Bearish: 'w-regime-bearish',
+// Reference: --rc set per regime — bull / bear / neutral (#f0b65e)
+const REGIME_RC: Record<string, string> = {
+  Bullish: 'var(--bull)',
+  Bearish: 'var(--bear)',
+  Neutral: '#f0b65e',
 };
 
 export default function RegimeChips({ chips, loading }: Props) {
@@ -38,36 +41,28 @@ export default function RegimeChips({ chips, loading }: Props) {
       {chips.map(chip => (
         <div
           key={chip.asset}
-          className={`w-regime-chip ${REGIME_CLASS[chip.regime] ?? 'w-regime-neutral'}`}
+          className="w-regime-chip"
+          style={{ '--rc': REGIME_RC[chip.regime] ?? '#f0b65e' } as CSSProperties}
           role="listitem"
-          aria-label={`${chip.asset}: ${chip.regime}, price ${formatPrice(chip.price)}, 24h ${formatChange(chip.change24h)}, confidence ${formatConfidence(chip.confidence)}`}
+          aria-label={`${chip.asset}: ${chip.regime}, price $${formatPrice(chip.price)}, 24h ${formatChange(chip.change24h)}, AI confidence ${chip.confidence.toFixed(2)}`}
         >
-          <div className="w-regime-chip-top">
-            <span className="w-regime-asset">{chip.asset}</span>
-            <span
-              className={`w-regime-badge w-regime-badge-${chip.regime.toLowerCase()}`}
-              title={`Regime: ${chip.regime} — confidence ${formatConfidence(chip.confidence)}`}
-            >
-              {chip.regime}
-            </span>
-          </div>
-          <div className="w-regime-chip-bottom">
-            <span className="w-regime-price" title={`Current price: $${formatPrice(chip.price)}`}>
-              ${formatPrice(chip.price)}
+          <div className="w-rc-top">
+            <span className="w-sym">
+              <span className="w-coin" style={{ background: coinC(chip.asset) }}>
+                {chip.asset[0]}
+              </span>
+              {chip.asset}
             </span>
             <span
-              className={`w-regime-change ${chip.change24h >= 0 ? 'w-bull' : 'w-bear'}`}
+              className={`w-chg ${chip.change24h >= 0 ? 'w-bull' : 'w-bear'}`}
               title="24h price change"
             >
               {formatChange(chip.change24h)}
             </span>
           </div>
-          <div className="w-regime-conf-bar" aria-hidden="true">
-            <div
-              className="w-regime-conf-fill"
-              style={{ width: `${Math.round(chip.confidence * 100)}%` }}
-              title={`Confidence: ${formatConfidence(chip.confidence)}`}
-            />
+          <div className="w-reg-lbl">{chip.regime}</div>
+          <div className="w-reg-conf">
+            AI conf {chip.confidence.toFixed(2)} · ${formatPrice(chip.price)}
           </div>
         </div>
       ))}

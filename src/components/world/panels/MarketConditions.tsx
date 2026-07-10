@@ -1,17 +1,17 @@
 'use client';
 
 import type { ConsolePayload } from '@/lib/market/contracts';
-import { formatUsd, formatChange, formatConfidence, relativeTime, verdictColorClass } from './format';
+import { formatUsd, formatChange } from './format';
+import { WIcon } from './console-ui';
 
-// Fear & Greed bar color token map.
-// FearGreedClassification.color → CSS custom property used for the bar fill.
-// 'lime' maps to --accent (teal-green) as a mid-positive tone; others map directly.
-const FG_BAR_COLOR: Record<string, string> = {
-  red:   'var(--danger)',
-  amber: 'var(--amber)',
-  grey:  'var(--muted)',
-  lime:  'var(--muted-2)',
-  green: 'var(--bull)',
+// Verdict colour → text tone for the big regime label (reference .mc-regime .bull)
+const REGIME_TONE: Record<string, string> = {
+  green: 'w-bull',
+  'grey-green': 'w-bull',
+  grey: 'w-muted',
+  amber: 'w-flat',
+  'grey-red': 'w-bear',
+  red: 'w-bear',
 };
 
 type Props = {
@@ -19,168 +19,100 @@ type Props = {
 };
 
 export default function MarketConditions({ data }: Props) {
-  const { verdict, tags, confidence, interpretation, updatedAt, fearGreed, fearGreedLabel, fearGreedColor, tiles } = data;
+  const { verdict, confidence, fearGreed, fearGreedLabel, tiles } = data;
 
   return (
-    <section
-      className={`w-panel w-panel-market-conditions w-panel-accent`}
-      aria-label="Market Conditions"
-    >
-      {/* Header row */}
-      <div className="w-panel-header">
-        <div className="w-panel-header-left">
-          <span className="w-panel-eyebrow">Market Conditions</span>
-          <div className="w-panel-verdict-row">
-            <span
-              className={`w-verdict-chip ${verdictColorClass(verdict.color)}`}
-              aria-label={`Verdict: ${verdict.label}`}
-            >
-              {verdict.label}
-            </span>
-            {tags.map((tag, i) => (
-              <span
-                key={i}
-                className={`w-tag-chip ${verdictColorClass(tag.color)}`}
-              >
-                {tag.label}
-              </span>
-            ))}
-            {confidence !== undefined && (
-              <span
-                className="w-confidence-badge"
-                title={`Confidence score: ${formatConfidence(confidence)}`}
-                aria-label={`Confidence ${formatConfidence(confidence)}`}
-              >
-                {formatConfidence(confidence)} conf.
-              </span>
-            )}
+    <section className="w-apanel w-span-2 w-mc-panel" aria-label="Market Conditions">
+      <div className="w-apanel-h">
+        <span className="w-ttl">
+          <span className="w-ic"><WIcon name="spark" /></span>
+          {' '}Market Conditions <span className="w-sub">· Today&apos;s Brief</span>
+        </span>
+        <span className="w-sub">AI-fused regime read</span>
+      </div>
+
+      <div className="w-mc-hero">
+        {/* Left — global regime + fear & greed */}
+        <div className="w-mc-left">
+          <div className="w-mc-tag">Global Regime</div>
+          <div className="w-mc-regime">
+            <span className={REGIME_TONE[verdict.color] ?? 'w-flat'}>{verdict.label}</span>
+          </div>
+          <div className="w-mc-conf">
+            AI confidence <b>{confidence !== undefined ? confidence.toFixed(2) : '—'}</b> · fused
+            from on-chain flow, macro &amp; sentiment
+          </div>
+          <div
+            className="w-senti-bar"
+            role="progressbar"
+            aria-valuenow={fearGreed}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Fear and greed: ${fearGreed}`}
+          >
+            <span className="w-mk" style={{ left: `${fearGreed}%` }} />
+          </div>
+          <div className="w-senti-scale">
+            <span>Extreme Fear</span>
+            <span>Neutral</span>
+            <span>Extreme Greed</span>
+          </div>
+          <div className="w-mc-fearval">
+            <b>{fearGreed}</b>
+            <span>{fearGreedLabel}</span>
           </div>
         </div>
-        <time className="w-panel-ts" dateTime={updatedAt} title={updatedAt}>
-          Updated {relativeTime(updatedAt)}
-        </time>
-      </div>
 
-      {/* Fear & Greed bar */}
-      <div className="w-fg-bar-wrap">
-        <div className="w-fg-labels">
-          <span title="Fear & Greed Index (0 = Extreme Fear, 100 = Extreme Greed)">
-            Fear &amp; Greed
-          </span>
-          <span className="w-fg-value" aria-label={`Fear and greed score: ${fearGreed}`}>
-            {fearGreed} — {fearGreedLabel}
-          </span>
-        </div>
-        <div
-          className="w-fg-bar"
-          role="progressbar"
-          aria-valuenow={fearGreed}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label={`Fear and greed: ${fearGreed}`}
-        >
-          <div
-            className="w-fg-fill"
-            style={{
-              width: `${fearGreed}%`,
-              background: FG_BAR_COLOR[fearGreedColor] ?? 'var(--muted)',
-            }}
-          />
-        </div>
-      </div>
+        {/* Right — macro tiles */}
+        <div className="w-mc-right">
+          <div className="w-macro-tile">
+            <div className="w-ml"><WIcon name="layers" /> BTC ETF Net Flow</div>
+            <div className="w-mv">{formatUsd(tiles.etfFlow7d.usd)}</div>
+            <div
+              className={`w-mc-chg ${tiles.etfFlow7d.usd >= 0 ? 'w-bull' : 'w-bear'}`}
+              title="Change vs previous 7-day period"
+            >
+              {formatChange(tiles.etfFlow7d.pctVsPrev)} · vs prior 7d
+            </div>
+          </div>
 
-      {/* Metric tiles */}
-      <div className="w-tiles">
-        {/* ETF Flow 7d — sign determines bull/bear (pure formatting, not judgment) */}
-        <div className="w-tile">
-          <span
-            className="w-tile-label"
-            title="Net ETF inflows/outflows over the past 7 days"
-          >
-            ETF Flow 7d
-          </span>
-          <span className={`w-tile-value ${tiles.etfFlow7d.usd >= 0 ? 'w-bull' : 'w-bear'}`}>
-            {formatUsd(tiles.etfFlow7d.usd)}
-          </span>
-          <span
-            className={`w-tile-change ${tiles.etfFlow7d.pctVsPrev >= 0 ? 'w-bull' : 'w-bear'}`}
-            title="Change vs previous 7-day period"
-          >
-            {formatChange(tiles.etfFlow7d.pctVsPrev)} vs prior week
-          </span>
-        </div>
+          <div className="w-macro-tile">
+            <div className="w-ml"><WIcon name="bolt" /> DXY (Dollar Index)</div>
+            {tiles.dxy === null ? (
+              <>
+                <div className="w-mv w-muted">—</div>
+                <div className="w-mc-chg w-muted">external source pending</div>
+              </>
+            ) : (
+              <>
+                <div className="w-mv">{tiles.dxy.value.toFixed(1)}</div>
+                <div className={`w-mc-chg ${tiles.dxy.dayChange >= 0 ? 'w-bull' : 'w-bear'}`}>
+                  {formatChange(tiles.dxy.dayChange)} · today
+                </div>
+              </>
+            )}
+          </div>
 
-        {/* DXY */}
-        <div className="w-tile">
-          <span
-            className="w-tile-label"
-            title="US Dollar Index — measures USD strength against a basket of major currencies"
-          >
-            DXY
-          </span>
-          {tiles.dxy === null ? (
-            <>
-              <span className="w-tile-value w-muted">—</span>
-              <span className="w-tile-change w-muted w-tile-pending">external source pending</span>
-            </>
-          ) : (
-            <>
-              <span className="w-tile-value">{tiles.dxy.value.toFixed(2)}</span>
-              <span
-                className={`w-tile-change ${tiles.dxy.dayChange >= 0 ? 'w-bull' : 'w-bear'}`}
-                title="Day-over-day change"
-              >
-                {formatChange(tiles.dxy.dayChange)} today
-              </span>
-            </>
-          )}
-        </div>
+          <div className="w-macro-tile">
+            <div className="w-ml"><WIcon name="flame" /> On-Chain Bias</div>
+            <div className="w-mv">{tiles.onChainBias.pctLong.toFixed(0)}% Long</div>
+            <div
+              className={`w-mc-chg ${tiles.onChainBias.pctLong >= 50 ? 'w-bull' : 'w-bear'}`}
+              title="Long/short ratio"
+            >
+              Longs outweigh shorts {tiles.onChainBias.ratio.toFixed(1)} : 1
+            </div>
+          </div>
 
-        {/* On-Chain Bias — neutral coloring; pctLong >= 50 is sign-based formatting only */}
-        <div className="w-tile">
-          <span
-            className="w-tile-label"
-            title="Percentage of open positions that are long vs short across major exchanges"
-          >
-            On-Chain Bias
-          </span>
-          <span className="w-tile-value">
-            {tiles.onChainBias.pctLong.toFixed(1)}% Long
-          </span>
-          <span
-            className="w-tile-change w-muted"
-            title="Long/short ratio"
-          >
-            L/S ratio {tiles.onChainBias.ratio.toFixed(2)}
-          </span>
-        </div>
-
-        {/* Liquidations 24h — neutral coloring; pctVsAvg7d sign shown as +/- only */}
-        <div className="w-tile">
-          <span
-            className="w-tile-label"
-            title="Total value of liquidated positions in the last 24 hours"
-          >
-            Liq. 24h
-          </span>
-          <span className="w-tile-value w-bear">
-            {formatUsd(tiles.liq24h.totalUsd)}
-          </span>
-          <span
-            className="w-tile-change w-muted"
-            title="Change vs 7-day average liquidation volume"
-          >
-            {formatChange(tiles.liq24h.pctVsAvg7d)} vs 7d avg
-          </span>
+          <div className="w-macro-tile">
+            <div className="w-ml"><WIcon name="shield" /> Total Liquidations 24h</div>
+            <div className="w-mv">{formatUsd(tiles.liq24h.totalUsd)}</div>
+            <div className="w-mc-chg w-bear" title="Change vs 7-day average liquidation volume">
+              {formatChange(tiles.liq24h.pctVsAvg7d)} vs avg
+            </div>
+          </div>
         </div>
       </div>
-
-      {/* Interpretation */}
-      {interpretation && (
-        <p className="w-panel-read" aria-label="Market interpretation">
-          {interpretation}
-        </p>
-      )}
     </section>
   );
 }

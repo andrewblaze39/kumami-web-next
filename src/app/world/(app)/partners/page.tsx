@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import PartnersGrid from '@/components/PartnersGrid';
+import PartnerPortal from '@/components/PartnerPortal';
 
 export const metadata: Metadata = {
   title: 'Partners — Kumami World',
@@ -11,6 +12,7 @@ export default function WorldPartnersPage() {
   return (
     <div className="w-legacy-embed w-legacy-fullbleed">
       <PartnersGrid />
+      <PartnerPortal />
     </div>
   );
 }

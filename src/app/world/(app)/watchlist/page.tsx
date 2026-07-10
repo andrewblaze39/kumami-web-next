@@ -3,347 +3,244 @@
 /**
  * /world/watchlist — Watchlist page.
  *
- * Two sections:
- *   1. My Watchlist  — user-curated, stored in Firestore watchlists/{uid}
- *   2. Radar Watchlist — auto-detected top-4, read-only
- *
- * GET /api/market/watchlist returns:
- *   { slots: number|null, assets: WatchlistAsset[], curatedSymbols: string[], curatedAssets: WatchlistAsset[] }
- *
- * POST/DELETE /api/market/watchlist manages curated symbols server-side.
- *
- * Row format: price, 24h change, regime tag, ≤2 action-tag chips. No LLM text.
+ * Pixel-parity port of the reference mockup's R.watchlist renderer,
+ * including its placeholder data (WATCH_PX / COIN_NAME / ADV.radar →
+ * bullishWatch()). Deliberate deviations only:
+ *   - reference mint #5ee9a8 / var(--mint) → var(--accent) turquoise
+ *   - KM.setMode('pro') → world mode context setMode('pro')
  */
 
-import { useState, useCallback } from 'react';
-import type { WatchlistApiResponse } from '@/lib/market/contracts';
-import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
-import { useAuth } from '@/contexts/AuthContext';
-import { formatPrice, formatChange, relativeTime } from '@/components/world/panels/format';
-import Link from 'next/link';
+import { useId } from 'react';
+import { WIcon, coinC } from '@/components/world/panels/console-ui';
+import { useWorldMode } from '@/contexts/WorldModeContext';
 
-// Convenience alias for the asset row shape
-type WatchlistAsset = WatchlistApiResponse['assets'][number];
+/* ------------------------------------------------------------------ */
+/* Placeholder data — ported verbatim from the reference mockup        */
+/* ------------------------------------------------------------------ */
 
-// ---------------------------------------------------------------------------
-// Error-code → friendly message mapping (Issue #9)
-// ---------------------------------------------------------------------------
+type WatchPx = {
+  price: string;
+  chg: string;
+  dir: 'up' | 'down';
+  spark: number[];
+};
 
-function friendlyAddError(code: string, atLimit: boolean): string {
-  if (code === 'slots_exceeded' || atLimit) {
-    return 'Your watchlist is full. Upgrade to PRO for unlimited slots.';
-  }
-  if (code === 'invalid_symbol') {
-    return "That asset isn't supported yet.";
-  }
-  if (code === 'Network error — please try again.') {
-    return code; // already human-readable
-  }
-  return 'Something went wrong — please try again.';
+const WATCH_PX: Record<string, WatchPx> = {
+  BTC: { price: '$70,418', chg: '+2.1%', dir: 'up', spark: [68, 69, 68.5, 70, 69.6, 70.2, 70.4] },
+  ETH: { price: '$3,642', chg: '+1.4%', dir: 'up', spark: [3.55, 3.58, 3.6, 3.59, 3.62, 3.63, 3.642] },
+  SOL: { price: '$184.2', chg: '−0.8%', dir: 'down', spark: [186, 185, 184.5, 185.2, 184, 183.6, 184.2] },
+  GOLD: { price: '$3,431', chg: '+1.2%', dir: 'up', spark: [3.38, 3.4, 3.41, 3.4, 3.42, 3.43, 3.431] },
+  LINK: { price: '$18.94', chg: '+2.8%', dir: 'up', spark: [18.2, 18.4, 18.3, 18.6, 18.7, 18.8, 18.94] },
+  BNB: { price: '$604.1', chg: '+0.6%', dir: 'up', spark: [600, 601, 603, 602, 603.5, 604, 604.1] },
+  XRP: { price: '$0.612', chg: '−1.9%', dir: 'down', spark: [0.63, 0.625, 0.62, 0.618, 0.615, 0.613, 0.612] },
+};
+
+const COIN_NAME: Record<string, string> = {
+  BTC: 'Bitcoin',
+  ETH: 'Ethereum',
+  SOL: 'Solana',
+  GOLD: 'Gold (RWA)',
+  LINK: 'Chainlink',
+  BNB: 'BNB Chain',
+  XRP: 'XRP',
+  DOGE: 'Dogecoin',
+  AVAX: 'Avalanche',
+  HYPE: 'Hyperliquid',
+};
+
+/* Flow Radar feed (reference ADV.radar) — source for bullishWatch() */
+type RadarEntry = { dir: 'in' | 'out' | 'acc'; tag: string; asset: string };
+
+const RADAR: RadarEntry[] = [
+  { dir: 'in', tag: 'Whale Deposit', asset: 'BTC' },
+  { dir: 'out', tag: 'Liquidation', asset: 'ETH' },
+  { dir: 'acc', tag: 'Accumulation', asset: 'SOL' },
+  { dir: 'in', tag: 'Whale Deposit', asset: 'GOLD' },
+  { dir: 'out', tag: 'Withdrawal', asset: 'DOGE' },
+  { dir: 'acc', tag: 'Smart Money', asset: 'LINK' },
+  { dir: 'in', tag: 'Whale Deposit', asset: 'BNB' },
+  { dir: 'acc', tag: 'Accumulation', asset: 'XRP' },
+  { dir: 'out', tag: 'Withdrawal', asset: 'BTC' },
+  { dir: 'in', tag: 'Whale Deposit', asset: 'ETH' },
+];
+
+type WatchRow = WatchPx & { sym: string; name: string; signal: string };
+
+/** Reference bullishWatch(): up to 4 unique 'in'/'acc' radar assets. */
+function bullishWatch(): WatchRow[] {
+  const seen: Record<string, 1> = {};
+  const out: WatchRow[] = [];
+  RADAR.forEach(x => {
+    if ((x.dir === 'in' || x.dir === 'acc') && !seen[x.asset] && WATCH_PX[x.asset]) {
+      seen[x.asset] = 1;
+      const p = WATCH_PX[x.asset];
+      out.push({ sym: x.asset, name: COIN_NAME[x.asset] ?? x.asset, ...p, signal: x.tag });
+    }
+  });
+  return out.slice(0, 4);
 }
 
-// ---------------------------------------------------------------------------
-// Allowed symbols (for Add dropdown — mirrors server allowlist)
-// ---------------------------------------------------------------------------
+/* ------------------------------------------------------------------ */
+/* Sparkline — reference sparkline() helper (same viewBox/stroke math) */
+/* ------------------------------------------------------------------ */
 
-const ALLOWED_SYMBOLS = [
-  'BTC', 'ETH', 'SOL', 'BNB', 'AVAX', 'ARB', 'DOGE', 'LINK', 'APT', 'SUI',
-] as const;
-
-// ---------------------------------------------------------------------------
-// Colour helpers
-// ---------------------------------------------------------------------------
-
-const REGIME_CLASSES: Record<WatchlistAsset['regime'], string> = {
-  'Trending Up':   'w-wl-regime w-wl-regime-up',
-  'Trending Down': 'w-wl-regime w-wl-regime-down',
-  'Coiling':       'w-wl-regime w-wl-regime-coil',
-  'Ranging':       'w-wl-regime w-wl-regime-range',
-};
-
-const VERDICT_CLASSES: Record<string, string> = {
-  green:      'w-verdict-green',
-  'grey-green': 'w-verdict-grey-green',
-  grey:       'w-verdict-grey',
-  amber:      'w-verdict-amber',
-  'grey-red': 'w-verdict-grey-red',
-  red:        'w-verdict-red',
-};
-
-// ---------------------------------------------------------------------------
-// Asset row
-// ---------------------------------------------------------------------------
-
-function AssetRow({ asset, onRemove }: { asset: WatchlistAsset; onRemove?: () => void }) {
-  const changePos = asset.change24h >= 0;
+function Sparkline({
+  pts,
+  color,
+  w = 130,
+  h = 34,
+}: {
+  pts: number[];
+  color: string;
+  w?: number;
+  h?: number;
+}) {
+  const id = useId();
+  const max = Math.max(...pts);
+  const min = Math.min(...pts);
+  const rng = max - min || 1;
+  const step = w / (pts.length - 1);
+  const xy = pts.map((p, i) => [i * step, h - ((p - min) / rng) * (h - 4) - 2]);
+  const line = xy.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  const area = `0,${h} ` + line + ` ${w},${h}`;
   return (
-    <div className="w-wl-row">
-      <div className="w-wl-row-asset">
-        <span className="w-wl-coin">{asset.asset.slice(0, 1)}</span>
-        <span className="w-wl-symbol">{asset.asset}</span>
-      </div>
-      <div className="w-wl-row-price">
-        <span className="w-wl-price">${formatPrice(asset.price)}</span>
-        <span className={`w-wl-change${changePos ? ' pos' : ' neg'}`}>
-          {formatChange(asset.change24h)}
-        </span>
-      </div>
-      <div className="w-wl-row-tags">
-        <span className={REGIME_CLASSES[asset.regime] ?? 'w-wl-regime'}>
-          {asset.regime}
-        </span>
-        {asset.actionTags.slice(0, 2).map((tag, i) => (
-          <span key={i} className={`w-wl-action-tag ${VERDICT_CLASSES[tag.color] ?? ''}`}>
-            {tag.label}
-          </span>
-        ))}
-      </div>
-      {onRemove && (
-        <button className="w-wl-remove" onClick={onRemove} aria-label={`Remove ${asset.asset}`}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M18 6 6 18M6 6l12 12" />
-          </svg>
-        </button>
-      )}
-    </div>
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      width={w}
+      height={h}
+      preserveAspectRatio="none"
+      style={{ display: 'block' }}
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity=".28" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polygon points={area} fill={`url(#${id})`} />
+      <polyline
+        points={line}
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Skeleton row
-// ---------------------------------------------------------------------------
-
-function SkeletonRow() {
-  return (
-    <div className="w-wl-row w-wl-row-skeleton" aria-hidden="true">
-      <div className="w-wl-row-asset">
-        <span className="w-skel" style={{ width: 28, height: 28, borderRadius: '50%' }} />
-        <span className="w-skel" style={{ width: 48, height: 18, borderRadius: 4 }} />
-      </div>
-      <div className="w-wl-row-price">
-        <span className="w-skel" style={{ width: 80, height: 18, borderRadius: 4 }} />
-        <span className="w-skel" style={{ width: 52, height: 16, borderRadius: 4 }} />
-      </div>
-      <div className="w-wl-row-tags">
-        <span className="w-skel" style={{ width: 90, height: 22, borderRadius: 6 }} />
-        <span className="w-skel" style={{ width: 80, height: 22, borderRadius: 6 }} />
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
+/* ------------------------------------------------------------------ */
+/* Page                                                                */
+/* ------------------------------------------------------------------ */
 
 export default function WatchlistPage() {
-  const { currentUser, userData } = useAuth();
-  const isPremium = userData?.isPremium === true;
-
-  const endpoint = useMarketEndpoint<WatchlistApiResponse>('/api/market/watchlist');
-  const data = endpoint.data;
-
-  const [addSymbol, setAddSymbol] = useState('');
-  const [addError, setAddError] = useState<string | null>(null);
-  const [isAdding, setIsAdding] = useState(false);
-  const [removingSymbol, setRemovingSymbol] = useState<string | null>(null);
-
-  // Slots: null = unlimited
-  const slots = data?.slots ?? null;
-  const curatedSymbols = data?.curatedSymbols ?? [];
-  const curatedCount = curatedSymbols.length;
-  const atLimit = slots !== null && curatedCount >= slots;
-
-  // Symbols not yet in the curated list (for Add dropdown)
-  const availableToAdd = ALLOWED_SYMBOLS.filter(s => !curatedSymbols.includes(s));
-
-  const getToken = useCallback(async () => {
-    if (!currentUser) throw new Error('Not authenticated');
-    return currentUser.getIdToken();
-  }, [currentUser]);
-
-  const handleAdd = async () => {
-    if (!addSymbol || isAdding) return;
-    setIsAdding(true);
-    setAddError(null);
-    try {
-      const token = await getToken();
-      const res = await fetch('/api/market/watchlist', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbol: addSymbol }),
-      });
-      if (res.status === 403) {
-        setAddError('slots_exceeded');
-      } else if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        setAddError((body as { error?: string }).error ?? 'unknown');
-      } else {
-        setAddSymbol('');
-        endpoint.refetch();
-      }
-    } catch {
-      setAddError('Network error — please try again.');
-    } finally {
-      setIsAdding(false);
-    }
-  };
-
-  const handleRemove = async (symbol: string) => {
-    if (removingSymbol) return;
-    setRemovingSymbol(symbol);
-    try {
-      const token = await getToken();
-      await fetch('/api/market/watchlist', {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbol }),
-      });
-      endpoint.refetch();
-    } catch {
-      // silent — refetch will re-sync
-    } finally {
-      setRemovingSymbol(null);
-    }
-  };
-
-  const isLoading = endpoint.status === 'loading';
-  const hasError  = endpoint.status === 'error' && !endpoint.data;
-
-  // Omit timestamp entirely — watchlist asset rows don't carry an updatedAt field
-  // and fabricating new Date() would show "just now" on every render.
+  const { setMode } = useWorldMode();
+  const bw = bullishWatch();
 
   return (
     <div className="w-content-inner w-watchlist">
+      {/* ── Page head ── */}
+      <div className="w-page-head">
+        <div className="w-ptag">Watchlist</div>
+        <h1>
+          <WIcon name="bookmark" /> Watchlist
+        </h1>
+        <p>
+          Auto-curated from the strongest <b style={{ color: 'var(--accent)' }}>bullish flow</b> on
+          your Flow Radar — the {bw.length} assets seeing the most whale inflow and accumulation
+          right now. Building your own custom list, price alerts and notes is part of{' '}
+          <b style={{ color: 'var(--purple)' }}>Pro</b>.
+        </p>
+      </div>
 
-      {/* ── Header ── */}
-      <div className="w-watchlist-head">
-        <div>
-          <h1 className="w-page-title">Watchlist</h1>
-          <p className="w-page-sub">Track your assets and smart-money signals.</p>
+      {/* ── Flow bar ── */}
+      <div className="w-wl-flowbar">
+        <WIcon name="flame" />
+        <span>Ranked by bullish on-chain flow · refreshes with the radar</span>
+        <span className="w-wl-auto">Auto</span>
+      </div>
+
+      {/* ── Table ── */}
+      <div className="w-wl-table">
+        <div className="w-wl-thead">
+          <span>Asset</span>
+          <span>Price</span>
+          <span className="w-h-24h">24h</span>
+          <span className="w-sig-col">Flow signal</span>
+          <span>7d</span>
+        </div>
+        {bw.map(w => (
+          <div key={w.sym} className="w-wl-trow">
+            <div className="w-wl-asset">
+              <span className="w-coin" style={{ background: coinC(w.sym) }}>
+                {w.sym[0]}
+              </span>
+              <span>
+                <b>{w.sym}</b>
+                <span>{w.name}</span>
+              </span>
+            </div>
+            <div>
+              <b style={{ fontWeight: 800 }}>{w.price}</b>
+            </div>
+            <div className="w-c-24h">
+              <span className={w.dir === 'up' ? 'w-bull' : 'w-bear'} style={{ fontWeight: 800 }}>
+                {w.chg}
+              </span>
+            </div>
+            <div className="w-wl-acts">
+              <span className="w-wl-sig">
+                <WIcon name="flame" /> {w.signal}
+              </span>
+            </div>
+            <div style={{ width: 64 }}>
+              <Sparkline pts={w.spark} color={w.dir === 'up' ? '#46e3a0' : '#ff6b81'} w={64} h={28} />
+            </div>
+          </div>
+        ))}
+        <div className="w-wl-cap">
+          <span className="w-lk-sm">
+            <WIcon name="lock" />
+          </span>
+          <span>
+            Custom watchlists are a <b style={{ color: 'var(--purple)' }}>Pro</b> feature — pin any
+            token or wallet and set your own order.
+          </span>
+          <button
+            className="w-btn w-btn-pro w-btn-sm"
+            style={{ marginLeft: 'auto' }}
+            onClick={() => setMode('pro')}
+          >
+            <WIcon name="bolt" /> Customize with Pro
+          </button>
         </div>
       </div>
 
-      {/* ── Error ── */}
-      {hasError && (
-        <div className="w-console-error" role="alert">
-          <p className="w-console-error-msg">Unable to load watchlist. {endpoint.error}</p>
-          <button className="w-btn w-btn-ghost w-btn-sm" onClick={endpoint.refetch}>Retry</button>
-        </div>
-      )}
-
-      {/* ── Stale banner ── */}
-      {endpoint.status === 'error' && endpoint.data && (
-        <p className="w-console-stale-banner" role="status">
-          Showing last available data — refresh failed.
-        </p>
-      )}
-
-      {/* ════════════════════════════════════
-          MY WATCHLIST
-          ════════════════════════════════════ */}
-      <section className="w-watchlist-section">
-        <div className="w-watchlist-section-head">
-          <h2 className="w-watchlist-section-title">My Watchlist</h2>
-          {slots !== null && (
-            <span className="w-watchlist-slot-count">
-              {curatedCount} / {slots} slots
+      {/* ── Locked alerts panel ── */}
+      <div className="w-apanel w-locked" style={{ marginTop: 16, minHeight: 120 }}>
+        <div className="w-lock-blur" style={{ padding: 20 }}>
+          <div className="w-apanel-h" style={{ padding: '0 0 14px', border: 'none' }}>
+            <span className="w-ttl">
+              <span className="w-ic">
+                <WIcon name="shield" />
+              </span>{' '}
+              Price &amp; whale alerts
             </span>
-          )}
-        </div>
-
-        {/* Add control */}
-        <div className="w-wl-add-row">
-          <select
-            className="w-wl-add-select"
-            value={addSymbol}
-            onChange={e => { setAddSymbol(e.target.value); setAddError(null); }}
-            aria-label="Select asset to add"
-            disabled={isAdding || (atLimit && !isPremium)}
-          >
-            <option value="">Add asset…</option>
-            {availableToAdd.map(s => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-          <button
-            className="w-btn w-btn-surface w-btn-sm"
-            onClick={handleAdd}
-            disabled={!addSymbol || isAdding || (atLimit && !isPremium)}
-            aria-busy={isAdding}
-          >
-            {isAdding ? 'Adding…' : 'Add'}
-          </button>
-        </div>
-
-        {/* Add error / upsell */}
-        {addError && (
-          <div className="w-wl-add-error" role="alert">
-            <span>{friendlyAddError(addError, atLimit)}</span>
-            {(addError === 'slots_exceeded' || atLimit) && !isPremium && (
-              <Link href="/world/pro" className="w-wl-upsell-link">Unlock PRO</Link>
-            )}
           </div>
-        )}
-
-        {/* Rows */}
-        <div className="w-wl-list">
-          {isLoading ? (
-            Array.from({ length: 3 }).map((_, i) => <SkeletonRow key={i} />)
-          ) : curatedSymbols.length === 0 ? (
-            <div className="w-wl-empty">
-              <p>No assets yet — add your first asset above.</p>
-            </div>
-          ) : (
-            data?.curatedAssets.map(asset => (
-              <AssetRow
-                key={asset.asset}
-                asset={asset}
-                onRemove={() => handleRemove(asset.asset)}
-              />
-            ))
-          )}
-
-          {/* Limit upsell row */}
-          {!isLoading && !isPremium && atLimit && (
-            <div className="w-wl-limit-row">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="4.5" y="10.5" width="15" height="10" rx="2.5" /><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
-              </svg>
-              <span>Free plan limit reached — </span>
-              <Link href="/world/pro" className="w-wl-upsell-link">Unlock unlimited with PRO</Link>
-            </div>
-          )}
+          <p className="w-muted" style={{ fontSize: 13, margin: 0 }}>
+            Get pushed the moment a tracked asset moves or a watched wallet acts.
+          </p>
         </div>
-      </section>
-
-      {/* ════════════════════════════════════
-          RADAR WATCHLIST
-          ════════════════════════════════════ */}
-      <section className="w-watchlist-section">
-        <div className="w-watchlist-section-head">
-          {/* Accessible text: "Radar Watchlist · auto-detected" (Issue #8) */}
-          <h2 className="w-watchlist-section-title" aria-label="Radar Watchlist · auto-detected">
-            Radar Watchlist
-            <span className="w-watchlist-section-badge" aria-hidden="true">· auto-detected</span>
-          </h2>
-          <span className="w-watchlist-section-sub">Top assets by signal strength · read-only</span>
+        <div className="w-lock-veil">
+          <span className="w-lk">
+            <WIcon name="lock" />
+          </span>
+          <b>Alerts are a Pro feature</b>
+          <span>Real-time alerts on major market moves</span>
         </div>
-
-        <div className="w-wl-list">
-          {isLoading ? (
-            Array.from({ length: 4 }).map((_, i) => <SkeletonRow key={i} />)
-          ) : (data?.assets.length ?? 0) === 0 ? (
-            <div className="w-wl-empty">
-              <p>No radar assets available.</p>
-            </div>
-          ) : (
-            data?.assets.map(asset => (
-              <AssetRow key={asset.asset} asset={asset} />
-            ))
-          )}
-        </div>
-      </section>
+      </div>
     </div>
   );
 }

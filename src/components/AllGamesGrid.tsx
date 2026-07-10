@@ -115,7 +115,7 @@ export default function AllGamesGrid() {
       <div
         className="min-h-screen text-white font-sans flex justify-center items-center"
         style={{
-          background: 'linear-gradient(135deg, #3A7A7A 0%, #102425 100%)',
+          background: 'linear-gradient(180deg, #000 0%, #0a1a1a 40%, #102425 75%, #000 100%)',
         }}
       >
         <div className="flex flex-col items-center">
@@ -130,7 +130,7 @@ export default function AllGamesGrid() {
     <div
       className="min-h-screen text-white font-sans"
       style={{
-        background: 'linear-gradient(135deg, #3A7A7A 0%, #102425 100%)',
+        background: 'linear-gradient(180deg, #000 0%, #0a1a1a 40%, #102425 75%, #000 100%)',
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
@@ -138,7 +138,7 @@ export default function AllGamesGrid() {
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-4xl font-bold">All Games</h1>
           <Link
-            href="/games"
+            href="/world/games"
             className="rounded-lg px-6 py-2.5 text-sm transition-all duration-300 ease-in-out border border-[#96EDD6] bg-transparent text-[#96EDD6] hover:bg-[#96EDD6] hover:text-[#102425] no-underline"
           >
             Back to Games
@@ -149,8 +149,7 @@ export default function AllGamesGrid() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div className="relative w-full max-w-md">
             <div
-              className="flex items-center rounded-full px-4 py-2 w-full"
-              style={{ background: 'rgba(46,97,98,0.6)' }}
+              className="flex items-center rounded-full px-4 py-2 w-full border border-white/[0.12] bg-white/[0.06]"
             >
               <Search className="w-5 h-5 text-white/80 mr-2 shrink-0" />
               <input
@@ -208,7 +207,7 @@ export default function AllGamesGrid() {
                   className="group aspect-[3/4] bg-transparent rounded-2xl overflow-hidden transition-all duration-300 ease-in-out cursor-pointer"
                   onClick={() =>
                     router.push(
-                      `/game-details?name=${encodeURIComponent(game.title ?? '')}`
+                      `/world/games/details?name=${encodeURIComponent(game.title ?? '')}`
                     )
                   }
                 >

@@ -40,7 +40,7 @@ const BEGINNER_ROUTES = ['/world/news', '/world/courses', '/world/education', '/
 const ADVANCED_ROUTES = ['/world/console', '/world/onchain', '/world/intel', '/world/watchlist'];
 const PRO_ROUTES = ['/world/pro'];
 // Shared routes: visible in every mode — visiting them never changes the mode.
-const SHARED_ROUTES = ['/world/about', '/world/blogs', '/world/profile'];
+const SHARED_ROUTES = ['/world/home', '/world/about', '/world/blogs', '/world/profile'];
 
 // Match a route prefix on segment boundaries so e.g. '/world/profile'
 // does NOT match the '/world/pro' prefix.

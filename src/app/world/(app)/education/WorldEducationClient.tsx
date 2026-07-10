@@ -11,7 +11,10 @@
  */
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { Send, Globe } from 'lucide-react';
 import type { ResearchArticle } from '@/lib/research';
+import { XIcon, DiscordIcon } from '@/components/icons/BrandIcons';
 import { glossaryTerms } from '@/data/glossaryData';
 
 // ---------- Research Section ----------
@@ -20,11 +23,51 @@ interface ResearchCardProps {
   article: ResearchArticle;
 }
 
-function ResearchCard({ article }: ResearchCardProps) {
+function ResearchSocialLinks({ article }: { article: ResearchArticle }) {
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
+  const btnClass =
+    'flex items-center justify-center w-7 h-7 rounded-full bg-white/[0.08] border border-white/[0.12] transition-all hover:bg-[#40e0d0]/[0.18] hover:-translate-y-[1px]';
+  const iconClass = 'text-white/90';
+  const links = [
+    { href: article.twitterLink, label: 'Twitter / X', icon: <XIcon size={13} className={iconClass} /> },
+    { href: article.discordLink, label: 'Discord', icon: <DiscordIcon size={13} className={iconClass} /> },
+    { href: article.telegramLink, label: 'Telegram', icon: <Send size={13} className={iconClass} /> },
+    { href: article.websiteLink, label: 'Website', icon: <Globe size={13} className={iconClass} /> },
+  ].filter((l) => l.href);
+
+  if (links.length === 0) return null;
+
   return (
-    <a
-      href={`/research/${article.id}`}
+    <div className="flex items-center gap-2 mt-2">
+      {links.map((l) => (
+        <a
+          key={l.label}
+          href={l.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={btnClass}
+          onClick={stop}
+          aria-label={l.label}
+        >
+          {l.icon}
+        </a>
+      ))}
+    </div>
+  );
+}
+
+function ResearchCard({ article }: ResearchCardProps) {
+  const router = useRouter();
+  return (
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={() => router.push(`/world/research/${article.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') router.push(`/world/research/${article.id}`);
+      }}
       className="w-edu-research-card"
+      style={{ cursor: 'pointer' }}
     >
       <div className="w-edu-research-thumb">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -39,8 +82,9 @@ function ResearchCard({ article }: ResearchCardProps) {
         <span className="w-edu-research-cat">{article.category}</span>
         <h3 className="w-edu-research-title">{article.title}</h3>
         <p className="w-edu-research-desc">{article.description}</p>
+        <ResearchSocialLinks article={article} />
       </div>
-    </a>
+    </div>
   );
 }
 

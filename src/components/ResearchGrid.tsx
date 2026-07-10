@@ -234,7 +234,7 @@ export default function ResearchGrid() {
     return (
       <div
         key={article.id}
-        onClick={() => router.push(`/research/${article.id}`)}
+        onClick={() => router.push(`/world/research/${article.id}`)}
         className="cursor-pointer rounded-2xl border border-white/10 bg-[#1a1a1a]/75 backdrop-blur-md overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(0,0,0,0.35)] hover:border-[#40e0d0]/[0.35] p-4"
       >
         {variant === 'image-top' ? (

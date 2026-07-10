@@ -3,17 +3,11 @@
 import Link from 'next/link';
 import type { ConsolePayload } from '@/lib/market/contracts';
 import { relativeTime } from './format';
+import { WIcon, catTagStyle, intelGrad } from './console-ui';
 
 type Props = {
   briefs: ConsolePayload['intelPreview'];
-  updatedAt?: string;
   loading?: boolean;
-};
-
-const TIER_CLASS: Record<'A' | 'B' | 'C', string> = {
-  A: 'w-tier-a',
-  B: 'w-tier-b',
-  C: 'w-tier-c',
 };
 
 const TIER_LABEL: Record<'A' | 'B' | 'C', string> = {
@@ -22,60 +16,70 @@ const TIER_LABEL: Record<'A' | 'B' | 'C', string> = {
   C: 'Tier C — informational',
 };
 
-export default function IntelPreview({ briefs, updatedAt, loading }: Props) {
+export default function IntelPreview({ briefs, loading }: Props) {
   return (
-    <section className="w-panel w-panel-intel" aria-label="Intelligence Preview">
-      <div className="w-panel-header">
-        <span className="w-panel-eyebrow">Intelligence</span>
-        {updatedAt && (
-          <time className="w-panel-ts" dateTime={updatedAt} title={updatedAt}>
-            {relativeTime(updatedAt)}
-          </time>
-        )}
+    <section className="w-apanel" aria-label="Intelligence">
+      <div className="w-apanel-h">
+        <span className="w-ttl">
+          <span className="w-ic"><WIcon name="doc" /></span>
+          {' '}Intelligence{' '}
+          <span
+            className="w-oc-q"
+            tabIndex={0}
+            title="Today’s news, ranked by impact: A moves the market, B is worth knowing, C is context. Filter by topic or the coins you hold."
+          >
+            ?
+          </span>{' '}
+          <span className="w-sub">· Daily Brief</span>
+        </span>
+        <span className="w-sub">Finance · Crypto · AI</span>
       </div>
 
       {loading ? (
-        <div className="w-panel-skeleton w-panel-skeleton-list" aria-busy="true" />
+        <div className="w-apanel-b">
+          <div className="w-panel-skeleton w-panel-skeleton-list" aria-busy="true" />
+        </div>
       ) : briefs.length === 0 ? (
-        <p className="w-panel-empty">No intelligence briefs available at this time.</p>
+        <div className="w-apanel-b">
+          <p className="w-panel-empty">No intelligence briefs available at this time.</p>
+        </div>
       ) : (
-        <ul className="w-intel-list" aria-label="Intelligence headlines">
-          {briefs.map((brief, i) => (
-            <li key={i} className="w-intel-brief">
-              <div className="w-intel-brief-header">
+        <div className="w-intel-list" aria-label="Intelligence headlines">
+          {briefs.slice(0, 4).map((brief, i) => (
+            <div key={i} className="w-intel-item">
+              <span className="w-ii-thumb" style={{ background: intelGrad(brief.category) }}>
                 <span
-                  className={`w-intel-tier ${TIER_CLASS[brief.tier]}`}
+                  className={`w-tier w-tier-${brief.tier}`}
                   title={TIER_LABEL[brief.tier]}
                   aria-label={TIER_LABEL[brief.tier]}
                 >
                   {brief.tier}
                 </span>
-                <span
-                  className="w-intel-category"
-                  title={`Category: ${brief.category}`}
-                >
-                  {brief.category}
-                </span>
-                <time
-                  className="w-panel-ts"
-                  dateTime={brief.ts}
-                  title={brief.ts}
-                >
-                  {relativeTime(brief.ts)}
-                </time>
-              </div>
-              <p className="w-intel-headline">{brief.headline}</p>
-              <span className="w-intel-source" title={`Source: ${brief.source}`}>
-                {brief.source}
               </span>
-            </li>
+              <div className="w-intel-main">
+                <div className="w-ih">{brief.headline}</div>
+                <div className="w-intel-meta">
+                  <span
+                    className="w-cat-tag"
+                    style={catTagStyle(brief.category)}
+                    title={`Category: ${brief.category}`}
+                  >
+                    {brief.category}
+                  </span>
+                  <span title={`Source: ${brief.source}`}>{brief.source}</span>
+                  <span className="w-dot-sep" />
+                  <span>{relativeTime(brief.ts)}</span>
+                </div>
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
 
-      <div className="w-panel-footer">
-        <Link href="/world/intel" className="w-panel-footer-link">
-          View all intelligence →
+      <div className="w-apanel-foot">
+        <span className="w-fmeta">{briefs.length} briefs today</span>
+        <Link href="/world/intel">
+          Open Intelligence <WIcon name="arrowR" />
         </Link>
       </div>
     </section>

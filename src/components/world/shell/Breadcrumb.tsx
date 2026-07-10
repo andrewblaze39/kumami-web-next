@@ -33,15 +33,7 @@ export default function Breadcrumb() {
 
   return (
     <nav className="w-crumb" aria-label="Breadcrumb">
-      <span>World</span>
-      {sectionLabel && (
-        <>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m9 6 6 6-6 6" />
-          </svg>
-          <b>{sectionLabel}</b>
-        </>
-      )}
+      {sectionLabel && <b>{sectionLabel}</b>}
       {sub && (
         <>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">

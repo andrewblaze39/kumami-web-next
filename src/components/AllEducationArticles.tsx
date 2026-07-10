@@ -42,12 +42,15 @@ export default function AllEducationArticles() {
   const [levelFilter, setLevelFilter] = useState('All')
 
   useEffect(() => {
-    getDocs(query(collection(db, 'education_articles'), where('status', '==', 'published'), where('comingSoon', '==', false)))
+    // Note: comingSoon is filtered in memory — a Firestore equality filter
+    // (where('comingSoon','==',false)) excludes docs missing the field entirely.
+    getDocs(query(collection(db, 'education_articles'), where('status', '==', 'published')))
       .then(snap => {
         const docs = snap.docs
           .map(d => {
             const data = d.data() as Record<string, unknown>
             if (data.status && data.status !== 'published') return null
+            if (data.comingSoon === true) return null
             return {
               id: d.id,
               title: (data.title as string) || 'Untitled',
@@ -86,7 +89,7 @@ export default function AllEducationArticles() {
 
       {/* Back */}
       <Link
-        href="/education"
+        href="/world/education"
         className="edu-btn edu-btn-ghost"
         style={{ marginBottom: 24, alignSelf: 'flex-start', fontSize: 13.5, padding: '8px 14px' }}
       >
@@ -189,7 +192,7 @@ export default function AllEducationArticles() {
             return (
               <Link
                 key={article.id}
-                href={`/education/article/${article.id}`}
+                href={`/world/education/article/${article.id}`}
                 className="edu-all-card"
               >
                 {/* Thumbnail */}

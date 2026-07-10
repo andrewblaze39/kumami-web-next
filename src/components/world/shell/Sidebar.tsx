@@ -160,8 +160,8 @@ const ADV_NAV: NavGroup[] = [
 // Education subtabs — nested under the Education nav item when it is active.
 // Keys must match the ?tab= values read by EducationTabs.tsx.
 const EDU_SUBTABS = [
-  { key: 'dashboard', label: 'Dashboard' },
   { key: 'journey', label: 'My Journey' },
+  { key: 'dashboard', label: 'Dashboard' },
   { key: 'courses', label: 'My Courses' },
   { key: 'achievements', label: 'Achievements' },
   { key: 'research', label: 'Research' },
@@ -334,6 +334,15 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
 
   const isActive = (href: string) => pathname.startsWith(href);
 
+  // Admin roles — same predicate as the legacy Navbar / AdminOnlyRoute.
+  const isAdminRole =
+    userData?.role === 'superadmin' ||
+    userData?.role === 'admin' ||
+    userData?.role === 'newsresearchadmin' ||
+    userData?.role === 'gamesadmin' ||
+    userData?.role === 'marketanalysisadmin' ||
+    userData?.role === 'newsdrafter';
+
   // Determine display name + avatar initials (1-2 letters)
   const displayName = userData?.displayName || currentUser?.displayName || currentUser?.email?.split('@')[0] || 'You';
   const initials = (() => {
@@ -389,15 +398,15 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
         )}
       </div>
 
-      {/* ---- About Kumami (all modes, directly under brand) ---- */}
+      {/* ---- Home (all modes, directly under brand) ---- */}
       <div className="w-nav-about">
         <Link
-          href="/world/about"
-          className={`w-nav-item${isActive('/world/about') ? ' active' : ''}`}
+          href="/world/home"
+          className={`w-nav-item${isActive('/world/home') ? ' active' : ''}`}
           onClick={onClose}
         >
           {Icons.info}
-          <span>About Kumami</span>
+          <span>Home</span>
         </Link>
       </div>
 
@@ -451,6 +460,16 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
       <div className="w-sidebar-foot">
         {profileOpen && (
           <div ref={profileDropRef} className="w-profile-menu">
+            {isAdminRole && (
+              <Link
+                href="/admin"
+                className="w-bm-item"
+                onClick={() => { setProfileOpen(false); onClose(); }}
+              >
+                {Icons.shield}
+                Admin Dashboard
+              </Link>
+            )}
             <Link
               href="/world/profile"
               className="w-bm-item"

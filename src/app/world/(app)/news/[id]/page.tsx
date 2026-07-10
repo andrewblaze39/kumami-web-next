@@ -210,7 +210,7 @@ export default async function WorldNewsDetailPage({ params }: PageProps) {
                 borderRadius: '14px',
                 overflow: 'hidden',
                 background: 'var(--panel-2)',
-                aspectRatio: '16/9',
+                aspectRatio: '3/2',
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -272,98 +272,10 @@ export default async function WorldNewsDetailPage({ params }: PageProps) {
             {article.title}
           </h1>
 
-          {/* Summary / pull-quote */}
-          {article.summary && (
-            <p
-              style={{
-                fontSize: '16px',
-                color: 'var(--muted)',
-                lineHeight: 1.65,
-                marginBottom: '24px',
-                borderLeft: '3px solid var(--accent)',
-                paddingLeft: '14px',
-                fontStyle: 'italic',
-              }}
-            >
-              {article.summary}
-            </p>
-          )}
-
-          {/* PRO gate overlay on body */}
-          {isProTier ? (
-            <div style={{ position: 'relative' }}>
-              <div
-                style={{
-                  filter: 'blur(4px)',
-                  pointerEvents: 'none',
-                  userSelect: 'none',
-                  maxHeight: '180px',
-                  overflow: 'hidden',
-                  opacity: 0.5,
-                }}
-                dangerouslySetInnerHTML={{ __html: bodyHtml }}
-              />
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background:
-                    'linear-gradient(to bottom, transparent 0%, rgba(10,10,15,0.92) 40%)',
-                  borderRadius: '12px',
-                  gap: '12px',
-                  padding: '24px',
-                  textAlign: 'center',
-                }}
-              >
-                <p
-                  style={{
-                    margin: 0,
-                    fontWeight: 800,
-                    fontSize: '18px',
-                    color: 'var(--gold)',
-                  }}
-                >
-                  PRO Article
-                </p>
-                <p
-                  style={{ margin: 0, fontSize: '13px', color: 'var(--muted)' }}
-                >
-                  Upgrade to read the full story.
-                </p>
-                <Link
-                  href="/world/pro"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    padding: '10px 20px',
-                    borderRadius: '999px',
-                    background: 'var(--gold)',
-                    color: '#06241a',
-                    fontWeight: 800,
-                    fontSize: '13px',
-                    textDecoration: 'none',
-                  }}
-                >
-                  Upgrade to PRO
-                </Link>
-              </div>
-            </div>
-          ) : (
-            /* Article body */
-            <div
-              style={{ fontSize: '15px', lineHeight: 1.75, maxWidth: '680px' }}
-              dangerouslySetInnerHTML={{ __html: bodyHtml }}
-            />
-          )}
-
           {/* ── Kumami Insight placeholder block ── */}
           <div
             style={{
-              marginTop: '36px',
+              marginBottom: '24px',
               borderRadius: '16px',
               overflow: 'hidden',
               background: 'linear-gradient(135deg, #0c2119 0%, #081510 100%)',
@@ -483,6 +395,94 @@ export default async function WorldNewsDetailPage({ params }: PageProps) {
               </p>
             </div>
           </div>
+
+          {/* Summary / pull-quote */}
+          {article.summary && (
+            <p
+              style={{
+                fontSize: '16px',
+                color: 'var(--muted)',
+                lineHeight: 1.65,
+                marginBottom: '24px',
+                borderLeft: '3px solid var(--accent)',
+                paddingLeft: '14px',
+                fontStyle: 'italic',
+              }}
+            >
+              {article.summary}
+            </p>
+          )}
+
+          {/* PRO gate overlay on body */}
+          {isProTier ? (
+            <div style={{ position: 'relative' }}>
+              <div
+                style={{
+                  filter: 'blur(4px)',
+                  pointerEvents: 'none',
+                  userSelect: 'none',
+                  maxHeight: '180px',
+                  overflow: 'hidden',
+                  opacity: 0.5,
+                }}
+                dangerouslySetInnerHTML={{ __html: bodyHtml }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background:
+                    'linear-gradient(to bottom, transparent 0%, rgba(10,10,15,0.92) 40%)',
+                  borderRadius: '12px',
+                  gap: '12px',
+                  padding: '24px',
+                  textAlign: 'center',
+                }}
+              >
+                <p
+                  style={{
+                    margin: 0,
+                    fontWeight: 800,
+                    fontSize: '18px',
+                    color: 'var(--gold)',
+                  }}
+                >
+                  PRO Article
+                </p>
+                <p
+                  style={{ margin: 0, fontSize: '13px', color: 'var(--muted)' }}
+                >
+                  Upgrade to read the full story.
+                </p>
+                <Link
+                  href="/world/pro"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    padding: '10px 20px',
+                    borderRadius: '999px',
+                    background: 'var(--gold)',
+                    color: '#06241a',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    textDecoration: 'none',
+                  }}
+                >
+                  Upgrade to PRO
+                </Link>
+              </div>
+            </div>
+          ) : (
+            /* Article body */
+            <div
+              style={{ fontSize: '15px', lineHeight: 1.75, maxWidth: '680px' }}
+              dangerouslySetInnerHTML={{ __html: bodyHtml }}
+            />
+          )}
         </article>
 
         {/* ── Related sidebar ── */}

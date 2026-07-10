@@ -206,6 +206,37 @@ export async function getPublishedNews({
   }
 }
 
+// ---------- YouTube Shorts ----------
+
+export interface YoutubeShort {
+  id: string;
+  videoId?: string;
+  title?: string;
+  isActive?: boolean;
+  order?: number;
+}
+
+/**
+ * Fetch active YouTube shorts, ordered by `order` asc.
+ * Mirrors the legacy NewsGrid query (collection `youtube_shorts`).
+ * Returns empty array (never throws).
+ */
+export async function getYoutubeShorts(limitVal = 50): Promise<YoutubeShort[]> {
+  const db = safeDb();
+  if (!db) return [];
+
+  try {
+    const snapshot = await db.collection('youtube_shorts').limit(limitVal).get();
+    return snapshot.docs
+      .map((doc) => ({ id: doc.id, ...(doc.data() as Omit<YoutubeShort, 'id'>) }))
+      .filter((s) => s.isActive !== false)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  } catch (err) {
+    console.error('[news.ts] getYoutubeShorts error:', err);
+    return [];
+  }
+}
+
 /**
  * Fetch a single article by id.
  * Wrapped in React cache() so generateMetadata + page share the same read

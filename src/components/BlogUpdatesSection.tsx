@@ -78,7 +78,7 @@ const BlogUpdatesSection = () => {
           {posts.map((post) => (
             <Link
               key={post.id}
-              href={`/blogs/${post.id}`}
+              href={`/world/blogs/${post.id}`}
               className="rounded-3xl overflow-hidden bg-[#101010] border border-white/10 shadow-lg hover:shadow-2xl transition transform hover:-translate-y-1 no-underline"
             >
               <div className="relative pb-[60%] overflow-hidden">

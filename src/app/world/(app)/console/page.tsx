@@ -1,6 +1,8 @@
 'use client';
 
 import { useMarketData } from '@/components/world/panels/useMarketData';
+import { relativeTime } from '@/components/world/panels/format';
+import { WIcon } from '@/components/world/panels/console-ui';
 import MarketConditions from '@/components/world/panels/MarketConditions';
 import RegimeChips from '@/components/world/panels/RegimeChips';
 import HeatmapPreview from '@/components/world/panels/HeatmapPreview';
@@ -15,21 +17,31 @@ export default function ConsolePage() {
   const hasError = market.status === 'error' && !market.data;
   const data = market.data;
 
-  // Pass the real payload timestamp only; undefined while loading so panels hide <time>
+  // Real payload timestamp; undefined while loading
   const updatedAt = data?.marketConditions.updatedAt;
 
   if (hasError) {
     return (
-      <div className="w-content-inner">
-        <h1 className="w-page-title">Market Intelligence</h1>
+      <div className="w-content-inner w-console">
+        <div className="w-adv-head">
+          <div>
+            <h1>
+              Market Intelligence{' '}
+              <span className="w-pro-badge">
+                <WIcon name="star" /> Advanced
+              </span>
+            </h1>
+            <p>
+              Your daily market briefing — overall mood, major assets, and anything urgent, all
+              in one glance.
+            </p>
+          </div>
+        </div>
         <div className="w-console-error" role="alert">
           <p className="w-console-error-msg">
             Unable to load market data. {market.error}
           </p>
-          <button
-            className="w-btn w-btn-ghost w-btn-sm"
-            onClick={market.refetch}
-          >
+          <button className="w-btn w-btn-ghost w-btn-sm" onClick={market.refetch}>
             Retry
           </button>
         </div>
@@ -40,56 +52,54 @@ export default function ConsolePage() {
   return (
     <div className="w-content-inner w-console">
       {/* Page header */}
-      <div className="w-console-head">
-        <h1 className="w-page-title">Market Intelligence</h1>
-        <p className="w-page-sub">
-          Real-time macro, regime and market structure overview.
-        </p>
-        {market.status === 'error' && (
-          <p className="w-console-stale-banner" role="status">
-            Showing last available data — refresh failed. Will retry automatically.
+      <div className="w-adv-head">
+        <div>
+          <h1>
+            Market Intelligence{' '}
+            <span className="w-pro-badge">
+              <WIcon name="star" /> Advanced
+            </span>
+          </h1>
+          <p>
+            Your daily market briefing — overall mood, major assets, and anything urgent, all in
+            one glance.
           </p>
-        )}
+        </div>
+        <span className="w-adv-updated">
+          <span className="w-live-dot" /> Live
+          {updatedAt ? ` · updated ${relativeTime(updatedAt)}` : ''}
+        </span>
       </div>
+
+      {market.status === 'error' && (
+        <p className="w-console-stale-banner" role="status">
+          Showing last available data — refresh failed. Will retry automatically.
+        </p>
+      )}
 
       {/* 1. Market Conditions — top anchor panel */}
       {isLoading ? (
-        <div className="w-panel w-panel-market-conditions w-panel-skeleton w-panel-skeleton-mc" aria-busy="true" />
+        <div
+          className="w-apanel w-span-2 w-mc-panel w-panel-skeleton w-panel-skeleton-mc"
+          aria-busy="true"
+        />
       ) : data ? (
         <MarketConditions data={data.marketConditions} />
       ) : null}
 
       {/* 2. Regime chip row */}
-      <RegimeChips
-        chips={data?.regimeChips ?? []}
-        loading={isLoading}
-      />
+      <RegimeChips chips={data?.regimeChips ?? []} loading={isLoading} />
 
-      {/* 3. Grid of 4 panels */}
-      <div className="w-console-grid">
-        <HeatmapPreview
-          data={data?.heatmapPreview ?? []}
-          updatedAt={updatedAt}
-          loading={isLoading}
-        />
+      {/* 3. Bento row 2 — On-Chain Insights + Flow Radar */}
+      <div className="w-bento w-r2">
+        <HeatmapPreview data={data?.heatmapPreview ?? []} loading={isLoading} />
+        <FlowRadarFeed events={data?.flowRadar ?? []} loading={isLoading} />
+      </div>
 
-        <FlowRadarFeed
-          events={data?.flowRadar ?? []}
-          updatedAt={updatedAt}
-          loading={isLoading}
-        />
-
-        <IntelPreview
-          briefs={data?.intelPreview ?? []}
-          updatedAt={updatedAt}
-          loading={isLoading}
-        />
-
-        <RadarWatchlist
-          items={data?.radarWatchlist ?? []}
-          updatedAt={updatedAt}
-          loading={isLoading}
-        />
+      {/* 4. Bento row 3 — Intelligence + Watchlist */}
+      <div className="w-bento w-r3">
+        <IntelPreview briefs={data?.intelPreview ?? []} loading={isLoading} />
+        <RadarWatchlist items={data?.radarWatchlist ?? []} loading={isLoading} />
       </div>
     </div>
   );

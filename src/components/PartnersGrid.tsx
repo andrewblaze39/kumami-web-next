@@ -62,8 +62,7 @@ export default function PartnersGrid() {
       className="py-12 text-white"
       id="partners"
       style={{
-        background:
-          'linear-gradient(175deg, #4E8177 0%, #102425 10%, #102425 70%, #1C4345 85%, #1D5959 100%)',
+        background: 'linear-gradient(180deg, #000 0%, #0a1a1a 40%, #102425 75%, #000 100%)',
       }}
     >
       <div className="max-w-7xl mx-auto px-4 text-center">

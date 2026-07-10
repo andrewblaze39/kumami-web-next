@@ -29,6 +29,16 @@ export interface ResearchArticle {
   createdAt: number;
 }
 
+/** Full research article document — detail-page fields on top of the card fields. */
+export interface ResearchArticleDetail extends ResearchArticle {
+  summary?: string;
+  content1?: string;
+  content2?: string;
+  detailImageUrl?: string;
+  author?: string;
+  isPremium?: boolean;
+}
+
 // ---------- Helpers ----------
 
 /** Safely call adminDb() — returns null if env var is absent (build-time safety). */
@@ -51,6 +61,49 @@ function safeDb() {
  * simply excludes docs where status === 'draft'. We replicate that here with
  * an in-memory filter since there's no composite index requirement for this pattern.
  */
+/**
+ * Fetch a single research article by document id. Returns null when missing,
+ * on error, or when the admin SDK is unavailable.
+ * Timestamp resolution mirrors ResearchArticleView: createdAt || date || timestamp.
+ */
+export async function getResearchById(id: string): Promise<ResearchArticleDetail | null> {
+  const db = safeDb();
+  if (!db) return null;
+
+  try {
+    const snap = await db.collection('research_articles').doc(id).get();
+    if (!snap.exists) return null;
+
+    const data = snap.data() as Record<string, unknown>;
+    const tsRaw = (data.createdAt || data.date || data.timestamp) as
+      | { toMillis?: () => number }
+      | undefined;
+
+    return {
+      id: snap.id,
+      title: (data.title as string) || 'Untitled Research',
+      description: (data.description as string) || '',
+      category: (data.category as string) || 'Uncategorized',
+      imageUrl: (data.imageUrl as string) || 'https://kumami.world/og-default.png',
+      status: data.status as string | undefined,
+      twitterLink: data.twitterLink as string | undefined,
+      discordLink: data.discordLink as string | undefined,
+      telegramLink: data.telegramLink as string | undefined,
+      websiteLink: data.websiteLink as string | undefined,
+      createdAt: tsRaw?.toMillis ? tsRaw.toMillis() : 0,
+      summary: data.summary as string | undefined,
+      content1: data.content1 as string | undefined,
+      content2: data.content2 as string | undefined,
+      detailImageUrl: data.detailImageUrl as string | undefined,
+      author: data.author as string | undefined,
+      isPremium: data.isPremium as boolean | undefined,
+    };
+  } catch (err) {
+    console.error('[research.ts] getResearchById error:', err);
+    return null;
+  }
+}
+
 export async function getPublishedResearch(limit = 30): Promise<ResearchArticle[]> {
   const db = safeDb();
   if (!db) return [];

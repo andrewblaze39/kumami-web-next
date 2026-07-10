@@ -1,11 +1,6 @@
-import type { Metadata } from 'next'
-import AllEducationArticles from '@/components/AllEducationArticles'
+import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = {
-  title: 'All Lessons — Kumami Education',
-  description: 'Browse all Web3 and crypto education lessons on Kumami World.',
-}
-
-export default function AllEducationPage() {
-  return <AllEducationArticles />
+// Legacy route — courses live inside the world shell education tab.
+export default function AllEducationRedirect() {
+  redirect('/world/education?tab=courses');
 }

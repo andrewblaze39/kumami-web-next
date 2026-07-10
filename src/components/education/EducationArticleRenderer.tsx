@@ -213,14 +213,14 @@ export default function EducationArticleRenderer({
           {/* Breadcrumb */}
           <div style={{ marginBottom: 20 }}>
             <nav style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', fontSize: 13 }}>
-              <Link href="/education" className="edu-crumb" style={{ textDecoration: 'none' }}>
+              <Link href="/world/education" className="edu-crumb" style={{ textDecoration: 'none' }}>
                 Education
               </Link>
               {levelNum && (
                 <>
                   <ChevronRight size={12} style={{ color: 'var(--muted-2)', flexShrink: 0 }} />
                   <Link
-                    href={`/education/${levelNum}`}
+                    href="/world/education?tab=courses"
                     className="edu-crumb"
                     style={{ textDecoration: 'none' }}
                   >
@@ -426,7 +426,7 @@ export default function EducationArticleRenderer({
                   <div style={{ display: 'flex', gap: 10 }}>
                     {nextArticleId ? (
                       <Link
-                        href={`/education/article/${nextArticleId}`}
+                        href={`/world/education/article/${nextArticleId}`}
                         className="edu-btn edu-btn-primary"
                         onClick={handleMarkComplete}
                       >
@@ -434,7 +434,7 @@ export default function EducationArticleRenderer({
                       </Link>
                     ) : levelNum ? (
                       <Link
-                        href={`/education/${levelNum}`}
+                        href="/world/education?tab=courses"
                         className="edu-btn edu-btn-primary"
                         onClick={handleMarkComplete}
                       >
@@ -470,7 +470,7 @@ export default function EducationArticleRenderer({
             <div className="edu-art-nav">
               {prevArticleId ? (
                 <Link
-                  href={`/education/article/${prevArticleId}`}
+                  href={`/world/education/article/${prevArticleId}`}
                   className="edu-btn edu-btn-ghost"
                 >
                   <ArrowLeft size={14} /> Previous chapter
@@ -480,7 +480,7 @@ export default function EducationArticleRenderer({
               )}
               {nextArticleId ? (
                 <Link
-                  href={`/education/article/${nextArticleId}`}
+                  href={`/world/education/article/${nextArticleId}`}
                   className="edu-btn edu-btn-ghost"
                 >
                   Next chapter <ArrowRight size={14} />
@@ -551,7 +551,7 @@ export default function EducationArticleRenderer({
               {nextArticleId && (
                 <div style={{ marginTop: 16 }}>
                   <Link
-                    href={`/education/article/${nextArticleId}`}
+                    href={`/world/education/article/${nextArticleId}`}
                     className="edu-btn edu-btn-primary"
                     style={{ width: '100%', justifyContent: 'center', fontSize: 13, padding: '10px 14px' }}
                     onClick={handleMarkComplete}
@@ -563,7 +563,7 @@ export default function EducationArticleRenderer({
               {!nextArticleId && levelNum && (
                 <div style={{ marginTop: 16 }}>
                   <Link
-                    href={`/education/${levelNum}`}
+                    href="/world/education?tab=courses"
                     className="edu-btn edu-btn-primary"
                     style={{ width: '100%', justifyContent: 'center', fontSize: 13, padding: '10px 14px' }}
                     onClick={handleMarkComplete}
@@ -578,7 +578,7 @@ export default function EducationArticleRenderer({
           {levelNum && (
             <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
               <Link
-                href={`/education/${levelNum}`}
+                href="/world/education?tab=courses"
                 className="edu-rail-item"
                 style={{ textDecoration: 'none' }}
               >
@@ -586,7 +586,7 @@ export default function EducationArticleRenderer({
                 <span>Back to Level {levelNum}</span>
               </Link>
               <Link
-                href="/education"
+                href="/world/education"
                 className="edu-rail-item"
                 style={{ textDecoration: 'none' }}
               >

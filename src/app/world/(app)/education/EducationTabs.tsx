@@ -3,7 +3,7 @@
 /**
  * EducationTabs — subtab container for /world/education.
  *
- * Subtabs (fixed order): Dashboard | My Journey | My Courses | Achievements |
+ * Subtabs (fixed order): My Journey | Dashboard | My Courses | Achievements |
  * Research | Glossary. The active subtab is driven by the `?tab=` query param
  * (default: dashboard). The subtab NAVIGATION lives in the left sidebar
  * (Sidebar.tsx renders the six links nested under the Education nav item);
@@ -22,12 +22,12 @@ import EduEmbed from '@/components/education/embed/EduEmbed';
 import DashboardHome from '@/components/education/embed/DashboardHome';
 import JourneyHome from '@/components/education/embed/JourneyHome';
 import AchievementsHome from '@/components/education/embed/AchievementsHome';
-import AllEducationArticles from '@/components/AllEducationArticles';
+import CoursesHome from '@/components/education/embed/CoursesHome';
 import { ResearchTab, GlossaryTab } from './WorldEducationClient';
 
 const TABS = [
-  { key: 'dashboard', label: 'Dashboard' },
   { key: 'journey', label: 'My Journey' },
+  { key: 'dashboard', label: 'Dashboard' },
   { key: 'courses', label: 'My Courses' },
   { key: 'achievements', label: 'Achievements' },
   { key: 'research', label: 'Research' },
@@ -56,7 +56,7 @@ function EducationTabsInner({
     <div className="w-edu-tabs-root">
       {active === 'dashboard' && <EduEmbed><DashboardHome /></EduEmbed>}
       {active === 'journey' && <EduEmbed><JourneyHome /></EduEmbed>}
-      {active === 'courses' && <EduEmbed><AllEducationArticles /></EduEmbed>}
+      {active === 'courses' && <EduEmbed><CoursesHome /></EduEmbed>}
       {active === 'achievements' && <EduEmbed><AchievementsHome /></EduEmbed>}
       {active === 'research' && <ResearchTab articles={initialArticles} />}
       {active === 'glossary' && <GlossaryTab />}

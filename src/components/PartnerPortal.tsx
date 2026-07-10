@@ -1,14 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import {
-  Search,
-  Loader,
-  MessageCircle,
-  Send,
-  Globe,
-  Share2,
-} from 'lucide-react'
+import { Search, Loader, Send, Globe } from 'lucide-react'
+import { XIcon, DiscordIcon } from '@/components/icons/BrandIcons'
 import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
@@ -145,7 +139,7 @@ export default function PartnerPortal() {
 
   if (loading) {
     return (
-      <div className="min-h-[50vh] bg-[#102425] text-white py-16 px-5">
+      <div className="min-h-[50vh] bg-[#0a0a0f] text-white py-16 px-5">
         <div className="max-w-[1400px] mx-auto">
           <h2 className="text-center text-3xl md:text-4xl font-bold text-[#40e0d0] mb-8">
             Partner Portal
@@ -159,7 +153,7 @@ export default function PartnerPortal() {
   }
 
   return (
-    <div className="bg-[#102425] text-white py-16 relative overflow-hidden">
+    <div className="bg-[#0a0a0f] text-white py-16 relative overflow-hidden">
       <div className="max-w-[1400px] mx-auto px-5 relative z-10">
         {/* Header */}
         <h2 className="text-center text-3xl md:text-4xl font-bold text-[#40e0d0] mb-8">
@@ -210,42 +204,40 @@ export default function PartnerPortal() {
             No articles found matching your criteria.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="w-edu-research-grid">
             {filteredArticles.map((article) => (
               <div
                 key={article.id}
-                className="rounded-2xl border border-white/10 bg-[#1a1a1a]/75 backdrop-blur-md overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(0,0,0,0.35)] hover:border-[#40e0d0]/[0.35]"
+                className="w-edu-research-card"
+                style={{ cursor: 'default' }}
               >
                 {/* Image */}
-                <div className="aspect-square bg-[#2a2a2a] overflow-hidden">
+                <div className="w-edu-research-thumb">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={article.imageUrl}
                     alt={article.title}
                     loading="lazy"
-                    className="w-full h-full object-cover"
+                    className="w-edu-research-img"
                   />
                 </div>
 
                 {/* Content */}
-                <div className="p-4">
-                  {/* Meta */}
-                  <div className="flex items-center gap-2 text-white/65 text-xs uppercase tracking-wide mb-2">
-                    <span>{formatDate(article.createdAt)}</span>
-                    <span className="inline-flex items-center h-5 px-2.5 rounded-full bg-white/[0.08] border border-white/[0.12] text-white/75 text-[0.7rem] normal-case tracking-normal">
-                      {article.category}
-                    </span>
+                <div className="w-edu-research-body">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="w-edu-research-cat">{article.category}</span>
+                    {article.createdAt > 0 && (
+                      <span style={{ fontSize: '10.5px', color: 'var(--muted-2)' }}>
+                        {formatDate(article.createdAt)}
+                      </span>
+                    )}
                   </div>
 
-                  <h3 className="my-1.5 text-xl font-extrabold text-white">
-                    {article.title}
-                  </h3>
-                  <p className="m-0 text-white/[0.78] text-[0.9rem] leading-[1.5] line-clamp-3 mb-3">
-                    {article.description}
-                  </p>
+                  <h3 className="w-edu-research-title">{article.title}</h3>
+                  <p className="w-edu-research-desc">{article.description}</p>
 
                   {/* Social links */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 mt-2">
                     {article.twitterLink && (
                       <a
                         href={article.twitterLink}
@@ -254,7 +246,7 @@ export default function PartnerPortal() {
                         className={btnClass}
                         aria-label="Twitter / X"
                       >
-                        <Share2 size={14} className={iconClass} />
+                        <XIcon size={14} className={iconClass} />
                       </a>
                     )}
                     {article.discordLink && (
@@ -265,7 +257,7 @@ export default function PartnerPortal() {
                         className={btnClass}
                         aria-label="Discord"
                       >
-                        <MessageCircle size={14} className={iconClass} />
+                        <DiscordIcon size={14} className={iconClass} />
                       </a>
                     )}
                     {article.telegramLink && (

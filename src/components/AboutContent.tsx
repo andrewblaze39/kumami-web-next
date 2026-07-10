@@ -460,7 +460,7 @@ function TrendingNewsCarousel() {
   return (
     <div className="w-full max-w-[560px] mx-auto">
       <div className="rounded-[2rem] border-2 border-white overflow-hidden relative">
-        <Link href={`/news/${current.id}`} className="block">
+        <Link href={`/world/news/${current.id}`} className="block">
           <div className="w-full relative" style={{ aspectRatio: '16/9' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -648,7 +648,7 @@ function PriceCard({ price }: { price: PriceDetails }) {
         ))}
       </ul>
       <Link
-        href="/pro"
+        href="/world/pro"
         className="text-center rounded-full bg-[#96EDD6] text-[#102425] font-semibold px-4 py-2 hover:bg-[#96EDD6]/80 transition"
       >
         {price.button}
@@ -694,11 +694,11 @@ export default function AboutContent() {
     <div className="min-h-screen bg-[#101010] text-white pb-20">
       {/* Hero intro */}
       <section className="max-w-[1190px] mx-auto px-4 pt-14 pb-12">
-        <h1 className="text-center text-3xl md:text-4xl font-bold text-[#40e0d0] mb-8">
+        <h1 className="text-center text-2xl md:text-3xl font-bold text-[#40e0d0] mb-8">
           About Us
         </h1>
         <div
-          className="text-center text-[17px] leading-[1.7] text-white max-w-[900px] mx-auto markdown-content"
+          className="text-center text-[15px] leading-[1.7] text-white max-w-[900px] mx-auto markdown-content"
           dangerouslySetInnerHTML={{ __html: introHtml }}
         />
       </section>
@@ -707,7 +707,7 @@ export default function AboutContent() {
       <section className="max-w-[1200px] mx-auto px-4 flex flex-col lg:flex-row gap-8">
         {/* Left: product menu */}
         <aside className="lg:min-w-[260px] flex flex-col">
-          <h2 className="text-2xl lg:text-3xl font-bold text-[#40e0d0] mb-4 ml-2">
+          <h2 className="text-xl lg:text-2xl font-bold text-[#40e0d0] mb-4 ml-2">
             Our Products
           </h2>
           <div className="flex flex-col gap-4">
@@ -724,7 +724,7 @@ export default function AboutContent() {
                       : 'bg-[#153233]/25 text-white border border-[#baf7f0]'
                   }`}
                 >
-                  <span className="font-bold text-lg ml-2">{product}</span>
+                  <span className="font-bold text-base ml-2">{product}</span>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`/icons/${iconName}.png`}
@@ -749,7 +749,7 @@ export default function AboutContent() {
           <div className="flex flex-col gap-6">
             {/* Title (suppressed for Games/AI Labs/Staking which render their own) */}
             {!showComingSoon && selectedProduct !== 'Games' && selectedProduct !== 'AI Labs' && (
-              <h2 className="text-center text-3xl md:text-4xl font-bold text-[#40e0d0] mb-4">
+              <h2 className="text-center text-2xl md:text-3xl font-bold text-[#40e0d0] mb-4">
                 {selectedProduct === 'Education'
                   ? 'Learn Together with KUMAMI'
                   : currentProduct.title}
@@ -759,7 +759,7 @@ export default function AboutContent() {
             {selectedProduct === 'News Portal' && (
               <>
                 <div className="flex flex-col md:flex-row gap-6">
-                  <p className="flex-1 text-base text-white leading-relaxed whitespace-pre-line text-justify">
+                  <p className="flex-1 text-sm text-white leading-relaxed whitespace-pre-line text-justify">
                     {currentProduct.description}
                   </p>
                   {currentProduct.price && (
@@ -767,7 +767,7 @@ export default function AboutContent() {
                   )}
                 </div>
                 <div className="mt-10">
-                  <h3 className="text-2xl md:text-3xl font-bold mb-4 text-white">
+                  <h3 className="text-xl md:text-2xl font-bold mb-4 text-white">
                     Trending News
                   </h3>
                   <TrendingNewsCarousel />
@@ -777,7 +777,7 @@ export default function AboutContent() {
 
             {selectedProduct === 'Education' && (
               <div className="w-full">
-                <p className="max-w-[650px] mx-auto mb-5 leading-relaxed text-center text-white text-base md:text-lg">
+                <p className="max-w-[650px] mx-auto mb-5 leading-relaxed text-center text-white text-sm md:text-base">
                   Many individuals struggle to find a user-friendly platform
                   that offers education on the Web 3 ecosystem. At Kumami.World,
                   we offer an easy-to-use learning platform with free modules
@@ -811,14 +811,14 @@ export default function AboutContent() {
 
             {selectedProduct === 'Games' && (
               <div className="w-full">
-                <h2 className="text-center text-3xl md:text-4xl font-bold text-[#40e0d0] mb-6">
+                <h2 className="text-center text-2xl md:text-3xl font-bold text-[#40e0d0] mb-6">
                   {currentProduct.title}
                 </h2>
-                <p className="text-base text-white leading-relaxed whitespace-pre-line text-justify mb-8">
+                <p className="text-sm text-white leading-relaxed whitespace-pre-line text-justify mb-8">
                   {currentProduct.description}
                 </p>
                 <div className="mt-6">
-                  <h3 className="text-2xl md:text-3xl font-bold mb-4 text-white">
+                  <h3 className="text-xl md:text-2xl font-bold mb-4 text-white">
                     Trending Games
                   </h3>
                   <TrendingGamesCarousel />
@@ -842,7 +842,7 @@ export default function AboutContent() {
                     className="w-full max-w-[500px] rounded-xl shadow-lg"
                   />
                 </div>
-                <p className="text-justify text-white text-base md:text-lg mb-8 max-w-[700px] mx-auto leading-relaxed">
+                <p className="text-justify text-white text-sm md:text-base mb-8 max-w-[700px] mx-auto leading-relaxed">
                   Joining a Web3 gaming guild lets you unlock new earning
                   opportunities through play-to-earn games while connecting
                   with a global community of gamers. It&apos;s more than
@@ -917,7 +917,7 @@ export default function AboutContent() {
 
             {selectedProduct === 'AI Labs' && (
               <div className="w-full">
-                <h2 className="text-center text-3xl md:text-4xl font-bold text-[#40e0d0] mb-6">
+                <h2 className="text-center text-2xl md:text-3xl font-bold text-[#40e0d0] mb-6">
                   AI Labs
                 </h2>
                 {/* Main section: image + description */}

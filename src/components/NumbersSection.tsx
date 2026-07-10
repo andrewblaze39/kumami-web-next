@@ -9,24 +9,22 @@ const NumbersSection = () => {
   const hasAnimatedRef = useRef(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const element = document.getElementById('numbers-section');
-      if (element) {
-        const elementTop = element.getBoundingClientRect().top;
-        const windowHeight = window.innerHeight;
-        if (elementTop < windowHeight - 100) {
+    const element = document.getElementById('numbers-section');
+    if (!element) return;
+
+    // Works both on window scroll and inside the world shell's scroll container
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
           setIsVisible(true);
-          window.removeEventListener('scroll', handleScroll);
+          observer.disconnect();
         }
-      }
-    };
+      },
+      { threshold: 0.2 }
+    );
 
-    handleScroll();
-    window.addEventListener('scroll', handleScroll);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    observer.observe(element);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {

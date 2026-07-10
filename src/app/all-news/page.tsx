@@ -1,37 +1,6 @@
-import type { Metadata } from 'next'
-import Footer from '@/components/Footer'
-import AllNewsGrid from '@/components/AllNewsGrid'
+import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = {
-  title: 'All News — Kumami World',
-  description:
-    'Browse all crypto and Web3 news articles on Kumami World.',
-  openGraph: {
-    title: 'All News — Kumami World',
-    description:
-      'Browse all crypto and Web3 news articles on Kumami World.',
-    url: 'https://kumami.world/all-news',
-    siteName: 'Kumami World',
-    locale: 'en_US',
-    images: [{ url: 'https://kumami.world/og-default.png', width: 1200, height: 630, alt: 'All News — Kumami World' }],
-  },
-  alternates: {
-    canonical: 'https://kumami.world/all-news',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'All News — Kumami World',
-    description:
-      'Browse all crypto and Web3 news articles on Kumami World.',
-    images: ['https://kumami.world/og-default.png'],
-  },
-}
-
-export default function AllNewsPage() {
-  return (
-    <>
-      <AllNewsGrid />
-      <Footer />
-    </>
-  )
+// Legacy route — the all-news archive lives inside the world shell.
+export default function AllNewsRedirect() {
+  redirect('/world/news/all');
 }

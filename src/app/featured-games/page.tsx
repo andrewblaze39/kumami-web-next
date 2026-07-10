@@ -1,32 +1,6 @@
-import type { Metadata } from 'next'
-import Footer from '@/components/Footer'
-import FeaturedGamesGrid from '@/components/FeaturedGamesGrid'
+import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = {
-  title: 'Featured Games — Kumami World',
-  description: 'Explore the best featured games on Kumami World Game Zone.',
-  alternates: { canonical: 'https://kumami.world/featured-games' },
-  openGraph: {
-    title: 'Featured Games — Kumami World',
-    description: 'Explore the best featured games on Kumami World Game Zone.',
-    url: 'https://kumami.world/featured-games',
-    siteName: 'Kumami World',
-    locale: 'en_US',
-    images: [{ url: 'https://kumami.world/og-default.png', width: 1200, height: 630, alt: 'Featured Games — Kumami World' }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Featured Games — Kumami World',
-    description: 'Explore the best featured games on Kumami World Game Zone.',
-    images: ['https://kumami.world/og-default.png'],
-  },
-}
-
+// Legacy route — games live inside the world shell.
 export default function FeaturedGamesPage() {
-  return (
-    <>
-      <FeaturedGamesGrid />
-      <Footer />
-    </>
-  )
+  redirect('/world/games');
 }

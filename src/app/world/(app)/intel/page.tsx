@@ -1,261 +1,269 @@
 'use client';
 
 /**
- * /world/intel — Intelligence feed page.
+ * /world/intel — Intelligence page.
  *
- * Fetches IntelligencePayload from GET /api/market/intelligence.
- * Supports client-side filtering by category + asset.
+ * Pixel-parity port of the reference mockup's R.intel renderer:
+ * lead card + "Priority tiers" aside + river of brief rows, with
+ * category chips and an asset filter. Placeholder data is the
+ * reference ADV.intel array, verbatim.
  *
- * PRO layer:
- *   - Free tier: server strips proInterpretation text but preserves
- *     hasProInterpretation flag. Client shows locked shell when
- *     !isPremium && brief.hasProInterpretation.
- *   - Pro tier: full proInterpretation text rendered beneath the summary.
- *
- * Macro-calendar and token-unlock items arrive as regular brief rows with
- * their own category values (e.g. "Macro", "Trade") — rendered normally.
+ * The only deliberate deviation from the reference is the accent
+ * colour (mint #5ee9a8 → project turquoise var(--accent)).
  */
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState, useMemo } from 'react';
-import type { IntelligencePayload } from '@/lib/market/contracts';
-import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
-import { useAuth } from '@/contexts/AuthContext';
-import { relativeTime } from '@/components/world/panels/format';
+import { useState } from 'react';
+import { useWorldMode } from '@/contexts/WorldModeContext';
+import { WIcon, intelGrad } from '@/components/world/panels/console-ui';
 
-// ---------------------------------------------------------------------------
-// Tier badge
-// ---------------------------------------------------------------------------
-
-const TIER_LABELS: Record<string, string> = { A: 'Tier A', B: 'Tier B', C: 'Tier C' };
-const TIER_CLASSES: Record<string, string> = {
-  A: 'w-intel-tier w-intel-tier-a',
-  B: 'w-intel-tier w-intel-tier-b',
-  C: 'w-intel-tier w-intel-tier-c',
+/* ---- Placeholder briefs (reference ADV.intel, verbatim) ---- */
+type IntelBrief = {
+  tier: 'A' | 'B' | 'C';
+  cat: string;
+  title: string;
+  summary: string;
+  src: string;
+  time: string;
+  tokens: string[];
 };
 
-// ---------------------------------------------------------------------------
-// Category chips — must match the categories used in fixtures
-// ---------------------------------------------------------------------------
+const INTEL: IntelBrief[] = [
+  { tier: 'A', cat: 'Macro', title: 'FOMC signals slower rate-cut path; dot plot revised higher', summary: 'Median projection now shows two cuts in 2026 vs three prior — broad risk-asset implication.', src: 'Reuters', time: '9m', tokens: ['BTC', 'GOLD'] },
+  { tier: 'A', cat: 'Regulatory', title: 'SEC acknowledges spot ETH staking ETF amendment for review', summary: 'Formal acknowledgement starts the statutory clock; no decision date set.', src: 'Bloomberg', time: '27m', tokens: ['ETH'] },
+  { tier: 'B', cat: 'Trade', title: 'HIP3 RWA gold perp open interest surges past $1B in 24h', summary: 'Aggregate OI on the gold perpetual crossed $1B for the first time since launch.', src: 'On-chain', time: '41m', tokens: ['GOLD'] },
+  { tier: 'A', cat: 'Security', title: 'Cross-chain bridge pauses withdrawals after anomaly detected', summary: 'Team halted the contract pending audit; ~$0 confirmed lost so far.', src: 'The Block', time: '1h', tokens: ['ETH', 'AVAX'] },
+  { tier: 'B', cat: 'Macro', title: 'US CPI prints 0.2% MoM, in line; dollar softens modestly', summary: 'Headline matches consensus; DXY eased 0.3% on the release.', src: 'AP', time: '1h', tokens: ['DXY', 'BTC'] },
+  { tier: 'A', cat: 'Narrative', title: 'Capital rotating into AI-token sector; index +12% on the week', summary: 'Sector breadth widening — flows broad rather than single-name driven.', src: 'Kaito', time: '2h', tokens: ['AI', 'ETH'] },
+  { tier: 'C', cat: 'Trade', title: 'Funding rates flip positive across majors as longs return', summary: 'BTC, ETH, SOL perpetual funding turned positive in the last 8h window.', src: 'Coinglass', time: '2h', tokens: ['BTC', 'SOL'] },
+  { tier: 'B', cat: 'Regulatory', title: 'EU finalises MiCA stablecoin reserve guidance', summary: 'Issuers get a compliance window; aggregate market-structure impact.', src: 'ESMA', time: '3h', tokens: ['USDT', 'USDC'] },
+  { tier: 'C', cat: 'Security', title: 'Wallet provider patches signing vulnerability, urges update', summary: 'No active exploitation reported; update advised for all users.', src: 'Vendor', time: '4h', tokens: ['ETH'] },
+];
 
-const CATEGORY_CHIPS = ['All', 'Macro', 'Trade', 'Narrative', 'Regulatory'];
+/* ---- Categories + colours (reference INTEL_CATS / INTEL_CC) ---- */
+const INTEL_CATS = ['All', 'Macro', 'Trade', 'Narrative', 'Regulatory', 'Security'];
 
-// ---------------------------------------------------------------------------
-// Skeleton rows
-// ---------------------------------------------------------------------------
+const INTEL_CC: Record<string, string> = {
+  Macro: '#56dfe6',
+  Regulatory: '#56dfe6',
+  Trade: '#b9a4ff',
+  Narrative: '#e7c06a',
+  Security: '#ff6b81',
+};
 
-function SkeletonRow() {
+/** Reference fallback is the accent colour (#5ee9a8 → var(--accent)). */
+const intelCC = (cat: string) => INTEL_CC[cat] ?? 'var(--accent)';
+
+const ASSETS = ['All', 'BTC', 'ETH', 'SOL', 'GOLD', 'AI'];
+
+/* ---- Token chips ---- */
+function Tokens({ tokens }: { tokens: string[] }) {
   return (
-    <div className="w-intel-row w-intel-row-skeleton" aria-hidden="true">
-      <div className="w-intel-row-head">
-        <span className="w-skel" style={{ width: 56, height: 20, borderRadius: 6 }} />
-        <span className="w-skel" style={{ width: 80, height: 20, borderRadius: 6 }} />
-        <span className="w-skel" style={{ width: 90, height: 16, borderRadius: 4 }} />
-      </div>
-      <span className="w-skel" style={{ width: '70%', height: 20, borderRadius: 5 }} />
-      <span className="w-skel" style={{ width: '90%', height: 16, borderRadius: 4 }} />
-      <span className="w-skel" style={{ width: '80%', height: 16, borderRadius: 4 }} />
-    </div>
+    <span className="w-intel-tokens" style={{ marginLeft: 2 }}>
+      {tokens.map(t => (
+        <span key={t}>{t}</span>
+      ))}
+    </span>
   );
 }
-
-// ---------------------------------------------------------------------------
-// PRO locked block (free user + brief with hasProInterpretation)
-// ---------------------------------------------------------------------------
-
-function ProLockedBlock() {
-  const router = useRouter();
-  return (
-    <div className="w-intel-pro-locked" aria-label="PRO interpretation — locked">
-      <div className="w-intel-pro-blur-wrap" aria-hidden="true">
-        <div className="w-intel-pro-blur-line" />
-        <div className="w-intel-pro-blur-line w-intel-pro-blur-line-short" />
-      </div>
-      <div className="w-intel-pro-gate">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <rect x="4.5" y="10.5" width="15" height="10" rx="2.5" /><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
-        </svg>
-        <span>Unlock PRO interpretation</span>
-        {/* button prevents a nested anchor (the outer BriefRow is a Link) */}
-        <button
-          type="button"
-          className="w-intel-pro-cta"
-          onClick={e => { e.stopPropagation(); e.preventDefault(); router.push('/world/pro'); }}
-        >
-          Go PRO
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Brief row
-// ---------------------------------------------------------------------------
-
-type Brief = IntelligencePayload['briefs'][number];
-
-function BriefRow({ brief, isPremium }: { brief: Brief; isPremium: boolean }) {
-  const showProContent = isPremium && brief.proInterpretation;
-  // Use server-provided flag — don't infer from tier (server strips text but keeps flag)
-  const showLockedShell = !isPremium && brief.hasProInterpretation;
-
-  return (
-    <Link href={`/world/intel/${brief.id}`} className="w-intel-row" aria-label={brief.headline}>
-      <div className="w-intel-row-head">
-        <span className={TIER_CLASSES[brief.tier] ?? 'w-intel-tier w-intel-tier-c'}>
-          {TIER_LABELS[brief.tier] ?? brief.tier}
-        </span>
-        <span className="w-intel-category-tag">{brief.category}</span>
-        <span className="w-intel-ts">{relativeTime(brief.ts)}</span>
-      </div>
-
-      <h3 className="w-intel-headline">{brief.headline}</h3>
-      <p className="w-intel-summary">{brief.summary}</p>
-
-      <div className="w-intel-row-foot">
-        <span className="w-intel-source">{brief.source}</span>
-        {brief.assets.length > 0 && (
-          <div className="w-intel-assets">
-            {brief.assets.slice(0, 4).map(a => (
-              <span key={a} className="w-intel-asset-chip">{a}</span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {showProContent && (
-        <div className="w-intel-pro-content">
-          <span className="w-intel-pro-label">PRO</span>
-          <p className="w-intel-pro-text">{brief.proInterpretation}</p>
-        </div>
-      )}
-
-      {showLockedShell && <ProLockedBlock />}
-    </Link>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
 
 export default function IntelPage() {
-  const { userData } = useAuth();
-  const isPremium = userData?.isPremium === true;
+  const { setMode } = useWorldMode();
+  const [cat, setCat] = useState('All');
+  const [asset, setAsset] = useState('All');
 
-  const intel = useMarketEndpoint<IntelligencePayload>('/api/market/intelligence');
-  const briefs = intel.data?.briefs ?? [];
+  const counts: Record<string, number> = {};
+  for (const k of INTEL_CATS) {
+    counts[k] = k === 'All' ? INTEL.length : INTEL.filter(i => i.cat === k).length;
+  }
 
-  const [categoryFilter, setCategoryFilter] = useState('All');
-  const [assetFilter, setAssetFilter] = useState('All');
-
-  // Derive asset options from the payload
-  const assetOptions = useMemo(() => {
-    const seen = new Set<string>();
-    for (const b of briefs) {
-      for (const a of b.assets) seen.add(a);
-    }
-    return ['All', ...Array.from(seen).sort()];
-  }, [briefs]);
-
-  // Client-side filter
-  const filtered = useMemo(() => {
-    return briefs.filter(b => {
-      const catOk = categoryFilter === 'All' || b.category === categoryFilter;
-      const assetOk = assetFilter === 'All' || b.assets.includes(assetFilter);
-      return catOk && assetOk;
-    });
-  }, [briefs, categoryFilter, assetFilter]);
-
-  const isLoading = intel.status === 'loading';
-  const hasError = intel.status === 'error' && !intel.data;
+  const items = INTEL.filter(
+    x => (cat === 'All' || x.cat === cat) && (asset === 'All' || x.tokens.includes(asset)),
+  );
+  const lead = items[0];
+  const river = items.slice(1);
 
   return (
-    <div className="w-content-inner w-intel-page">
-
+    <div className="w-content-inner w-intel">
       {/* ── Header ── */}
-      <div className="w-intel-head">
-        <div>
-          <h1 className="w-page-title">Intelligence</h1>
-          <p className="w-page-sub">Curated, tiered briefs from macro, protocol, and flow events.</p>
-        </div>
+      <div className="w-il-top">
+        <h1>
+          <WIcon name="doc" /> Intelligence
+        </h1>
+        <span className="w-il-date">
+          <WIcon name="clock" /> The deeper read of your News Portal · AI-scored A/B/C
+        </span>
       </div>
 
-      {/* ── Filters ── */}
-      <div className="w-intel-filters">
-        <div className="w-intel-filter-group" role="group" aria-label="Filter by category">
-          {CATEGORY_CHIPS.map(cat => (
-            <button
-              key={cat}
-              className={`w-intel-filter-chip${categoryFilter === cat ? ' on' : ''}`}
-              onClick={() => setCategoryFilter(cat)}
-              aria-pressed={categoryFilter === cat}
-            >
-              {cat}
-            </button>
-          ))}
+      {/* ── Continuity banner ── */}
+      <div className="w-cont-banner">
+        <span className="w-cb-ic">
+          <WIcon name="news" />
+        </span>
+        <div className="w-cb-main">
+          <b>The same stories — analyst-grade.</b>
+          <span>
+            Every brief here maps to a story in your <b style={{ color: '#f0cd7e' }}>News Portal</b>,
+            scored A/B/C with sources and tickers. “What this means for you” is{' '}
+            <b style={{ color: '#b9a4ff' }}>Pro</b>.
+          </span>
         </div>
+        <button className="w-btn w-btn-surface w-btn-sm" onClick={() => setMode('beginner')}>
+          <WIcon name="news" /> Back to News Portal
+        </button>
+      </div>
 
-        {/* Asset filter */}
-        <div className="w-intel-filter-asset">
-          <label htmlFor="intel-asset-filter" className="w-intel-filter-label">Asset</label>
-          <select
-            id="intel-asset-filter"
-            className="w-intel-asset-select"
-            value={assetFilter}
-            onChange={e => setAssetFilter(e.target.value)}
+      {/* ── Category chips ── */}
+      <div className="w-il-cats">
+        {INTEL_CATS.map(k => (
+          <button
+            key={k}
+            className={`w-il-cat${cat === k ? ' on' : ''}`}
+            onClick={() => setCat(k)}
           >
-            {assetOptions.map(a => (
-              <option key={a} value={a}>{a}</option>
-            ))}
-          </select>
-        </div>
+            {k}
+            <span style={{ opacity: 0.6, marginLeft: 6 }}>{counts[k]}</span>
+          </button>
+        ))}
       </div>
 
-      {/* ── Stale banner ── */}
-      {intel.status === 'error' && intel.data && (
-        <p className="w-console-stale-banner" role="status">
-          Showing last available data — refresh failed. Will retry automatically.
-        </p>
-      )}
+      {/* ── Asset filter ── */}
+      <div className="w-asset-filter" style={{ marginBottom: 22 }}>
+        {ASSETS.map(a => (
+          <button key={a} className={asset === a ? 'on' : ''} onClick={() => setAsset(a)}>
+            {a}
+          </button>
+        ))}
+      </div>
 
-      {/* ── Error state ── */}
-      {hasError && (
-        <div className="w-console-error" role="alert">
-          <p className="w-console-error-msg">Unable to load intelligence feed. {intel.error}</p>
-          <button className="w-btn w-btn-ghost w-btn-sm" onClick={intel.refetch}>Retry</button>
-        </div>
-      )}
-
-      {/* ── Feed ── */}
-      <div className="w-intel-feed">
-        {isLoading ? (
-          Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
-        ) : filtered.length === 0 && !hasError ? (
-          <div className="w-intel-empty">
-            <p>No briefs match the current filters.</p>
-            <button
-              className="w-btn w-btn-ghost w-btn-sm"
-              onClick={() => { setCategoryFilter('All'); setAssetFilter('All'); }}
+      {/* ── Lead + aside ── */}
+      <div className="w-il-grid">
+        {lead && (
+          <div className="w-il-lead">
+            <div
+              className="w-il-ph"
+              style={{ '--lph': intelGrad(lead.cat) } as React.CSSProperties}
             >
-              Clear filters
-            </button>
+              <div className="w-il-badges">
+                <span className="w-tag-badge w-tag-adv">
+                  <WIcon name="star" /> Advanced
+                </span>
+                <span
+                  className={`w-tier w-tier-${lead.tier}`}
+                  style={{ width: 24, height: 24, borderRadius: 7 }}
+                >
+                  {lead.tier}
+                </span>
+              </div>
+              <h2>{lead.title}</h2>
+            </div>
+            <div className="w-il-lead-body">
+              <span className="w-art-cat" style={{ color: intelCC(lead.cat) }}>
+                {lead.cat}
+              </span>
+              <p className="w-il-lead-exc" style={{ marginTop: 8 }}>
+                {lead.summary}
+              </p>
+              <div className="w-art-meta">
+                <span className="w-src">{lead.src}</span>
+                <span className="w-dot-sep" />
+                <span>{lead.time} ago</span>
+                <Tokens tokens={lead.tokens} />
+                <span className="w-adv-link" style={{ margin: 0 }}>
+                  <WIcon name="arrowR" /> Read source
+                </span>
+              </div>
+            </div>
           </div>
-        ) : (
-          filtered.map(brief => (
-            <BriefRow key={brief.id} brief={brief} isPremium={isPremium} />
-          ))
         )}
+
+        <div className="w-il-aside">
+          <h3 className="w-il-aside-h">
+            <WIcon name="star" /> Priority tiers
+          </h3>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+              fontSize: 13,
+              color: 'var(--muted)',
+            }}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+              <span className="w-tier w-tier-A">A</span> Market-moving
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+              <span className="w-tier w-tier-B">B</span> Notable
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+              <span className="w-tier w-tier-C">C</span> Context
+            </span>
+          </div>
+          <p style={{ color: 'var(--muted)', fontSize: 12.5, lineHeight: 1.5, margin: '16px 0 0' }}>
+            Filter by category or asset above to narrow the brief to what you hold.
+          </p>
+        </div>
       </div>
 
-      {/* ── Updated timestamp — only show when a real timestamp is available ── */}
-      {intel.data && briefs[0]?.ts && (
-        <p className="w-intel-updated">
-          Feed updated {relativeTime(briefs[0].ts)}
-        </p>
-      )}
+      {/* ── River ── */}
+      <div className="w-il-river">
+        <h3 className="w-il-river-h">Latest briefs</h3>
+        <div className="w-il-list">
+          {river.length > 0 ? (
+            river.map(x => (
+              <div className="w-il-row" key={x.title}>
+                <div
+                  className="w-il-thumb"
+                  style={{ '--rph': intelGrad(x.cat) } as React.CSSProperties}
+                >
+                  <span className="w-il-tl">
+                    <span
+                      className={`w-tier w-tier-${x.tier}`}
+                      style={{ width: 24, height: 24, borderRadius: 7 }}
+                    >
+                      {x.tier}
+                    </span>
+                  </span>
+                </div>
+                <div className="w-il-rbody">
+                  <span className="w-art-cat" style={{ color: intelCC(x.cat) }}>
+                    {x.cat}
+                  </span>
+                  <h3>{x.title}</h3>
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: 'var(--muted)',
+                      lineHeight: 1.5,
+                      margin: '0 0 8px',
+                      textWrap: 'pretty',
+                    }}
+                  >
+                    {x.summary}
+                  </p>
+                  <div className="w-art-meta">
+                    <span className="w-src">{x.src}</span>
+                    <span className="w-dot-sep" />
+                    <span>{x.time} ago</span>
+                    <Tokens tokens={x.tokens} />
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : !lead ? (
+            <div
+              style={{
+                padding: 50,
+                textAlign: 'center',
+                color: 'var(--muted)',
+                gridColumn: '1/-1',
+              }}
+            >
+              No briefs match this filter.
+            </div>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }

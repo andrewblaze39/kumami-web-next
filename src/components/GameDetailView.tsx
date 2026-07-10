@@ -158,7 +158,7 @@ export default function GameDetailView({ gameName }: GameDetailViewProps) {
     return (
       <div
         className="min-h-screen font-sans text-white flex items-center justify-center"
-        style={{ background: 'linear-gradient(135deg, #102425 0%, #050608 100%)' }}
+        style={{ background: 'linear-gradient(180deg, #000 0%, #0a1a1a 40%, #102425 75%, #000 100%)' }}
       >
         <div className="flex flex-col items-center">
           <Loader className="h-16 w-16 text-[#96EDD6] animate-spin" />
@@ -173,7 +173,7 @@ export default function GameDetailView({ gameName }: GameDetailViewProps) {
     return (
       <div
         className="min-h-screen font-sans text-white flex items-center justify-center"
-        style={{ background: 'linear-gradient(135deg, #102425 0%, #050608 100%)' }}
+        style={{ background: 'linear-gradient(180deg, #000 0%, #0a1a1a 40%, #102425 75%, #000 100%)' }}
       >
         <div className="text-center">
           <div className="mb-8">
@@ -184,7 +184,7 @@ export default function GameDetailView({ gameName }: GameDetailViewProps) {
             </p>
           </div>
           <button
-            onClick={() => router.push('/games')}
+            onClick={() => router.push('/world/games')}
             className="bg-[#96EDD6] text-[#163232] rounded-lg px-8 py-3 text-lg font-bold transition-all duration-200 hover:bg-[#163232] hover:text-[#96EDD6] hover:scale-105 shadow-md hover:shadow-xl"
           >
             Return to Games Page
@@ -199,7 +199,7 @@ export default function GameDetailView({ gameName }: GameDetailViewProps) {
     return (
       <div
         className="min-h-screen font-sans text-white flex items-center justify-center"
-        style={{ background: 'linear-gradient(135deg, #102425 0%, #050608 100%)' }}
+        style={{ background: 'linear-gradient(180deg, #000 0%, #0a1a1a 40%, #102425 75%, #000 100%)' }}
       >
         <div className="text-center">
           <div className="mb-8">
@@ -208,7 +208,7 @@ export default function GameDetailView({ gameName }: GameDetailViewProps) {
             <p className="text-white/80 mb-8">{error}</p>
           </div>
           <button
-            onClick={() => router.push('/games')}
+            onClick={() => router.push('/world/games')}
             className="bg-[#96EDD6] text-[#163232] rounded-lg px-8 py-3 text-lg font-bold transition-all duration-200 hover:bg-[#163232] hover:text-[#96EDD6] hover:scale-105 shadow-md hover:shadow-xl"
           >
             Return to Games Page
@@ -236,14 +236,14 @@ export default function GameDetailView({ gameName }: GameDetailViewProps) {
   return (
     <div
       className="font-sans text-white min-h-screen"
-      style={{ background: 'linear-gradient(135deg, #102425 0%, #050608 100%)' }}
+      style={{ background: 'linear-gradient(180deg, #000 0%, #0a1a1a 40%, #102425 75%, #000 100%)' }}
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         {/* Breadcrumb */}
         <div className="flex justify-between items-center pt-8">
           <div className="flex items-center gap-2 text-sm text-white/80">
             <Link
-              href="/games"
+              href="/world/games"
               className="cursor-pointer hover:text-[#96EDD6] transition no-underline text-white/80"
             >
               Games Page
@@ -580,7 +580,7 @@ export default function GameDetailView({ gameName }: GameDetailViewProps) {
                 <div
                   key={game.id}
                   className="group cursor-pointer rounded-2xl overflow-hidden bg-[#1a1a1a] hover:bg-[#163232] transition-all duration-300 hover:scale-[1.02]"
-                  onClick={() => router.push(`/game-details?name=${encodeURIComponent(game.title ?? '')}`)}
+                  onClick={() => router.push(`/world/games/details?name=${encodeURIComponent(game.title ?? '')}`)}
                 >
                   <div className="aspect-[3/4] overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -617,7 +617,7 @@ export default function GameDetailView({ gameName }: GameDetailViewProps) {
                       className="text-xs font-medium text-[#96EDD6] hover:text-white transition-colors"
                       onClick={(e) => {
                         e.stopPropagation()
-                        router.push(`/game-details?name=${encodeURIComponent(game.title ?? '')}`)
+                        router.push(`/world/games/details?name=${encodeURIComponent(game.title ?? '')}`)
                       }}
                     >
                       View Details
