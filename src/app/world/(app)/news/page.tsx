@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Newspaper, Zap, Clapperboard } from 'lucide-react';
-import { getPublishedNews, getNewsCategories, getYoutubeShorts } from '@/lib/news';
+import { Newspaper, Zap } from 'lucide-react';
+import { getPublishedNews, getNewsCategories } from '@/lib/news';
 import CategoryChips from '@/components/world/news/CategoryChips';
 import NewsHero from '@/components/world/news/NewsHero';
 import NewsTicker from '@/components/world/news/NewsTicker';
@@ -60,12 +60,9 @@ export default async function WorldNewsPage({ searchParams }: PageProps) {
   // Capsules derived from real article data — never hardcoded.
   const categories = getNewsCategories(latest);
 
-  // YouTube shorts rail (legacy NewsGrid feature).
-  const shorts = await getYoutubeShorts();
-
   const hero = articles[0];
-  const asideList = articles.slice(1, 7);
-  const river = articles.slice(7, 17);
+  const asideList = articles.slice(1, 5);
+  const river = articles.slice(5, 15);
 
   const dateLabel = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -134,50 +131,6 @@ export default async function WorldNewsPage({ searchParams }: PageProps) {
                     <NewsRow article={article} />
                   </ProGate>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {/* Shorts — YouTube shorts rail (mirrors legacy NewsGrid section) */}
-          {shorts.length > 0 && (
-            <div className="w-np-river" style={{ marginTop: '28px' }}>
-              <div className="w-np-aside-h">
-                <Clapperboard size={16} className="w-np-top-ico" />
-                SHORTS
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '14px',
-                  overflowX: 'auto',
-                  padding: '4px 2px 10px',
-                }}
-              >
-                {shorts.map(
-                  (short) =>
-                    short.videoId && (
-                      <div
-                        key={short.id}
-                        style={{
-                          flex: 'none',
-                          width: '200px',
-                          aspectRatio: '9/16',
-                          overflow: 'hidden',
-                          borderRadius: '12px',
-                          background: '#000',
-                          border: '1px solid var(--border)',
-                        }}
-                      >
-                        <iframe
-                          src={`https://www.youtube.com/embed/${short.videoId}?rel=0&modestbranding=1`}
-                          title={short.title || 'YouTube Shorts'}
-                          style={{ width: '100%', height: '100%', border: 0 }}
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                          allowFullScreen
-                        />
-                      </div>
-                    )
-                )}
               </div>
             </div>
           )}
