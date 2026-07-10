@@ -14,24 +14,23 @@ export default function Gate() {
     <>
       {/* ── Gate hero ── */}
       <div className="w-gate">
-        {/* Logo badge */}
+        {/* Logo */}
         <span className="w-gate-logo">
           <Image
-            src="/logo-kumami-white.png"
+            src="/logo-kumami-final.png"
             alt="Kumami World"
-            width={66}
-            height={28}
-            style={{ height: 28, width: 'auto' }}
+            width={120}
+            height={40}
+            style={{ height: 40, width: 'auto' }}
             priority
           />
-          <small>WORLD</small>
         </span>
 
         {/* Kuma bear mascot */}
         <KumaBear className="w-gate-bear" width={150} height={150} />
 
         {/* Wordmark */}
-        <h1>kūmami WORLD</h1>
+        <h1>Kumami World</h1>
 
         {/* Tagline */}
         <p className="w-tag">
