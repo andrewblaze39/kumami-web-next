@@ -1,68 +1,74 @@
 /**
- * KumaBear — placeholder bear-face SVG mascot for Kumami World.
+ * KumaBear — the single canonical Kuma bear mascot icon.
  *
- * The original Kuma bear SVG from the mockup HTML lives inside a compressed
- * JavaScript bundle blob (base64/gzip) which is not directly extractable at
- * build time without running the bundle. This placeholder replicates the
- * bear-face silhouette in clean SVG so we can iterate quickly; a designer can
- * swap in the final asset later.
+ * Used everywhere: topbar FAB, Kuma dock, gate, portfolio scanner, signup.
+ * Change the SVG here → it updates across the entire app.
  */
 
 interface KumaBearProps {
   className?: string;
   width?: number;
   height?: number;
+  /** Shorthand: sets both width and height */
+  size?: number;
+  /** Gentle floating animation */
+  bob?: boolean;
 }
 
 export default function KumaBear({
   className = '',
-  width = 150,
-  height = 150,
+  width,
+  height,
+  size,
+  bob = false,
 }: KumaBearProps) {
+  const w = size ?? width ?? 150;
+  const h = size ?? height ?? 150;
+
   return (
     <svg
-      width={width}
-      height={height}
-      viewBox="0 0 200 200"
+      width={w}
+      height={h}
+      viewBox="0 0 240 240"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       aria-label="Kuma bear mascot"
       role="img"
+      style={bob ? { animation: 'kumaBob 4s ease-in-out infinite' } : undefined}
     >
-      {/* Ear left */}
-      <circle cx="52" cy="58" r="28" fill="#1c3a2e" />
-      <circle cx="52" cy="58" r="18" fill="#2a5444" />
-      {/* Ear right */}
-      <circle cx="148" cy="58" r="28" fill="#1c3a2e" />
-      <circle cx="148" cy="58" r="18" fill="#2a5444" />
+      <defs>
+        <radialGradient id="kg-bear" cx="42%" cy="36%" r="70%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#e8eef0" />
+        </radialGradient>
+      </defs>
+      {/* Ears */}
+      <circle cx="74" cy="74" r="30" fill="url(#kg-bear)" />
+      <circle cx="74" cy="74" r="14" fill="#d7dee0" />
+      <circle cx="166" cy="74" r="30" fill="url(#kg-bear)" />
+      <circle cx="166" cy="74" r="14" fill="#d7dee0" />
       {/* Head */}
-      <circle cx="100" cy="108" r="76" fill="#1c3a2e" />
-      {/* Face highlight */}
-      <ellipse cx="100" cy="120" rx="52" ry="44" fill="#244d3c" />
-      {/* Eye left */}
-      <circle cx="78" cy="96" r="10" fill="#f1f7f4" />
-      <circle cx="80" cy="94" r="5" fill="#06241a" />
-      <circle cx="82" cy="92" r="2" fill="#f1f7f4" />
-      {/* Eye right */}
-      <circle cx="122" cy="96" r="10" fill="#f1f7f4" />
-      <circle cx="124" cy="94" r="5" fill="#06241a" />
-      <circle cx="126" cy="92" r="2" fill="#f1f7f4" />
+      <ellipse cx="120" cy="118" rx="86" ry="80" fill="url(#kg-bear)" />
+      {/* Eyes */}
+      <circle cx="92" cy="108" r="8.5" fill="#0c1b16" />
+      <circle cx="148" cy="108" r="8.5" fill="#0c1b16" />
+      <circle cx="89" cy="105" r="2.6" fill="#fff" />
+      <circle cx="145" cy="105" r="2.6" fill="#fff" />
+      {/* Snout */}
+      <ellipse cx="120" cy="150" rx="40" ry="32" fill="#f3ece1" />
       {/* Nose */}
-      <ellipse cx="100" cy="118" rx="14" ry="10" fill="#00c2c7" opacity="0.85" />
-      <circle cx="100" cy="116" r="4" fill="#06241a" />
+      <ellipse cx="120" cy="134" rx="11" ry="8" fill="#0c1b16" />
       {/* Mouth */}
       <path
-        d="M88 128 Q100 140 112 128"
-        stroke="#8ea69c"
-        strokeWidth="2.5"
+        d="M120 142v9M120 151c0 7-8 10-13 7M120 151c0 7 8 10 13 7"
+        stroke="#0c1b16"
+        strokeWidth="3.4"
         strokeLinecap="round"
-        fill="none"
       />
-      {/* Cheek blush left */}
-      <ellipse cx="68" cy="122" rx="12" ry="7" fill="#00c2c7" opacity="0.18" />
-      {/* Cheek blush right */}
-      <ellipse cx="132" cy="122" rx="12" ry="7" fill="#00c2c7" opacity="0.18" />
+      {/* Cheek blush */}
+      <circle cx="62" cy="138" r="9" fill="#ffd1dc" opacity=".55" />
+      <circle cx="178" cy="138" r="9" fill="#ffd1dc" opacity=".55" />
     </svg>
   );
 }
