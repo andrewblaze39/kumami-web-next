@@ -170,7 +170,13 @@ export default function EducationArticleRenderer({
     if (step > 0 && resolvedChapterIndex !== undefined && levelNum !== null) {
       markSectionVisited(resolvedChapterIndex, step - 1)
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    // The world shell scrolls inside `.w-main`, not the window — so
+    // window.scrollTo is a no-op here and the new section would open mid-page.
+    // Snap that container (falling back to window) to the top, instantly, so
+    // each section starts from the top without a dizzy smooth glide.
+    const scroller = document.querySelector('.w-main')
+    if (scroller) scroller.scrollTop = 0
+    else window.scrollTo({ top: 0 })
   }, [resolvedChapterIndex, levelNum, markSectionVisited])
 
   const goNext = useCallback(() => {

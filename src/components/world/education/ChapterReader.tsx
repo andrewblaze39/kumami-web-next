@@ -14,7 +14,7 @@
  *   - Skeleton loading state while auth resolves
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import PiPVideo from './PiPVideo';
@@ -366,11 +366,30 @@ export default function ChapterReader({
     const el = partRefs.current[initialPartId];
     if (el) {
       setTimeout(() => {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        el.scrollIntoView({ behavior: 'auto', block: 'start' });
         el.focus({ preventScroll: true });
       }, 80);
     }
   }, [initialPartId, progressLoading]);
+
+  // Snap the shell's scroll container to top when the chapter changes.
+  // Next.js scroll-to-top targets `window`, but the only scroll container in
+  // the shell is `.w-main` — so navigating to the next chapter otherwise keeps
+  // the old scroll position. Instant (no smooth) to avoid motion sickness.
+  // Skipped when deep-linking to a specific part (?part=), which scrolls itself.
+  // useLayoutEffect + rAF: reset before paint AND once more after the new
+  // chapter's content has committed, so nothing scrolls us back down.
+  useLayoutEffect(() => {
+    if (initialPartId) return;
+    const snap = () => {
+      const container = document.querySelector('.w-main');
+      if (container) container.scrollTop = 0;
+      else window.scrollTo(0, 0);
+    };
+    snap();
+    const raf = requestAnimationFrame(snap);
+    return () => cancelAnimationFrame(raf);
+  }, [chapter.id, initialPartId]);
 
   // C2 fix: IntersectionObserver also waits until parts are mounted
   useEffect(() => {
@@ -405,7 +424,7 @@ export default function ChapterReader({
     if (nextPartInChapter) {
       const el = partRefs.current[nextPartInChapter.id];
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        el.scrollIntoView({ behavior: 'auto', block: 'start' });
         setActivePartId(nextPartInChapter.id);
       }
     }
