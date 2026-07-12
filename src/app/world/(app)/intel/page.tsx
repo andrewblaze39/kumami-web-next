@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * /world/intel — Intelligence page.
+ * /world/intel -- Intelligence page.
  *
  * Pixel-parity port of the reference mockup's R.intel renderer:
  * lead card + "Priority tiers" aside + river of brief rows, with
@@ -28,12 +28,12 @@ type IntelBrief = {
 };
 
 const INTEL: IntelBrief[] = [
-  { tier: 'A', cat: 'Macro', title: 'FOMC signals slower rate-cut path; dot plot revised higher', summary: 'Median projection now shows two cuts in 2026 vs three prior — broad risk-asset implication.', src: 'Reuters', time: '9m', tokens: ['BTC', 'GOLD'] },
+  { tier: 'A', cat: 'Macro', title: 'FOMC signals slower rate-cut path; dot plot revised higher', summary: 'Median projection now shows two cuts in 2026 vs three prior -- broad risk-asset implication.', src: 'Reuters', time: '9m', tokens: ['BTC', 'GOLD'] },
   { tier: 'A', cat: 'Regulatory', title: 'SEC acknowledges spot ETH staking ETF amendment for review', summary: 'Formal acknowledgement starts the statutory clock; no decision date set.', src: 'Bloomberg', time: '27m', tokens: ['ETH'] },
   { tier: 'B', cat: 'Trade', title: 'HIP3 RWA gold perp open interest surges past $1B in 24h', summary: 'Aggregate OI on the gold perpetual crossed $1B for the first time since launch.', src: 'On-chain', time: '41m', tokens: ['GOLD'] },
   { tier: 'A', cat: 'Security', title: 'Cross-chain bridge pauses withdrawals after anomaly detected', summary: 'Team halted the contract pending audit; ~$0 confirmed lost so far.', src: 'The Block', time: '1h', tokens: ['ETH', 'AVAX'] },
   { tier: 'B', cat: 'Macro', title: 'US CPI prints 0.2% MoM, in line; dollar softens modestly', summary: 'Headline matches consensus; DXY eased 0.3% on the release.', src: 'AP', time: '1h', tokens: ['DXY', 'BTC'] },
-  { tier: 'A', cat: 'Narrative', title: 'Capital rotating into AI-token sector; index +12% on the week', summary: 'Sector breadth widening — flows broad rather than single-name driven.', src: 'Kaito', time: '2h', tokens: ['AI', 'ETH'] },
+  { tier: 'A', cat: 'Narrative', title: 'Capital rotating into AI-token sector; index +12% on the week', summary: 'Sector breadth widening -- flows broad rather than single-name driven.', src: 'Kaito', time: '2h', tokens: ['AI', 'ETH'] },
   { tier: 'C', cat: 'Trade', title: 'Funding rates flip positive across majors as longs return', summary: 'BTC, ETH, SOL perpetual funding turned positive in the last 8h window.', src: 'Coinglass', time: '2h', tokens: ['BTC', 'SOL'] },
   { tier: 'B', cat: 'Regulatory', title: 'EU finalises MiCA stablecoin reserve guidance', summary: 'Issuers get a compliance window; aggregate market-structure impact.', src: 'ESMA', time: '3h', tokens: ['USDT', 'USDC'] },
   { tier: 'C', cat: 'Security', title: 'Wallet provider patches signing vulnerability, urges update', summary: 'No active exploitation reported; update advised for all users.', src: 'Vendor', time: '4h', tokens: ['ETH'] },
@@ -94,19 +94,17 @@ export default function IntelPage() {
         </span>
       </div>
 
-      {/* ── Continuity banner ── */}
-      <div className=”w-cont-banner”>
-        <span className=”w-cb-ic”>
-          <WIcon name=”doc” />
+      {/* Continuity banner */}
+      <div className="w-cont-banner">
+        <span className="w-cb-ic">
+          <WIcon name="doc" />
         </span>
-        <div className=”w-cb-main”>
+        <div className="w-cb-main">
           <b>Market briefs, scored by impact.</b>
-          <span>
-            Each story is ranked A/B/C so you know what matters most.
-          </span>
+          <span>Each story is ranked A/B/C so you know what matters most.</span>
         </div>
-        <button className=”w-btn w-btn-surface w-btn-sm” onClick={() => setMode('beginner')}>
-          <WIcon name=”news” /> News Portal
+        <button className="w-btn w-btn-surface w-btn-sm" onClick={() => setMode('beginner')}>
+          <WIcon name="news" /> News Portal
         </button>
       </div>
 
