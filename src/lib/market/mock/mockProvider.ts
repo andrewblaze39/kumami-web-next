@@ -30,8 +30,8 @@ function makeProvider(): MarketDataProvider {
 
     async flowRadar(tier: 'free' | 'pro'): Promise<FlowEvent[]> {
       const events = createFixtures().makeFlowEvents(12);
-      // Free tier: last 6; Pro: all 12
-      return tier === 'free' ? events.slice(0, 6) : events;
+      // Free tier: last 10; Pro: all 12
+      return tier === 'free' ? events.slice(0, 10) : events;
     },
 
     async watchlist(uid: string, tier: 'free' | 'pro'): Promise<WatchlistPayload> {

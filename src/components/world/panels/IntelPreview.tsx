@@ -78,8 +78,8 @@ export default function IntelPreview({ briefs, loading }: Props) {
 
       <div className="w-apanel-foot">
         <span className="w-fmeta">{briefs.length} briefs today</span>
-        <Link href="/world/intel">
-          Open Intelligence <WIcon name="arrowR" />
+        <Link href="/world/pro">
+          Open Pro <WIcon name="arrowR" />
         </Link>
       </div>
     </section>

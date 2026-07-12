@@ -127,7 +127,6 @@ const BEGINNER_NAV: NavGroup[] = [
     items: [
       { k: 'news', label: 'News Portal', href: '/world/news', icon: Icons.news },
       { k: 'education', label: 'Education', href: '/world/education', icon: Icons.grad },
-      { k: 'blogs', label: 'Blogs', href: '/world/blogs', icon: Icons.pen },
     ],
   },
   {
@@ -153,14 +152,19 @@ const ADV_NAV: NavGroup[] = [
 
 // Education subtabs — nested under the Education nav item when it is active.
 // Keys must match the ?tab= values read by EducationTabs.tsx.
-const EDU_SUBTABS = [
+const EDU_SUBTABS_LEARN = [
   { key: 'journey', label: 'My Journey' },
   { key: 'dashboard', label: 'Dashboard' },
   { key: 'courses', label: 'My Courses' },
   { key: 'achievements', label: 'Achievements' },
-  { key: 'research', label: 'Research' },
+] as const;
+
+const EDU_SUBTABS_EXPLORE = [
+  { key: 'research', label: 'Deep Dives' },
   { key: 'glossary', label: 'Glossary' },
 ] as const;
+
+const EDU_SUBTABS = [...EDU_SUBTABS_LEARN, ...EDU_SUBTABS_EXPLORE] as const;
 
 /**
  * Education sub-nav — reads ?tab= to highlight the active subtab (default:
@@ -173,7 +177,20 @@ function EducationSubnav({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="w-nav-sub" role="group" aria-label="Education sections">
-      {EDU_SUBTABS.map(t => (
+      <div className="w-nav-sub-label">Learn</div>
+      {EDU_SUBTABS_LEARN.map(t => (
+        <Link
+          key={t.key}
+          href={`/world/education?tab=${t.key}`}
+          className={`w-nav-subitem${active === t.key ? ' active' : ''}`}
+          aria-current={active === t.key ? 'page' : undefined}
+          onClick={onClose}
+        >
+          {t.label}
+        </Link>
+      ))}
+      <div className="w-nav-sub-label">Explore</div>
+      {EDU_SUBTABS_EXPLORE.map(t => (
         <Link
           key={t.key}
           href={`/world/education?tab=${t.key}`}
@@ -246,6 +263,7 @@ const PRO_NAV_ITEMS = [
 const COMPANY_LINKS = [
   { label: 'About Kumami', href: '/world/about', icon: Icons.building },
   { label: 'Our Partners', href: '/world/partners', icon: Icons.users },
+  { label: 'Blogs', href: '/world/blogs', icon: Icons.pen },
 ];
 
 interface SidebarProps {

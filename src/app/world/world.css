@@ -679,6 +679,17 @@
   background: var(--panel-2);
   color: var(--accent);
 }
+.world-root .w-nav-sub-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 8px 10px 2px;
+}
+.world-root .w-nav-sub-label:first-child {
+  padding-top: 2px;
+}
 
 /* ---- Sidebar footer ---- */
 .world-root .w-sidebar-foot {
@@ -3240,7 +3251,7 @@
   padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  min-height: 150px;
+  min-height: 170px;
 }
 .world-root .w-oc-tile-h {
   display: flex;

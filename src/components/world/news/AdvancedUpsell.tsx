@@ -4,15 +4,14 @@ import { TrendingUp, ArrowRight } from 'lucide-react';
 import { useWorldMode } from '@/contexts/WorldModeContext';
 
 /**
- * AdvancedUpsell — banner in the news portal nudging readers toward Advanced
- * mode. The CTA uses setMode('advanced') so the shell mode switches properly
- * (from /world/news this lands on /world/intel via the continuity logic).
+ * AdvancedUpsell — banner in the news portal nudging readers toward Pro
+ * mode. The CTA uses setMode('pro') so the shell mode switches properly.
  */
 export default function AdvancedUpsell() {
   const { mode, setMode } = useWorldMode();
 
-  // No point upselling users already in Advanced or Pro mode.
-  if (mode !== 'beginner') return null;
+  // No point upselling users already in Pro mode.
+  if (mode === 'pro') return null;
 
   return (
     <div
@@ -25,8 +24,8 @@ export default function AdvancedUpsell() {
         padding: '18px 22px',
         borderRadius: '16px',
         background:
-          'linear-gradient(120deg, color-mix(in srgb, var(--gold) 10%, transparent) 0%, var(--panel-2) 55%)',
-        border: '1px solid color-mix(in srgb, var(--gold) 28%, transparent)',
+          'linear-gradient(120deg, color-mix(in srgb, var(--pro-accent, #a855f7) 10%, transparent) 0%, var(--panel-2) 55%)',
+        border: '1px solid color-mix(in srgb, var(--pro-accent, #a855f7) 28%, transparent)',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -37,11 +36,11 @@ export default function AdvancedUpsell() {
           height: 38,
           borderRadius: 11,
           flexShrink: 0,
-          background: 'linear-gradient(120deg, var(--gold), #f7e6a8)',
+          background: 'linear-gradient(120deg, var(--pro-accent, #a855f7), #c084fc)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#1a1405',
+          color: '#fff',
         }}
       >
         <TrendingUp size={19} strokeWidth={2.2} />
@@ -57,32 +56,28 @@ export default function AdvancedUpsell() {
             marginBottom: '3px',
           }}
         >
-          Some stories go deeper.
-        </div>
-        <div style={{ fontSize: '12.5px', color: 'var(--muted)', lineHeight: 1.55 }}>
-          Articles tagged <span className="w-tag-badge w-tag-adv">Advanced</span> open the
-          full on-chain analysis, regime read and Intelligence brief.
+          Get more insights &amp; full analysis on Pro
         </div>
       </div>
 
       <button
-        onClick={() => setMode('advanced')}
+        onClick={() => setMode('pro')}
         style={{
           display: 'inline-flex',
           alignItems: 'center',
           gap: '7px',
           padding: '10px 18px',
           borderRadius: '999px',
-          background: 'linear-gradient(120deg, var(--gold), #f7e6a8)',
+          background: 'linear-gradient(120deg, var(--pro-accent, #a855f7), #c084fc)',
           border: 'none',
-          color: '#1a1405',
+          color: '#fff',
           fontWeight: 800,
           fontSize: '12.5px',
           cursor: 'pointer',
           flexShrink: 0,
         }}
       >
-        Open Advanced
+        Open Pro
         <ArrowRight size={14} strokeWidth={2.5} />
       </button>
     </div>
