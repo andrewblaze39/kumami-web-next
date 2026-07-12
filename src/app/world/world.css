@@ -478,7 +478,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 12px 14px;
+  padding: 10px 12px;
   z-index: 30;
   overflow-y: auto;
 }
@@ -486,14 +486,14 @@
 /* ---- Brand / logo ---- */
 .world-root .w-brand-wrap {
   position: relative;
-  padding: 2px 4px 8px;
+  padding: 2px 4px 4px;
 }
 .world-root .w-brand {
   display: flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  padding: 6px 8px;
+  padding: 5px 8px;
   border-radius: 12px;
   transition: 0.15s;
   background: none;
@@ -591,7 +591,7 @@
 .world-root .w-nav-about {
   display: flex;
   flex-direction: column;
-  padding-bottom: 6px;
+  padding-bottom: 4px;
   margin-bottom: 2px;
   border-bottom: 1px solid var(--border);
 }
@@ -600,7 +600,7 @@
 .world-root .w-nav-group {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 1px;
   margin-top: 2px;
   flex: 1;
   overflow-y: auto;
@@ -608,34 +608,34 @@
 .world-root .w-nav-divider {
   height: 1px;
   background: var(--border);
-  margin: 6px 12px;
+  margin: 4px 10px;
 }
 .world-root .w-nav-label {
-  font-size: 10.5px;
-  letter-spacing: 0.16em;
+  font-size: 10px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted-2);
   font-weight: 700;
-  padding: 10px 12px 4px;
+  padding: 6px 12px 2px;
 }
 .world-root .w-nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 7px 12px;
-  border-radius: 10px;
+  gap: 9px;
+  padding: 5px 10px;
+  border-radius: 9px;
   color: var(--muted);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13.5px;
   transition: 0.16s;
   cursor: pointer;
   border: 1px solid transparent;
   text-decoration: none;
 }
 .world-root .w-nav-item svg {
-  width: 17px;
-  height: 17px;
-  flex: 0 0 17px;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
   stroke-width: 1.9;
 }
 .world-root .w-nav-item:hover { background: var(--panel); color: var(--ink); }
@@ -652,6 +652,18 @@
   align-items: center;
 }
 .world-root .w-nav-lock svg { width: 14px; height: 14px; }
+
+/* ---- Locked/greyed items (Pro upsell teaser) ---- */
+.world-root .w-nav-item.locked {
+  color: var(--muted-2);
+  opacity: 0.6;
+}
+.world-root .w-nav-item.locked:hover {
+  background: var(--panel);
+  opacity: 0.85;
+  color: var(--muted);
+}
+.world-root .w-nav-item.locked svg:first-child { opacity: 0.8; }
 
 /* ---- Nav sub-items (Education subtabs nested under the Education item) ---- */
 .world-root .w-nav-sub {
@@ -694,16 +706,16 @@
 /* ---- Sidebar footer ---- */
 .world-root .w-sidebar-foot {
   margin-top: auto;
-  padding-top: 8px;
+  padding-top: 6px;
   border-top: 1px solid var(--border);
   position: relative;
 }
 .world-root .w-profile {
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 9px 10px;
-  border-radius: 13px;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 12px;
   cursor: pointer;
   transition: 0.16s;
   text-decoration: none;
@@ -735,17 +747,17 @@
 }
 .world-root .w-profile:hover { background: var(--panel); }
 .world-root .w-avatar {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: linear-gradient(135deg, #123a3c, #101014);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 36px;
+  flex: 0 0 32px;
   border: 1px solid var(--border-2);
   font-weight: 800;
-  font-size: 13px;
+  font-size: 12px;
   overflow: hidden;
 }
 .world-root .w-profile-meta { min-width: 0; }

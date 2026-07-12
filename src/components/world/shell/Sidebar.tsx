@@ -203,6 +203,48 @@ function ProSubnav({ onClose }: { onClose: () => void }) {
   );
 }
 
+/**
+ * Renders one nav group's links, highlighting the active item. Education
+ * items share the /world/education path but differ by ?tab=, so beyond the
+ * path match we also compare that (a missing ?tab= on the URL means the
+ * default "dashboard" tab) — needs useSearchParams, so it is mounted inside
+ * <Suspense/>.
+ */
+function NavGroupList({ groups, onClose }: { groups: NavGroup[]; onClose: () => void }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const isNavActive = (item: NavItem) => {
+    const [path, query] = item.href.split('?');
+    if (!pathname.startsWith(path)) return false;
+    if (!query) return true;
+    const itemTab = new URLSearchParams(query).get('tab') || 'dashboard';
+    const activeTab = searchParams.get('tab') || 'dashboard';
+    return itemTab === activeTab;
+  };
+
+  return (
+    <>
+      {groups.map(group => (
+        <div key={group.grp}>
+          <div className="w-nav-label">{group.grp}</div>
+          {group.items.map(item => (
+            <Link
+              key={item.k}
+              href={item.href}
+              className={`w-nav-item${isNavActive(item) ? ' active' : ''}`}
+              onClick={onClose}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </Link>
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
 // PRO nav items — all link to /world/pro (locked)
 const PRO_NAV_ITEMS = [
   { label: 'Alpha Room', icon: Icons.bolt },
@@ -216,6 +258,33 @@ const PRO_NAV_ITEMS = [
   { label: 'Whitelist & Events', icon: Icons.trophy },
   { label: 'Flow Radar', icon: Icons.bolt },
 ];
+
+/**
+ * PRO nav section — shown as the primary group in Pro mode, and reused as a
+ * greyed-out/locked teaser at the bottom of Beginner and Advanced mode so
+ * non-premium users see what Pro unlocks. Premium users get real shortcuts
+ * (ProSubnav) in every mode instead of a locked teaser.
+ */
+function ProNavSection({ isPremium, onClose }: { isPremium: boolean; onClose: () => void }) {
+  return (
+    <div>
+      <div className="w-nav-label">Pro</div>
+      {isPremium ? (
+        <Suspense fallback={null}>
+          <ProSubnav onClose={onClose} />
+        </Suspense>
+      ) : (
+        PRO_NAV_ITEMS.map(item => (
+          <Link key={item.label} href="/world/pro" className="w-nav-item locked" onClick={onClose}>
+            {item.icon}
+            <span>{item.label}</span>
+            <span className="w-nav-lock">{Icons.lock}</span>
+          </Link>
+        ))
+      )}
+    </div>
+  );
+}
 
 // Brand dropdown menu links
 const COMPANY_LINKS = [
@@ -307,13 +376,6 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
 
   const isActive = (href: string) => pathname.startsWith(href);
 
-  // For nav items: compare path portion only (education ?tab= items all
-  // share /world/education path — highlight is best-effort at group level)
-  const isNavActive = (item: NavItem) => {
-    const path = item.href.split('?')[0];
-    return pathname.startsWith(path);
-  };
-
   // Admin roles — same predicate as the legacy Navbar / AdminOnlyRoute.
   const isAdminRole =
     userData?.role === 'superadmin' ||
@@ -397,61 +459,23 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
       <nav className="w-nav-group">
         {/* Primary nav for current mode */}
         {mode === 'pro' ? (
-          <>
-            <div className="w-nav-label">PRO</div>
-            {isPremium ? (
-              <Suspense fallback={null}>
-                <ProSubnav onClose={onClose} />
-              </Suspense>
-            ) : (
-              PRO_NAV_ITEMS.map(item => (
-                <Link key={item.label} href="/world/pro" className="w-nav-item" onClick={onClose}>
-                  {item.icon}
-                  <span>{item.label}</span>
-                  <span className="w-nav-lock">{Icons.lock}</span>
-                </Link>
-              ))
-            )}
-          </>
+          <ProNavSection isPremium={isPremium} onClose={onClose} />
         ) : (
-          primaryNav?.map(group => (
-            <div key={group.grp}>
-              <div className="w-nav-label">{group.grp}</div>
-              {group.items.map(item => (
-                <Link
-                  key={item.k}
-                  href={item.href}
-                  className={`w-nav-item${isNavActive(item) ? ' active' : ''}`}
-                  onClick={onClose}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </Link>
-              ))}
-            </div>
-          ))
+          primaryNav && (
+            <Suspense fallback={null}>
+              <NavGroupList groups={primaryNav} onClose={onClose} />
+            </Suspense>
+          )
         )}
 
-        {/* Included lower-tier nav groups */}
+        {/* Included lower-tier nav groups (fully active — lower tiers are
+            already accessible from Advanced/Pro mode) */}
         {includedNav && includedNav.length > 0 && (
           <>
             <div className="w-nav-divider" />
-            {includedNav.map(group => (
-              <div key={group.grp}>
-                <div className="w-nav-label">{group.grp}</div>
-                {group.items.map(item => (
-                  <Link
-                    key={item.k}
-                    href={item.href}
-                    className={`w-nav-item${isNavActive(item) ? ' active' : ''}`}
-                    onClick={onClose}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </Link>
-                ))}
-              </div>
-            ))}
+            <Suspense fallback={null}>
+              <NavGroupList groups={includedNav} onClose={onClose} />
+            </Suspense>
           </>
         )}
       </nav>
