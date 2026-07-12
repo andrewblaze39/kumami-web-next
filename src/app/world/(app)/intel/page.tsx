@@ -95,20 +95,18 @@ export default function IntelPage() {
       </div>
 
       {/* ── Continuity banner ── */}
-      <div className="w-cont-banner">
-        <span className="w-cb-ic">
-          <WIcon name="news" />
+      <div className=”w-cont-banner”>
+        <span className=”w-cb-ic”>
+          <WIcon name=”doc” />
         </span>
-        <div className="w-cb-main">
-          <b>The same stories — analyst-grade.</b>
+        <div className=”w-cb-main”>
+          <b>Market briefs, scored by impact.</b>
           <span>
-            Every brief here maps to a story in your <b style={{ color: '#f0cd7e' }}>News Portal</b>,
-            scored A/B/C with sources and tickers. “What this means for you” is{' '}
-            <b style={{ color: '#b9a4ff' }}>Pro</b>.
+            Each story is ranked A/B/C so you know what matters most.
           </span>
         </div>
-        <button className="w-btn w-btn-surface w-btn-sm" onClick={() => setMode('beginner')}>
-          <WIcon name="news" /> Back to News Portal
+        <button className=”w-btn w-btn-surface w-btn-sm” onClick={() => setMode('beginner')}>
+          <WIcon name=”news” /> News Portal
         </button>
       </div>
 
