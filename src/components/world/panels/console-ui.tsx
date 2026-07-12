@@ -118,6 +118,58 @@ export function coinC(sym: string): string {
   return COIN_C[sym] ?? 'var(--accent)';
 }
 
+/** Crypto logo URL — uses CoinGecko's static asset CDN. Returns null for non-crypto assets. */
+const COIN_LOGO: Record<string, string> = {
+  BTC: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',
+  ETH: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png',
+  SOL: 'https://assets.coingecko.com/coins/images/4128/small/solana.png',
+  BNB: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png',
+  XRP: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png',
+  DOGE: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png',
+  AVAX: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png',
+  LINK: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png',
+  SUI: 'https://assets.coingecko.com/coins/images/26375/small/sui_asset.jpeg',
+  HYPE: 'https://assets.coingecko.com/coins/images/40942/small/HYPE.png',
+  ARB: 'https://assets.coingecko.com/coins/images/16547/small/photo_2023-03-29_21.47.00.jpeg',
+};
+
+export function coinLogo(sym: string): string | null {
+  return COIN_LOGO[sym] ?? null;
+}
+
+/**
+ * CoinBadge — renders either a real crypto logo or the fallback colored circle.
+ * Use this everywhere instead of the raw <span className="w-coin"> pattern.
+ */
+export function CoinBadge({ sym, size = 17 }: { sym: string; size?: number }) {
+  const logo = coinLogo(sym);
+  if (logo) {
+    return (
+      <img
+        src={logo}
+        alt={sym}
+        width={size}
+        height={size}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: '50%',
+          objectFit: 'cover',
+          flexShrink: 0,
+        }}
+      />
+    );
+  }
+  return (
+    <span
+      className="w-coin"
+      style={{ background: coinC(sym), width: size, height: size }}
+    >
+      {sym[0]}
+    </span>
+  );
+}
+
 /* ---- Treemap heat colour (from reference heatColor) ---- */
 export function heatColor(chg: number): string {
   const a = Math.min(Math.abs(chg) / 4, 1);

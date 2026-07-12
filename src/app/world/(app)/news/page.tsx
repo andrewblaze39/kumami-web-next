@@ -62,7 +62,7 @@ export default async function WorldNewsPage({ searchParams }: PageProps) {
 
   const hero = articles[0];
   const asideList = articles.slice(1, 4);
-  const river = articles.slice(5, 15);
+  const river = articles.slice(4, 14);
 
   const dateLabel = new Date().toLocaleDateString('en-US', {
     weekday: 'long',

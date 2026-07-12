@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import type { ConsolePayload } from '@/lib/market/contracts';
 import { formatUsd } from './format';
-import { WIcon, heatColor } from './console-ui';
+import { WIcon, heatColor, CoinBadge } from './console-ui';
 
 type Props = {
   data: ConsolePayload['heatmapPreview'];
@@ -67,7 +67,7 @@ export default function HeatmapPreview({ data, loading }: Props) {
                   }}
                   title={`${row.asset}: ${row.longShare.toFixed(1)}% long liquidations · ${formatUsd(row.liqUsd24h)} liquidated in 24h`}
                 >
-                  <div className="w-tm-sym">{row.asset}</div>
+                  <div className="w-tm-sym"><CoinBadge sym={row.asset} size={14} /> {row.asset}</div>
                   <div>
                     <div className="w-tm-chg">{row.longShare.toFixed(0)}% long</div>
                     <div className="w-tm-val">{formatUsd(row.liqUsd24h)}</div>

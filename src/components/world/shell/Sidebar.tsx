@@ -126,12 +126,22 @@ const BEGINNER_NAV: NavGroup[] = [
     grp: 'Discover',
     items: [
       { k: 'news', label: 'News Portal', href: '/world/news', icon: Icons.news },
-      { k: 'education', label: 'Education', href: '/world/education', icon: Icons.grad },
+    ],
+  },
+  {
+    grp: 'Learn',
+    items: [
+      { k: 'edu-journey', label: 'My Journey', href: '/world/education?tab=journey', icon: Icons.book },
+      { k: 'edu-dashboard', label: 'Dashboard', href: '/world/education?tab=dashboard', icon: Icons.home },
+      { k: 'edu-courses', label: 'My Courses', href: '/world/education?tab=courses', icon: Icons.grad },
+      { k: 'edu-achievements', label: 'Achievements', href: '/world/education?tab=achievements', icon: Icons.trophy },
     ],
   },
   {
     grp: 'Explore',
     items: [
+      { k: 'edu-research', label: 'Deep Dives', href: '/world/education?tab=research', icon: Icons.doc },
+      { k: 'edu-glossary', label: 'Glossary', href: '/world/education?tab=glossary', icon: Icons.book },
       { k: 'ailabs', label: 'AI Labs', href: '/world/ailabs', icon: Icons.flask },
       { k: 'games', label: 'Games', href: '/world/games', icon: Icons.game },
     ],
@@ -150,60 +160,8 @@ const ADV_NAV: NavGroup[] = [
   },
 ];
 
-// Education subtabs — nested under the Education nav item when it is active.
-// Keys must match the ?tab= values read by EducationTabs.tsx.
-const EDU_SUBTABS_LEARN = [
-  { key: 'journey', label: 'My Journey' },
-  { key: 'dashboard', label: 'Dashboard' },
-  { key: 'courses', label: 'My Courses' },
-  { key: 'achievements', label: 'Achievements' },
-] as const;
-
-const EDU_SUBTABS_EXPLORE = [
-  { key: 'research', label: 'Deep Dives' },
-  { key: 'glossary', label: 'Glossary' },
-] as const;
-
-const EDU_SUBTABS = [...EDU_SUBTABS_LEARN, ...EDU_SUBTABS_EXPLORE] as const;
-
-/**
- * Education sub-nav — reads ?tab= to highlight the active subtab (default:
- * dashboard). Needs useSearchParams, so it is mounted inside <Suspense/>.
- */
-function EducationSubnav({ onClose }: { onClose: () => void }) {
-  const searchParams = useSearchParams();
-  const raw = searchParams.get('tab');
-  const active = EDU_SUBTABS.some(t => t.key === raw) ? raw : 'journey';
-
-  return (
-    <div className="w-nav-sub" role="group" aria-label="Education sections">
-      <div className="w-nav-sub-label">Learn</div>
-      {EDU_SUBTABS_LEARN.map(t => (
-        <Link
-          key={t.key}
-          href={`/world/education?tab=${t.key}`}
-          className={`w-nav-subitem${active === t.key ? ' active' : ''}`}
-          aria-current={active === t.key ? 'page' : undefined}
-          onClick={onClose}
-        >
-          {t.label}
-        </Link>
-      ))}
-      <div className="w-nav-sub-label">Explore</div>
-      {EDU_SUBTABS_EXPLORE.map(t => (
-        <Link
-          key={t.key}
-          href={`/world/education?tab=${t.key}`}
-          className={`w-nav-subitem${active === t.key ? ' active' : ''}`}
-          aria-current={active === t.key ? 'page' : undefined}
-          onClick={onClose}
-        >
-          {t.label}
-        </Link>
-      ))}
-    </div>
-  );
-}
+// Education subtabs — no longer rendered as nested subnav; education items
+// are now direct nav items under Learn/Explore groups.
 
 // PRO subtabs (premium users) — keys must match ?tab= read by WorldProContent.
 const PRO_SUBTABS = [
@@ -349,6 +307,13 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
 
   const isActive = (href: string) => pathname.startsWith(href);
 
+  // For nav items: compare path portion only (education ?tab= items all
+  // share /world/education path — highlight is best-effort at group level)
+  const isNavActive = (item: NavItem) => {
+    const path = item.href.split('?')[0];
+    return pathname.startsWith(path);
+  };
+
   // Admin roles — same predicate as the legacy Navbar / AdminOnlyRoute.
   const isAdminRole =
     userData?.role === 'superadmin' ||
@@ -453,21 +418,15 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
             <div key={group.grp}>
               <div className="w-nav-label">{group.grp}</div>
               {group.items.map(item => (
-                <div key={item.k}>
-                  <Link
-                    href={item.k === 'education' ? '/world/education?tab=journey' : item.href}
-                    className={`w-nav-item${isActive(item.href) ? ' active' : ''}`}
-                    onClick={onClose}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </Link>
-                  {item.k === 'education' && isActive(item.href) && (
-                    <Suspense fallback={null}>
-                      <EducationSubnav onClose={onClose} />
-                    </Suspense>
-                  )}
-                </div>
+                <Link
+                  key={item.k}
+                  href={item.href}
+                  className={`w-nav-item${isNavActive(item) ? ' active' : ''}`}
+                  onClick={onClose}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Link>
               ))}
             </div>
           ))
@@ -481,21 +440,15 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
               <div key={group.grp}>
                 <div className="w-nav-label">{group.grp}</div>
                 {group.items.map(item => (
-                  <div key={item.k}>
-                    <Link
-                      href={item.k === 'education' ? '/world/education?tab=journey' : item.href}
-                      className={`w-nav-item${isActive(item.href) ? ' active' : ''}`}
-                      onClick={onClose}
-                    >
-                      {item.icon}
-                      <span>{item.label}</span>
-                    </Link>
-                    {item.k === 'education' && isActive(item.href) && (
-                      <Suspense fallback={null}>
-                        <EducationSubnav onClose={onClose} />
-                      </Suspense>
-                    )}
-                  </div>
+                  <Link
+                    key={item.k}
+                    href={item.href}
+                    className={`w-nav-item${isNavActive(item) ? ' active' : ''}`}
+                    onClick={onClose}
+                  >
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </Link>
                 ))}
               </div>
             ))}

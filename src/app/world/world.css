@@ -2602,7 +2602,7 @@
   gap: 5px;
 }
 .world-root .w-treemap.w-compact {
-  grid-auto-rows: 56px;
+  grid-auto-rows: 72px;
 }
 .world-root .w-tm-cell {
   position: relative;

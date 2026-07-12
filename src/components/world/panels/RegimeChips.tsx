@@ -3,7 +3,7 @@
 import type { CSSProperties } from 'react';
 import type { ConsolePayload } from '@/lib/market/contracts';
 import { formatPrice, formatChange } from './format';
-import { coinC } from './console-ui';
+import { CoinBadge } from './console-ui';
 
 type Props = {
   chips: ConsolePayload['regimeChips'];
@@ -48,9 +48,7 @@ export default function RegimeChips({ chips, loading }: Props) {
         >
           <div className="w-rc-top">
             <span className="w-sym">
-              <span className="w-coin" style={{ background: coinC(chip.asset) }}>
-                {chip.asset[0]}
-              </span>
+              <CoinBadge sym={chip.asset} size={17} />
               {chip.asset}
             </span>
             <span

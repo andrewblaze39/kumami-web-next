@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import type { ConsolePayload } from '@/lib/market/contracts';
 import { formatPrice, formatChange } from './format';
-import { WIcon, coinC } from './console-ui';
+import { WIcon, CoinBadge } from './console-ui';
 
 type Props = {
   items: ConsolePayload['radarWatchlist'];
@@ -42,9 +42,7 @@ export default function RadarWatchlist({ items, loading }: Props) {
         <div aria-label="Radar watchlist assets">
           {items.map(item => (
             <div key={item.asset} className="w-wli-item">
-              <span className="w-wli-coin" style={{ background: coinC(item.asset) }}>
-                {item.asset[0]}
-              </span>
+              <CoinBadge sym={item.asset} size={22} />
               <div className="w-wli-main">
                 <b>{item.asset}</b>
                 <span className="w-wli-sig" title={`Auto-detected signal: ${item.signal}`}>
