@@ -11,6 +11,7 @@
  */
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Send, Globe } from 'lucide-react';
 import type { ResearchArticle } from '@/lib/research';
@@ -125,6 +126,14 @@ export function ResearchSection({ articles }: { articles: ResearchArticle[] }) {
 
 // ---------- Glossary Section ----------
 
+const GLOSS_ALPHABET = '#ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+/** First-letter bucket for a term — non-A–Z starts fall under '#'. */
+function glossLetter(term: string): string {
+  const c = term.trim()[0]?.toUpperCase() ?? '#';
+  return c >= 'A' && c <= 'Z' ? c : '#';
+}
+
 export function GlossarySection() {
   const [filter, setFilter] = useState('');
 
@@ -139,48 +148,91 @@ export function GlossarySection() {
     );
   }, [filter]);
 
+  // Group filtered terms by first letter, alphabetically sorted within each group.
+  const groups = useMemo(() => {
+    const map = new Map<string, typeof glossaryTerms>();
+    for (const t of [...filtered].sort((a, b) => a.term.localeCompare(b.term))) {
+      const l = glossLetter(t.term);
+      if (!map.has(l)) map.set(l, []);
+      map.get(l)!.push(t);
+    }
+    return map;
+  }, [filtered]);
+
+  // Jump to a letter section. The shell scrolls inside .w-main, so
+  // scrollIntoView (which targets the nearest scrollable ancestor) is correct.
+  const scrollToLetter = (l: string) => {
+    document.getElementById(`gloss-${l}`)?.scrollIntoView({ block: 'start' });
+  };
+
   return (
     <div className="w-edu-glossary">
-      {/* Filter input */}
-      <div className="w-edu-glossary-search">
-        <svg
-          className="w-edu-glossary-search-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.35-4.35" />
-        </svg>
-        <input
-          type="text"
-          placeholder="Search terms..."
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="w-edu-glossary-input"
-          aria-label="Filter glossary terms"
-        />
-        {filter && (
-          <button
-            className="w-edu-glossary-clear"
-            onClick={() => setFilter('')}
-            aria-label="Clear filter"
+      {/* Centered hero — enlarged, Stingray-style header + search */}
+      <div className="w-gloss-hero">
+        <h1 className="w-gloss-hero-title">Glossary</h1>
+        <p className="w-gloss-hero-sub">
+          {glossaryTerms.length} crypto &amp; Web3 terms — from Alpha to Zero-knowledge.
+          Tap any term for a deeper dive.
+        </p>
+        <div className="w-edu-glossary-search w-gloss-hero-search">
+          <svg
+            className="w-edu-glossary-search-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" width="14" height="14">
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
-          </button>
-        )}
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search terms..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="w-edu-glossary-input"
+            aria-label="Filter glossary terms"
+          />
+          {filter && (
+            <button
+              className="w-edu-glossary-clear"
+              onClick={() => setFilter('')}
+              aria-label="Clear filter"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" width="14" height="14">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Results count */}
-      <p className="w-edu-glossary-count">
-        {filtered.length} term{filtered.length !== 1 ? 's' : ''}
-        {filter ? ` matching "${filter}"` : ''}
-      </p>
+      {/* Alphabet index — click a letter to jump to its group */}
+      <div className="w-gloss-alpha" role="navigation" aria-label="Jump to letter">
+        {GLOSS_ALPHABET.map((l) => {
+          const has = groups.has(l);
+          return (
+            <button
+              key={l}
+              type="button"
+              className={`w-gloss-alpha-btn${has ? '' : ' disabled'}`}
+              disabled={!has}
+              onClick={() => scrollToLetter(l)}
+              aria-label={`Jump to ${l}`}
+            >
+              {l}
+            </button>
+          );
+        })}
+      </div>
+
+      {filter && (
+        <p className="w-edu-glossary-count">
+          {filtered.length} term{filtered.length !== 1 ? 's' : ''} matching &quot;{filter}&quot;
+        </p>
+      )}
 
       {filtered.length === 0 ? (
         <div className="w-edu-empty">
@@ -190,17 +242,26 @@ export function GlossarySection() {
           </button>
         </div>
       ) : (
-        <div className="w-edu-glossary-grid">
-          {filtered.map((term) => (
-            <div key={term.id} className="w-edu-glossary-card">
-              <div className="w-edu-glossary-card-head">
-                <span className="w-edu-glossary-term">{term.term}</span>
-                <span className="w-edu-glossary-cat">{term.category}</span>
-              </div>
-              <p className="w-edu-glossary-def">{term.definition}</p>
+        GLOSS_ALPHABET.filter((l) => groups.has(l)).map((l) => (
+          <section key={l} id={`gloss-${l}`} className="w-gloss-group">
+            <h2 className="w-gloss-letter">{l}</h2>
+            <div className="w-edu-glossary-grid">
+              {groups.get(l)!.map((term) => (
+                <Link
+                  key={term.id}
+                  href={`/world/glossary/${term.id}`}
+                  className="w-edu-glossary-card w-gloss-card-link"
+                >
+                  <div className="w-edu-glossary-card-head">
+                    <span className="w-edu-glossary-term">{term.term}</span>
+                    <span className="w-edu-glossary-cat">{term.category}</span>
+                  </div>
+                  <p className="w-edu-glossary-def">{term.definition}</p>
+                </Link>
+              ))}
             </div>
-          ))}
-        </div>
+          </section>
+        ))
       )}
     </div>
   );
@@ -246,12 +307,7 @@ export function ResearchTab({ articles }: { articles: ResearchArticle[] }) {
 export function GlossaryTab() {
   return (
     <div className="w-edu-root">
-      <EduSection
-        title="Glossary"
-        subtitle="147 crypto and Web3 terms — from Alpha to Zero-knowledge."
-      >
-        <GlossarySection />
-      </EduSection>
+      <GlossarySection />
     </div>
   );
 }

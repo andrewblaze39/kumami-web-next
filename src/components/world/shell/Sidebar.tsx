@@ -18,8 +18,10 @@ type NavItem = {
 };
 
 type NavGroup = {
-  grp: string;
+  grp: string;             // group key; used as React key and (unless standalone) as the header label
   items: NavItem[];
+  collapsible?: boolean;   // render a clickable header that expands/collapses the items
+  standalone?: boolean;    // render items as plain top-level links with no header
 };
 
 // Lucide-style SVG icons matching mockup icon keys
@@ -123,13 +125,15 @@ const Icons = {
 
 const BEGINNER_NAV: NavGroup[] = [
   {
-    grp: 'Discover',
+    grp: 'news',
+    standalone: true,
     items: [
       { k: 'news', label: 'News Portal', href: '/world/news', icon: Icons.news },
     ],
   },
   {
-    grp: 'Learn',
+    grp: 'Education',
+    collapsible: true,
     items: [
       { k: 'edu-journey', label: 'My Journey', href: '/world/education?tab=journey', icon: Icons.book },
       { k: 'edu-dashboard', label: 'Dashboard', href: '/world/education?tab=dashboard', icon: Icons.home },
@@ -138,10 +142,17 @@ const BEGINNER_NAV: NavGroup[] = [
     ],
   },
   {
-    grp: 'Explore',
+    grp: 'Dictionary',
+    collapsible: true,
     items: [
-      { k: 'edu-research', label: 'Deep Dives', href: '/world/education?tab=research', icon: Icons.doc },
+      { k: 'edu-research', label: 'Tokenpedia', href: '/world/education?tab=research', icon: Icons.doc },
       { k: 'edu-glossary', label: 'Glossary', href: '/world/education?tab=glossary', icon: Icons.book },
+    ],
+  },
+  {
+    grp: 'apps',
+    standalone: true,
+    items: [
       { k: 'ailabs', label: 'AI Labs', href: '/world/ailabs', icon: Icons.flask },
       { k: 'games', label: 'Games', href: '/world/games', icon: Icons.game },
     ],
@@ -150,7 +161,8 @@ const BEGINNER_NAV: NavGroup[] = [
 
 const ADV_NAV: NavGroup[] = [
   {
-    grp: 'Advanced',
+    grp: 'Plus',
+    collapsible: true,
     items: [
       { k: 'console', label: 'Console', href: '/world/console', icon: Icons.home },
       { k: 'onchain', label: 'On-Chain Insights', href: '/world/onchain', icon: Icons.layers },
@@ -213,6 +225,8 @@ function ProSubnav({ onClose }: { onClose: () => void }) {
 function NavGroupList({ groups, onClose }: { groups: NavGroup[]; onClose: () => void }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  // Collapsed group headers, by group key. Default: all expanded.
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
   const isNavActive = (item: NavItem) => {
     const [path, query] = item.href.split('?');
@@ -223,24 +237,63 @@ function NavGroupList({ groups, onClose }: { groups: NavGroup[]; onClose: () => 
     return itemTab === activeTab;
   };
 
+  const toggle = (grp: string) =>
+    setCollapsed(prev => {
+      const next = new Set(prev);
+      if (next.has(grp)) next.delete(grp);
+      else next.add(grp);
+      return next;
+    });
+
+  const renderItem = (item: NavItem) => (
+    <Link
+      key={item.k}
+      href={item.href}
+      className={`w-nav-item${isNavActive(item) ? ' active' : ''}`}
+      onClick={onClose}
+    >
+      {item.icon}
+      <span>{item.label}</span>
+    </Link>
+  );
+
   return (
     <>
-      {groups.map(group => (
-        <div key={group.grp}>
-          <div className="w-nav-label">{group.grp}</div>
-          {group.items.map(item => (
-            <Link
-              key={item.k}
-              href={item.href}
-              className={`w-nav-item${isNavActive(item) ? ' active' : ''}`}
-              onClick={onClose}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-            </Link>
-          ))}
-        </div>
-      ))}
+      {groups.map(group => {
+        // Standalone: plain top-level links, no header.
+        if (group.standalone) {
+          return <div key={group.grp}>{group.items.map(renderItem)}</div>;
+        }
+
+        // Collapsible: clickable header with a caret that toggles the items.
+        if (group.collapsible) {
+          const isCollapsed = collapsed.has(group.grp);
+          return (
+            <div key={group.grp} className="w-nav-section">
+              <button
+                type="button"
+                className={`w-nav-label w-nav-label-btn${isCollapsed ? ' collapsed' : ''}`}
+                onClick={() => toggle(group.grp)}
+                aria-expanded={!isCollapsed}
+              >
+                <span>{group.grp}</span>
+                <svg className="w-nav-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              {!isCollapsed && group.items.map(renderItem)}
+            </div>
+          );
+        }
+
+        // Fallback: static labelled group.
+        return (
+          <div key={group.grp}>
+            <div className="w-nav-label">{group.grp}</div>
+            {group.items.map(renderItem)}
+          </div>
+        );
+      })}
     </>
   );
 }
@@ -398,7 +451,7 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
     if (email) return email.slice(0, 2).toUpperCase();
     return 'K';
   })();
-  const modeLabel = mode === 'pro' ? 'Pro' : mode === 'advanced' ? 'Advanced' : 'Beginner';
+  const modeLabel = mode === 'pro' ? 'Pro' : mode === 'advanced' ? 'Plus' : 'Basic';
 
   return (
     <aside className={`w-sidebar${mode === 'advanced' ? ' is-adv' : mode === 'pro' ? ' is-pro' : ''}${sidebarOpen ? ' open' : ''}`} id="w-sidebar">
@@ -423,7 +476,7 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
             />
           </span>
           <span className={`w-mode-badge w-mode-badge-${mode}`}>
-            {mode === 'pro' ? 'PRO' : mode === 'advanced' ? 'ADV' : 'FREE'}
+            {mode === 'pro' ? 'PRO' : mode === 'advanced' ? 'PLUS' : 'BASIC'}
           </span>
           <svg className="w-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
             <path d="m6 9 6 6 6-6" />

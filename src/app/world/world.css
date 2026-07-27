@@ -618,6 +618,27 @@
   font-weight: 700;
   padding: 6px 12px 2px;
 }
+/* Collapsible group header — same type scale as .w-nav-label, but a button */
+.world-root .w-nav-label-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.16s;
+}
+.world-root .w-nav-label-btn:hover { color: var(--muted); }
+.world-root .w-nav-caret {
+  width: 13px;
+  height: 13px;
+  stroke-width: 2.2;
+  opacity: 0.7;
+  transition: transform 0.18s ease;
+}
+.world-root .w-nav-label-btn.collapsed .w-nav-caret { transform: rotate(-90deg); }
 .world-root .w-nav-item {
   display: flex;
   align-items: center;
@@ -6511,6 +6532,155 @@
   color: var(--muted);
   margin: 0;
   line-height: 1.5;
+}
+
+/* ---- Glossary revamp: centered hero + alphabet index + letter groups ---- */
+.world-root .w-gloss-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 8px 0 6px;
+}
+.world-root .w-gloss-hero-title {
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0;
+}
+.world-root .w-gloss-hero-sub {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0;
+  max-width: 520px;
+}
+.world-root .w-gloss-hero-search {
+  width: 100%;
+  max-width: 420px;
+  margin-top: 6px;
+}
+
+/* Alphabet index bar — sticky under the topbar so it's always reachable */
+.world-root .w-gloss-alpha {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 3px;
+  padding: 8px 0;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--border);
+}
+.world-root .w-gloss-alpha-btn {
+  min-width: 26px;
+  height: 26px;
+  padding: 0 4px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: 0.14s;
+}
+.world-root .w-gloss-alpha-btn:hover {
+  background: var(--panel);
+  color: var(--accent);
+  border-color: var(--border-2);
+}
+.world-root .w-gloss-alpha-btn.disabled {
+  color: var(--muted-2);
+  opacity: 0.35;
+  cursor: default;
+}
+
+.world-root .w-gloss-group {
+  scroll-margin-top: 56px; /* clear the sticky alphabet bar on jump */
+  margin-top: 10px;
+}
+.world-root .w-gloss-letter {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  margin: 0 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Term cards are now links to /world/glossary/[id] */
+.world-root a.w-gloss-card-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+.world-root a.w-gloss-card-link:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  transform: translateY(-1px);
+}
+
+/* ---- Glossary term detail (deep dive) ---- */
+.world-root .w-gloss-detail {
+  max-width: 720px;
+}
+.world-root .w-gloss-detail-head {
+  margin: 14px 0 12px;
+}
+.world-root .w-gloss-detail-cat {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--purple);
+  margin-bottom: 6px;
+}
+.world-root .w-gloss-detail-title {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0;
+}
+.world-root .w-gloss-detail-def {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--muted);
+  margin: 0 0 28px;
+}
+.world-root .w-gloss-detail-related-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-2);
+  margin: 0 0 10px;
+}
+.world-root .w-gloss-detail-related-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.world-root a.w-gloss-detail-related-chip {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-2);
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: 0.14s;
+}
+.world-root a.w-gloss-detail-related-chip:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  color: var(--accent);
 }
 
 /* ======================================================================
