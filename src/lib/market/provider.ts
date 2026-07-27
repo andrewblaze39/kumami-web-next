@@ -1,12 +1,11 @@
 /**
  * MarketDataProvider interface and factory.
  *
- * Phase 6 will introduce a liveProvider() backed by real API routes.
- * Until then, getProvider() always returns the mock provider.
- *
- * Environment switch shape (for Phase 6):
- *   DATA_PROVIDER=live   → liveProvider()
- *   DATA_PROVIDER=mock   → mockProvider()  (default / current)
+ * Environment switch:
+ *   DATA_PROVIDER=live   → liveProvider() (CoinGlass-backed; falls back to mock
+ *                          per-method while endpoints are wired, and entirely if
+ *                          no COINGLASS_API_KEY is set)
+ *   DATA_PROVIDER=mock    → mockProvider()  (default)
  */
 
 import type {
@@ -18,6 +17,7 @@ import type {
   WatchlistPayload,
 } from './contracts';
 import { mockProvider } from './mock/mockProvider';
+import { liveProvider } from './live/liveProvider';
 
 export interface MarketDataProvider {
   console(): Promise<ConsolePayload>;
@@ -29,7 +29,6 @@ export interface MarketDataProvider {
 }
 
 export function getProvider(): MarketDataProvider {
-  // Phase 6: switch on process.env.DATA_PROVIDER
-  // if (process.env.DATA_PROVIDER === 'live') return liveProvider();
+  if (process.env.DATA_PROVIDER === 'live') return liveProvider();
   return mockProvider();
 }
