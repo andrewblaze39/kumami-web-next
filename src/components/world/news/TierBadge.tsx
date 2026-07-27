@@ -6,9 +6,9 @@ interface AdvancedBadgeProps {
   articleId?: string;
 }
 
-/** Gold "ADVANCED" tier badge — optionally deep-links to /world/intel/[id] */
+/** Gold "PLUS" tier badge — optionally deep-links to /world/intel/[id] */
 export function AdvancedBadge({ articleId }: AdvancedBadgeProps) {
-  const inner = <span className="w-tag-badge w-tag-adv">Advanced</span>;
+  const inner = <span className="w-tag-badge w-tag-adv">Plus</span>;
 
   if (articleId) {
     return (

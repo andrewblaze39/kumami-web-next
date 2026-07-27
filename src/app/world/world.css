@@ -618,6 +618,27 @@
   font-weight: 700;
   padding: 6px 12px 2px;
 }
+/* Collapsible group header — same type scale as .w-nav-label, but a button */
+.world-root .w-nav-label-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.16s;
+}
+.world-root .w-nav-label-btn:hover { color: var(--muted); }
+.world-root .w-nav-caret {
+  width: 13px;
+  height: 13px;
+  stroke-width: 2.2;
+  opacity: 0.7;
+  transition: transform 0.18s ease;
+}
+.world-root .w-nav-label-btn.collapsed .w-nav-caret { transform: rotate(-90deg); }
 .world-root .w-nav-item {
   display: flex;
   align-items: center;
