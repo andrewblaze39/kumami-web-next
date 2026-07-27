@@ -170,10 +170,6 @@ export function GlossarySection() {
       {/* Centered hero — enlarged, Stingray-style header + search */}
       <div className="w-gloss-hero">
         <h1 className="w-gloss-hero-title">Glossary</h1>
-        <p className="w-gloss-hero-sub">
-          {glossaryTerms.length} crypto &amp; Web3 terms — from Alpha to Zero-knowledge.
-          Tap any term for a deeper dive.
-        </p>
         <div className="w-edu-glossary-search w-gloss-hero-search">
           <svg
             className="w-edu-glossary-search-icon"
