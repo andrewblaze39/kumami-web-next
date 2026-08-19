@@ -3,37 +3,17 @@
 /**
  * /world/watchlist — Watchlist page.
  *
- * Pixel-parity port of the reference mockup's R.watchlist renderer,
- * including its placeholder data (WATCH_PX / COIN_NAME / ADV.radar →
- * bullishWatch()). Deliberate deviations only:
- *   - reference mint #5ee9a8 / var(--mint) → var(--accent) turquoise
- *   - KM.setMode('pro') → world mode context setMode('pro')
+ * Live: consumes /api/market/watchlist (WatchlistApiResponse). The auto-detected
+ * `assets` list (ranked bullish flow, capped to tier slots) drives the table.
+ * Falls back to a clean loading/empty state. UI shell unchanged from the port.
  */
 
 import { useId } from 'react';
 import { WIcon, coinC } from '@/components/world/panels/console-ui';
+import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
+import { formatPrice, formatChange } from '@/components/world/panels/format';
 import { useWorldMode } from '@/contexts/WorldModeContext';
-
-/* ------------------------------------------------------------------ */
-/* Placeholder data — ported verbatim from the reference mockup        */
-/* ------------------------------------------------------------------ */
-
-type WatchPx = {
-  price: string;
-  chg: string;
-  dir: 'up' | 'down';
-  spark: number[];
-};
-
-const WATCH_PX: Record<string, WatchPx> = {
-  BTC: { price: '$70,418', chg: '+2.1%', dir: 'up', spark: [68, 69, 68.5, 70, 69.6, 70.2, 70.4] },
-  ETH: { price: '$3,642', chg: '+1.4%', dir: 'up', spark: [3.55, 3.58, 3.6, 3.59, 3.62, 3.63, 3.642] },
-  SOL: { price: '$184.2', chg: '−0.8%', dir: 'down', spark: [186, 185, 184.5, 185.2, 184, 183.6, 184.2] },
-  GOLD: { price: '$3,431', chg: '+1.2%', dir: 'up', spark: [3.38, 3.4, 3.41, 3.4, 3.42, 3.43, 3.431] },
-  LINK: { price: '$18.94', chg: '+2.8%', dir: 'up', spark: [18.2, 18.4, 18.3, 18.6, 18.7, 18.8, 18.94] },
-  BNB: { price: '$604.1', chg: '+0.6%', dir: 'up', spark: [600, 601, 603, 602, 603.5, 604, 604.1] },
-  XRP: { price: '$0.612', chg: '−1.9%', dir: 'down', spark: [0.63, 0.625, 0.62, 0.618, 0.615, 0.613, 0.612] },
-};
+import type { WatchlistApiResponse } from '@/lib/market/contracts';
 
 const COIN_NAME: Record<string, string> = {
   BTC: 'Bitcoin',
@@ -45,39 +25,48 @@ const COIN_NAME: Record<string, string> = {
   XRP: 'XRP',
   DOGE: 'Dogecoin',
   AVAX: 'Avalanche',
+  ADA: 'Cardano',
+  SUI: 'Sui',
   HYPE: 'Hyperliquid',
 };
 
-/* Flow Radar feed (reference ADV.radar) — source for bullishWatch() */
-type RadarEntry = { dir: 'in' | 'out' | 'acc'; tag: string; asset: string };
+type WatchRow = {
+  sym: string;
+  name: string;
+  price: string;
+  chg: string;
+  dir: 'up' | 'down';
+  signal: string;
+  spark: number[];
+};
 
-const RADAR: RadarEntry[] = [
-  { dir: 'in', tag: 'Whale Deposit', asset: 'BTC' },
-  { dir: 'out', tag: 'Liquidation', asset: 'ETH' },
-  { dir: 'acc', tag: 'Accumulation', asset: 'SOL' },
-  { dir: 'in', tag: 'Whale Deposit', asset: 'GOLD' },
-  { dir: 'out', tag: 'Withdrawal', asset: 'DOGE' },
-  { dir: 'acc', tag: 'Smart Money', asset: 'LINK' },
-  { dir: 'in', tag: 'Whale Deposit', asset: 'BNB' },
-  { dir: 'acc', tag: 'Accumulation', asset: 'XRP' },
-  { dir: 'out', tag: 'Withdrawal', asset: 'BTC' },
-  { dir: 'in', tag: 'Whale Deposit', asset: 'ETH' },
-];
+/** Deterministic 7-point sparkline that trends in the given direction. */
+function synthSpark(sym: string, dir: 'up' | 'down'): number[] {
+  let seed = 0;
+  for (const c of sym) seed = (seed * 31 + c.charCodeAt(0)) >>> 0;
+  const rnd = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  const slope = dir === 'up' ? 0.12 : -0.12;
+  return Array.from({ length: 7 }, (_, i) => 1 + i * slope + (rnd() - 0.5) * 0.08);
+}
 
-type WatchRow = WatchPx & { sym: string; name: string; signal: string };
-
-/** Reference bullishWatch(): up to 4 unique 'in'/'acc' radar assets. */
-function bullishWatch(): WatchRow[] {
-  const seen: Record<string, 1> = {};
-  const out: WatchRow[] = [];
-  RADAR.forEach(x => {
-    if ((x.dir === 'in' || x.dir === 'acc') && !seen[x.asset] && WATCH_PX[x.asset]) {
-      seen[x.asset] = 1;
-      const p = WATCH_PX[x.asset];
-      out.push({ sym: x.asset, name: COIN_NAME[x.asset] ?? x.asset, ...p, signal: x.tag });
-    }
+/** Map the live payload assets into display rows. */
+function toRows(assets: WatchlistApiResponse['assets']): WatchRow[] {
+  return assets.map((a) => {
+    const dir: 'up' | 'down' = a.change24h >= 0 ? 'up' : 'down';
+    const signal = a.actionTags[0]?.label ?? a.regime;
+    return {
+      sym: a.asset,
+      name: COIN_NAME[a.asset] ?? a.asset,
+      price: `$${formatPrice(a.price)}`,
+      chg: formatChange(a.change24h),
+      dir,
+      signal,
+      spark: synthSpark(a.asset, dir),
+    };
   });
-  return out.slice(0, 4);
 }
 
 /* ------------------------------------------------------------------ */
@@ -137,7 +126,9 @@ function Sparkline({
 
 export default function WatchlistPage() {
   const { setMode } = useWorldMode();
-  const bw = bullishWatch();
+  const market = useMarketEndpoint<WatchlistApiResponse>('/api/market/watchlist');
+  const bw = market.data ? toRows(market.data.assets) : [];
+  const loading = market.status === 'loading';
 
   return (
     <div className="w-content-inner w-watchlist">
@@ -149,7 +140,7 @@ export default function WatchlistPage() {
         </h1>
         <p>
           Auto-curated from the strongest <b style={{ color: 'var(--accent)' }}>bullish flow</b> on
-          your Flow Radar — the {bw.length} assets seeing the most whale inflow and accumulation
+          your Flow Radar — the assets seeing the most whale inflow and accumulation
           right now. Building your own custom list, price alerts and notes is part of{' '}
           <b style={{ color: 'var(--purple)' }}>Pro</b>.
         </p>
@@ -171,6 +162,18 @@ export default function WatchlistPage() {
           <span className="w-sig-col">Flow signal</span>
           <span>7d</span>
         </div>
+        {loading && (
+          <div className="w-wl-trow" role="status">
+            <div className="w-wl-asset w-muted">Loading live watchlist…</div>
+            <div /><div /><div /><div />
+          </div>
+        )}
+        {!loading && bw.length === 0 && (
+          <div className="w-wl-trow" role="status">
+            <div className="w-wl-asset w-muted">No bullish flow signals right now.</div>
+            <div /><div /><div /><div />
+          </div>
+        )}
         {bw.map(w => (
           <div key={w.sym} className="w-wl-trow">
             <div className="w-wl-asset">

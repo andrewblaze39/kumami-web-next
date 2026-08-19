@@ -15,8 +15,10 @@
 import { useState } from 'react';
 import { useWorldMode } from '@/contexts/WorldModeContext';
 import { WIcon, intelGrad } from '@/components/world/panels/console-ui';
+import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
+import type { IntelligencePayload } from '@/lib/market/contracts';
 
-/* ---- Placeholder briefs (reference ADV.intel, verbatim) ---- */
+/* ---- Live brief shape (mapped from IntelligencePayload) ---- */
 type IntelBrief = {
   tier: 'A' | 'B' | 'C';
   cat: string;
@@ -27,17 +29,35 @@ type IntelBrief = {
   tokens: string[];
 };
 
-const INTEL: IntelBrief[] = [
-  { tier: 'A', cat: 'Macro', title: 'FOMC signals slower rate-cut path; dot plot revised higher', summary: 'Median projection now shows two cuts in 2026 vs three prior -- broad risk-asset implication.', src: 'Reuters', time: '9m', tokens: ['BTC', 'GOLD'] },
-  { tier: 'A', cat: 'Regulatory', title: 'SEC acknowledges spot ETH staking ETF amendment for review', summary: 'Formal acknowledgement starts the statutory clock; no decision date set.', src: 'Bloomberg', time: '27m', tokens: ['ETH'] },
-  { tier: 'B', cat: 'Trade', title: 'HIP3 RWA gold perp open interest surges past $1B in 24h', summary: 'Aggregate OI on the gold perpetual crossed $1B for the first time since launch.', src: 'On-chain', time: '41m', tokens: ['GOLD'] },
-  { tier: 'A', cat: 'Security', title: 'Cross-chain bridge pauses withdrawals after anomaly detected', summary: 'Team halted the contract pending audit; ~$0 confirmed lost so far.', src: 'The Block', time: '1h', tokens: ['ETH', 'AVAX'] },
-  { tier: 'B', cat: 'Macro', title: 'US CPI prints 0.2% MoM, in line; dollar softens modestly', summary: 'Headline matches consensus; DXY eased 0.3% on the release.', src: 'AP', time: '1h', tokens: ['DXY', 'BTC'] },
-  { tier: 'A', cat: 'Narrative', title: 'Capital rotating into AI-token sector; index +12% on the week', summary: 'Sector breadth widening -- flows broad rather than single-name driven.', src: 'Kaito', time: '2h', tokens: ['AI', 'ETH'] },
-  { tier: 'C', cat: 'Trade', title: 'Funding rates flip positive across majors as longs return', summary: 'BTC, ETH, SOL perpetual funding turned positive in the last 8h window.', src: 'Coinglass', time: '2h', tokens: ['BTC', 'SOL'] },
-  { tier: 'B', cat: 'Regulatory', title: 'EU finalises MiCA stablecoin reserve guidance', summary: 'Issuers get a compliance window; aggregate market-structure impact.', src: 'ESMA', time: '3h', tokens: ['USDT', 'USDC'] },
-  { tier: 'C', cat: 'Security', title: 'Wallet provider patches signing vulnerability, urges update', summary: 'No active exploitation reported; update advised for all users.', src: 'Vendor', time: '4h', tokens: ['ETH'] },
-];
+/** Normalise the live category into the fixed chip set. */
+function normCat(cat: string): string {
+  if (cat === 'ETF Flows') return 'Trade';
+  if (cat === 'On-Chain') return 'Narrative';
+  if (['Macro', 'Trade', 'Narrative', 'Regulatory', 'Security'].includes(cat)) return cat;
+  return 'Narrative';
+}
+
+/** Short relative time (no "ago" — the template adds it): "9m", "2h", "3d". */
+function shortAgo(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  if (ms < 60_000) return 'now';
+  if (ms < 3_600_000) return `${Math.floor(ms / 60_000)}m`;
+  if (ms < 86_400_000) return `${Math.floor(ms / 3_600_000)}h`;
+  return `${Math.floor(ms / 86_400_000)}d`;
+}
+
+function toBriefs(payload: IntelligencePayload | null): IntelBrief[] {
+  if (!payload) return [];
+  return payload.briefs.map((b) => ({
+    tier: b.tier,
+    cat: normCat(b.category),
+    title: b.headline,
+    summary: b.summary,
+    src: b.source,
+    time: shortAgo(b.ts),
+    tokens: b.assets,
+  }));
+}
 
 /* ---- Categories + colours (reference INTEL_CATS / INTEL_CC) ---- */
 const INTEL_CATS = ['All', 'Macro', 'Trade', 'Narrative', 'Regulatory', 'Security'];
@@ -70,6 +90,10 @@ export default function IntelPage() {
   const { setMode } = useWorldMode();
   const [cat, setCat] = useState('All');
   const [asset, setAsset] = useState('All');
+
+  const market = useMarketEndpoint<IntelligencePayload>('/api/market/intelligence');
+  const INTEL = toBriefs(market.data);
+  const loading = market.status === 'loading';
 
   const counts: Record<string, number> = {};
   for (const k of INTEL_CATS) {
@@ -255,7 +279,7 @@ export default function IntelPage() {
                 gridColumn: '1/-1',
               }}
             >
-              No briefs match this filter.
+              {loading ? 'Loading live briefs…' : 'No briefs match this filter.'}
             </div>
           ) : null}
         </div>

@@ -38,32 +38,53 @@ export default function RegimeChips({ chips, loading }: Props) {
 
   return (
     <div className="w-regime-row" role="list" aria-label="Asset regime overview">
-      {chips.map(chip => (
-        <div
-          key={chip.asset}
-          className="w-regime-chip"
-          style={{ '--rc': REGIME_RC[chip.regime] ?? '#f0b65e' } as CSSProperties}
-          role="listitem"
-          aria-label={`${chip.asset}: ${chip.regime}, price $${formatPrice(chip.price)}, 24h ${formatChange(chip.change24h)}, AI confidence ${chip.confidence.toFixed(2)}`}
-        >
-          <div className="w-rc-top">
-            <span className="w-sym">
-              <CoinBadge sym={chip.asset} size={17} />
-              {chip.asset}
-            </span>
-            <span
-              className={`w-chg ${chip.change24h >= 0 ? 'w-bull' : 'w-bear'}`}
-              title="24h price change"
+      {chips.map(chip => {
+        // SPX has no CoinGlass/macro source yet → coming-soon treatment.
+        const comingSoon = chip.asset === 'SPX' && chip.price === 0;
+        if (comingSoon) {
+          return (
+            <div
+              key={chip.asset}
+              className="w-regime-chip w-regime-soon"
+              style={{ '--rc': '#8a94a6' } as CSSProperties}
+              role="listitem"
+              aria-label={`${chip.asset}: coming soon`}
             >
-              {formatChange(chip.change24h)}
-            </span>
+              <div className="w-rc-top">
+                <span className="w-sym"><CoinBadge sym={chip.asset} size={17} />{chip.asset}</span>
+              </div>
+              <div className="w-reg-lbl w-muted">Coming soon</div>
+              <div className="w-reg-conf w-muted">S&amp;P 500 macro feed</div>
+            </div>
+          );
+        }
+        return (
+          <div
+            key={chip.asset}
+            className="w-regime-chip"
+            style={{ '--rc': REGIME_RC[chip.regime] ?? '#f0b65e' } as CSSProperties}
+            role="listitem"
+            aria-label={`${chip.asset}: ${chip.regime}, price $${formatPrice(chip.price)}, 24h ${formatChange(chip.change24h)}, AI confidence ${chip.confidence.toFixed(2)}`}
+          >
+            <div className="w-rc-top">
+              <span className="w-sym">
+                <CoinBadge sym={chip.asset} size={17} />
+                {chip.asset}
+              </span>
+              <span
+                className={`w-chg ${chip.change24h >= 0 ? 'w-bull' : 'w-bear'}`}
+                title="24h price change"
+              >
+                {formatChange(chip.change24h)}
+              </span>
+            </div>
+            <div className="w-reg-lbl">{chip.regime}</div>
+            <div className="w-reg-conf">
+              AI conf {chip.confidence.toFixed(2)} · ${formatPrice(chip.price)}
+            </div>
           </div>
-          <div className="w-reg-lbl">{chip.regime}</div>
-          <div className="w-reg-conf">
-            AI conf {chip.confidence.toFixed(2)} · ${formatPrice(chip.price)}
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

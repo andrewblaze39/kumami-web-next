@@ -3,12 +3,13 @@
 /**
  * /world/onchain — On-Chain Insight (Market Structure).
  *
- * Pixel-parity port of the reference mockup's R.onchain renderer, including
- * its placeholder data (ONCHAIN / OC_HEAT / OC_ETF / OC_STABLE) and the
- * seeded-random chart series. Deliberate deviations only:
- *   - reference mint #5ee9a8 → var(--accent) turquoise
- *   - KM.showTip tooltips → native title attributes on the “?” badges
- *   - KM.setMode('pro') → world mode context setMode('pro')
+ * Live: consumes /api/market/onchain?asset=&range= (OnChainPayload) and maps the
+ * 9 live panels (funding, liquidations, netflow, long/short, CVD, premium, ETF,
+ * OI, stablecoin) into the reference chart UI. The Liquidation Heatmap is
+ * tier-locked on CoinGlass → shown blurred with a "coming soon" veil.
+ *
+ * Visual shell (classes, layout, tooltips) is unchanged from the reference port;
+ * only the data source is now live.
  */
 
 import { useState } from 'react';
@@ -22,28 +23,14 @@ import {
   hmCol,
   type OcDivType,
 } from '@/components/world/panels/onchain-charts';
+import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
+import { formatUsd } from '@/components/world/panels/format';
 import { useWorldMode } from '@/contexts/WorldModeContext';
+import type { OnChainPayload, Verdict, MetricPanelKey } from '@/lib/market/contracts';
 
 /* ------------------------------------------------------------------ */
-/* Placeholder data — ported verbatim from the reference mockup        */
+/* Tooltips (unchanged copy)                                           */
 /* ------------------------------------------------------------------ */
-
-type Tag = { t: string; k: string };
-
-type AssetData = {
-  price: string;
-  chg: number;
-  funding: { rate: string; next: string; tag: Tag; tip: string };
-  liq: { total: string; longs: string; shorts: string; tag: Tag; tip: string };
-  netflow: { net: string; dir: 'in' | 'out'; trend: string; tag: Tag; tip: string };
-  ls: { global: string; top: string; tag: Tag; div: Tag | null; warn: boolean; tip: string };
-  cvd: { wi: Tag; stats: [string, string, string][]; divType: OcDivType };
-  prem: { value: string; wi: Tag; avg7: string; trend: string };
-  oi: { value: string; wi: Tag; divType: OcDivType; chg: string };
-};
-
-const OC_ASSETS = ['BTC', 'ETH', 'HYPE', 'BNB', 'XRP'] as const;
-type OcAsset = (typeof OC_ASSETS)[number];
 
 const TIP_FUNDING =
   'The fee traders pay to keep leveraged bets open. When it’s high, too many people are on the same side — and the market often snaps back.';
@@ -54,97 +41,44 @@ const TIP_NETFLOW =
 const TIP_LS =
   'How crowded the bet is. When the crowd leans heavily one way — and the pros lean the other — pay attention.';
 
-const ONCHAIN: Record<OcAsset, AssetData> = {
-  BTC: {
-    price: '$70,418',
-    chg: 2.1,
-    funding: { rate: '+0.082%', next: '3h 22m', tag: { t: 'Crowded Long', k: 'amber' }, tip: TIP_FUNDING },
-    liq: { total: '$182M', longs: '$120M', shorts: '$62M', tag: { t: 'Long Cleanup', k: 'ggreen' }, tip: TIP_LIQ },
-    netflow: { net: '$340M', dir: 'out', trend: 'Outflow accelerating · 7D', tag: { t: 'Accumulation', k: 'ggreen' }, tip: TIP_NETFLOW },
-    ls: { global: '62% Long', top: 'Top traders 51% long', tag: { t: 'Long Bias', k: 'ggreen' }, div: { t: 'Smart Money Fading', k: 'amber' }, warn: true, tip: TIP_LS },
-    cvd: { wi: { t: 'Buyer-Led Rally', k: 'bull' }, stats: [['24H CVD', '+$418M', 'up'], ['Spot', 'Aligned', ''], ['Trend', 'Rising', 'up']], divType: 'acc' },
-    prem: { value: '+0.12%', wi: { t: 'Strong US Premium · Institutional Demand', k: 'bull' }, avg7: '+0.08%', trend: 'Rising' },
-    oi: { value: '$2.18B', wi: { t: 'Trend Strengthening', k: 'bull' }, divType: 'acc', chg: '+6.4%' },
-  },
-  ETH: {
-    price: '$3,642',
-    chg: 1.4,
-    funding: { rate: '+0.041%', next: '3h 22m', tag: { t: 'Neutral', k: 'neutral' }, tip: TIP_FUNDING },
-    liq: { total: '$96M', longs: '$38M', shorts: '$58M', tag: { t: 'Short Cleanup', k: 'neutral' }, tip: TIP_LIQ },
-    netflow: { net: '$74M', dir: 'in', trend: 'Inflow vs 7D avg: +18%', tag: { t: 'Mild Distribution', k: 'gred' }, tip: TIP_NETFLOW },
-    ls: { global: '57% Long', top: 'Top traders 54% long', tag: { t: 'Long Bias', k: 'ggreen' }, div: null, warn: false, tip: TIP_LS },
-    cvd: { wi: { t: 'Balanced Tape', k: 'neutral' }, stats: [['24H CVD', '+$42M', 'up'], ['Spot', 'Diverging', 'down'], ['Trend', 'Flat', '']], divType: 'none' },
-    prem: { value: '+0.04%', wi: { t: 'Mild US Premium', k: 'bull' }, avg7: '+0.02%', trend: 'Flat' },
-    oi: { value: '$1.53B', wi: { t: 'Trend Strengthening', k: 'bull' }, divType: 'acc', chg: '+4.1%' },
-  },
-  HYPE: {
-    price: '$38.42',
-    chg: 3.2,
-    funding: { rate: '+0.096%', next: '3h 22m', tag: { t: 'Crowded Long', k: 'amber' }, tip: TIP_FUNDING },
-    liq: { total: '$74M', longs: '$26M', shorts: '$48M', tag: { t: 'Short Squeeze', k: 'ggreen' }, tip: TIP_LIQ },
-    netflow: { net: '$52M', dir: 'out', trend: 'Outflow accelerating · 7D', tag: { t: 'Accumulation', k: 'ggreen' }, tip: TIP_NETFLOW },
-    ls: { global: '64% Long', top: 'Top traders 58% long', tag: { t: 'Long Bias', k: 'ggreen' }, div: null, warn: false, tip: TIP_LS },
-    cvd: { wi: { t: 'Buyer-Led Rally', k: 'bull' }, stats: [['24H CVD', '+$96M', 'up'], ['Spot', 'Aligned', ''], ['Trend', 'Rising', 'up']], divType: 'acc' },
-    prem: { value: '+0.07%', wi: { t: 'US Premium Building', k: 'bull' }, avg7: '+0.05%', trend: 'Rising' },
-    oi: { value: '$512M', wi: { t: 'Trend Strengthening', k: 'bull' }, divType: 'acc', chg: '+8.1%' },
-  },
-  BNB: {
-    price: '$604.1',
-    chg: 0.6,
-    funding: { rate: '+0.018%', next: '3h 22m', tag: { t: 'Neutral', k: 'neutral' }, tip: TIP_FUNDING },
-    liq: { total: '$28M', longs: '$14M', shorts: '$14M', tag: { t: 'Balanced', k: 'neutral' }, tip: TIP_LIQ },
-    netflow: { net: '$12M', dir: 'out', trend: 'Flat vs 7D avg', tag: { t: 'Neutral', k: 'neutral' }, tip: TIP_NETFLOW },
-    ls: { global: '54% Long', top: 'Top traders 53% long', tag: { t: 'Balanced', k: 'neutral' }, div: null, warn: false, tip: TIP_LS },
-    cvd: { wi: { t: 'Balanced Tape', k: 'neutral' }, stats: [['24H CVD', '+$6M', 'up'], ['Spot', 'Aligned', ''], ['Trend', 'Flat', '']], divType: 'none' },
-    prem: { value: '+0.01%', wi: { t: 'Neutral Demand', k: 'neutral' }, avg7: '+0.00%', trend: 'Flat' },
-    oi: { value: '$418M', wi: { t: 'Trend Strengthening', k: 'bull' }, divType: 'none', chg: '+1.2%' },
-  },
-  XRP: {
-    price: '$0.612',
-    chg: -1.9,
-    funding: { rate: '+0.144%', next: '3h 22m', tag: { t: 'Overheated Long', k: 'red' }, tip: TIP_FUNDING },
-    liq: { total: '$64M', longs: '$52M', shorts: '$12M', tag: { t: 'Long Flush', k: 'green' }, tip: TIP_LIQ },
-    netflow: { net: '$41M', dir: 'in', trend: 'Inflow accelerating · 7D', tag: { t: 'Distribution', k: 'red' }, tip: TIP_NETFLOW },
-    ls: { global: '76% Long', top: 'Top traders 48% long', tag: { t: 'Extremely Crowded Long', k: 'red' }, div: { t: 'Smart Money Fading the Crowd', k: 'amber' }, warn: true, tip: TIP_LS },
-    cvd: { wi: { t: 'Distribution Rally · Speculative', k: 'bear' }, stats: [['24H CVD', '−$31M', 'down'], ['Spot', 'Diverging', 'down'], ['Trend', 'Falling', 'down']], divType: 'dist' },
-    prem: { value: '−0.09%', wi: { t: 'Offshore Leading', k: 'warn' }, avg7: '−0.05%', trend: 'Falling' },
-    oi: { value: '$286M', wi: { t: 'Leverage Building', k: 'warn' }, divType: 'dist', chg: '+3.3%' },
-  },
+/* ------------------------------------------------------------------ */
+/* Verdict colour → reference tag / world-icon class keys              */
+/* ------------------------------------------------------------------ */
+
+const TAG_K: Record<Verdict['color'], string> = {
+  green: 'green',
+  'grey-green': 'ggreen',
+  grey: 'neutral',
+  amber: 'amber',
+  'grey-red': 'gred',
+  red: 'red',
 };
 
-const OC_HEAT_WI: Record<OcAsset, Tag> = {
-  BTC: { t: 'Upside Magnet — Short Squeeze Setup', k: 'bull' },
-  ETH: { t: 'Balanced Liquidity Both Sides', k: 'neutral' },
-  HYPE: { t: 'Upside Cluster — Short Squeeze Setup', k: 'bull' },
-  BNB: { t: 'Thin Liquidity — Low Conviction', k: 'neutral' },
-  XRP: { t: 'Downside Cluster — Long Liquidation Risk', k: 'bear' },
+const WI_K: Record<Verdict['color'], string> = {
+  green: 'bull',
+  'grey-green': 'bull',
+  grey: 'neutral',
+  amber: 'warn',
+  'grey-red': 'bear',
+  red: 'bear',
 };
 
-const OC_ETF = {
-  BTC: { net7: '+$1.24B', prev7: '+$340M', today: '+$186M', largest: 'Jun 27 · +$482M', wi: { t: 'Sustained Institutional Accumulation', k: 'bull' } },
-  ETH: { net7: '+$286M', prev7: '−$41M', today: '+$62M', largest: 'Jun 26 · +$118M', wi: { t: 'Dual Institutional Signal', k: 'bull' } },
-} satisfies Record<string, { net7: string; prev7: string; today: string; largest: string; wi: Tag }>;
+function divFromColor(c: Verdict['color']): OcDivType {
+  if (c === 'green' || c === 'grey-green') return 'acc';
+  if (c === 'red' || c === 'grey-red') return 'dist';
+  return 'none';
+}
 
-const OC_STABLE = { cap: '$179.6B', chg30: '+2.1%', wi: { t: 'Dry Powder Building', k: 'bull' } };
+type Tag = { t: string; k: string };
+
+/* Assets supported by /api/market/onchain */
+const OC_ASSETS = ['BTC', 'ETH', 'SOL', 'BNB', 'AVAX'] as const;
+type OcAsset = (typeof OC_ASSETS)[number];
 
 const RANGES = ['24H', '7D', '30D'] as const;
 type OcRange = (typeof RANGES)[number];
 const N: Record<OcRange, number> = { '24H': 24, '7D': 28, '30D': 30 };
-
-/* Heatmap cluster data — same seeded generation as the reference */
-const OC_HEAT = OC_ASSETS.map((sym) => {
-  const r = ocRnd('hm' + sym);
-  const clusters: number[] = [];
-  for (let i = 0; i < 26; i++) {
-    let v = r() * 0.35;
-    const d = Math.abs(i - 6),
-      d2 = Math.abs(i - 19);
-    if (d < 3) v += (0.8 - d * 0.2) * (0.6 + r() * 0.4);
-    if (d2 < 3) v += (0.7 - d2 * 0.18) * (0.5 + r() * 0.4);
-    clusters.push(Math.min(1, v));
-  }
-  return { sym, price: ONCHAIN[sym].price, clusters, curIdx: 13 };
-});
+const RANGE_API: Record<OcRange, '24h' | '7d' | '30d'> = { '24H': '24h', '7D': '7d', '30D': '30d' };
 
 /* ------------------------------------------------------------------ */
 /* Small render helpers (reference ocQ / ocTag / ocWI)                 */
@@ -173,7 +107,7 @@ const WI_IC: Record<string, ConsoleIconName> = {
 function OcWI({ wi }: { wi: Tag }) {
   return (
     <span className={`w-oc-wi ${wi.k}`}>
-      <WIcon name={WI_IC[wi.k]} /> {wi.t}
+      <WIcon name={WI_IC[wi.k] ?? 'clock'} /> {wi.t}
     </span>
   );
 }
@@ -187,6 +121,28 @@ function Coin({ sym, bg }: { sym: string; bg?: string }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Live payload → view helpers                                         */
+/* ------------------------------------------------------------------ */
+
+type P = OnChainPayload['panels'][MetricPanelKey];
+
+const svals = (panel: P | undefined, which: 'series' | 'series2'): number[] =>
+  (panel?.[which] ?? []).map((pt) => pt.v);
+
+const verdictTag = (panel: P | undefined): Tag =>
+  panel ? { t: panel.verdict.label, k: TAG_K[panel.verdict.color] } : { t: '—', k: 'neutral' };
+
+const verdictWI = (panel: P | undefined): Tag =>
+  panel ? { t: panel.verdict.label, k: WI_K[panel.verdict.color] } : { t: 'Loading…', k: 'neutral' };
+
+const exNum = (panel: P | undefined, key: string): number => {
+  const v = panel?.extra?.[key];
+  return typeof v === 'number' ? v : 0;
+};
+
+const signPct = (n: number, dp = 2) => `${n >= 0 ? '+' : ''}${n.toFixed(dp)}%`;
+
+/* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
@@ -196,52 +152,80 @@ export default function OnChainPage() {
   const [range, setRange] = useState<OcRange>('24H');
   const [heatTf, setHeatTf] = useState<OcRange>('24H');
   const [cvdSrc, setCvdSrc] = useState<'Futures' | 'Spot'>('Futures');
-  const [etfSel, setEtfSel] = useState<'BTC' | 'ETH'>('BTC');
   const [more, setMore] = useState(false);
 
   const a = asset;
-  const d = ONCHAIN[a];
   const n = N[range];
 
-  const priceEnd = parseFloat(String(d.price).replace(/[^0-9.]/g, '')) || 100;
-  const priceS = ocSeries(
-    'px' + a + range,
-    n,
-    priceEnd * (d.chg < 0 ? 1.03 : 0.97),
-    priceEnd * 0.02,
-    (priceEnd * (d.chg > 0 ? 0.004 : -0.004)) / n
+  const market = useMarketEndpoint<OnChainPayload>(
+    `/api/market/onchain?asset=${a}&range=${RANGE_API[range]}`,
   );
+  const loading = market.status === 'loading' && !market.data;
+  const P = market.data?.panels;
 
-  /* CVD */
-  const cvd = d.cvd;
-  const cvdS = ocSeries(
-    'cvd' + a + cvdSrc + range,
-    n,
-    0,
-    cvd.divType === 'dist' ? 3 : 2.4,
-    cvd.divType === 'dist' ? -0.25 : cvd.divType === 'acc' ? 0.32 : 0.02
-  );
+  /* Real series (fall back to a seeded placeholder while loading) */
+  const priceS = svals(P?.oi, 'series2').length ? svals(P?.oi, 'series2') : ocSeries('px' + a + range, n, 100, 3, 0.4);
+  const cvdReal = cvdSrc === 'Futures' ? svals(P?.cvd, 'series') : svals(P?.cvd, 'series2');
+  const cvdS = cvdReal.length ? cvdReal : ocSeries('cvd' + a + range, n, 0, 2.4, 0.1);
+  const premReal = svals(P?.premium, 'series');
+  const premS = premReal.length ? premReal : ocSeries('prem' + a + range, n, 0, 0.05, 0.001);
+  const oiS = svals(P?.oi, 'series').length ? svals(P?.oi, 'series') : ocSeries('oi' + a + range, n, 100, 4, 0.6);
+  const etfBars = svals(P?.etf, 'series').length ? svals(P?.etf, 'series') : Array.from({ length: 30 }, (_, i) => (ocRnd('e' + i)() - 0.4) * 1.9);
+  const etfPrice = svals(P?.etf, 'series2').length ? svals(P?.etf, 'series2') : ocSeries('etfpx' + a, 30, 100, 3, 0.5);
+  const stbS = svals(P?.stablecoin, 'series').length ? svals(P?.stablecoin, 'series') : ocSeries('stable', 30, 150, 2, 1);
 
-  /* Coinbase premium */
-  const premNeg = String(d.prem.value).startsWith('−');
-  const premS = ocSeries('prem' + a + range, n, premNeg ? -0.02 : 0.03, 0.05, premNeg ? -0.002 : 0.002);
+  /* Panel-derived display values */
+  const fundingRate = P ? signPct(exNum(P.funding, 'currentRatePct'), 4) : '—';
 
-  /* ETF */
-  const etf = OC_ETF[etfSel];
-  const etfBias = etfSel === 'BTC' ? 0.62 : 0.34;
-  const rndE = ocRnd('etfb' + etfSel);
-  const etfBars = Array.from({ length: 30 }, (_, i) => {
-    let v = (rndE() - 0.5 + etfBias) * 1.9;
-    if (i > 24) v += 0.6;
-    return v;
+  const liqTotal = exNum(P?.liquidations, 'totalUsd');
+  const liqLongPct = exNum(P?.liquidations, 'longPct') / 100;
+  const liqLongs = formatUsd(liqTotal * liqLongPct);
+  const liqShorts = formatUsd(liqTotal * (1 - liqLongPct));
+
+  const netUsd = exNum(P?.netflow, 'netUsd');
+  const netDir: 'in' | 'out' = netUsd >= 0 ? 'out' : 'in';
+
+  const glsPct = exNum(P?.longshort, 'globalPctLong');
+  const topPct = exNum(P?.longshort, 'topTraderPctLong');
+  const lsDiv = P?.longshort?.tags?.[0]
+    ? { t: P.longshort.tags[0].label, k: TAG_K[P.longshort.tags[0].color] }
+    : null;
+
+  const premPct = exNum(P?.premium, 'premiumPct');
+  const premNeg = premPct < 0;
+  const premAvg7 = premS.length ? signPct(premS.reduce((s, v) => s + v, 0) / premS.length, 3) : '—';
+  const premTrend =
+    P?.premium?.tags?.some((t) => /Fading/.test(t.label)) ? 'Falling'
+    : P?.premium?.tags?.some((t) => /Returning|Demand/.test(t.label)) ? 'Rising'
+    : 'Flat';
+
+  const oiLast = oiS.length ? oiS[oiS.length - 1] : 0;
+  const oiFirst = oiS.length ? oiS[0] : 0;
+  const oiChgPct = oiFirst ? ((oiLast - oiFirst) / oiFirst) * 100 : 0;
+
+  const etfNet7 = exNum(P?.etf, 'net7dUsd');
+  const etfToday = etfBars.length ? etfBars[etfBars.length - 1] : 0;
+
+  const stbLast = stbS.length ? stbS[stbS.length - 1] : 0;
+  const stbChg30 = exNum(P?.stablecoin, 'change30dPct');
+
+  const cvdLast = cvdS.length ? cvdS[cvdS.length - 1] : 0;
+  const cvdDivType = divFromColor(P?.cvd?.verdict.color ?? 'grey');
+  const oiDivType = divFromColor(P?.oi?.verdict.color ?? 'grey');
+
+  /* Heatmap is tier-locked → seeded placeholder behind a "coming soon" veil */
+  const OC_HEAT = OC_ASSETS.map((sym) => {
+    const r = ocRnd('hm' + sym);
+    const clusters: number[] = [];
+    for (let i = 0; i < 26; i++) {
+      let v = r() * 0.35;
+      const d = Math.abs(i - 6), d2 = Math.abs(i - 19);
+      if (d < 3) v += (0.8 - d * 0.2) * (0.6 + r() * 0.4);
+      if (d2 < 3) v += (0.7 - d2 * 0.18) * (0.5 + r() * 0.4);
+      clusters.push(Math.min(1, v));
+    }
+    return { sym, clusters, curIdx: 13 };
   });
-  const etfPrice = ocSeries('etfpx' + etfSel, 30, 100, 3, 0.5);
-
-  /* Tier 3 */
-  const oiS = ocSeries('oi' + a + range, n, 100, 4, d.oi.divType === 'dist' ? 0.2 : 0.6);
-  const stbS = ocSeries('stable', 30, 150, 2, 1);
-
-  const ls = d.ls;
 
   return (
     <div className="w-content-inner w-onchain">
@@ -288,14 +272,14 @@ export default function OnChainPage() {
             <span className="w-oc-tl">
               <WIcon name="spark" /> Funding Rate
             </span>
-            <OcQ tip={d.funding.tip} />
+            <OcQ tip={TIP_FUNDING} />
           </div>
-          <div className="w-oc-tv">{d.funding.rate}</div>
+          <div className="w-oc-tv">{fundingRate}</div>
           <div className="w-oc-tags">
-            <OcTag tag={d.funding.tag} />
+            <OcTag tag={verdictTag(P?.funding)} />
           </div>
           <div className="w-oc-support">
-            Every 8H · Next <b style={{ color: 'var(--ink)' }}>{d.funding.next}</b>
+            OI-weighted · Every 8H
           </div>
         </div>
 
@@ -304,19 +288,19 @@ export default function OnChainPage() {
             <span className="w-oc-tl">
               <WIcon name="bolt" /> Liquidations 24H
             </span>
-            <OcQ tip={d.liq.tip} />
+            <OcQ tip={TIP_LIQ} />
           </div>
-          <div className="w-oc-tv">{d.liq.total}</div>
+          <div className="w-oc-tv">{loading ? '—' : formatUsd(liqTotal)}</div>
           <div className="w-oc-tags">
-            <OcTag tag={d.liq.tag} />
+            <OcTag tag={verdictTag(P?.liquidations)} />
           </div>
           <div className="w-oc-support">
             <span className="w-oc-split">
               <WIcon name="chevD" />
-              <span className="down">Longs {d.liq.longs}</span>
+              <span className="down">Longs {loading ? '—' : liqLongs}</span>
             </span>
             <span className="w-oc-split" style={{ transform: 'none' }}>
-              <span className="up">Shorts {d.liq.shorts}</span>
+              <span className="up">Shorts {loading ? '—' : liqShorts}</span>
             </span>
           </div>
         </div>
@@ -326,18 +310,18 @@ export default function OnChainPage() {
             <span className="w-oc-tl">
               <WIcon name="layers" /> Exchange Netflow
             </span>
-            <OcQ tip={d.netflow.tip} />
+            <OcQ tip={TIP_NETFLOW} />
           </div>
           <div
             className="w-oc-tv"
-            style={{ color: d.netflow.dir === 'out' ? 'var(--bull)' : 'var(--bear)' }}
+            style={{ color: netDir === 'out' ? 'var(--bull)' : 'var(--bear)' }}
           >
-            {d.netflow.net} <span className="sub-unit">{d.netflow.dir}</span>
+            {loading ? '—' : formatUsd(Math.abs(netUsd))} <span className="sub-unit">{netDir}</span>
           </div>
           <div className="w-oc-tags">
-            <OcTag tag={d.netflow.tag} />
+            <OcTag tag={verdictTag(P?.netflow)} />
           </div>
-          <div className="w-oc-support">{d.netflow.trend}</div>
+          <div className="w-oc-support">{netDir === 'out' ? 'Coins leaving exchanges' : 'Coins arriving to exchanges'} · {range}</div>
         </div>
 
         <div className="w-oc-tile">
@@ -345,18 +329,18 @@ export default function OnChainPage() {
             <span className="w-oc-tl">
               <WIcon name="users" /> Long / Short Ratio
             </span>
-            <OcQ tip={ls.tip} />
+            <OcQ tip={TIP_LS} />
           </div>
-          <div className="w-oc-tv">{ls.global}</div>
+          <div className="w-oc-tv">{loading ? '—' : `${glsPct.toFixed(0)}% Long`}</div>
           <div className="w-oc-tags">
-            <OcTag tag={ls.tag} />
-            <OcTag tag={ls.div} />
+            <OcTag tag={verdictTag(P?.longshort)} />
+            <OcTag tag={lsDiv} />
           </div>
-          <div className={`w-oc-support${ls.warn ? ' warn' : ''}`}>{ls.top}</div>
+          <div className={`w-oc-support${lsDiv ? ' warn' : ''}`}>Top traders {loading ? '—' : `${topPct.toFixed(0)}%`} long</div>
         </div>
       </div>
 
-      {/* ---- Liquidation heatmap ---- */}
+      {/* ---- Liquidation heatmap (tier-locked → coming soon) ---- */}
       <div style={{ marginBottom: 16 }}>
         <div className="w-oc-panel">
           <div className="w-oc-ph">
@@ -379,70 +363,42 @@ export default function OnChainPage() {
               </span>
             </span>
           </div>
-          <div className="w-oc-wi-row">
-            <OcWI wi={OC_HEAT_WI[a]} />
-          </div>
-          <div className="w-oc-pb">
-            <div className="w-oc-hm-legend-top">
-              <span>
-                ◂ {(priceEnd * 0.8).toLocaleString(undefined, { maximumFractionDigits: 2 })}{' '}
-                downside
-              </span>
-              <span>Current price ▮</span>
-              <span>
-                {(priceEnd * 1.2).toLocaleString(undefined, { maximumFractionDigits: 2 })} upside ▸
-              </span>
-            </div>
-            <div className="w-oc-hm-rows">
-              {OC_HEAT.map((row) => (
-                <div key={row.sym} className={`w-oc-hm-row${row.sym === a ? ' active' : ''}`}>
-                  <span className="w-oc-hm-sym">
-                    <Coin sym={row.sym} />
-                    {row.sym}
-                  </span>
-                  <span className="w-oc-hm-bar">
-                    {row.clusters.map((v, i) => (
-                      <span key={i} style={{ background: hmCol(v) }} />
-                    ))}
-                    <span
-                      className="w-oc-hm-now"
-                      style={{ left: `${(row.curIdx / (row.clusters.length - 1)) * 100}%` }}
-                    />
-                  </span>
-                  <span className="w-oc-hm-price">{row.price}</span>
-                </div>
-              ))}
-              <div className="w-oc-hm-row ghost">
-                <span className="w-oc-hm-sym">
-                  <span className="w-coin" style={{ background: '#33413b' }}>
-                    +
-                  </span>
-                  +12 more
-                </span>
-                <span className="w-oc-hm-bar">
-                  {OC_HEAT[0].clusters.map((v, i) => (
-                    <span key={i} style={{ background: hmCol(v * 0.7) }} />
-                  ))}
-                </span>
-                <span className="w-oc-hm-price">
-                  <WIcon name="lock" />
-                </span>
+          <div className="w-oc-pb" style={{ position: 'relative' }}>
+            <div style={{ filter: 'blur(5px)', opacity: 0.5, pointerEvents: 'none', userSelect: 'none' }}>
+              <div className="w-oc-hm-rows">
+                {OC_HEAT.map((row) => (
+                  <div key={row.sym} className={`w-oc-hm-row${row.sym === a ? ' active' : ''}`}>
+                    <span className="w-oc-hm-sym">
+                      <Coin sym={row.sym} />
+                      {row.sym}
+                    </span>
+                    <span className="w-oc-hm-bar">
+                      {row.clusters.map((v, i) => (
+                        <span key={i} style={{ background: hmCol(v) }} />
+                      ))}
+                      <span
+                        className="w-oc-hm-now"
+                        style={{ left: `${(row.curIdx / (row.clusters.length - 1)) * 100}%` }}
+                      />
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="w-oc-hm-scale">
-              <span>Less</span>
-              <span className="grad" />
-              <span>More</span>
-              <span className="w-delay-note" style={{ marginLeft: 'auto' }}>
-                <WIcon name="clock" /> 15-min delayed
+            {/* Coming-soon veil */}
+            <div
+              style={{
+                position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center', gap: 6, textAlign: 'center',
+              }}
+            >
+              <span className="w-oc-wi neutral" style={{ fontSize: 13 }}>
+                <WIcon name="clock" /> Liquidation Heatmap — coming soon
+              </span>
+              <span className="w-muted" style={{ fontSize: 12 }}>
+                Cluster-level liquidation mapping is being wired up next.
               </span>
             </div>
-          </div>
-          <div className="w-oc-hm-foot">
-            <span className="fcount">12 more assets · Real-time updates</span>
-            <a onClick={() => setMode('pro')}>
-              <WIcon name="lock" /> Unlock Pro <WIcon name="arrowR" />
-            </a>
           </div>
         </div>
       </div>
@@ -468,23 +424,24 @@ export default function OnChainPage() {
             </span>
           </div>
           <div className="w-oc-wi-row">
-            <OcWI wi={cvd.wi} />
+            <OcWI wi={verdictWI(P?.cvd)} />
           </div>
           <div className="w-oc-pb">
             <div className="w-oc-chart">
               <OcDual
                 a={cvdS}
                 b={priceS}
-                divType={cvd.divType}
-                primary={cvd.divType === 'dist' ? '#ff6b81' : 'var(--accent)'}
+                divType={cvdDivType}
+                primary={cvdDivType === 'dist' ? '#ff6b81' : 'var(--accent)'}
               />
             </div>
             <div className="w-oc-fstats">
-              {cvd.stats.map((s) => (
-                <span key={s[0]} className="w-oc-fstat">
-                  {s[0]} <b className={s[2] || ''}>{s[1]}</b>
-                </span>
-              ))}
+              <span className="w-oc-fstat">
+                {cvdSrc} CVD <b className={cvdLast >= 0 ? 'up' : 'down'}>{formatUsd(cvdLast)}</b>
+              </span>
+              <span className="w-oc-fstat">
+                Trend <b className={cvdLast >= 0 ? 'up' : 'down'}>{cvdLast >= 0 ? 'Rising' : 'Falling'}</b>
+              </span>
             </div>
           </div>
         </div>
@@ -495,18 +452,18 @@ export default function OnChainPage() {
             <span className="w-oc-ttl">
               <WIcon name="building" /> US Demand Premium{' '}
               <OcQ tip="The price gap between Coinbase (US money) and offshore exchanges. US-led moves tend to be steadier and last longer." />
-              <span className="w-oc-ph-sub">US vs offshore price gap · Coinbase premium</span>
+              <span className="w-oc-ph-sub">US vs offshore price gap · Coinbase premium (BTC)</span>
             </span>
             <span className="w-oc-ph-r">
               <span className="w-oc-headline" style={{ margin: 0 }}>
                 <b style={{ fontSize: 20, color: premNeg ? 'var(--bear)' : 'var(--accent)' }}>
-                  {d.prem.value}
+                  {loading ? '—' : signPct(premPct, 3)}
                 </b>
               </span>
             </span>
           </div>
           <div className="w-oc-wi-row">
-            <OcWI wi={d.prem.wi} />
+            <OcWI wi={verdictWI(P?.premium)} />
           </div>
           <div className="w-oc-pb">
             <div className="w-oc-chart">
@@ -514,10 +471,10 @@ export default function OnChainPage() {
             </div>
             <div className="w-oc-fstats">
               <span className="w-oc-fstat">
-                7D avg <b>{d.prem.avg7}</b>
+                Avg <b>{premAvg7}</b>
               </span>
               <span className="w-oc-fstat">
-                Trend <b>{d.prem.trend}</b>
+                Trend <b>{premTrend}</b>
               </span>
             </div>
           </div>
@@ -531,23 +488,14 @@ export default function OnChainPage() {
               <OcQ tip="Daily buying and selling through Bitcoin & Ethereum ETFs — the cleanest read on what Wall Street is doing." />
               <span className="w-oc-ph-sub">Daily institutional flow</span>
             </span>
-            <span className="w-oc-ph-r">
-              <span className="w-mini-toggle">
-                {(['BTC', 'ETH'] as const).map((t) => (
-                  <button key={t} className={etfSel === t ? 'on' : ''} onClick={() => setEtfSel(t)}>
-                    {t}
-                  </button>
-                ))}
-              </span>
-            </span>
           </div>
           <div className="w-oc-wi-row">
-            <OcWI wi={etf.wi} />
+            <OcWI wi={verdictWI(P?.etf)} />
           </div>
           <div className="w-oc-pb">
             <div className="w-oc-headline">
-              <b>{etf.net7}</b>
-              <span className="hl-sub">7D net · vs prev 7D {etf.prev7}</span>
+              <b>{loading ? '—' : formatUsd(etfNet7)}</b>
+              <span className="hl-sub">7D net flow</span>
             </div>
             <div className="w-oc-chart">
               <OcBars vals={etfBars} price={etfPrice} />
@@ -555,10 +503,7 @@ export default function OnChainPage() {
             <div className="w-oc-note">30D view · best for ETF analysis</div>
             <div className="w-oc-fstats">
               <span className="w-oc-fstat">
-                Today <b className="up">{etf.today}</b>
-              </span>
-              <span className="w-oc-fstat">
-                Largest <b>{etf.largest}</b>
+                Today <b className={etfToday >= 0 ? 'up' : 'down'}>{formatUsd(etfToday)}</b>
               </span>
             </div>
           </div>
@@ -582,20 +527,20 @@ export default function OnChainPage() {
               </span>
             </div>
             <div className="w-oc-wi-row">
-              <OcWI wi={d.oi.wi} />
+              <OcWI wi={verdictWI(P?.oi)} />
             </div>
             <div className="w-oc-pb">
               <div className="w-oc-headline">
-                <b>{d.oi.value}</b>
+                <b>{loading ? '—' : formatUsd(oiLast)}</b>
                 <span className="hl-sub">
                   total OI ·{' '}
-                  <span className={d.oi.chg.startsWith('−') ? 'down' : 'up'}>
-                    {d.oi.chg} {range}
+                  <span className={oiChgPct < 0 ? 'down' : 'up'}>
+                    {signPct(oiChgPct, 1)} {range}
                   </span>
                 </span>
               </div>
               <div className="w-oc-chart">
-                <OcDual a={oiS} b={priceS} divType={d.oi.divType} primary="var(--accent)" />
+                <OcDual a={oiS} b={priceS} divType={oiDivType} primary="var(--accent)" />
               </div>
             </div>
           </div>
@@ -606,17 +551,17 @@ export default function OnChainPage() {
               <span className="w-oc-ttl">
                 <WIcon name="shield" /> Stablecoin Supply{' '}
                 <OcQ tip="Cash sitting on the sidelines. When it grows, there’s more dry powder waiting to buy in." />
-                <span className="w-oc-ph-sub">Dry powder · 90D</span>
+                <span className="w-oc-ph-sub">Dry powder · total cap</span>
               </span>
             </div>
             <div className="w-oc-wi-row">
-              <OcWI wi={OC_STABLE.wi} />
+              <OcWI wi={verdictWI(P?.stablecoin)} />
             </div>
             <div className="w-oc-pb">
               <div className="w-oc-headline">
-                <b>{OC_STABLE.cap}</b>
+                <b>{loading ? '—' : formatUsd(stbLast)}</b>
                 <span className="hl-sub">
-                  total cap · <span className="up">30D {OC_STABLE.chg30}</span>
+                  total cap · <span className={stbChg30 < 0 ? 'down' : 'up'}>30D {signPct(stbChg30, 1)}</span>
                 </span>
               </div>
               <div className="w-oc-chart">

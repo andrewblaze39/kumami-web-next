@@ -2572,6 +2572,14 @@
   border-color: var(--adv-border-2);
   transform: translateY(-2px);
 }
+.world-root .w-regime-chip.w-regime-soon {
+  cursor: default;
+  border-style: dashed;
+  opacity: 0.62;
+}
+.world-root .w-regime-chip.w-regime-soon:hover {
+  transform: none;
+}
 .world-root .w-regime-chip::after {
   content: '';
   position: absolute;

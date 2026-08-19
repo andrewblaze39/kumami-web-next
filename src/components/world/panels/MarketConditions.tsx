@@ -81,7 +81,7 @@ export default function MarketConditions({ data }: Props) {
             {tiles.dxy === null ? (
               <>
                 <div className="w-mv w-muted">—</div>
-                <div className="w-mc-chg w-muted">external source pending</div>
+                <div className="w-mc-chg w-muted">Coming soon</div>
               </>
             ) : (
               <>
