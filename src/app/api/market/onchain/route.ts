@@ -13,7 +13,7 @@
 import { NextResponse } from 'next/server';
 import { authenticate } from '@/lib/market/api-helpers';
 import { getProvider } from '@/lib/market/provider';
-import { getCached } from '@/lib/market/cache';
+import { getCachedFresh } from '@/lib/market/cache';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -35,8 +35,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'invalid_params' }, { status: 400 });
   }
 
-  const payload = await getCached(
-    `market:onchain:${asset}:${range}`,
+  const payload = await getCachedFresh(
+    `market:v2:onchain:${asset}:${range}`,
     300,
     () => getProvider().onchain(asset, range as '24h' | '7d' | '30d'),
   );

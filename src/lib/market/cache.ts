@@ -88,32 +88,58 @@ export async function getCached<T>(
   fetcher: () => Promise<T>,
   deps: CacheDeps = makeFirestoreDeps(),
 ): Promise<T> {
+  return _getCached(key, ttlSec, fetcher, deps, true);
+}
+
+/**
+ * Like {@link getCached}, but NEVER serves a stale value. On a fresh hit it
+ * returns the cached (real) value; on a miss/stale it awaits a fresh fetch
+ * (de-duplicated across concurrent callers); on fetcher error it throws.
+ *
+ * Used for the user-facing market payloads so the app only ever renders real,
+ * current data or a loading/error state — never stale or placeholder data.
+ */
+export async function getCachedFresh<T>(
+  key: string,
+  ttlSec: number,
+  fetcher: () => Promise<T>,
+  deps: CacheDeps = makeFirestoreDeps(),
+): Promise<T> {
+  return _getCached(key, ttlSec, fetcher, deps, false);
+}
+
+async function _getCached<T>(
+  key: string,
+  ttlSec: number,
+  fetcher: () => Promise<T>,
+  deps: CacheDeps,
+  serveStale: boolean,
+): Promise<T> {
   const nowMs = deps.now();
   const entry = await deps.get(key);
 
-  // Fresh hit — return immediately
+  // Fresh hit — return immediately (real value within TTL).
   if (entry !== null && nowMs - entry.updatedAt < ttlSec * 1000) {
     return entry.value as T;
   }
 
-  // Stale or missing — check for an in-flight fetch
+  // Stale or missing — dedupe against any in-flight fetch for this key.
   if (_inflight.has(key)) {
-    // A fetch is already running. Serve stale if available, otherwise await it.
-    if (entry !== null) {
+    // serveStale: return the old value immediately; otherwise wait for fresh.
+    if (serveStale && entry !== null) {
       return entry.value as T;
     }
-    // No stale fallback — must await the in-flight promise
     return _inflight.get(key) as Promise<T>;
   }
 
-  // Start a new fetch and register it in the in-flight map
+  // Start a new fetch and register it in the in-flight map.
   const fetchPromise = (async (): Promise<T> => {
     try {
       const fresh = await fetcher();
       await deps.set(key, fresh, deps.now());
       return fresh;
     } catch (err) {
-      if (entry !== null) {
+      if (serveStale && entry !== null) {
         console.warn(
           `[market/cache] fetcher for "${key}" threw — serving stale value. Error:`,
           err,

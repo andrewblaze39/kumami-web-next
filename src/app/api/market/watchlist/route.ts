@@ -28,7 +28,7 @@
 import { NextResponse } from 'next/server';
 import { authenticate } from '@/lib/market/api-helpers';
 import { getProvider } from '@/lib/market/provider';
-import { getCached } from '@/lib/market/cache';
+import { getCachedFresh } from '@/lib/market/cache';
 import { watchlistSlots } from '@/lib/market/gating';
 import type { WatchlistApiResponse } from '@/lib/market/contracts';
 import {
@@ -53,8 +53,8 @@ export async function GET(request: Request) {
 
   // Full pro-tier payload cached 300s per uid — used for both radar and
   // curated asset rows so we only call the provider once.
-  const fullPayload = await getCached(
-    `market:watchlist:${uid}`,
+  const fullPayload = await getCachedFresh(
+    `market:v2:watchlist:${uid}`,
     300,
     () => getProvider().watchlist(uid, 'pro'),
   );

@@ -14,7 +14,7 @@
 import { NextResponse } from 'next/server';
 import { authenticate } from '@/lib/market/api-helpers';
 import { getProvider } from '@/lib/market/provider';
-import { getCached } from '@/lib/market/cache';
+import { getCachedFresh } from '@/lib/market/cache';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -25,8 +25,8 @@ export async function GET(request: Request) {
   const { tier } = auth;
 
   // Cache the full pro payload; strip pro fields server-side for free users
-  const fullPayload = await getCached(
-    'market:intelligence',
+  const fullPayload = await getCachedFresh(
+    'market:v2:intelligence',
     300,
     () => getProvider().intelligence('pro'),
   );

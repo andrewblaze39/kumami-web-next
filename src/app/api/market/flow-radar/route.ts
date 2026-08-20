@@ -15,7 +15,7 @@
 import { NextResponse } from 'next/server';
 import { authenticate } from '@/lib/market/api-helpers';
 import { getProvider } from '@/lib/market/provider';
-import { getCached } from '@/lib/market/cache';
+import { getCachedFresh } from '@/lib/market/cache';
 import { applyDelay } from '@/lib/market/gating';
 
 export const dynamic = 'force-dynamic';
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
   const { tier } = auth;
 
   // Cache the full (pro) event list; apply delay post-retrieval
-  const allEvents = await getCached('market:flow-radar', 60, () => getProvider().flowRadar('pro'));
+  const allEvents = await getCachedFresh('market:v2:flow-radar', 60, () => getProvider().flowRadar('pro'));
 
   const events = applyDelay(allEvents, tier);
   const delayed = tier === 'free';

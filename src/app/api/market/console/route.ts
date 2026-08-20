@@ -11,7 +11,7 @@
 import { NextResponse } from 'next/server';
 import { authenticate } from '@/lib/market/api-helpers';
 import { getProvider } from '@/lib/market/provider';
-import { getCached } from '@/lib/market/cache';
+import { getCachedFresh } from '@/lib/market/cache';
 import { applyDelay } from '@/lib/market/gating';
 
 export const dynamic = 'force-dynamic';
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
   if (auth instanceof NextResponse) return auth;
   const { tier } = auth;
 
-  const payload = await getCached('market:console', 300, () => getProvider().console());
+  const payload = await getCachedFresh('market:v2:console', 300, () => getProvider().console());
 
   // Apply delay to the embedded flowRadar events for free-tier users
   const gatedPayload = {
