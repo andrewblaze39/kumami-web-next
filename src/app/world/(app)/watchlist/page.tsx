@@ -8,7 +8,6 @@
  * Falls back to a clean loading/empty state. UI shell unchanged from the port.
  */
 
-import { useId } from 'react';
 import { WIcon, coinC } from '@/components/world/panels/console-ui';
 import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
 import { formatPrice, formatChange } from '@/components/world/panels/format';
@@ -37,20 +36,7 @@ type WatchRow = {
   chg: string;
   dir: 'up' | 'down';
   signal: string;
-  spark: number[];
 };
-
-/** Deterministic 7-point sparkline that trends in the given direction. */
-function synthSpark(sym: string, dir: 'up' | 'down'): number[] {
-  let seed = 0;
-  for (const c of sym) seed = (seed * 31 + c.charCodeAt(0)) >>> 0;
-  const rnd = () => {
-    seed = (seed * 1664525 + 1013904223) >>> 0;
-    return seed / 4294967296;
-  };
-  const slope = dir === 'up' ? 0.12 : -0.12;
-  return Array.from({ length: 7 }, (_, i) => 1 + i * slope + (rnd() - 0.5) * 0.08);
-}
 
 /** Map the live payload assets into display rows. */
 function toRows(assets: WatchlistApiResponse['assets']): WatchRow[] {
@@ -64,60 +50,8 @@ function toRows(assets: WatchlistApiResponse['assets']): WatchRow[] {
       chg: formatChange(a.change24h),
       dir,
       signal,
-      spark: synthSpark(a.asset, dir),
     };
   });
-}
-
-/* ------------------------------------------------------------------ */
-/* Sparkline — reference sparkline() helper (same viewBox/stroke math) */
-/* ------------------------------------------------------------------ */
-
-function Sparkline({
-  pts,
-  color,
-  w = 130,
-  h = 34,
-}: {
-  pts: number[];
-  color: string;
-  w?: number;
-  h?: number;
-}) {
-  const id = useId();
-  const max = Math.max(...pts);
-  const min = Math.min(...pts);
-  const rng = max - min || 1;
-  const step = w / (pts.length - 1);
-  const xy = pts.map((p, i) => [i * step, h - ((p - min) / rng) * (h - 4) - 2]);
-  const line = xy.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
-  const area = `0,${h} ` + line + ` ${w},${h}`;
-  return (
-    <svg
-      viewBox={`0 0 ${w} ${h}`}
-      width={w}
-      height={h}
-      preserveAspectRatio="none"
-      style={{ display: 'block' }}
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity=".28" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polygon points={area} fill={`url(#${id})`} />
-      <polyline
-        points={line}
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -160,18 +94,17 @@ export default function WatchlistPage() {
           <span>Price</span>
           <span className="w-h-24h">24h</span>
           <span className="w-sig-col">Flow signal</span>
-          <span>7d</span>
         </div>
         {loading && (
           <div className="w-wl-trow" role="status">
             <div className="w-wl-asset w-muted">Loading live watchlist…</div>
-            <div /><div /><div /><div />
+            <div /><div /><div />
           </div>
         )}
         {!loading && bw.length === 0 && (
           <div className="w-wl-trow" role="status">
             <div className="w-wl-asset w-muted">No bullish flow signals right now.</div>
-            <div /><div /><div /><div />
+            <div /><div /><div />
           </div>
         )}
         {bw.map(w => (
@@ -197,9 +130,6 @@ export default function WatchlistPage() {
               <span className="w-wl-sig">
                 <WIcon name="flame" /> {w.signal}
               </span>
-            </div>
-            <div style={{ width: 64 }}>
-              <Sparkline pts={w.spark} color={w.dir === 'up' ? '#46e3a0' : '#ff6b81'} w={64} h={28} />
             </div>
           </div>
         ))}

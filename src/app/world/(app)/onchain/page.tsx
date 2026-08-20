@@ -12,20 +12,16 @@
  * only the data source is now live.
  */
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { WIcon, coinC, type ConsoleIconName } from '@/components/world/panels/console-ui';
 import {
-  ocRnd,
-  ocSeries,
   OcDual,
   OcBars,
   OcArea,
-  hmCol,
   type OcDivType,
 } from '@/components/world/panels/onchain-charts';
 import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
 import { formatUsd } from '@/components/world/panels/format';
-import { useWorldMode } from '@/contexts/WorldModeContext';
 import type { OnChainPayload, Verdict, MetricPanelKey } from '@/lib/market/contracts';
 
 /* ------------------------------------------------------------------ */
@@ -77,7 +73,6 @@ type OcAsset = (typeof OC_ASSETS)[number];
 
 const RANGES = ['24H', '7D', '30D'] as const;
 type OcRange = (typeof RANGES)[number];
-const N: Record<OcRange, number> = { '24H': 24, '7D': 28, '30D': 30 };
 const RANGE_API: Record<OcRange, '24h' | '7d' | '30d'> = { '24H': '24h', '7D': '7d', '30D': '30d' };
 
 /* ------------------------------------------------------------------ */
@@ -120,6 +115,21 @@ function Coin({ sym, bg }: { sym: string; bg?: string }) {
   );
 }
 
+/** Chart slot: renders the chart only when real data exists, else an honest "No data yet". */
+function ChartArea({ has, children }: { has: boolean; children: ReactNode }) {
+  if (!has) {
+    return (
+      <div
+        className="w-oc-chart"
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 12.5 }}
+      >
+        No data yet
+      </div>
+    );
+  }
+  return <div className="w-oc-chart">{children}</div>;
+}
+
 /* ------------------------------------------------------------------ */
 /* Live payload → view helpers                                         */
 /* ------------------------------------------------------------------ */
@@ -147,7 +157,6 @@ const signPct = (n: number, dp = 2) => `${n >= 0 ? '+' : ''}${n.toFixed(dp)}%`;
 /* ------------------------------------------------------------------ */
 
 export default function OnChainPage() {
-  const { setMode } = useWorldMode();
   const [asset, setAsset] = useState<OcAsset>('BTC');
   const [range, setRange] = useState<OcRange>('24H');
   const [heatTf, setHeatTf] = useState<OcRange>('24H');
@@ -155,7 +164,6 @@ export default function OnChainPage() {
   const [more, setMore] = useState(false);
 
   const a = asset;
-  const n = N[range];
 
   const market = useMarketEndpoint<OnChainPayload>(
     `/api/market/onchain?asset=${a}&range=${RANGE_API[range]}`,
@@ -163,16 +171,14 @@ export default function OnChainPage() {
   const loading = market.status === 'loading' && !market.data;
   const P = market.data?.panels;
 
-  /* Real series (fall back to a seeded placeholder while loading) */
-  const priceS = svals(P?.oi, 'series2').length ? svals(P?.oi, 'series2') : ocSeries('px' + a + range, n, 100, 3, 0.4);
-  const cvdReal = cvdSrc === 'Futures' ? svals(P?.cvd, 'series') : svals(P?.cvd, 'series2');
-  const cvdS = cvdReal.length ? cvdReal : ocSeries('cvd' + a + range, n, 0, 2.4, 0.1);
-  const premReal = svals(P?.premium, 'series');
-  const premS = premReal.length ? premReal : ocSeries('prem' + a + range, n, 0, 0.05, 0.001);
-  const oiS = svals(P?.oi, 'series').length ? svals(P?.oi, 'series') : ocSeries('oi' + a + range, n, 100, 4, 0.6);
-  const etfBars = svals(P?.etf, 'series').length ? svals(P?.etf, 'series') : Array.from({ length: 30 }, (_, i) => (ocRnd('e' + i)() - 0.4) * 1.9);
-  const etfPrice = svals(P?.etf, 'series2').length ? svals(P?.etf, 'series2') : ocSeries('etfpx' + a, 30, 100, 3, 0.5);
-  const stbS = svals(P?.stablecoin, 'series').length ? svals(P?.stablecoin, 'series') : ocSeries('stable', 30, 150, 2, 1);
+  /* Real series only — an empty series renders an honest "No data yet" box, never a synthetic shape. */
+  const priceS = svals(P?.oi, 'series2');
+  const cvdS = cvdSrc === 'Futures' ? svals(P?.cvd, 'series') : svals(P?.cvd, 'series2');
+  const premS = svals(P?.premium, 'series');
+  const oiS = svals(P?.oi, 'series');
+  const etfBars = svals(P?.etf, 'series');
+  const etfPrice = svals(P?.etf, 'series2');
+  const stbS = svals(P?.stablecoin, 'series');
 
   /* Panel-derived display values */
   const fundingRate = P ? signPct(exNum(P.funding, 'currentRatePct'), 4) : '—';
@@ -212,20 +218,6 @@ export default function OnChainPage() {
   const cvdLast = cvdS.length ? cvdS[cvdS.length - 1] : 0;
   const cvdDivType = divFromColor(P?.cvd?.verdict.color ?? 'grey');
   const oiDivType = divFromColor(P?.oi?.verdict.color ?? 'grey');
-
-  /* Heatmap is tier-locked → seeded placeholder behind a "coming soon" veil */
-  const OC_HEAT = OC_ASSETS.map((sym) => {
-    const r = ocRnd('hm' + sym);
-    const clusters: number[] = [];
-    for (let i = 0; i < 26; i++) {
-      let v = r() * 0.35;
-      const d = Math.abs(i - 6), d2 = Math.abs(i - 19);
-      if (d < 3) v += (0.8 - d * 0.2) * (0.6 + r() * 0.4);
-      if (d2 < 3) v += (0.7 - d2 * 0.18) * (0.5 + r() * 0.4);
-      clusters.push(Math.min(1, v));
-    }
-    return { sym, clusters, curIdx: 13 };
-  });
 
   return (
     <div className="w-content-inner w-onchain">
@@ -363,40 +355,21 @@ export default function OnChainPage() {
               </span>
             </span>
           </div>
-          <div className="w-oc-pb" style={{ position: 'relative' }}>
-            <div style={{ filter: 'blur(5px)', opacity: 0.5, pointerEvents: 'none', userSelect: 'none' }}>
-              <div className="w-oc-hm-rows">
-                {OC_HEAT.map((row) => (
-                  <div key={row.sym} className={`w-oc-hm-row${row.sym === a ? ' active' : ''}`}>
-                    <span className="w-oc-hm-sym">
-                      <Coin sym={row.sym} />
-                      {row.sym}
-                    </span>
-                    <span className="w-oc-hm-bar">
-                      {row.clusters.map((v, i) => (
-                        <span key={i} style={{ background: hmCol(v) }} />
-                      ))}
-                      <span
-                        className="w-oc-hm-now"
-                        style={{ left: `${(row.curIdx / (row.clusters.length - 1)) * 100}%` }}
-                      />
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* Coming-soon veil */}
+          <div className="w-oc-pb">
+            {/* Honest coming-soon state — no placeholder data rendered */}
             <div
               style={{
-                position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center', gap: 6, textAlign: 'center',
+                minHeight: 180, borderRadius: 12, border: '1px dashed var(--adv-border-2)',
+                background: 'var(--adv-surface-2)', display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center', gap: 8, textAlign: 'center', padding: 24,
               }}
             >
               <span className="w-oc-wi neutral" style={{ fontSize: 13 }}>
                 <WIcon name="clock" /> Liquidation Heatmap — coming soon
               </span>
-              <span className="w-muted" style={{ fontSize: 12 }}>
-                Cluster-level liquidation mapping is being wired up next.
+              <span className="w-muted" style={{ fontSize: 12, maxWidth: 440 }}>
+                Cluster-level liquidation mapping isn&apos;t available on the current data plan yet.
+                It will switch on automatically once enabled.
               </span>
             </div>
           </div>
@@ -427,14 +400,14 @@ export default function OnChainPage() {
             <OcWI wi={verdictWI(P?.cvd)} />
           </div>
           <div className="w-oc-pb">
-            <div className="w-oc-chart">
+            <ChartArea has={cvdS.length > 0}>
               <OcDual
                 a={cvdS}
                 b={priceS}
                 divType={cvdDivType}
                 primary={cvdDivType === 'dist' ? '#ff6b81' : 'var(--accent)'}
               />
-            </div>
+            </ChartArea>
             <div className="w-oc-fstats">
               <span className="w-oc-fstat">
                 {cvdSrc} CVD <b className={cvdLast >= 0 ? 'up' : 'down'}>{formatUsd(cvdLast)}</b>
@@ -466,9 +439,9 @@ export default function OnChainPage() {
             <OcWI wi={verdictWI(P?.premium)} />
           </div>
           <div className="w-oc-pb">
-            <div className="w-oc-chart">
+            <ChartArea has={premS.length > 0}>
               <OcArea series={premS} color={premNeg ? '#ff6b81' : 'var(--accent)'} zeroVal={0} />
-            </div>
+            </ChartArea>
             <div className="w-oc-fstats">
               <span className="w-oc-fstat">
                 Avg <b>{premAvg7}</b>
@@ -497,9 +470,9 @@ export default function OnChainPage() {
               <b>{loading ? '—' : formatUsd(etfNet7)}</b>
               <span className="hl-sub">7D net flow</span>
             </div>
-            <div className="w-oc-chart">
+            <ChartArea has={etfBars.length > 0}>
               <OcBars vals={etfBars} price={etfPrice} />
-            </div>
+            </ChartArea>
             <div className="w-oc-note">30D view · best for ETF analysis</div>
             <div className="w-oc-fstats">
               <span className="w-oc-fstat">
@@ -539,9 +512,9 @@ export default function OnChainPage() {
                   </span>
                 </span>
               </div>
-              <div className="w-oc-chart">
+              <ChartArea has={oiS.length > 0}>
                 <OcDual a={oiS} b={priceS} divType={oiDivType} primary="var(--accent)" />
-              </div>
+              </ChartArea>
             </div>
           </div>
 
@@ -564,9 +537,9 @@ export default function OnChainPage() {
                   total cap · <span className={stbChg30 < 0 ? 'down' : 'up'}>30D {signPct(stbChg30, 1)}</span>
                 </span>
               </div>
-              <div className="w-oc-chart">
+              <ChartArea has={stbS.length > 0}>
                 <OcArea series={stbS} color="var(--accent)" />
-              </div>
+              </ChartArea>
             </div>
           </div>
         </div>

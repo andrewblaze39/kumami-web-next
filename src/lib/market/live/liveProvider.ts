@@ -29,50 +29,58 @@ import { makeWatchlistPayloadLive } from './watchlist';
 import { makeIntelligencePayloadLive } from './intel';
 import { buildFlowEvents } from './flow';
 
-async function withFallback<T>(label: string, live: () => Promise<T>, fallback: () => Promise<T>): Promise<T> {
+/**
+ * Log a live-builder failure and rethrow. We do NOT substitute mock data — a
+ * failed live call surfaces as an honest error/empty state in the UI rather
+ * than showing placeholder numbers as if they were real. (Individual endpoint
+ * failures are already absorbed per-panel inside each builder, so this only
+ * fires on a catastrophic failure.)
+ */
+async function live<T>(label: string, fn: () => Promise<T>): Promise<T> {
   try {
-    return await live();
+    return await fn();
   } catch (err) {
-    console.error(`[liveProvider] ${label} failed, using mock:`, err);
-    return fallback();
+    console.error(`[liveProvider] ${label} failed:`, err);
+    throw err;
   }
 }
 
 function makeLiveProvider(): MarketDataProvider {
   const mock = mockProvider();
 
-  // Until a CoinGlass key is present, behave exactly like mock.
+  // Until a CoinGlass key is present, behave exactly like mock (dev without a key).
   if (!coinglassConfigured()) {
     return mock;
   }
 
   return {
     async console(): Promise<ConsolePayload> {
-      return withFallback('console', makeConsolePayloadLive, () => mock.console());
+      return live('console', makeConsolePayloadLive);
     },
 
     async onchain(asset: string, range: '24h' | '7d' | '30d'): Promise<OnChainPayload> {
-      return withFallback('onchain', () => makeOnChainPayloadLive(asset, range), () => mock.onchain(asset, range));
+      return live('onchain', () => makeOnChainPayloadLive(asset, range));
     },
 
     async heatmap(tier: 'free' | 'pro'): Promise<HeatmapPayload> {
-      // Tier-locked on CoinGlass — UI shows a "coming soon" treatment.
+      // Tier-locked on CoinGlass — the UI shows an honest "coming soon" panel,
+      // so this payload is never rendered as real data.
       return mock.heatmap(tier);
     },
 
     async flowRadar(tier: 'free' | 'pro'): Promise<FlowEvent[]> {
-      return withFallback('flowRadar', async () => {
+      return live('flowRadar', async () => {
         const events = await buildFlowEvents();
         return tier === 'free' ? events.slice(0, 10) : events;
-      }, () => mock.flowRadar(tier));
+      });
     },
 
     async watchlist(uid: string, tier: 'free' | 'pro'): Promise<WatchlistPayload> {
-      return withFallback('watchlist', () => makeWatchlistPayloadLive(uid, tier), () => mock.watchlist(uid, tier));
+      return live('watchlist', () => makeWatchlistPayloadLive(uid, tier));
     },
 
     async intelligence(tier: 'free' | 'pro'): Promise<IntelligencePayload> {
-      return withFallback('intelligence', () => makeIntelligencePayloadLive(tier), () => mock.intelligence(tier));
+      return live('intelligence', () => makeIntelligencePayloadLive(tier));
     },
   };
 }

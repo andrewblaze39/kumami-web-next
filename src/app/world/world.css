@@ -4395,7 +4395,7 @@
 .world-root .w-wl-thead,
 .world-root .w-wl-trow {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr) 70px;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr);
   align-items: center;
   gap: 12px;
   padding: 14px 20px;
