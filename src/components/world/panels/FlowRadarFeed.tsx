@@ -65,7 +65,7 @@ export default function FlowRadarFeed({ events, loading }: Props) {
           <span
             className="w-oc-q"
             tabIndex={0}
-            title="Big money leaves footprints. Whale transfers, liquidation cascades, and smart-wallet moves — caught as they happen."
+            title="Big money leaves footprints. Whale transfers, liquidation cascades, and smart-wallet moves — caught as they happen. Aggregated from large on-chain transfers, exchange liquidations, and tracked whale positions."
           >
             ?
           </span>{' '}

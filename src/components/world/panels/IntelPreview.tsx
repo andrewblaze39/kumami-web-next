@@ -26,7 +26,7 @@ export default function IntelPreview({ briefs, loading }: Props) {
           <span
             className="w-oc-q"
             tabIndex={0}
-            title="Today’s news, ranked by impact: A moves the market, B is worth knowing, C is context. Filter by topic or the coins you hold."
+            title="Today’s news, ranked by impact: A moves the market, B is worth knowing, C is context. Compiled from market headlines, the economic calendar, and token-unlock schedules, then scored automatically."
           >
             ?
           </span>{' '}

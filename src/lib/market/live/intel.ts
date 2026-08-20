@@ -19,6 +19,11 @@ import { tsToIso } from './helpers';
 
 const ASSET_SYMBOLS = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'AVAX', 'LINK', 'ADA', 'SUI', 'ARB', 'ARB', 'MATIC', 'AVAX'];
 
+/** Never surface the upstream data aggregator as a source in the UI. */
+function cleanSource(s: string): string {
+  return /coin\s*glass/i.test(s) ? 'Market Wire' : (s || 'Market Wire');
+}
+
 function stripHtml(html: string): string {
   return html.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim();
 }
@@ -78,7 +83,7 @@ export async function makeIntelligencePayloadLive(tier: 'free' | 'pro'): Promise
       tier: t.tier,
       headline: a.article_title,
       category: categoryFor(a.article_title, body),
-      source: a.source_name || 'CoinGlass',
+      source: cleanSource(a.source_name),
       summary: body.slice(0, 260),
       hasProInterpretation: false,
       assets: detectAssets(a.article_title + ' ' + body),

@@ -33,13 +33,13 @@ import type { OnChainPayload, Verdict, MetricPanelKey } from '@/lib/market/contr
 /* ------------------------------------------------------------------ */
 
 const TIP_FUNDING =
-  'The fee traders pay to keep leveraged bets open. When it’s high, too many people are on the same side — and the market often snaps back.';
+  'The fee traders pay to keep leveraged bets open. When it’s high, too many people are on the same side — and the market often snaps back. Derived from open-interest-weighted perpetual funding aggregated across major exchanges.';
 const TIP_LIQ =
-  'Leveraged positions force-closed in the last 24 hours. A big flush of longs often clears the way for a bounce; squeezed shorts often mark a top.';
+  'Leveraged positions force-closed in the last 24 hours. A big flush of longs often clears the way for a bounce; squeezed shorts often mark a top. Totalled from forced-liquidation events across major exchanges.';
 const TIP_NETFLOW =
-  'Coins leaving exchanges = people holding (bullish). Coins arriving = people preparing to sell (bearish).';
+  'Coins leaving exchanges = people holding (bullish). Coins arriving = people preparing to sell (bearish). Measured from the change in coin balances held on major exchange wallets.';
 const TIP_LS =
-  'How crowded the bet is. When the crowd leans heavily one way — and the pros lean the other — pay attention.';
+  'How crowded the bet is. When the crowd leans heavily one way — and the pros lean the other — pay attention. Based on the ratio of long vs short trader accounts across major exchanges.';
 
 /* ------------------------------------------------------------------ */
 /* Verdict colour → reference tag / world-icon class keys              */
@@ -410,7 +410,7 @@ export default function OnChainPage() {
           <div className="w-oc-ph">
             <span className="w-oc-ttl">
               <WIcon name="spark" /> Buy vs Sell Pressure{' '}
-              <OcQ tip="Whether a move is driven by real buyers or running on empty. Real buying lasts; hollow rallies reverse." />
+              <OcQ tip="Whether a move is driven by real buyers or running on empty. Real buying lasts; hollow rallies reverse. Built from aggregated taker buy vs sell volume across spot and futures venues." />
               <span className="w-oc-ph-sub">Net aggressive buying vs selling · CVD</span>
             </span>
             <span className="w-oc-ph-r">
@@ -522,7 +522,7 @@ export default function OnChainPage() {
             <div className="w-oc-ph">
               <span className="w-oc-ttl">
                 <WIcon name="flame" /> Open Interest Trend{' '}
-                <OcQ tip="Total leveraged bets in the market. Rising with price = healthy trend. Rising without price = pressure building." />
+                <OcQ tip="Total leveraged bets in the market. Rising with price = healthy trend. Rising without price = pressure building. Total open perpetual and futures positions aggregated across exchanges." />
                 <span className="w-oc-ph-sub">Leverage in the system</span>
               </span>
             </div>
@@ -550,7 +550,7 @@ export default function OnChainPage() {
             <div className="w-oc-ph">
               <span className="w-oc-ttl">
                 <WIcon name="shield" /> Stablecoin Supply{' '}
-                <OcQ tip="Cash sitting on the sidelines. When it grows, there’s more dry powder waiting to buy in." />
+                <OcQ tip="Cash sitting on the sidelines. When it grows, there’s more dry powder waiting to buy in. Tracked as the combined circulating supply of major stablecoins." />
                 <span className="w-oc-ph-sub">Dry powder · total cap</span>
               </span>
             </div>

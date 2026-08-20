@@ -20,7 +20,7 @@ export default function RadarWatchlist({ items, loading }: Props) {
           <span
             className="w-oc-q"
             tabIndex={0}
-            title="Tracks your assets and flags when something changes — whale moves, crowded leverage, danger zones — so you know when to pay attention."
+            title="Tracks your assets and flags when something changes — whale moves, crowded leverage, danger zones — so you know when to pay attention. Auto-ranked from the strongest bullish on-chain flow across tracked assets."
           >
             ?
           </span>

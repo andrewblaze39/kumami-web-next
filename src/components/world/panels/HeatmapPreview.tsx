@@ -32,7 +32,7 @@ export default function HeatmapPreview({ data, loading }: Props) {
           <span
             className="w-oc-q"
             tabIndex={0}
-            title="See what’s happening beneath the price — where money is moving, who’s buying, and how risky the market is right now."
+            title="See what’s happening beneath the price — where money is moving, who’s buying, and how risky the market is right now. Ranked by 24h forced-liquidation totals aggregated across major exchanges."
           >
             ?
           </span>{' '}
