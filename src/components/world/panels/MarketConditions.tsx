@@ -98,9 +98,11 @@ export default function MarketConditions({ data }: Props) {
             <div className="w-mv">{tiles.onChainBias.pctLong.toFixed(0)}% Long</div>
             <div
               className={`w-mc-chg ${tiles.onChainBias.pctLong >= 50 ? 'w-bull' : 'w-bear'}`}
-              title="Long/short ratio"
+              title="Long/short account ratio"
             >
-              Longs outweigh shorts {tiles.onChainBias.ratio.toFixed(1)} : 1
+              {tiles.onChainBias.pctLong >= 50
+                ? `Longs outweigh shorts ${tiles.onChainBias.ratio.toFixed(2)} : 1`
+                : `Shorts outweigh longs ${(1 / (tiles.onChainBias.ratio || 1)).toFixed(2)} : 1`}
             </div>
           </div>
 

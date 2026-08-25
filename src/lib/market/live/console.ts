@@ -26,8 +26,26 @@ function toRegime(label: string): 'Bullish' | 'Neutral' | 'Bearish' {
   return 'Neutral';
 }
 
-function fgVerdictColor(c: 'green' | 'lime' | 'grey' | 'amber' | 'red'): Verdict['color'] {
-  return c === 'lime' ? 'grey-green' : c;
+/**
+ * Confidence floor for the per-asset chip regime. Below 0.60 a directional read
+ * is little better than a coin-flip, so it degrades to Neutral.
+ */
+function floorRegime(regime: 'Bullish' | 'Neutral' | 'Bearish', conf: number): 'Bullish' | 'Neutral' | 'Bearish' {
+  return conf < 0.6 ? 'Neutral' : regime;
+}
+
+/**
+ * Global-regime display verdict with a confidence floor:
+ *   < 0.60      → "Neutral · Low Signal"
+ *   0.60–0.75   → "Leaning Bullish/Bearish"
+ *   ≥ 0.75      → the full engine verdict (Strongly / Cautiously …)
+ */
+function floorGlobalVerdict(v: Verdict, conf: number): Verdict {
+  const dir = v.label.includes('Bullish') ? 'Bullish' : v.label.includes('Bearish') ? 'Bearish' : 'Neutral';
+  if (dir === 'Neutral') return { label: 'Neutral', color: 'grey' };
+  if (conf < 0.6) return { label: 'Neutral · Low Signal', color: 'grey' };
+  if (conf < 0.75) return { label: `Leaning ${dir}`, color: dir === 'Bullish' ? 'grey-green' : 'grey-red' };
+  return v;
 }
 
 /** Full regime for a perp asset (BTC/ETH/SOL). */
@@ -56,12 +74,16 @@ async function assetRegime(asset: string, etfScore: -1 | 0 | 1, fg: number) {
     fundingRate: fundingPct,
     oiVsPriceScore,
   });
+  const conf = r.confidence;
   return {
     asset,
     price: Number(price.toFixed(price >= 100 ? 2 : 4)),
     change24h: Number(change24h.toFixed(2)),
-    regime: toRegime(r.verdict.label),
-    confidence: Number(r.confidence.toFixed(2)),
+    regime: floorRegime(toRegime(r.verdict.label), conf),
+    confidence: Number(conf.toFixed(2)),
+    // Raw engine outputs — used to derive the Global Regime tile, not shown per-chip.
+    verdict: r.verdict,
+    rawConf: conf,
   };
 }
 
@@ -113,18 +135,29 @@ export async function makeConsolePayloadLive(): Promise<ConsolePayload> {
   ]);
   const goldPrimary = primaryPair(goldPairs);
   const goldChange = goldPrimary?.price_change_percent_24h ?? 0;
+  const goldConf = 0.5;
+  const goldRaw: 'Bullish' | 'Neutral' | 'Bearish' = goldChange > 1 ? 'Bullish' : goldChange < -1 ? 'Bearish' : 'Neutral';
   const gold = {
     asset: 'GOLD' as const,
     price: Number((goldPrimary?.current_price ?? 0).toFixed(2)),
     change24h: Number(goldChange.toFixed(2)),
-    regime: (goldChange > 1 ? 'Bullish' : goldChange < -1 ? 'Bearish' : 'Neutral') as 'Bullish' | 'Neutral' | 'Bearish',
-    confidence: 0.5,
+    regime: floorRegime(goldRaw, goldConf),
+    confidence: goldConf,
   };
   const spx = { asset: 'SPX' as const, price: 0, change24h: 0, regime: 'Neutral' as const, confidence: 0 };
 
+  // Keep only the 5 contract fields per chip (drop the raw verdict/rawConf helpers).
+  type Chip = ConsolePayload['regimeChips'][number];
+  const chip = (x: typeof btc, asset: Chip['asset']): Chip => ({
+    asset, price: x.price, change24h: x.change24h, regime: x.regime, confidence: x.confidence,
+  });
   const regimeChips: ConsolePayload['regimeChips'] = [
-    { ...btc, asset: 'BTC' }, { ...eth, asset: 'ETH' }, { ...sol, asset: 'SOL' }, gold, spx,
+    chip(btc, 'BTC'), chip(eth, 'ETH'), chip(sol, 'SOL'), gold, spx,
   ];
+
+  // Global Regime = the regime engine's verdict (BTC as the market proxy), with a
+  // confidence floor — NOT the Fear & Greed label (that stays on the sentiment bar).
+  const globalVerdict = floorGlobalVerdict(btc.verdict, btc.rawConf);
 
   // Heatmap preview from liquidation coin-list.
   const previewAssets = ['BTC', 'ETH', 'SOL', 'BNB', 'AVAX'];
@@ -165,7 +198,7 @@ export async function makeConsolePayloadLive(): Promise<ConsolePayload> {
 
   return {
     marketConditions: {
-      verdict: { label: fgClass.label, color: fgVerdictColor(fgClass.color) },
+      verdict: globalVerdict,
       fearGreedLabel: fgClass.label,
       fearGreedColor: fgClass.color,
       tags: tags.slice(0, 2),

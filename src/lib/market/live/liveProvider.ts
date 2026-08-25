@@ -22,7 +22,6 @@ import type {
 } from '../contracts';
 import type { MarketDataProvider } from '../provider';
 import { mockProvider } from '../mock/mockProvider';
-import { coinglassConfigured } from '../coinglass/client';
 import { makeConsolePayloadLive } from './console';
 import { makeOnChainPayloadLive } from './onchain';
 import { makeWatchlistPayloadLive } from './watchlist';
@@ -46,12 +45,10 @@ async function live<T>(label: string, fn: () => Promise<T>): Promise<T> {
 }
 
 function makeLiveProvider(): MarketDataProvider {
+  // mockProvider is used ONLY for the tier-locked heatmap payload (rendered as a
+  // "coming soon" panel, never as real data). getProvider() guarantees a key
+  // before this runs, so no live method ever falls back to mock.
   const mock = mockProvider();
-
-  // Until a CoinGlass key is present, behave exactly like mock (dev without a key).
-  if (!coinglassConfigured()) {
-    return mock;
-  }
 
   return {
     async console(): Promise<ConsolePayload> {

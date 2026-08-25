@@ -52,8 +52,10 @@ export default function HeatmapPreview({ data, loading }: Props) {
           <div className="w-treemap w-compact" aria-label="Liquidation heatmap assets">
             {data.slice(0, 8).map((row, i) => {
               const layout = CELL_LAYOUT[i] ?? { size: 'w-sm', w: 2, h: 1 };
-              // Long/short skew drives the heat colour: >50% long = green, <50% = red
-              const skew = (row.longShare - 50) / 5;
+              // Colour by which side got liquidated (directional, matches intuition):
+              //   >50% long liquidations  = longs flushed  → red   (bearish event)
+              //   <50% long liquidations  = shorts squeezed → green (bullish event)
+              const skew = (50 - row.longShare) / 5;
               const txt = Math.abs(skew) > 1.6 ? '#fff' : 'rgba(255,255,255,.92)';
               return (
                 <div
