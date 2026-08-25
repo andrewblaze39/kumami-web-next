@@ -1,14 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import {
-  Search,
-  Loader,
-  MessageCircle,
-  Send,
-  Globe,
-  Share2,
-} from 'lucide-react'
+import { Search, Loader, Globe } from 'lucide-react'
+import { XIcon, DiscordIcon, TelegramIcon } from '@/components/icons/BrandIcons'
 import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
@@ -252,9 +246,9 @@ export default function PartnerPortal() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className={btnClass}
-                        aria-label="Twitter / X"
+                        aria-label="X"
                       >
-                        <Share2 size={14} className={iconClass} />
+                        <XIcon size={13} className={iconClass} />
                       </a>
                     )}
                     {article.discordLink && (
@@ -265,7 +259,7 @@ export default function PartnerPortal() {
                         className={btnClass}
                         aria-label="Discord"
                       >
-                        <MessageCircle size={14} className={iconClass} />
+                        <DiscordIcon size={14} className={iconClass} />
                       </a>
                     )}
                     {article.telegramLink && (
@@ -276,7 +270,7 @@ export default function PartnerPortal() {
                         className={btnClass}
                         aria-label="Telegram"
                       >
-                        <Send size={14} className={iconClass} />
+                        <TelegramIcon size={14} className={iconClass} />
                       </a>
                     )}
                     {article.websiteLink && (
