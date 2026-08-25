@@ -16,7 +16,6 @@ import type {
   OnChainPayload,
   WatchlistPayload,
 } from './contracts';
-import { mockProvider } from './mock/mockProvider';
 import { liveProvider } from './live/liveProvider';
 import { coinglassConfigured } from './coinglass/client';
 
@@ -30,20 +29,15 @@ export interface MarketDataProvider {
 }
 
 /**
- * Resolve the market data provider.
- *
- * Policy (never silently serve mock in the running app):
- *   - DATA_PROVIDER=mock          → mock provider (explicit local-dev / test opt-in only).
- *   - a CoinGlass key is present  → LIVE provider (regardless of DATA_PROVIDER).
- *   - otherwise                   → throw. Misconfiguration surfaces as a loud error
- *                                    (the route 5xx's and the UI shows an error state),
- *                                    never as believable placeholder data.
+ * Resolve the market data provider. Always LIVE — there is no mock/placeholder
+ * path. If no CoinGlass key is configured, this throws: the route 5xx's and the
+ * UI shows a "no data" / error state. The app never serves fabricated data.
  */
 export function getProvider(): MarketDataProvider {
-  if (process.env.DATA_PROVIDER === 'mock') return mockProvider();
-  if (coinglassConfigured()) return liveProvider();
-  throw new Error(
-    '[market] No live data source configured. Set COINGLASS_API_KEY for live data, ' +
-      'or DATA_PROVIDER=mock for local development. Refusing to serve placeholder data.',
-  );
+  if (!coinglassConfigured()) {
+    throw new Error(
+      '[market] No live data source configured — set COINGLASS_API_KEY. Refusing to serve placeholder data.',
+    );
+  }
+  return liveProvider();
 }

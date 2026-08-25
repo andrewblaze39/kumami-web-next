@@ -9,9 +9,9 @@
  *   intelligence → LIVE  (news + macro calendar + token unlocks)
  *   heatmap      → COMING SOON (aggregated-heatmap/model1 requires a higher CoinGlass plan)
  *
- * Safety: if no CoinGlass key is configured we return the mock provider whole;
- * and each live method falls back to mock on error so a single failing endpoint
- * never takes a page down.
+ * No mock/placeholder path exists: every method returns live data or throws
+ * (the route 5xx's and the UI shows a "no data" / error state). The heatmap
+ * returns an empty payload because its UI is a static "coming soon" panel.
  *
  * TODO(ai): pro "interpretation" text on panels/briefs — needs an Anthropic key.
  */
@@ -21,7 +21,6 @@ import type {
   OnChainPayload, WatchlistPayload,
 } from '../contracts';
 import type { MarketDataProvider } from '../provider';
-import { mockProvider } from '../mock/mockProvider';
 import { makeConsolePayloadLive } from './console';
 import { makeOnChainPayloadLive } from './onchain';
 import { makeWatchlistPayloadLive } from './watchlist';
@@ -45,11 +44,6 @@ async function live<T>(label: string, fn: () => Promise<T>): Promise<T> {
 }
 
 function makeLiveProvider(): MarketDataProvider {
-  // mockProvider is used ONLY for the tier-locked heatmap payload (rendered as a
-  // "coming soon" panel, never as real data). getProvider() guarantees a key
-  // before this runs, so no live method ever falls back to mock.
-  const mock = mockProvider();
-
   return {
     async console(): Promise<ConsolePayload> {
       return live('console', makeConsolePayloadLive);
@@ -59,10 +53,10 @@ function makeLiveProvider(): MarketDataProvider {
       return live('onchain', () => makeOnChainPayloadLive(asset, range));
     },
 
-    async heatmap(tier: 'free' | 'pro'): Promise<HeatmapPayload> {
-      // Tier-locked on CoinGlass — the UI shows an honest "coming soon" panel,
-      // so this payload is never rendered as real data.
-      return mock.heatmap(tier);
+    async heatmap(): Promise<HeatmapPayload> {
+      // Tier-locked on CoinGlass — the UI renders a static "coming soon" panel,
+      // so this returns an empty payload (never fabricated data).
+      return { assets: [], capped: false };
     },
 
     async flowRadar(tier: 'free' | 'pro'): Promise<FlowEvent[]> {
