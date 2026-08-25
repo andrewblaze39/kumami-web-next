@@ -168,7 +168,6 @@ export default function OnChainPage() {
   const market = useMarketEndpoint<OnChainPayload>(
     `/api/market/onchain?asset=${a}&range=${RANGE_API[range]}`,
   );
-  const loading = market.status === 'loading' && !market.data;
   const P = market.data?.panels;
 
   /* Real series only — an empty series renders an honest "No data yet" box, never a synthetic shape. */
@@ -180,42 +179,58 @@ export default function OnChainPage() {
   const etfPrice = svals(P?.etf, 'series2');
   const stbS = svals(P?.stablecoin, 'series');
 
-  /* Panel-derived display values */
-  const fundingRate = P ? signPct(exNum(P.funding, 'currentRatePct'), 4) : '—';
+  /* Panel-derived display values — always fall back to '—' (never a misleading 0). */
+  const D = '—';
+  const hasData = !!P;
+
+  const fundingRate = hasData ? signPct(exNum(P.funding, 'currentRatePct'), 4) : D;
 
   const liqTotal = exNum(P?.liquidations, 'totalUsd');
   const liqLongPct = exNum(P?.liquidations, 'longPct') / 100;
-  const liqLongs = formatUsd(liqTotal * liqLongPct);
-  const liqShorts = formatUsd(liqTotal * (1 - liqLongPct));
+  const liqTotalDisp = hasData ? formatUsd(liqTotal) : D;
+  const liqLongsDisp = hasData ? formatUsd(liqTotal * liqLongPct) : D;
+  const liqShortsDisp = hasData ? formatUsd(liqTotal * (1 - liqLongPct)) : D;
 
   const netUsd = exNum(P?.netflow, 'netUsd');
   const netDir: 'in' | 'out' = netUsd >= 0 ? 'out' : 'in';
+  const netDisp = hasData ? formatUsd(Math.abs(netUsd)) : D;
 
   const glsPct = exNum(P?.longshort, 'globalPctLong');
   const topPct = exNum(P?.longshort, 'topTraderPctLong');
+  const glsDisp = hasData ? `${glsPct.toFixed(0)}% Long` : D;
+  const topDisp = hasData ? `${topPct.toFixed(0)}%` : D;
   const lsDiv = P?.longshort?.tags?.[0]
     ? { t: P.longshort.tags[0].label, k: TAG_K[P.longshort.tags[0].color] }
     : null;
 
   const premPct = exNum(P?.premium, 'premiumPct');
   const premNeg = premPct < 0;
-  const premAvg7 = premS.length ? signPct(premS.reduce((s, v) => s + v, 0) / premS.length, 3) : '—';
-  const premTrend =
-    P?.premium?.tags?.some((t) => /Fading/.test(t.label)) ? 'Falling'
+  const premDisp = premS.length ? signPct(premPct, 3) : D;
+  const premAvg7 = premS.length ? signPct(premS.reduce((s, v) => s + v, 0) / premS.length, 3) : D;
+  const premTrend = !premS.length ? D
+    : P?.premium?.tags?.some((t) => /Fading/.test(t.label)) ? 'Falling'
     : P?.premium?.tags?.some((t) => /Returning|Demand/.test(t.label)) ? 'Rising'
     : 'Flat';
 
   const oiLast = oiS.length ? oiS[oiS.length - 1] : 0;
   const oiFirst = oiS.length ? oiS[0] : 0;
   const oiChgPct = oiFirst ? ((oiLast - oiFirst) / oiFirst) * 100 : 0;
+  const oiDisp = oiS.length ? formatUsd(oiLast) : D;
+  const oiChgDisp = oiS.length ? signPct(oiChgPct, 1) : D;
 
   const etfNet7 = exNum(P?.etf, 'net7dUsd');
   const etfToday = etfBars.length ? etfBars[etfBars.length - 1] : 0;
+  const etfNet7Disp = etfBars.length ? formatUsd(etfNet7) : D;
+  const etfTodayDisp = etfBars.length ? formatUsd(etfToday) : D;
 
   const stbLast = stbS.length ? stbS[stbS.length - 1] : 0;
   const stbChg30 = exNum(P?.stablecoin, 'change30dPct');
+  const stbDisp = stbS.length ? formatUsd(stbLast) : D;
+  const stbChgDisp = stbS.length ? signPct(stbChg30, 1) : D;
 
   const cvdLast = cvdS.length ? cvdS[cvdS.length - 1] : 0;
+  const cvdDisp = cvdS.length ? formatUsd(cvdLast) : D;
+  const cvdTrendDisp = cvdS.length ? (cvdLast >= 0 ? 'Rising' : 'Falling') : D;
   const cvdDivType = divFromColor(P?.cvd?.verdict.color ?? 'grey');
   const oiDivType = divFromColor(P?.oi?.verdict.color ?? 'grey');
 
@@ -282,17 +297,17 @@ export default function OnChainPage() {
             </span>
             <OcQ tip={TIP_LIQ} />
           </div>
-          <div className="w-oc-tv">{loading ? '—' : formatUsd(liqTotal)}</div>
+          <div className="w-oc-tv">{liqTotalDisp}</div>
           <div className="w-oc-tags">
             <OcTag tag={verdictTag(P?.liquidations)} />
           </div>
           <div className="w-oc-support">
             <span className="w-oc-split">
               <WIcon name="chevD" />
-              <span className="down">Longs {loading ? '—' : liqLongs}</span>
+              <span className="down">Longs {liqLongsDisp}</span>
             </span>
             <span className="w-oc-split" style={{ transform: 'none' }}>
-              <span className="up">Shorts {loading ? '—' : liqShorts}</span>
+              <span className="up">Shorts {liqShortsDisp}</span>
             </span>
           </div>
         </div>
@@ -306,14 +321,18 @@ export default function OnChainPage() {
           </div>
           <div
             className="w-oc-tv"
-            style={{ color: netDir === 'out' ? 'var(--bull)' : 'var(--bear)' }}
+            style={{ color: !hasData ? 'inherit' : netDir === 'out' ? 'var(--bull)' : 'var(--bear)' }}
           >
-            {loading ? '—' : formatUsd(Math.abs(netUsd))} <span className="sub-unit">{netDir}</span>
+            {hasData ? (
+              <>{netDisp} <span className="sub-unit">{netDir}</span></>
+            ) : (
+              netDisp
+            )}
           </div>
           <div className="w-oc-tags">
             <OcTag tag={verdictTag(P?.netflow)} />
           </div>
-          <div className="w-oc-support">{netDir === 'out' ? 'Coins leaving exchanges' : 'Coins arriving to exchanges'} · {range}</div>
+          <div className="w-oc-support">{hasData ? (netDir === 'out' ? 'Coins leaving exchanges' : 'Coins arriving to exchanges') : 'Exchange balance flow'} · {range}</div>
         </div>
 
         <div className="w-oc-tile">
@@ -323,12 +342,12 @@ export default function OnChainPage() {
             </span>
             <OcQ tip={TIP_LS} />
           </div>
-          <div className="w-oc-tv">{loading ? '—' : `${glsPct.toFixed(0)}% Long`}</div>
+          <div className="w-oc-tv">{glsDisp}</div>
           <div className="w-oc-tags">
             <OcTag tag={verdictTag(P?.longshort)} />
             <OcTag tag={lsDiv} />
           </div>
-          <div className={`w-oc-support${lsDiv ? ' warn' : ''}`}>Top traders {loading ? '—' : `${topPct.toFixed(0)}%`} long</div>
+          <div className={`w-oc-support${lsDiv ? ' warn' : ''}`}>Top traders {topDisp} long</div>
         </div>
       </div>
 
@@ -410,10 +429,10 @@ export default function OnChainPage() {
             </ChartArea>
             <div className="w-oc-fstats">
               <span className="w-oc-fstat">
-                {cvdSrc} CVD <b className={cvdLast >= 0 ? 'up' : 'down'}>{formatUsd(cvdLast)}</b>
+                {cvdSrc} CVD <b className={!cvdS.length ? '' : cvdLast >= 0 ? 'up' : 'down'}>{cvdDisp}</b>
               </span>
               <span className="w-oc-fstat">
-                Trend <b className={cvdLast >= 0 ? 'up' : 'down'}>{cvdLast >= 0 ? 'Rising' : 'Falling'}</b>
+                Trend <b className={!cvdS.length ? '' : cvdLast >= 0 ? 'up' : 'down'}>{cvdTrendDisp}</b>
               </span>
             </div>
           </div>
@@ -429,8 +448,8 @@ export default function OnChainPage() {
             </span>
             <span className="w-oc-ph-r">
               <span className="w-oc-headline" style={{ margin: 0 }}>
-                <b style={{ fontSize: 20, color: premNeg ? 'var(--bear)' : 'var(--accent)' }}>
-                  {loading ? '—' : signPct(premPct, 3)}
+                <b style={{ fontSize: 20, color: !premS.length ? 'var(--muted)' : premNeg ? 'var(--bear)' : 'var(--accent)' }}>
+                  {premDisp}
                 </b>
               </span>
             </span>
@@ -467,7 +486,7 @@ export default function OnChainPage() {
           </div>
           <div className="w-oc-pb">
             <div className="w-oc-headline">
-              <b>{loading ? '—' : formatUsd(etfNet7)}</b>
+              <b>{etfNet7Disp}</b>
               <span className="hl-sub">7D net flow</span>
             </div>
             <ChartArea has={etfBars.length > 0}>
@@ -476,7 +495,7 @@ export default function OnChainPage() {
             <div className="w-oc-note">30D view · best for ETF analysis</div>
             <div className="w-oc-fstats">
               <span className="w-oc-fstat">
-                Today <b className={etfToday >= 0 ? 'up' : 'down'}>{formatUsd(etfToday)}</b>
+                Today <b className={!etfBars.length ? '' : etfToday >= 0 ? 'up' : 'down'}>{etfTodayDisp}</b>
               </span>
             </div>
           </div>
@@ -504,11 +523,11 @@ export default function OnChainPage() {
             </div>
             <div className="w-oc-pb">
               <div className="w-oc-headline">
-                <b>{loading ? '—' : formatUsd(oiLast)}</b>
+                <b>{oiDisp}</b>
                 <span className="hl-sub">
                   total OI ·{' '}
-                  <span className={oiChgPct < 0 ? 'down' : 'up'}>
-                    {signPct(oiChgPct, 1)} {range}
+                  <span className={!oiS.length ? '' : oiChgPct < 0 ? 'down' : 'up'}>
+                    {oiChgDisp}{oiS.length ? ` ${range}` : ''}
                   </span>
                 </span>
               </div>
@@ -532,9 +551,9 @@ export default function OnChainPage() {
             </div>
             <div className="w-oc-pb">
               <div className="w-oc-headline">
-                <b>{loading ? '—' : formatUsd(stbLast)}</b>
+                <b>{stbDisp}</b>
                 <span className="hl-sub">
-                  total cap · <span className={stbChg30 < 0 ? 'down' : 'up'}>30D {signPct(stbChg30, 1)}</span>
+                  total cap · <span className={!stbS.length ? '' : stbChg30 < 0 ? 'down' : 'up'}>30D {stbChgDisp}</span>
                 </span>
               </div>
               <ChartArea has={stbS.length > 0}>
