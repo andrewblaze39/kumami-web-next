@@ -7,7 +7,7 @@
  * failing the whole page.
  */
 
-import type { OnChainPayload, PanelVerdict, Series, Verdict, MetricPanelKey } from '../contracts';
+import type { OnChainPayload, PanelVerdict, Series, Verdict, MetricPanelKey, WhalePosition } from '../contracts';
 import { computeFunding } from '../rules/funding';
 import { computeLiquidations } from '../rules/liquidations';
 import { computeNetflow } from '../rules/netflow';
@@ -20,9 +20,10 @@ import { computeStablecoin } from '../rules/stablecoin';
 import {
   fundingOiWeight, oiAggHistory, liqCoinList, liqAggHistory, globalLongShort,
   topLongShort, cvdHistory, coinbasePremium, etfFlow, exchangeBalance,
-  exchangeBalanceChart, stablecoinMcap, pairsMarkets, priceHistory,
+  exchangeBalanceChart, stablecoinMcap, pairsMarkets, priceHistory, hyperliquidWhales,
   type OHLC, type LiqCoinRow, type LiqAggRow, type GlsRow, type TlsRow,
   type CvdRow, type PremiumRow, type EtfFlowRow, type ExchBalanceRow, type PairMarketRow,
+  type HyperliquidRow,
 } from './cg-endpoints';
 import {
   rangeToInterval, ohlcToSeries, toSeries, classifyDir, primaryPair,
@@ -66,7 +67,7 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
   const empty = <T>(): T[] => [];
   const [
     fundingRows, oiRows, liqCoin, liqAgg, gls, tls, cvdFut, cvdSpot,
-    premiumRows, etfRows, exchBal, exchBalChart, stable, pairs, priceRows,
+    premiumRows, etfRows, exchBal, exchBalChart, stable, pairs, priceRows, hlWhales,
   ] = await Promise.all([
     fundingOiWeight(A, interval).catch(empty<OHLC>),
     oiAggHistory(A, interval).catch(empty<OHLC>),
@@ -83,6 +84,7 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
     stablecoinMcap().catch(() => null),
     pairsMarkets(A).catch(empty<PairMarketRow>),
     perp ? priceHistory(pair, interval).catch(empty<OHLC>) : Promise.resolve(empty<OHLC>()),
+    hyperliquidWhales().catch(empty<HyperliquidRow>),
   ]);
 
   const primary = primaryPair(pairs);
@@ -272,5 +274,20 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
   const KEYS: MetricPanelKey[] = ['funding', 'liquidations', 'netflow', 'longshort', 'heatmap', 'cvd', 'premium', 'etf', 'oi', 'stablecoin'];
   for (const k of KEYS) if (!panels[k]) panels[k] = neutral(`${k} unavailable`, { asset: A, range });
 
-  return { asset: A, range, panels };
+  // Whale Position Tracker — top open Hyperliquid positions for this asset,
+  // replacing the tier-locked liquidation heatmap slot.
+  const whalePositions: WhalePosition[] = (hlWhales as HyperliquidRow[])
+    .filter((p) => p.symbol === A && Number.isFinite(p.position_value_usd) && p.position_value_usd > 0)
+    .sort((a, b) => b.position_value_usd - a.position_value_usd)
+    .slice(0, 8)
+    .map((p) => ({
+      user: p.user.length > 12 ? `${p.user.slice(0, 6)}…${p.user.slice(-4)}` : p.user,
+      side: p.position_size > 0 ? 'Long' : 'Short',
+      sizeUsd: Math.round(p.position_value_usd),
+      entryPrice: p.entry_price,
+      liqPrice: p.liq_price,
+      distanceToLiqPct: price > 0 && p.liq_price > 0 ? Number((((p.liq_price - price) / price) * 100).toFixed(1)) : 0,
+    }));
+
+  return { asset: A, range, panels, whalePositions };
 }

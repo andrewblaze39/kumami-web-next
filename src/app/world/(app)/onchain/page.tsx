@@ -5,11 +5,10 @@
  *
  * Live: consumes /api/market/onchain?asset=&range= (OnChainPayload) and maps the
  * 9 live panels (funding, liquidations, netflow, long/short, CVD, premium, ETF,
- * OI, stablecoin) into the reference chart UI. The Liquidation Heatmap is
- * tier-locked on CoinGlass → shown blurred with a "coming soon" veil.
+ * OI, stablecoin) into the reference chart UI. The tier-locked Liquidation
+ * Heatmap slot is replaced by the live Whale Position Tracker (Hyperliquid).
  *
- * Visual shell (classes, layout, tooltips) is unchanged from the reference port;
- * only the data source is now live.
+ * Numeric values fall back to '—' (never a misleading $0) when a metric has no data.
  */
 
 import { useState, type ReactNode } from 'react';
@@ -151,6 +150,8 @@ const exNum = (panel: P | undefined, key: string): number => {
 };
 
 const signPct = (n: number, dp = 2) => `${n >= 0 ? '+' : ''}${n.toFixed(dp)}%`;
+const fmtPrice = (v: number) =>
+  '$' + v.toLocaleString('en-US', { maximumFractionDigits: v >= 1000 ? 0 : v < 10 ? 4 : 2 });
 
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
@@ -159,7 +160,6 @@ const signPct = (n: number, dp = 2) => `${n >= 0 ? '+' : ''}${n.toFixed(dp)}%`;
 export default function OnChainPage() {
   const [asset, setAsset] = useState<OcAsset>('BTC');
   const [range, setRange] = useState<OcRange>('24H');
-  const [heatTf, setHeatTf] = useState<OcRange>('24H');
   const [cvdSrc, setCvdSrc] = useState<'Futures' | 'Spot'>('Futures');
   const [more, setMore] = useState(false);
 
@@ -169,6 +169,7 @@ export default function OnChainPage() {
     `/api/market/onchain?asset=${a}&range=${RANGE_API[range]}`,
   );
   const P = market.data?.panels;
+  const whales = market.data?.whalePositions ?? [];
 
   /* Real series only — an empty series renders an honest "No data yet" box, never a synthetic shape. */
   const priceS = svals(P?.oi, 'series2');
@@ -351,46 +352,82 @@ export default function OnChainPage() {
         </div>
       </div>
 
-      {/* ---- Liquidation heatmap (tier-locked → coming soon) ---- */}
+      {/* ---- Whale Position Tracker (replaces the tier-locked heatmap slot) ---- */}
       <div style={{ marginBottom: 16 }}>
         <div className="w-oc-panel">
           <div className="w-oc-ph">
             <span className="w-oc-ttl">
-              <WIcon name="layers" /> Liquidation Heatmap{' '}
-              <OcQ tip="Price levels where forced sell-offs would trigger. Price often gets pulled toward these zones like a magnet." />
-              <span className="w-oc-ph-sub">Clustered liquidation levels · ±20% of price</span>
+              <WIcon name="users" /> Whale Positions{' '}
+              <OcQ tip="The biggest open leveraged positions right now — their side, size, entry, and the price that would liquidate them. Price is often pulled toward large liquidation levels, and a position close to its liq price is fuel for a squeeze." />
+              <span className="w-oc-ph-sub">Largest open leveraged positions · live</span>
             </span>
             <span className="w-oc-ph-r">
               <span className="w-oc-chip">
                 <Coin sym={a} />
                 {a}
               </span>
-              <span className="w-mini-toggle">
-                {RANGES.map((t) => (
-                  <button key={t} className={heatTf === t ? 'on' : ''} onClick={() => setHeatTf(t)}>
-                    {t}
-                  </button>
-                ))}
-              </span>
             </span>
           </div>
           <div className="w-oc-pb">
-            {/* Honest coming-soon state — no placeholder data rendered */}
-            <div
-              style={{
-                minHeight: 180, borderRadius: 12, border: '1px dashed var(--adv-border-2)',
-                background: 'var(--adv-surface-2)', display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center', gap: 8, textAlign: 'center', padding: 24,
-              }}
-            >
-              <span className="w-oc-wi neutral" style={{ fontSize: 13 }}>
-                <WIcon name="clock" /> Liquidation Heatmap — coming soon
-              </span>
-              <span className="w-muted" style={{ fontSize: 12, maxWidth: 440 }}>
-                Cluster-level liquidation mapping isn&apos;t available on the current data plan yet.
-                It will switch on automatically once enabled.
-              </span>
-            </div>
+            {whales.length === 0 ? (
+              <div
+                style={{
+                  minHeight: 140, borderRadius: 12, border: '1px dashed var(--adv-border-2)',
+                  background: 'var(--adv-surface-2)', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', textAlign: 'center', padding: 24,
+                }}
+              >
+                <span className="w-muted" style={{ fontSize: 12.5 }}>
+                  {hasData ? `No large whale positions for ${a} right now.` : 'No data yet'}
+                </span>
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ color: 'var(--muted)', fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                      <th style={{ textAlign: 'left', padding: '6px 10px', fontWeight: 700 }}>Wallet</th>
+                      <th style={{ textAlign: 'left', padding: '6px 10px', fontWeight: 700 }}>Side</th>
+                      <th style={{ textAlign: 'right', padding: '6px 10px', fontWeight: 700 }}>Size</th>
+                      <th style={{ textAlign: 'right', padding: '6px 10px', fontWeight: 700 }}>Entry</th>
+                      <th style={{ textAlign: 'right', padding: '6px 10px', fontWeight: 700 }}>Liq. Price</th>
+                      <th style={{ textAlign: 'right', padding: '6px 10px', fontWeight: 700 }}>To Liq</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {whales.map((w, i) => {
+                      const near = Math.abs(w.distanceToLiqPct) <= 5;
+                      return (
+                        <tr key={`${w.user}-${i}`} style={{ borderTop: '1px solid var(--grid-line)' }}>
+                          <td style={{ padding: '9px 10px', fontFamily: 'ui-monospace, monospace', color: 'var(--ink)' }}>{w.user}</td>
+                          <td style={{ padding: '9px 10px' }}>
+                            <span className={w.side === 'Long' ? 'up' : 'down'} style={{ fontWeight: 700 }}>{w.side}</span>
+                          </td>
+                          <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 800, color: 'var(--ink)' }}>{formatUsd(w.sizeUsd)}</td>
+                          <td style={{ padding: '9px 10px', textAlign: 'right', color: 'var(--muted)' }}>{fmtPrice(w.entryPrice)}</td>
+                          <td style={{ padding: '9px 10px', textAlign: 'right', color: 'var(--muted)' }}>{fmtPrice(w.liqPrice)}</td>
+                          <td style={{ padding: '9px 10px', textAlign: 'right' }}>
+                            <span
+                              className={near ? 'down' : ''}
+                              title={near ? 'Close to liquidation — squeeze fuel' : undefined}
+                              style={{ fontWeight: near ? 800 : 500 }}
+                            >
+                              {Math.abs(w.distanceToLiqPct).toFixed(1)}% {w.distanceToLiqPct < 0 ? '↓' : '↑'}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                <div className="w-oc-hm-scale" style={{ marginTop: 10 }}>
+                  <span className="w-muted" style={{ fontSize: 11 }}>Open positions · updates live</span>
+                  <span className="w-delay-note" style={{ marginLeft: 'auto' }}>
+                    <WIcon name="clock" /> 15-min delayed
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -101,6 +101,7 @@ export type HyperliquidRow = {
   symbol: string;
   position_size: number; // negative = short
   entry_price: number;
+  liq_price: number;
   position_value_usd: number;
   position_action: number;
   create_time: number; // ms

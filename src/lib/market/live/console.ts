@@ -75,6 +75,20 @@ async function assetRegime(asset: string, etfScore: -1 | 0 | 1, fg: number) {
     oiVsPriceScore,
   });
   const conf = r.confidence;
+
+  // #7 diagnostic — set MARKET_DEBUG=1 to log each asset's signal breakdown.
+  if (process.env.MARKET_DEBUG === '1') {
+    const c = r.components;
+    console.log(
+      `[regime] ${asset.padEnd(4)} | F&G ${fg}(${c.fearGreed >= 0 ? '+' : ''}${c.fearGreed})` +
+        ` | Funding ${fundingPct.toFixed(3)}%(${c.funding >= 0 ? '+' : ''}${c.funding})` +
+        ` | L/S ${pctLong.toFixed(0)}%(${c.longShort >= 0 ? '+' : ''}${c.longShort})` +
+        ` | ETF(${c.etfFlow >= 0 ? '+' : ''}${c.etfFlow})` +
+        ` | OIxPrice ${oiDir}/${priceDir}(${c.oiVsPrice >= 0 ? '+' : ''}${c.oiVsPrice})` +
+        ` | Sum ${r.score} | ${r.verdict.label} | Conf ${conf.toFixed(2)}`,
+    );
+  }
+
   return {
     asset,
     price: Number(price.toFixed(price >= 100 ? 2 : 4)),

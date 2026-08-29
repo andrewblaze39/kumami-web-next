@@ -110,6 +110,18 @@ export type MetricPanelKey =
   | 'oi'
   | 'stablecoin';
 
+/** A single large open leveraged position (Hyperliquid) for the Whale Position Tracker. */
+export type WhalePosition = {
+  /** Shortened wallet address, e.g. "0xcb84…52cd". */
+  user: string;
+  side: 'Long' | 'Short';
+  sizeUsd: number;
+  entryPrice: number;
+  liqPrice: number;
+  /** Signed % move from current price to the liquidation price (negative = liq below). */
+  distanceToLiqPct: number;
+};
+
 /** Full payload for the /world On-Chain page for a given asset + range. */
 export type OnChainPayload = {
   asset: string;
@@ -123,6 +135,11 @@ export type OnChainPayload = {
       extra?: Record<string, number | string>;
     }
   >;
+  /**
+   * Top open whale positions for this asset (Hyperliquid) — powers the Whale
+   * Position Tracker that replaces the tier-locked liquidation heatmap slot.
+   */
+  whalePositions?: WhalePosition[];
 };
 
 /** Liquidation heatmap payload. */
