@@ -11,7 +11,7 @@
  * Numeric values fall back to '—' (never a misleading $0) when a metric has no data.
  */
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { WIcon, coinC, type ConsoleIconName } from '@/components/world/panels/console-ui';
 import {
   OcDual,
@@ -23,6 +23,7 @@ import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
 import { formatUsd } from '@/components/world/panels/format';
 import SpotPulse from '@/components/world/panels/SpotPulse';
 import type { OnChainPayload, Verdict, MetricPanelKey } from '@/lib/market/contracts';
+import ProductTour, { type TourStep } from '@/components/world/ProductTour';
 
 /* ------------------------------------------------------------------ */
 /* Tooltips (unchanged copy)                                           */
@@ -153,6 +154,46 @@ const exNum = (panel: P | undefined, key: string): number => {
 const signPct = (n: number, dp = 2) => `${n >= 0 ? '+' : ''}${n.toFixed(dp)}%`;
 
 /* ------------------------------------------------------------------ */
+/* Guided tour                                                         */
+/* ------------------------------------------------------------------ */
+
+const ONCHAIN_TOUR: TourStep[] = [
+  {
+    title: 'On-Chain, in plain English 👋',
+    body: "This page shows what's happening beneath the price — where money is actually moving. Quick 60-second tour? You can leave anytime.",
+  },
+  {
+    selector: '[data-tour="oc-controls"]',
+    title: 'Pick an asset & timeframe',
+    body: 'Switch between BTC, ETH, SOL, BNB and AVAX, and choose a 24H / 7D / 30D window. Everything on the page updates to match.',
+  },
+  {
+    selector: '[data-tour="oc-tiles"]',
+    title: 'The four headline gauges',
+    body: 'Funding (is the crowd over-leveraged?), Liquidations (who just got wiped out), Exchange Netflow (coins leaving = holding), and Long/Short (how crowded the bet is).',
+  },
+  {
+    selector: '[data-tour="oc-spotpulse"]',
+    title: 'Spot Pulse — real money vs leverage',
+    body: 'Each tile compares real spot buying/selling against futures leverage. Green = genuine demand, red = selling into a leveraged rally, amber = speculative and likely to fade.',
+  },
+  {
+    selector: '[data-tour="oc-brow"]',
+    title: 'Buy/sell pressure, US demand & ETF flow',
+    body: 'Is a move backed by real buyers (CVD)? Is US money leading (Coinbase premium)? What is Wall Street doing through the ETFs? Three reads on conviction.',
+  },
+  {
+    selector: '[data-tour="oc-showmore"]',
+    title: 'More when you want it',
+    body: 'Open Interest and Stablecoin supply live here — expand for the full picture without the clutter up top.',
+  },
+  {
+    title: "That's On-Chain 🎉",
+    body: 'Replay this anytime with the "Take a tour" button. Explore the other tools from the sidebar.',
+  },
+];
+
+/* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
@@ -161,6 +202,22 @@ export default function OnChainPage() {
   const [range, setRange] = useState<OcRange>('24H');
   const [cvdSrc, setCvdSrc] = useState<'Futures' | 'Spot'>('Futures');
   const [more, setMore] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
+
+  // Auto-open once for first-time visitors.
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem('kumami_tour_onchain_seen')) {
+        const t = setTimeout(() => setTourOpen(true), 700);
+        return () => clearTimeout(t);
+      }
+    } catch { /* localStorage unavailable — skip auto-open */ }
+  }, []);
+
+  const closeTour = () => {
+    setTourOpen(false);
+    try { localStorage.setItem('kumami_tour_onchain_seen', '1'); } catch { /* ignore */ }
+  };
 
   const a = asset;
 
@@ -248,7 +305,10 @@ export default function OnChainPage() {
               buying, and how risky the market is right now.
             </p>
           </div>
-          <div className="w-oc-controls">
+          <div className="w-oc-controls" data-tour="oc-controls">
+            <button type="button" className="w-tour-trigger" onClick={() => setTourOpen(true)}>
+              <WIcon name="spark" /> Take a tour
+            </button>
             <div className="w-oc-asset-tabs">
               {OC_ASSETS.map((s) => (
                 <button key={s} className={a === s ? 'on' : ''} onClick={() => setAsset(s)}>
@@ -272,7 +332,7 @@ export default function OnChainPage() {
       </div>
 
       {/* ---- Tier 1 tiles ---- */}
-      <div className="w-oc-tiles">
+      <div className="w-oc-tiles" data-tour="oc-tiles">
         <div className="w-oc-tile">
           <div className="w-oc-tile-h">
             <span className="w-oc-tl">
@@ -351,12 +411,12 @@ export default function OnChainPage() {
       </div>
 
       {/* ---- Spot Pulse (replaces the tier-locked heatmap slot, per PM spec) ---- */}
-      <div style={{ marginBottom: 16 }}>
+      <div data-tour="oc-spotpulse" style={{ marginBottom: 16 }}>
         <SpotPulse />
       </div>
 
       {/* ---- Tier 2 row: CVD / Premium / ETF ---- */}
-      <div className="w-oc-brow">
+      <div className="w-oc-brow" data-tour="oc-brow">
         {/* CVD */}
         <div className="w-oc-panel">
           <div className="w-oc-ph">
@@ -463,7 +523,7 @@ export default function OnChainPage() {
       </div>
 
       {/* ---- Show more / tier 3 ---- */}
-      <button className={`w-oc-showmore${more ? ' open' : ''}`} onClick={() => setMore((v) => !v)}>
+      <button className={`w-oc-showmore${more ? ' open' : ''}`} data-tour="oc-showmore" onClick={() => setMore((v) => !v)}>
         {more ? 'Show fewer metrics' : 'Show more metrics'} <WIcon name="chevD" />
       </button>
 
@@ -523,6 +583,8 @@ export default function OnChainPage() {
           </div>
         </div>
       )}
+
+      {tourOpen && <ProductTour steps={ONCHAIN_TOUR} onClose={closeTour} />}
     </div>
   );
 }

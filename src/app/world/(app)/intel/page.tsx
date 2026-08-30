@@ -12,11 +12,43 @@
  * colour (mint #5ee9a8 → project turquoise var(--accent)).
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useWorldMode } from '@/contexts/WorldModeContext';
 import { WIcon, intelGrad } from '@/components/world/panels/console-ui';
 import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
+import ProductTour, { type TourStep } from '@/components/world/ProductTour';
 import type { IntelligencePayload } from '@/lib/market/contracts';
+
+const INTEL_TOUR: TourStep[] = [
+  {
+    title: 'Intelligence, ranked by impact 👋',
+    body: 'The news, but sorted by how much it actually matters. Quick tour of how to read it? Leave anytime.',
+  },
+  {
+    selector: '[data-tour="il-aside"]',
+    title: 'A / B / C priority tiers',
+    body: 'Every story is scored: A is market-moving, B is notable, C is context. The badge on each brief tells you at a glance whether to act, watch, or just know.',
+  },
+  {
+    selector: '[data-tour="il-cats"]',
+    title: 'Filter by category',
+    body: 'Narrow to Macro, Trade, Narrative, Regulatory or Security — the number shows how many briefs are in each right now.',
+  },
+  {
+    selector: '[data-tour="il-asset"]',
+    title: 'Filter by asset',
+    body: 'Only care about BTC, ETH, SOL, GOLD or AI? Tap it to show only the briefs that touch what you hold.',
+  },
+  {
+    selector: '[data-tour="il-river"]',
+    title: 'The latest briefs',
+    body: 'A running feed of everything else, newest first — each with its impact tier, source, and the assets it affects.',
+  },
+  {
+    title: "That's Intelligence 🎉",
+    body: 'Replay anytime with the "Take a tour" button. Explore the other tools from the sidebar.',
+  },
+];
 
 /* ---- Live brief shape (mapped from IntelligencePayload) ---- */
 type IntelBrief = {
@@ -90,6 +122,22 @@ export default function IntelPage() {
   const { setMode } = useWorldMode();
   const [cat, setCat] = useState('All');
   const [asset, setAsset] = useState('All');
+  const [tourOpen, setTourOpen] = useState(false);
+
+  // Auto-open once for first-time visitors.
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem('kumami_tour_intel_seen')) {
+        const t = setTimeout(() => setTourOpen(true), 700);
+        return () => clearTimeout(t);
+      }
+    } catch { /* localStorage unavailable — skip auto-open */ }
+  }, []);
+
+  const closeTour = () => {
+    setTourOpen(false);
+    try { localStorage.setItem('kumami_tour_intel_seen', '1'); } catch { /* ignore */ }
+  };
 
   const market = useMarketEndpoint<IntelligencePayload>('/api/market/intelligence');
   const INTEL = toBriefs(market.data);
@@ -113,9 +161,14 @@ export default function IntelPage() {
         <h1>
           <WIcon name="doc" /> Intelligence
         </h1>
-        <span className="w-il-date">
-          <WIcon name="clock" /> The deeper read of your News Portal · AI-scored A/B/C
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button type="button" className="w-tour-trigger" onClick={() => setTourOpen(true)}>
+            <WIcon name="spark" /> Take a tour
+          </button>
+          <span className="w-il-date">
+            <WIcon name="clock" /> The deeper read of your News Portal · AI-scored A/B/C
+          </span>
+        </div>
       </div>
 
       {/* Continuity banner */}
@@ -133,7 +186,7 @@ export default function IntelPage() {
       </div>
 
       {/* ── Category chips ── */}
-      <div className="w-il-cats">
+      <div className="w-il-cats" data-tour="il-cats">
         {INTEL_CATS.map(k => (
           <button
             key={k}
@@ -147,7 +200,7 @@ export default function IntelPage() {
       </div>
 
       {/* ── Asset filter ── */}
-      <div className="w-asset-filter" style={{ marginBottom: 22 }}>
+      <div className="w-asset-filter" data-tour="il-asset" style={{ marginBottom: 22 }}>
         {ASSETS.map(a => (
           <button key={a} className={asset === a ? 'on' : ''} onClick={() => setAsset(a)}>
             {a}
@@ -196,7 +249,7 @@ export default function IntelPage() {
           </div>
         )}
 
-        <div className="w-il-aside">
+        <div className="w-il-aside" data-tour="il-aside">
           <h3 className="w-il-aside-h">
             <WIcon name="star" /> Priority tiers
           </h3>
@@ -226,7 +279,7 @@ export default function IntelPage() {
       </div>
 
       {/* ── River ── */}
-      <div className="w-il-river">
+      <div className="w-il-river" data-tour="il-river">
         <h3 className="w-il-river-h">Latest briefs</h3>
         <div className="w-il-list">
           {river.length > 0 ? (
@@ -284,6 +337,8 @@ export default function IntelPage() {
           ) : null}
         </div>
       </div>
+
+      {tourOpen && <ProductTour steps={INTEL_TOUR} onClose={closeTour} />}
     </div>
   );
 }

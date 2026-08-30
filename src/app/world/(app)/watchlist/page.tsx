@@ -8,11 +8,39 @@
  * Falls back to a clean loading/empty state. UI shell unchanged from the port.
  */
 
+import { useEffect, useState } from 'react';
 import { WIcon, coinC } from '@/components/world/panels/console-ui';
 import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
 import { formatPrice, formatChange } from '@/components/world/panels/format';
 import { useWorldMode } from '@/contexts/WorldModeContext';
+import ProductTour, { type TourStep } from '@/components/world/ProductTour';
 import type { WatchlistApiResponse } from '@/lib/market/contracts';
+
+const WATCHLIST_TOUR: TourStep[] = [
+  {
+    title: 'Your auto-watchlist 👋',
+    body: 'No setup needed — this list builds itself from the strongest bullish money flow. Quick tour? Leave anytime.',
+  },
+  {
+    selector: '[data-tour="wl-flowbar"]',
+    title: 'Ranked by bullish flow',
+    body: 'Assets are ordered by the whale inflow and accumulation showing up on your Flow Radar — it refreshes as the radar does. "Auto" means you never curate it by hand.',
+  },
+  {
+    selector: '[data-tour="wl-table"]',
+    title: 'Price, move & flow signal',
+    body: 'Each row shows the live price, 24h move, and the single strongest flow signal that put it on the list — so you know why it is here.',
+  },
+  {
+    selector: '[data-tour="wl-alerts"]',
+    title: 'Alerts are a Pro upgrade',
+    body: 'Pin your own tokens, set a custom order, and get pushed the moment a tracked asset moves or a watched wallet acts — all part of Pro.',
+  },
+  {
+    title: "That's your Watchlist 🎉",
+    body: 'Replay anytime with the "Take a tour" button. Explore the other tools from the sidebar.',
+  },
+];
 
 const COIN_NAME: Record<string, string> = {
   BTC: 'Bitcoin',
@@ -63,6 +91,22 @@ export default function WatchlistPage() {
   const market = useMarketEndpoint<WatchlistApiResponse>('/api/market/watchlist');
   const bw = market.data ? toRows(market.data.assets) : [];
   const loading = market.status === 'loading';
+  const [tourOpen, setTourOpen] = useState(false);
+
+  // Auto-open once for first-time visitors.
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem('kumami_tour_watchlist_seen')) {
+        const t = setTimeout(() => setTourOpen(true), 700);
+        return () => clearTimeout(t);
+      }
+    } catch { /* localStorage unavailable — skip auto-open */ }
+  }, []);
+
+  const closeTour = () => {
+    setTourOpen(false);
+    try { localStorage.setItem('kumami_tour_watchlist_seen', '1'); } catch { /* ignore */ }
+  };
 
   return (
     <div className="w-content-inner w-watchlist">
@@ -78,17 +122,20 @@ export default function WatchlistPage() {
           right now. Building your own custom list, price alerts and notes is part of{' '}
           <b style={{ color: 'var(--purple)' }}>Pro</b>.
         </p>
+        <button type="button" className="w-tour-trigger" onClick={() => setTourOpen(true)} style={{ marginTop: 10 }}>
+          <WIcon name="spark" /> Take a tour
+        </button>
       </div>
 
       {/* ── Flow bar ── */}
-      <div className="w-wl-flowbar">
+      <div className="w-wl-flowbar" data-tour="wl-flowbar">
         <WIcon name="flame" />
         <span>Ranked by bullish on-chain flow · refreshes with the radar</span>
         <span className="w-wl-auto">Auto</span>
       </div>
 
       {/* ── Table ── */}
-      <div className="w-wl-table">
+      <div className="w-wl-table" data-tour="wl-table">
         <div className="w-wl-thead">
           <span>Asset</span>
           <span>Price</span>
@@ -152,7 +199,7 @@ export default function WatchlistPage() {
       </div>
 
       {/* ── Locked alerts panel ── */}
-      <div className="w-apanel w-locked" style={{ marginTop: 16, minHeight: 120 }}>
+      <div className="w-apanel w-locked" data-tour="wl-alerts" style={{ marginTop: 16, minHeight: 120 }}>
         <div className="w-lock-blur" style={{ padding: 20 }}>
           <div className="w-apanel-h" style={{ padding: '0 0 14px', border: 'none' }}>
             <span className="w-ttl">
@@ -174,6 +221,8 @@ export default function WatchlistPage() {
           <span>Real-time alerts on major market moves</span>
         </div>
       </div>
+
+      {tourOpen && <ProductTour steps={WATCHLIST_TOUR} onClose={closeTour} />}
     </div>
   );
 }
