@@ -22,7 +22,7 @@ export default function MarketConditions({ data }: Props) {
   const { verdict, confidence, fearGreed, fearGreedLabel, tiles } = data;
 
   return (
-    <section className="w-apanel w-span-2 w-mc-panel" aria-label="Market Conditions">
+    <section className="w-apanel w-span-2 w-mc-panel" aria-label="Market Conditions" data-tour="market">
       <div className="w-apanel-h">
         <span className="w-ttl">
           <span className="w-ic"><WIcon name="spark" /></span>

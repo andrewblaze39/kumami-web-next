@@ -24,7 +24,7 @@ const CELL_LAYOUT = [
 
 export default function HeatmapPreview({ data, loading }: Props) {
   return (
-    <section className="w-apanel" aria-label="On-Chain Insights">
+    <section className="w-apanel" aria-label="On-Chain Insights" data-tour="onchain">
       <div className="w-apanel-h">
         <span className="w-ttl">
           <span className="w-ic"><WIcon name="layers" /></span>

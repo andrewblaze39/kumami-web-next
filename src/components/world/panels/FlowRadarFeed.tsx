@@ -57,7 +57,7 @@ function topTypeLabel(events: ConsolePayload['flowRadar']): string {
 
 export default function FlowRadarFeed({ events, loading }: Props) {
   return (
-    <section className="w-apanel" aria-label="Flow Radar">
+    <section className="w-apanel" aria-label="Flow Radar" data-tour="flow">
       <div className="w-apanel-h">
         <span className="w-ttl">
           <span className="w-ic"><WIcon name="flame" /></span>

@@ -12,7 +12,7 @@ type Props = {
 
 export default function RadarWatchlist({ items, loading }: Props) {
   return (
-    <section className="w-apanel w-self-start" aria-label="Watchlist">
+    <section className="w-apanel w-self-start" aria-label="Watchlist" data-tour="watchlist">
       <div className="w-apanel-h">
         <span className="w-ttl">
           <span className="w-ic"><WIcon name="bookmark" /></span>

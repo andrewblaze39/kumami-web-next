@@ -37,7 +37,7 @@ export default function RegimeChips({ chips, loading }: Props) {
   }
 
   return (
-    <div className="w-regime-row" role="list" aria-label="Asset regime overview">
+    <div className="w-regime-row" role="list" aria-label="Asset regime overview" data-tour="regime">
       {chips.map(chip => {
         // SPX has no CoinGlass/macro source yet → coming-soon treatment.
         const comingSoon = chip.asset === 'SPX' && chip.price === 0;

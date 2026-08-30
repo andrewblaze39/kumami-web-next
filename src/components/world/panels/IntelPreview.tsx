@@ -18,7 +18,7 @@ const TIER_LABEL: Record<'A' | 'B' | 'C', string> = {
 
 export default function IntelPreview({ briefs, loading }: Props) {
   return (
-    <section className="w-apanel" aria-label="Intelligence">
+    <section className="w-apanel" aria-label="Intelligence" data-tour="intel">
       <div className="w-apanel-h">
         <span className="w-ttl">
           <span className="w-ic"><WIcon name="doc" /></span>
