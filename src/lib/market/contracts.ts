@@ -122,6 +122,53 @@ export type WhalePosition = {
   distanceToLiqPct: number;
 };
 
+/** One asset tile in the Spot Pulse grid. */
+export type SpotPulseTile = {
+  asset: string;
+  /** Verdict label, e.g. "REAL BUYING", "DISTRIBUTION", "BALANCED". */
+  verdict: string;
+  /** Exact tile colour (hex or rgba) from the spec. */
+  color: string;
+  /** REVERSAL SETUP gets a glow border. */
+  glow: boolean;
+  priceChange4h: number;
+  spotCvdChange: number;
+  futCvdChange: number;
+  spotToFutRatio: number;
+  /** 1 = fixed anchor, 2 = dynamic trending (Pro). */
+  row: 1 | 2;
+  /** True when the asset lacked enough data and defaulted to BALANCED. */
+  insufficient?: boolean;
+};
+
+/** A divergence alert card below the grid. */
+export type SpotPulseAlert = {
+  asset: string;
+  verdict: string;
+  color: string;
+  line1: string;
+  line2: string;
+  /** Cross-signal confirmation tag (§10), when present. */
+  confirm?: string;
+};
+
+/** Full payload for the Spot Pulse panel (replaces the liquidation heatmap slot). */
+export type SpotPulsePayload = {
+  tier: 'plus' | 'pro';
+  timeframe: '4H' | '24H' | '7D';
+  marketVerdict: string;
+  marketSentence: string;
+  tiles: SpotPulseTile[];
+  alerts: SpotPulseAlert[];
+  footer: {
+    /** null until per-asset spot volume (spot/coins-markets) is on the plan. */
+    totalSpotVol24h: number | null;
+    netSpotFlow: number;
+    divergenceCount: number;
+  };
+  updatedAt: string;
+};
+
 /** Full payload for the /world On-Chain page for a given asset + range. */
 export type OnChainPayload = {
   asset: string;

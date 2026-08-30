@@ -18,13 +18,14 @@
 
 import type {
   ConsolePayload, FlowEvent, HeatmapPayload, IntelligencePayload,
-  OnChainPayload, WatchlistPayload,
+  OnChainPayload, SpotPulsePayload, WatchlistPayload,
 } from '../contracts';
 import type { MarketDataProvider } from '../provider';
 import { makeConsolePayloadLive } from './console';
 import { makeOnChainPayloadLive } from './onchain';
 import { makeWatchlistPayloadLive } from './watchlist';
 import { makeIntelligencePayloadLive } from './intel';
+import { makeSpotPulseLive } from './spotPulse';
 import { buildFlowEvents } from './flow';
 
 /**
@@ -72,6 +73,10 @@ function makeLiveProvider(): MarketDataProvider {
 
     async intelligence(tier: 'free' | 'pro'): Promise<IntelligencePayload> {
       return live('intelligence', () => makeIntelligencePayloadLive(tier));
+    },
+
+    async spotPulse(tier: 'free' | 'pro'): Promise<SpotPulsePayload> {
+      return live('spotPulse', () => makeSpotPulseLive(tier === 'pro' ? 'pro' : 'plus'));
     },
   };
 }

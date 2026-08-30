@@ -6893,3 +6893,101 @@
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* ============================================================
+   Spot Pulse — replaces the liquidation heatmap slot
+   ============================================================ */
+.world-root .w-sp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 10px;
+}
+.world-root .w-sp-tile {
+  border-radius: 13px;
+  border: 1.5px solid transparent;
+  padding: 13px 14px 12px;
+  min-height: 92px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: default;
+}
+.world-root .w-sp-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+}
+.world-root .w-sp-sym {
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+}
+.world-root .w-sp-verdict {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.92;
+}
+.world-root .w-sp-price {
+  margin-top: auto;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.world-root .w-sp-skeleton {
+  background: var(--adv-surface-2, rgba(255, 255, 255, 0.05));
+  animation: w-sp-pulse 1.2s ease-in-out infinite;
+}
+@keyframes w-sp-pulse {
+  50% { opacity: 0.5; }
+}
+.world-root .w-sp-alerts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.world-root .w-sp-alert {
+  background: var(--adv-surface-2, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--adv-border, rgba(255, 255, 255, 0.1));
+  border-left: 3px solid var(--accent);
+  border-radius: 11px;
+  padding: 11px 13px;
+}
+.world-root .w-sp-alert-h {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.world-root .w-sp-alert-l1 {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.world-root .w-sp-alert-l2 {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.world-root .w-sp-alert-confirm {
+  font-size: 11px;
+  color: var(--accent);
+  margin-top: 6px;
+  font-weight: 600;
+}
+.world-root .w-sp-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--grid-line, rgba(255, 255, 255, 0.07));
+  font-size: 12px;
+  color: var(--muted);
+}
+.world-root .w-sp-footer b.up { color: var(--bull, #46e3a0); }
+.world-root .w-sp-footer b.down { color: var(--bear, #ff6b81); }

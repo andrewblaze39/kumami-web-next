@@ -14,6 +14,7 @@ import type {
   HeatmapPayload,
   IntelligencePayload,
   OnChainPayload,
+  SpotPulsePayload,
   WatchlistPayload,
 } from './contracts';
 import { liveProvider } from './live/liveProvider';
@@ -26,6 +27,7 @@ export interface MarketDataProvider {
   flowRadar(tier: 'free' | 'pro'): Promise<FlowEvent[]>;
   watchlist(uid: string, tier: 'free' | 'pro'): Promise<WatchlistPayload>;
   intelligence(tier: 'free' | 'pro'): Promise<IntelligencePayload>;
+  spotPulse(tier: 'free' | 'pro'): Promise<SpotPulsePayload>;
 }
 
 /**
