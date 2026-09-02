@@ -10,14 +10,14 @@
  *   - Group A (built here from the reference design, fixture-driven): digest,
  *     followhub, watchlist, airdrops, realtimenews, research, calendar, events.
  *   - Group B (data source still being wired — ComingSoon card): smartmoney,
- *     tokentracker, heatmap, scanner, feargreed.
+ *     tokentracker, spotpulse, scanner, feargreed.
  *   - Existing components re-slotted: portfolio, alpha, market, kumaai, marketcap.
  * Non-premium users keep the existing teaser / whitelist page (ProTeaser).
  */
 
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Users, Layers, Flame, Shield, Gauge, Compass } from 'lucide-react';
+import { Users, Layers, Activity, Shield, Gauge, Compass } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProductTour, { type TourStep } from '@/components/world/ProductTour';
 import ProTeaser from './ProTeaser';
@@ -39,7 +39,7 @@ import MarketCapTool from '@/components/MarketCapTool';
 import './pro.css';
 
 const TAB_KEYS = [
-  'digest', 'followhub', 'smartmoney', 'tokentracker', 'heatmap', 'watchlist',
+  'digest', 'followhub', 'smartmoney', 'tokentracker', 'spotpulse', 'watchlist',
   'scanner', 'airdrops', 'portfolio', 'marketcap', 'realtimenews', 'alpha',
   'feargreed', 'research', 'calendar', 'events', 'market', 'kumaai',
 ] as const;
@@ -88,13 +88,13 @@ function TabContent({ active }: { active: TabKey }) {
           description="Deep per-token analytics with custom alerts on the metrics you care about."
         />
       );
-    case 'heatmap':
+    case 'spotpulse':
       return (
         <ComingSoon
           eyebrow="Tools"
-          icon={<Flame size={24} />}
-          title="Liquidation Heatmap"
-          description="Where leverage is stacked and the price levels most likely to trigger liquidation cascades."
+          icon={<Activity size={24} />}
+          title="Spot Pulse"
+          description="See where actual buying and selling is happening. Compare spot and futures activity to tell whether a move is backed by real demand or speculation."
         />
       );
     case 'scanner':
@@ -158,52 +158,51 @@ const comingSoonTour = (title: string, what: string, source: string): TourStep[]
 
 const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
   digest: [
-    { selector: HEAD, title: 'Daily Digest', body: 'Your landing tab — a live roll-up of the newest items across every other Pro tab.' },
-    { title: 'How to read it', body: 'Each section shows the latest research, news, upcoming calendar events and active airdrops. Click “Open …” under a section to jump straight to that full tab.' },
+    { selector: HEAD, title: 'Daily Digest', body: 'Your morning market recap. Everything important that happened overnight across your Watchlist, Smart Money, and Alpha Room, all in one place.' },
+    { title: 'How to use it', body: 'Each section links to its full tab — click “Open …” to dive into the research, news, events or airdrops behind the summary.' },
   ],
   followhub: [
-    { selector: HEAD, title: 'Following & Alerts', body: 'Set live price alerts and keep everything you follow in one place.' },
+    { selector: HEAD, title: 'Following & Alerts', body: "One hub for everything you follow and every alert you've set, across all your tools." },
     { selector: '[data-tour="fa-builder"]', title: 'Build an alert', body: 'Pick a ticker, choose a trigger (price / volume / sentiment) and a threshold, then click Add.' },
-    { title: 'Alerts fire live', body: 'A price alert arms at the current price and flips to TRIGGERED the moment it moves past your threshold — powered by the live Binance feed. Use the ↻ button to re-arm at the new price.' },
-    { title: 'Following', body: 'Anything you Follow elsewhere (an airdrop, a wallet, an alpha item) appears in the Following list below your alerts.' },
+    { title: 'Alerts fire live', body: 'A price alert arms at the current price and flips to TRIGGERED the moment it moves past your threshold — powered by the live price feed. Use the ↻ button to re-arm at the new price.' },
   ],
-  smartmoney: comingSoonTour('Smart Money Tracker', 'Wallet-level flow of top-PnL addresses — see what smart money is doing as it happens.', 'on-chain analytics provider'),
-  tokentracker: comingSoonTour('Coin/Token Tracker', 'Deep per-token analytics with custom alerts on the metrics you care about.', 'market-data provider'),
-  heatmap: comingSoonTour('Liquidation Heatmap', 'Where leverage is stacked and the price levels most likely to trigger cascades.', 'CoinGlass feed'),
+  smartmoney: comingSoonTour('Smart Money Tracker', 'Track what known wallets, funds, and exchanges are buying or selling before the wider market catches on. Degen Mode also tracks early buyers of brand-new tokens.', 'on-chain analytics provider'),
+  tokentracker: comingSoonTour('Coin/Token Tracker', 'Everything you need to understand a token in one screen — price, derivatives, charts, and newly launched trading pairs.', 'market-data provider'),
+  spotpulse: comingSoonTour('Spot Pulse', 'See where actual buying and selling is happening. Compare spot and futures activity to tell whether a move is backed by real demand or speculation.', 'market-data feed'),
   watchlist: [
-    { selector: HEAD, title: 'Watchlist', body: 'Track any ticker you care about — your list saves to your account and syncs across devices.' },
+    { selector: HEAD, title: 'Watchlist', body: "Your personal list of tokens, automatically ranked by what's moving and changing today — so you know what deserves your attention." },
     { selector: '[data-tour="wl-add"]', title: 'Add a ticker', body: 'Type a symbol (e.g. BTC) and press Add or Enter. Remove one with the ✕ on its row.' },
-    { title: 'Live prices', body: 'Prices show “—” for now; live prices and smart-money auto-curation arrive with the market-data feed.' },
+    { title: 'Live prices', body: 'Prices show “—” for now; live prices and the automatic ranking arrive with the market-data feed.' },
   ],
-  scanner: comingSoonTour('Security Scanner', 'Contract- and wallet-level risk scoring before you interact — honeypots, mint authority, LP locks and more.', 'security-data provider'),
+  scanner: comingSoonTour('Security Scanner', "Check a token's contract before you trade. Get a quick safety check to spot risks like honeypots and potential rugs.", 'security-data provider'),
   airdrops: [
-    { selector: HEAD, title: 'Airdrops & Whitelist', body: 'Curated drops and whitelist access, each with an eligibility checklist and deadline.' },
+    { selector: HEAD, title: 'Airdrops & Whitelist', body: "Keep track of airdrop eligibility, whitelist spots, and important deadlines so you don't miss an opportunity." },
     { title: 'Browse & follow', body: 'Switch between the Airdrops and Whitelists tabs, click any card to open its eligibility checklist, deadline and estimated value, then Follow the ones you want to track.' },
   ],
   portfolio: [
-    { title: 'AI Portfolio', body: 'Your portfolio manager — track holdings and performance. Add positions and Kumami surfaces insights on them here.' },
+    { title: 'AI Portfolio', body: 'Your portfolio manager — track holdings and performance, with Kumami surfacing insights on your positions.' },
   ],
   marketcap: [
     { title: 'Market Cap Comparison', body: 'Compare assets side by side by market cap and other metrics to size up relative value.' },
   ],
   realtimenews: [
-    { selector: HEAD, title: 'Real-Time News', body: 'Every headline that matters, stripped to scan speed.' },
+    { selector: HEAD, title: 'Real-Time News', body: 'Scan the latest market headlines in seconds, with a simple Bullish, Neutral, or Bearish signal for each story.' },
     { title: 'How to read it', body: 'Each row shows the exact time (and how long ago) on the left, the headline with a sentiment dot (green/red/neutral), a one-line summary, and tags — newest first.' },
   ],
   alpha: [
-    { title: 'Alpha Room', body: 'Real-time curated alpha as a live chat feed — the moment something matters, with a one-line read on why. Newest messages appear at the bottom.' },
+    { title: 'Alpha Room', body: 'Follow curated token calls, project watchlists, and high-conviction opportunities shared by the Kumami team.' },
   ],
-  feargreed: comingSoonTour('Fear & Greed', 'A multi-factor market-sentiment composite, updated continuously, with the drivers behind the score.', 'CoinGlass feed'),
+  feargreed: comingSoonTour('Fear & Greed', "Quickly see the market's current mood across five key factors, so you know whether sentiment is working with or against your thesis.", 'CoinGlass feed'),
   research: [
-    { selector: HEAD, title: 'Kumami Research', body: 'KOL-led calls from our analysts, with accountability built in.' },
-    { title: 'What each card shows', body: 'Every call states a position (long/short/neutral) and asset, when it was made, the reasoning, and a “What this means for you” read.' },
+    { selector: HEAD, title: 'Kumami Research', body: 'Detailed research and analysis on specific tokens, sectors, narratives, and market trends.' },
+    { title: 'What each call shows', body: 'Every card states a position (long/short/neutral) and asset, when it was made, the reasoning, and a “What this means for you” read.' },
   ],
   calendar: [
-    { selector: HEAD, title: 'Calendar', body: 'Macro prints, token unlocks and network upgrades on one calendar.' },
+    { selector: HEAD, title: 'Calendar', body: 'See upcoming macro events and token unlocks in advance and prepare for known market catalysts.' },
     { title: 'How to use it', body: 'Move between months with the arrows; click a day’s chip or an item in the Upcoming list to see its impact, category and details.' },
   ],
   events: [
-    { selector: HEAD, title: 'Events & Announcements', body: 'Live sessions and AMAs you can watch, replay and ask questions in.' },
+    { selector: HEAD, title: 'Events & Announcements', body: 'Discover events and join live Q&As with project teams.' },
     { title: 'Live & Q&A', body: 'When something is live you’ll see a red “Live now” badge and an embedded stream. Submit a question and upvote others’ — the list re-sorts by votes in real time.' },
     { title: 'Replays', body: 'Past events appear below with a “Watch replay” button.' },
   ],

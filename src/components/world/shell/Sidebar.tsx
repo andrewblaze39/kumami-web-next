@@ -192,7 +192,7 @@ const PRO_SUBTABS = [
   { key: 'followhub', label: 'Following & Alerts', icon: Icons.bookmark },
   { key: 'smartmoney', label: 'Smart Money Tracker', icon: Icons.users },
   { key: 'tokentracker', label: 'Coin/Token Tracker', icon: Icons.layers },
-  { key: 'heatmap', label: 'Liquidation Heatmap', icon: Icons.layers },
+  { key: 'spotpulse', label: 'Spot Pulse', icon: Icons.layers },
   { key: 'watchlist', label: 'Watchlist', icon: Icons.bookmark },
   { key: 'scanner', label: 'Security Scanner', icon: Icons.shield },
   { key: 'airdrops', label: 'Airdrops & Whitelist', icon: Icons.spark },
