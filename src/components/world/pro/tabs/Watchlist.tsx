@@ -29,7 +29,7 @@ export function Watchlist() {
         The assets you want to keep an eye on. Add any ticker and it stays on your list across devices.
       </ProShellHead>
 
-      <div className="pro-toolbar">
+      <div className="pro-toolbar" data-tour="wl-add">
         <div className="pro-search">
           <Plus size={15} />
           <input

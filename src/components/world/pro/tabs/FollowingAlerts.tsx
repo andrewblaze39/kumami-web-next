@@ -161,7 +161,7 @@ export function FollowingAlerts() {
       </ProShellHead>
 
       {/* Alert builder */}
-      <div className="apanel" style={{ padding: '18px 20px', marginBottom: 20 }}>
+      <div className="apanel" data-tour="fa-builder" style={{ padding: '18px 20px', marginBottom: 20 }}>
         <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12 }}>Build an alert</div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ color: 'var(--muted)', fontSize: 13 }}>Alert me when</span>

@@ -18,7 +18,7 @@ export function ProShellHead({
   children: ReactNode;
 }) {
   return (
-    <div className="pro-shell-head">
+    <div className="pro-shell-head" data-tour="pro-page-head">
       <div className="pt">{eyebrow}</div>
       <h1>
         {icon}

@@ -148,42 +148,82 @@ function TabContent({ active }: { active: TabKey }) {
   }
 }
 
-const PRO_TOUR_STEPS: TourStep[] = [
-  {
-    title: 'Welcome to Kumami Pro',
-    body: "Your premium command center — 18 tabs of curated intelligence, tools and live signals. Here's a 30-second tour of the essentials.",
-  },
-  {
-    selector: '[data-tour="pro-digest"]',
-    title: 'Daily Digest',
-    body: 'Your landing tab — a live roll-up of the newest research, news, events and airdrops across the whole dashboard, each linking through.',
-  },
-  {
-    selector: '[data-tour="pro-followhub"]',
-    title: 'Following & Alerts',
-    body: 'Build a price alert and it fires live — it arms at the current price and triggers the moment the market moves past your threshold.',
-  },
-  {
-    selector: '[data-tour="pro-research"]',
-    title: 'Curated content',
-    body: 'Kumami Research, Airdrops, Calendar and Real-Time News are maintained by our team and update here in real time.',
-  },
-  {
-    selector: '[data-tour="pro-events"]',
-    title: 'Events & Announcements',
-    body: 'Watch live sessions, catch replays, and ask questions in real time during a live event.',
-  },
-  {
-    title: "You're all set",
-    body: 'Explore the tabs on the left. The ones marked “coming soon” light up once the market-data feed is connected. You can retake this tour anytime.',
-  },
+// Per-tab guided tours: "Take a tour" explains the page the user is currently on.
+const HEAD = '[data-tour="pro-page-head"]';
+
+const comingSoonTour = (title: string, what: string, source: string): TourStep[] => [
+  { selector: HEAD, title, body: what },
+  { title: 'Coming soon', body: `This tab is designed and in place — it lights up as soon as we connect the ${source}. There's nothing to do here yet.` },
 ];
+
+const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
+  digest: [
+    { selector: HEAD, title: 'Daily Digest', body: 'Your landing tab — a live roll-up of the newest items across every other Pro tab.' },
+    { title: 'How to read it', body: 'Each section shows the latest research, news, upcoming calendar events and active airdrops. Click “Open …” under a section to jump straight to that full tab.' },
+  ],
+  followhub: [
+    { selector: HEAD, title: 'Following & Alerts', body: 'Set live price alerts and keep everything you follow in one place.' },
+    { selector: '[data-tour="fa-builder"]', title: 'Build an alert', body: 'Pick a ticker, choose a trigger (price / volume / sentiment) and a threshold, then click Add.' },
+    { title: 'Alerts fire live', body: 'A price alert arms at the current price and flips to TRIGGERED the moment it moves past your threshold — powered by the live Binance feed. Use the ↻ button to re-arm at the new price.' },
+    { title: 'Following', body: 'Anything you Follow elsewhere (an airdrop, a wallet, an alpha item) appears in the Following list below your alerts.' },
+  ],
+  smartmoney: comingSoonTour('Smart Money Tracker', 'Wallet-level flow of top-PnL addresses — see what smart money is doing as it happens.', 'on-chain analytics provider'),
+  tokentracker: comingSoonTour('Coin/Token Tracker', 'Deep per-token analytics with custom alerts on the metrics you care about.', 'market-data provider'),
+  heatmap: comingSoonTour('Liquidation Heatmap', 'Where leverage is stacked and the price levels most likely to trigger cascades.', 'CoinGlass feed'),
+  watchlist: [
+    { selector: HEAD, title: 'Watchlist', body: 'Track any ticker you care about — your list saves to your account and syncs across devices.' },
+    { selector: '[data-tour="wl-add"]', title: 'Add a ticker', body: 'Type a symbol (e.g. BTC) and press Add or Enter. Remove one with the ✕ on its row.' },
+    { title: 'Live prices', body: 'Prices show “—” for now; live prices and smart-money auto-curation arrive with the market-data feed.' },
+  ],
+  scanner: comingSoonTour('Security Scanner', 'Contract- and wallet-level risk scoring before you interact — honeypots, mint authority, LP locks and more.', 'security-data provider'),
+  airdrops: [
+    { selector: HEAD, title: 'Airdrops & Whitelist', body: 'Curated drops and whitelist access, each with an eligibility checklist and deadline.' },
+    { title: 'Browse & follow', body: 'Switch between the Airdrops and Whitelists tabs, click any card to open its eligibility checklist, deadline and estimated value, then Follow the ones you want to track.' },
+  ],
+  portfolio: [
+    { title: 'AI Portfolio', body: 'Your portfolio manager — track holdings and performance. Add positions and Kumami surfaces insights on them here.' },
+  ],
+  marketcap: [
+    { title: 'Market Cap Comparison', body: 'Compare assets side by side by market cap and other metrics to size up relative value.' },
+  ],
+  realtimenews: [
+    { selector: HEAD, title: 'Real-Time News', body: 'Every headline that matters, stripped to scan speed.' },
+    { title: 'How to read it', body: 'Each row shows the exact time (and how long ago) on the left, the headline with a sentiment dot (green/red/neutral), a one-line summary, and tags — newest first.' },
+  ],
+  alpha: [
+    { title: 'Alpha Room', body: 'Real-time curated alpha as a live chat feed — the moment something matters, with a one-line read on why. Newest messages appear at the bottom.' },
+  ],
+  feargreed: comingSoonTour('Fear & Greed', 'A multi-factor market-sentiment composite, updated continuously, with the drivers behind the score.', 'CoinGlass feed'),
+  research: [
+    { selector: HEAD, title: 'Kumami Research', body: 'KOL-led calls from our analysts, with accountability built in.' },
+    { title: 'What each card shows', body: 'Every call states a position (long/short/neutral) and asset, when it was made, the reasoning, and a “What this means for you” read.' },
+  ],
+  calendar: [
+    { selector: HEAD, title: 'Calendar', body: 'Macro prints, token unlocks and network upgrades on one calendar.' },
+    { title: 'How to use it', body: 'Move between months with the arrows; click a day’s chip or an item in the Upcoming list to see its impact, category and details.' },
+  ],
+  events: [
+    { selector: HEAD, title: 'Events & Announcements', body: 'Live sessions and AMAs you can watch, replay and ask questions in.' },
+    { title: 'Live & Q&A', body: 'When something is live you’ll see a red “Live now” badge and an embedded stream. Submit a question and upvote others’ — the list re-sorts by votes in real time.' },
+    { title: 'Replays', body: 'Past events appear below with a “Watch replay” button.' },
+  ],
+  market: [
+    { title: 'Market Analysis', body: 'In-depth market analysis and write-ups published by the Kumami team.' },
+  ],
+  kumaai: [
+    { title: 'Kuma AI Chat', body: 'Ask Kuma anything about the market — it’s your AI assistant, right inside the Pro dashboard.' },
+  ],
+};
 
 function WorldProInner() {
   const searchParams = useSearchParams();
   const raw = searchParams.get('tab');
   const active: TabKey = isTabKey(raw) ? raw : 'digest';
   const [tourOpen, setTourOpen] = useState(false);
+
+  const steps = PRO_TAB_TOURS[active] ?? [
+    { title: 'Kumami Pro', body: 'Explore this tab, then use the sidebar to move between the rest of your Pro tools.' },
+  ];
 
   return (
     <ProStateProvider>
@@ -195,7 +235,9 @@ function WorldProInner() {
         </div>
         <TabContent active={active} />
       </div>
-      {tourOpen && <ProductTour steps={PRO_TOUR_STEPS} onClose={() => setTourOpen(false)} />}
+      {tourOpen && (
+        <ProductTour key={active} steps={steps} onClose={() => setTourOpen(false)} />
+      )}
     </ProStateProvider>
   );
 }
