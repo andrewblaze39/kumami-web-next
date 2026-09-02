@@ -219,6 +219,15 @@ export default function OnChainPage() {
     try { localStorage.setItem('kumami_tour_onchain_seen', '1'); } catch { /* ignore */ }
   };
 
+  // Spot Pulse click-through (§8): open the selected coin's on-chain view, when
+  // it's an asset this page covers (BTC/ETH/SOL/BNB — HYPE has no on-chain panel).
+  const openAssetView = (sym: string) => {
+    if ((OC_ASSETS as readonly string[]).includes(sym)) {
+      setAsset(sym as OcAsset);
+      document.querySelector('.w-main')?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const a = asset;
 
   const market = useMarketEndpoint<OnChainPayload>(
@@ -412,7 +421,7 @@ export default function OnChainPage() {
 
       {/* ---- Spot Pulse (replaces the tier-locked heatmap slot, per PM spec) ---- */}
       <div data-tour="oc-spotpulse" style={{ marginBottom: 16 }}>
-        <SpotPulse />
+        <SpotPulse onSelectAsset={openAssetView} />
       </div>
 
       {/* ---- Tier 2 row: CVD / Premium / ETF ---- */}

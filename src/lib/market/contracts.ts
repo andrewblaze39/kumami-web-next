@@ -165,6 +165,8 @@ export type SpotPulsePayload = {
     totalSpotVol24h: number | null;
     netSpotFlow: number;
     divergenceCount: number;
+    /** Aggregate 1h spot exchange netflow across tiles (+ = out of exchanges = bullish). null if unavailable. */
+    spotNetflow: number | null;
   };
   updatedAt: string;
 };

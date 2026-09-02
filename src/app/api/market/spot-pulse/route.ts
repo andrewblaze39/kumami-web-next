@@ -19,11 +19,15 @@ export async function GET(request: Request) {
   if (auth instanceof NextResponse) return auth;
   const { tier } = auth;
 
+  // §7 timeframe toggle — 4H (default) / 24H / 7D. Validate to avoid cache poisoning.
+  const tfRaw = new URL(request.url).searchParams.get('tf');
+  const timeframe: '4H' | '24H' | '7D' = tfRaw === '24H' || tfRaw === '7D' ? tfRaw : '4H';
+
   const ttl = tier === 'pro' ? 15 : 60;
   const payload = await getCachedFresh(
-    `market:v2:spotpulse:${tier}`,
+    `market:v2:spotpulse:${tier}:${timeframe}`,
     ttl,
-    () => getProvider().spotPulse(tier),
+    () => getProvider().spotPulse(tier, timeframe),
   );
 
   return NextResponse.json(payload);

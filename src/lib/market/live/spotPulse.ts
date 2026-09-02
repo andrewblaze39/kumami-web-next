@@ -20,10 +20,23 @@ import {
   type SpotVerdict,
   type SpotVerdictResult,
 } from '../rules/spotPulse';
-import { cvdHistory, priceHistory, type CvdRow } from './cg-endpoints';
+import { cvdHistory, priceHistory, netflowList, type CvdRow } from './cg-endpoints';
 import { pairSymbol, nowIso } from './helpers';
 
 const ANCHORS = ['BTC', 'ETH', 'SOL', 'BNB', 'HYPE'];
+
+export type SpotPulseTimeframe = '4H' | '24H' | '7D';
+
+/**
+ * §7 timeframe toggle. Each window reads CVD/price at a matching bar interval,
+ * so the "delta" is the last bar over that window and the range (§3) is the
+ * std-dev of same-interval deltas — apples-to-apples at any timeframe.
+ */
+const TF_CFG: Record<SpotPulseTimeframe, { interval: string; rangeBars: number }> = {
+  '4H': { interval: '4h', rangeBars: 42 }, // ~7d of 4h bars
+  '24H': { interval: '1d', rangeBars: 30 }, // ~30d of daily bars
+  '7D': { interval: '1w', rangeBars: 26 }, // ~6mo of weekly bars
+};
 
 /** Per-bar CVD delta = aggressive taker buy − sell. */
 const barDelta = (r: CvdRow) => (Number(r.agg_taker_buy_vol) || 0) - (Number(r.agg_taker_sell_vol) || 0);
@@ -41,12 +54,13 @@ type Built = {
   priceChange4h: number;
 };
 
-async function buildAsset(asset: string, row: 1 | 2): Promise<Built | null> {
+async function buildAsset(asset: string, row: 1 | 2, tf: SpotPulseTimeframe): Promise<Built | null> {
   const pair = pairSymbol(asset);
+  const { interval, rangeBars } = TF_CFG[tf];
   const [spotCvd, futCvd, priceRows] = await Promise.all([
-    cvdHistory('spot', asset, '4h').catch(() => [] as CvdRow[]),
-    cvdHistory('futures', asset, '4h').catch(() => [] as CvdRow[]),
-    priceHistory(pair, '4h').catch(() => []),
+    cvdHistory('spot', asset, interval).catch(() => [] as CvdRow[]),
+    cvdHistory('futures', asset, interval).catch(() => [] as CvdRow[]),
+    priceHistory(pair, interval).catch(() => []),
   ]);
 
   // No CVD at all on either side → skip the tile entirely (§11).
@@ -54,8 +68,8 @@ async function buildAsset(asset: string, row: 1 | 2): Promise<Built | null> {
 
   const spotCvdChange = spotCvd.length ? barDelta(spotCvd[spotCvd.length - 1]) : 0;
   const futCvdChange = futCvd.length ? barDelta(futCvd[futCvd.length - 1]) : 0;
-  const spotCvdRange = stddev(spotCvd.slice(-42).map(barDelta));
-  const futCvdRange = stddev(futCvd.slice(-42).map(barDelta));
+  const spotCvdRange = stddev(spotCvd.slice(-rangeBars).map(barDelta));
+  const futCvdRange = stddev(futCvd.slice(-rangeBars).map(barDelta));
 
   let priceChange4h = 0;
   if (priceRows.length >= 2) {
@@ -87,19 +101,19 @@ async function buildAsset(asset: string, row: 1 | 2): Promise<Built | null> {
 const M = (v: number) => `$${Math.abs(v / 1e6).toFixed(0)}M`;
 
 /** Divergence alert card text per verdict (§5 Card Text Templates). */
-function alertFor(b: Built): SpotPulseAlert | null {
+function alertFor(b: Built, tf: SpotPulseTimeframe): SpotPulseAlert | null {
   const { tile } = b;
   const v = tile.verdict as SpotVerdict;
   const amt = M(b.spotCvdChange);
   switch (v) {
     case 'DISTRIBUTION':
-      return { asset: tile.asset, verdict: v, color: tile.color, line1: `Spot selling ${amt} in 4H`, line2: 'Futures still buying — fake' };
+      return { asset: tile.asset, verdict: v, color: tile.color, line1: `Spot selling ${amt} in ${tf}`, line2: 'Futures still buying — fake' };
     case 'SPECULATIVE': {
       const futAhead = b.res.spotToFutRatio > 0 ? (1 / b.res.spotToFutRatio).toFixed(1) : '∞';
       return { asset: tile.asset, verdict: v, color: tile.color, line1: `Futures ahead ${futAhead}x spot`, line2: 'Move likely to fade' };
     }
     case 'ACCUMULATION':
-      return { asset: tile.asset, verdict: v, color: tile.color, line1: `Spot buying ${amt} in 4H`, line2: 'Price flat — quiet build' };
+      return { asset: tile.asset, verdict: v, color: tile.color, line1: `Spot buying ${amt} in ${tf}`, line2: 'Price flat — quiet build' };
     case 'REVERSAL SETUP':
       return { asset: tile.asset, verdict: v, color: tile.color, line1: `Spot buying ${amt} despite ${b.priceChange4h.toFixed(1)}% move`, line2: 'Floor forming — reversal setup' };
     case 'REAL BUYING':
@@ -109,12 +123,20 @@ function alertFor(b: Built): SpotPulseAlert | null {
   }
 }
 
-export async function makeSpotPulseLive(tier: 'plus' | 'pro'): Promise<SpotPulsePayload> {
+export async function makeSpotPulseLive(
+  tier: 'plus' | 'pro',
+  tf: SpotPulseTimeframe = '4H',
+): Promise<SpotPulsePayload> {
   // Pro Row-2 (dynamic trending) needs /api/spot/coins-markets which is tier-locked,
   // so both tiers currently render the 5 fixed anchors. Row-2 fills in on a plan upgrade.
-  const built = (await Promise.all(ANCHORS.map((a) => buildAsset(a, 1).catch(() => null)))).filter(
-    (b): b is Built => b !== null,
-  );
+  const [built, spotNet] = await Promise.all([
+    Promise.all(ANCHORS.map((a) => buildAsset(a, 1, tf).catch(() => null))).then((xs) =>
+      xs.filter((b): b is Built => b !== null),
+    ),
+    // §6 spot netflow — 1h exchange netflow per symbol (only window CoinGlass exposes).
+    // Degrades to null (hidden) if the spot endpoint isn't on the current plan.
+    netflowList('spot').catch(() => [] as Awaited<ReturnType<typeof netflowList>>),
+  ]);
 
   const tiles = built.map((b) => b.tile);
   const verdicts = tiles.map((t) => t.verdict as SpotVerdict);
@@ -125,13 +147,23 @@ export async function makeSpotPulseLive(tier: 'plus' | 'pro'): Promise<SpotPulse
     .map((b) => ({ b, score: divergenceScore(b.res, { asset: b.tile.asset, spotCvdChange: b.spotCvdChange, priceChange4h: b.priceChange4h }) }))
     .filter((x) => x.score > 0)
     .sort((a, b) => b.score - a.score);
-  const alerts = scored.slice(0, 3).map((x) => alertFor(x.b)).filter((a): a is SpotPulseAlert => a !== null);
+  const alerts = scored.slice(0, 3).map((x) => alertFor(x.b, tf)).filter((a): a is SpotPulseAlert => a !== null);
 
   const netSpotFlow = built.reduce((acc, b) => acc + b.spotCvdChange, 0);
 
+  // Aggregate 1h spot netflow across the tiles we actually rendered (§6).
+  let spotNetflow: number | null = null;
+  if (spotNet.length) {
+    const bySym = new Map(spotNet.map((n) => [n.symbol, Number(n.net_flow_usd_1h) || 0]));
+    const withData = built.filter((b) => bySym.has(b.tile.asset));
+    if (withData.length) {
+      spotNetflow = Math.round(withData.reduce((s, b) => s + (bySym.get(b.tile.asset) ?? 0), 0));
+    }
+  }
+
   return {
     tier,
-    timeframe: '4H',
+    timeframe: tf,
     marketVerdict,
     marketSentence: MARKET_SENTENCE[marketVerdict], // TODO(ai): LLM one-liner when an Anthropic key exists
     tiles,
@@ -140,6 +172,7 @@ export async function makeSpotPulseLive(tier: 'plus' | 'pro'): Promise<SpotPulse
       totalSpotVol24h: null, // per-asset spot volume needs spot/coins-markets (tier-locked)
       netSpotFlow: Math.round(netSpotFlow),
       divergenceCount: scored.length,
+      spotNetflow,
     },
     updatedAt: nowIso(),
   };

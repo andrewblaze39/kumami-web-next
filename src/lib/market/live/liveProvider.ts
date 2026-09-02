@@ -75,8 +75,8 @@ function makeLiveProvider(): MarketDataProvider {
       return live('intelligence', () => makeIntelligencePayloadLive(tier));
     },
 
-    async spotPulse(tier: 'free' | 'pro'): Promise<SpotPulsePayload> {
-      return live('spotPulse', () => makeSpotPulseLive(tier === 'pro' ? 'pro' : 'plus'));
+    async spotPulse(tier: 'free' | 'pro', timeframe: '4H' | '24H' | '7D'): Promise<SpotPulsePayload> {
+      return live('spotPulse', () => makeSpotPulseLive(tier === 'pro' ? 'pro' : 'plus', timeframe));
     },
   };
 }
