@@ -227,6 +227,7 @@ function ProSubnav({ onClose }: { onClose: () => void }) {
         <Link
           key={t.key}
           href={`/world/pro?tab=${t.key}`}
+          data-tour={`pro-${t.key}`}
           className={`w-nav-item${active === t.key ? ' active' : ''}`}
           aria-current={active === t.key ? 'page' : undefined}
           onClick={onClose}

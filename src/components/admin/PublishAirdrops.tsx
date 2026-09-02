@@ -6,6 +6,7 @@ import {
   collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, orderBy, query, serverTimestamp,
 } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
+import AdminPageTour, { proAdminTourSteps } from './AdminPageTour';
 
 /**
  * PublishAirdrops — admin authoring for the Pro dashboard's "Airdrops &
@@ -108,6 +109,7 @@ export default function PublishAirdrops() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
+      <div className="flex justify-end mb-2"><AdminPageTour steps={proAdminTourSteps('Airdrops & Whitelist', '/world/pro?tab=airdrops')} /></div>
       <h2 className="text-2xl font-bold text-gray-900 mb-1">Airdrops &amp; Whitelist</h2>
       <p className="text-gray-600 mb-6 text-sm">
         Curated drops and whitelist access shown on the Pro dashboard, each with an eligibility checklist.
@@ -162,10 +164,10 @@ export default function PublishAirdrops() {
         </div>
 
         <div className="md:col-span-2 flex gap-3">
-          <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400">
+          <button type="submit" data-tour="admin-publish" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400">
             {loading ? 'Saving…' : editingId ? 'Update & Publish' : 'Publish'}
           </button>
-          <button type="button" onClick={() => save('draft')} disabled={loading} className="px-4 py-2 bg-gray-200 text-gray-900 rounded-md hover:bg-gray-300 disabled:opacity-50">
+          <button type="button" data-tour="admin-draft" onClick={() => save('draft')} disabled={loading} className="px-4 py-2 bg-gray-200 text-gray-900 rounded-md hover:bg-gray-300 disabled:opacity-50">
             {editingId ? 'Save as Draft' : 'Save Draft'}
           </button>
           {editingId && <button type="button" onClick={resetForm} className="px-4 py-2 text-gray-600 hover:text-gray-900">Cancel edit</button>}
@@ -173,7 +175,7 @@ export default function PublishAirdrops() {
         {message && <p className={`md:col-span-2 text-sm ${message.startsWith('Error') ? 'text-red-600' : 'text-green-600'}`}>{message}</p>}
       </form>
 
-      <h3 className="text-lg font-semibold text-gray-900 mb-3">Existing entries ({items.length})</h3>
+      <h3 data-tour="admin-list" className="text-lg font-semibold text-gray-900 mb-3">Existing entries ({items.length})</h3>
       <div className="space-y-3">
         {items.length === 0 && <p className="text-gray-500 text-sm">No airdrops yet.</p>}
         {items.map((item) => (

@@ -189,6 +189,21 @@
 .w-pro-root .ma-card{background:var(--adv-surface);border:1px solid var(--adv-border);border-left:3px solid rgba(185,164,255,.55);border-radius:16px;padding:20px 22px;margin-bottom:16px}
 .w-pro-root .ma-role{font-size:12px;color:var(--muted-2)}
 .w-pro-root .rtn-drop{background:var(--adv-surface-2);border:1px solid var(--adv-border);border-radius:11px;padding:9px 13px;color:var(--text);font-family:inherit;font-weight:700;font-size:12.5px;cursor:pointer}
+
+/* Real-Time News — compact feed with a clear left timestamp column */
+.w-pro-root .rtn-list{display:flex;flex-direction:column;border:1px solid var(--adv-border);border-radius:14px;overflow:hidden;background:var(--adv-surface)}
+.w-pro-root .rtn-row{display:flex;gap:16px;padding:13px 16px;border-bottom:1px solid var(--grid-line)}
+.w-pro-root .rtn-row:last-child{border-bottom:none}
+.w-pro-root .rtn-row:hover{background:var(--adv-surface-2)}
+.w-pro-root .rtn-time{flex:0 0 54px;padding-top:1px}
+.w-pro-root .rtn-time b{display:block;font-size:14px;font-weight:800;letter-spacing:.02em;font-variant-numeric:tabular-nums;color:var(--text)}
+.w-pro-root .rtn-time span{display:block;font-size:10px;color:var(--muted-2);line-height:1.3;margin-top:3px}
+.w-pro-root .rtn-main{flex:1;min-width:0}
+.w-pro-root .rtn-title{display:flex;align-items:center;gap:8px;margin:0;font-size:15px;font-weight:800;line-height:1.3}
+.w-pro-root .rtn-title .t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.w-pro-root .rtn-dot{flex:none;width:7px;height:7px;border-radius:50%}
+.w-pro-root .rtn-sum{margin:4px 0 0;font-size:12.5px;color:var(--muted);line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;line-clamp:1;-webkit-box-orient:vertical}
+.w-pro-root .rtn-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .w-pro-root .ma-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .w-pro-root .ma-avatar{width:38px;height:38px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#06120d}
 .w-pro-root .ma-name{font-weight:800;font-size:14px}

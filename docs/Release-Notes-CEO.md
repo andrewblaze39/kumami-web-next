@@ -38,7 +38,11 @@ _Status: live and stable._
 
 **Also included:** AI Portfolio, Market Cap Comparison, Alpha Room, Market Analysis, Kuma AI Chat (existing tools, re-slotted).
 
-**Admin publishing system:** a new "Pro Dashboard" section in the Admin panel with a page per content type (create / edit / delete, publish or save-as-draft). Drafts never show to users; edits appear in real time.
+**Admin publishing system:** a new "Pro Dashboard" section in the Admin panel with a page per content type (create / edit / delete, publish or save-as-draft). Drafts never show to users; edits appear in real time. Each admin page — and the Pro dashboard itself — now has a **"Take a tour" guided walkthrough** so staff and users learn how to operate it.
+
+**Real-Time News** was redesigned into a compact, scannable feed with a prominent timestamp on every headline.
+
+**Safety:** live-event Q&A (which any signed-in user can post to) has **profanity filtering, link/spam blocking, length caps and rate limiting**, backed by database validation rules.
 
 **Security:** content is public-read/admin-write; personal data is private to each user; the whole thing is enforced by deployed database rules.
 
@@ -50,11 +54,7 @@ _Status: live and stable._
 - Smart Money Tracker · Coin/Token Tracker · Liquidation Heatmap · Security Scanner · Fear & Greed
 - Live prices on the Watchlist, and the smart-money/sentiment lines in the Daily Digest
 
-**In active development (this sprint):**
-- Real-Time News **visual redesign** (compact feed with a prominent timestamp)
-- **"Take a tour"** guided walkthroughs on the Pro tabs (matching the Plus tours)
-- **Guided tours on every Admin page** so the team learns how to operate each tool
-- **Q&A safety** on live events (profanity filter, spam/rate limits) before it's opened publicly
+_(No other work is mid-flight — the items previously listed here as "in development" — the Real-Time News redesign, the Pro & Admin guided tours, and live-event Q&A safety — have all shipped and are listed above.)_
 
 ---
 

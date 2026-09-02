@@ -6,6 +6,7 @@ import {
   collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, orderBy, query, serverTimestamp,
 } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
+import AdminPageTour, { proAdminTourSteps } from './AdminPageTour';
 
 /**
  * PublishRealTimeNews — admin authoring for the Pro dashboard's Real-Time News
@@ -21,13 +22,14 @@ const SENT_LABEL: Record<Sent, string> = { bull: 'Bullish', bear: 'Bearish', neu
 interface NewsDoc {
   id: string;
   title: string;
+  summary: string;
   sentiment: Sent;
   tags: string[];
   source: string;
   status: 'published' | 'draft';
 }
 
-const EMPTY = { title: '', sentiment: 'neutral' as Sent, tags: '', source: '' };
+const EMPTY = { title: '', summary: '', sentiment: 'neutral' as Sent, tags: '', source: '' };
 
 export default function PublishRealTimeNews() {
   const { currentUser } = useAuth();
@@ -55,7 +57,7 @@ export default function PublishRealTimeNews() {
     setLoading(true);
     try {
       const tags = form.tags.split(',').map((t) => t.trim()).filter(Boolean);
-      const payload = { title: form.title, sentiment: form.sentiment, tags, source: form.source, status };
+      const payload = { title: form.title, summary: form.summary, sentiment: form.sentiment, tags, source: form.source, status };
       if (editingId) {
         await updateDoc(doc(db, 'pro_news', editingId), { ...payload, updatedAt: serverTimestamp() });
         setMessage('Headline updated.');
@@ -71,7 +73,7 @@ export default function PublishRealTimeNews() {
 
   const startEdit = (item: NewsDoc) => {
     setEditingId(item.id);
-    setForm({ title: item.title, sentiment: item.sentiment, tags: (item.tags || []).join(', '), source: item.source || '' });
+    setForm({ title: item.title, summary: item.summary || '', sentiment: item.sentiment, tags: (item.tags || []).join(', '), source: item.source || '' });
     setMessage('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -91,6 +93,7 @@ export default function PublishRealTimeNews() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
+      <div className="flex justify-end mb-2"><AdminPageTour steps={proAdminTourSteps('Real-Time News', '/world/pro?tab=realtimenews')} /></div>
       <h2 className="text-2xl font-bold text-gray-900 mb-1">Real-Time News</h2>
       <p className="text-gray-600 mb-6 text-sm">Headlines shown on the Pro dashboard&apos;s Real-Time News tab, newest first.</p>
 
@@ -110,14 +113,18 @@ export default function PublishRealTimeNews() {
           <input className={inputCls} value={form.source} onChange={(e) => set('source', e.target.value)} placeholder="e.g. Reuters" />
         </div>
         <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">One-line summary (optional)</label>
+          <input className={inputCls} value={form.summary} onChange={(e) => set('summary', e.target.value)} placeholder="A short sentence shown under the headline." />
+        </div>
+        <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma-separated, optional)</label>
           <input className={inputCls} value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder="Important, Macro" />
         </div>
         <div className="md:col-span-2 flex gap-3">
-          <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400">
+          <button type="submit" data-tour="admin-publish" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400">
             {loading ? 'Saving…' : editingId ? 'Update & Publish' : 'Publish'}
           </button>
-          <button type="button" onClick={() => save('draft')} disabled={loading} className="px-4 py-2 bg-gray-200 text-gray-900 rounded-md hover:bg-gray-300 disabled:opacity-50">
+          <button type="button" data-tour="admin-draft" onClick={() => save('draft')} disabled={loading} className="px-4 py-2 bg-gray-200 text-gray-900 rounded-md hover:bg-gray-300 disabled:opacity-50">
             {editingId ? 'Save as Draft' : 'Save Draft'}
           </button>
           {editingId && <button type="button" onClick={resetForm} className="px-4 py-2 text-gray-600 hover:text-gray-900">Cancel edit</button>}
@@ -125,7 +132,7 @@ export default function PublishRealTimeNews() {
         {message && <p className={`md:col-span-2 text-sm ${message.startsWith('Error') ? 'text-red-600' : 'text-green-600'}`}>{message}</p>}
       </form>
 
-      <h3 className="text-lg font-semibold text-gray-900 mb-3">Headlines ({items.length})</h3>
+      <h3 data-tour="admin-list" className="text-lg font-semibold text-gray-900 mb-3">Headlines ({items.length})</h3>
       <div className="space-y-3">
         {items.length === 0 && <p className="text-gray-500 text-sm">No headlines yet.</p>}
         {items.map((item) => (

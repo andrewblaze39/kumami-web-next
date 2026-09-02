@@ -343,8 +343,17 @@ service cloud.firestore {
     // only admins can remove. Lives under the (admin-authored) pro_events doc.
     match /pro_events/{eventId}/questions/{questionId} {
       allow read: if true;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null;
+      // Signed-in users may ask; validate the payload (non-empty, capped length,
+      // starts at one vote) so the field can't be abused.
+      allow create: if request.auth != null
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() > 0
+                    && request.resource.data.text.size() <= 280
+                    && request.resource.data.votes == 1;
+      // Upvote only: the single allowed change is incrementing votes by exactly 1.
+      allow update: if request.auth != null
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votes'])
+                    && request.resource.data.votes == resource.data.votes + 1;
       allow delete: if isAdmin();
     }
 

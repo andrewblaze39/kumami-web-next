@@ -7,15 +7,21 @@ import { db } from '@/lib/firebase';
 import { ProShellHead } from './shared';
 
 const SENT_LABEL: Record<string, string> = { bull: 'Bullish', bear: 'Bearish', neutral: 'Neutral' };
-const SENT_CLS: Record<string, string> = { bull: 'green', bear: 'red', neutral: 'neutral' };
+const SENT_COLOR: Record<string, string> = { bull: 'var(--bull)', bear: 'var(--bear)', neutral: 'var(--muted-2)' };
 
 interface NewsItem {
   id: string;
   title: string;
+  summary?: string;
   sentiment: 'bull' | 'bear' | 'neutral';
   tags: string[];
   source: string;
   createdAt?: { seconds: number } | null;
+}
+
+function fmtClock(ts?: { seconds: number } | null): string {
+  if (!ts?.seconds) return '--:--';
+  return new Date(ts.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
 function timeAgo(ts?: { seconds: number } | null): string {
@@ -28,9 +34,9 @@ function timeAgo(ts?: { seconds: number } | null): string {
 }
 
 /**
- * Real-Time News — headlines with timestamp and sentiment, authored from
- * /admin/pro-news (`pro_news`, published only), newest first. An automated
- * news-API feed can later write into the same collection.
+ * Real-Time News — a compact scannable feed: a prominent left timestamp column
+ * (HH:MM + relative time) beside each headline, a one-line summary, and tags.
+ * Authored from /admin/pro-news (`pro_news`, published only), newest first.
  */
 export function RealTimeNews() {
   const [items, setItems] = useState<NewsItem[]>([]);
@@ -57,8 +63,8 @@ export function RealTimeNews() {
   return (
     <>
       <ProShellHead eyebrow="News & Signals" icon={<Newspaper size={24} />} title="Real-Time News">
-        Every headline that matters, stripped down to scan speed — timestamp and sentiment, nothing
-        else.
+        Every headline that matters, stripped down to scan speed — a clear timestamp, sentiment, and
+        nothing else in the way.
       </ProShellHead>
 
       {loading ? (
@@ -66,18 +72,32 @@ export function RealTimeNews() {
       ) : items.length === 0 ? (
         <div className="oc-empty">No headlines yet — check back soon.</div>
       ) : (
-        items.map((n) => (
-          <div className="apanel" style={{ padding: '18px 20px', marginBottom: 16 }} key={n.id}>
-            <h3 style={{ margin: '0 0 8px', fontSize: 16.5, fontWeight: 800, lineHeight: 1.35 }}>{n.title}</h3>
-            <div style={{ fontSize: 12, color: 'var(--muted-2)', marginBottom: 8 }}>
-              {timeAgo(n.createdAt)}{n.source ? ` · ${n.source}` : ''}
+        <div className="rtn-list">
+          {items.map((n) => (
+            <div className="rtn-row" key={n.id}>
+              <div className="rtn-time">
+                <b>{fmtClock(n.createdAt)}</b>
+                <span>{timeAgo(n.createdAt)}</span>
+              </div>
+              <div className="rtn-main">
+                <h3 className="rtn-title">
+                  <span className="rtn-dot" style={{ background: SENT_COLOR[n.sentiment] }} />
+                  <span className="t">{n.title}</span>
+                </h3>
+                {n.summary && <p className="rtn-sum">{n.summary}</p>}
+                <div className="rtn-tags">
+                  {(n.tags || []).map((t) => (
+                    <span className="oc-tag amber" key={t}>{t}</span>
+                  ))}
+                  <span className={`oc-tag ${n.sentiment === 'bull' ? 'green' : n.sentiment === 'bear' ? 'red' : 'neutral'}`}>
+                    {SENT_LABEL[n.sentiment]}
+                  </span>
+                  {n.source && <span className="oc-tag neutral">{n.source}</span>}
+                </div>
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {(n.tags || []).map((t) => <span className="oc-tag amber" key={t}>{t}</span>)}
-              <span className={`oc-tag ${SENT_CLS[n.sentiment]}`}>{SENT_LABEL[n.sentiment]}</span>
-            </div>
-          </div>
-        ))
+          ))}
+        </div>
       )}
     </>
   );

@@ -15,10 +15,11 @@
  * Non-premium users keep the existing teaser / whitelist page (ProTeaser).
  */
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Users, Layers, Flame, Shield, Gauge } from 'lucide-react';
+import { Users, Layers, Flame, Shield, Gauge, Compass } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import ProductTour, { type TourStep } from '@/components/world/ProductTour';
 import ProTeaser from './ProTeaser';
 import { ProStateProvider } from './ProState';
 import { ComingSoon } from './tabs/ComingSoon';
@@ -147,16 +148,54 @@ function TabContent({ active }: { active: TabKey }) {
   }
 }
 
+const PRO_TOUR_STEPS: TourStep[] = [
+  {
+    title: 'Welcome to Kumami Pro',
+    body: "Your premium command center — 18 tabs of curated intelligence, tools and live signals. Here's a 30-second tour of the essentials.",
+  },
+  {
+    selector: '[data-tour="pro-digest"]',
+    title: 'Daily Digest',
+    body: 'Your landing tab — a live roll-up of the newest research, news, events and airdrops across the whole dashboard, each linking through.',
+  },
+  {
+    selector: '[data-tour="pro-followhub"]',
+    title: 'Following & Alerts',
+    body: 'Build a price alert and it fires live — it arms at the current price and triggers the moment the market moves past your threshold.',
+  },
+  {
+    selector: '[data-tour="pro-research"]',
+    title: 'Curated content',
+    body: 'Kumami Research, Airdrops, Calendar and Real-Time News are maintained by our team and update here in real time.',
+  },
+  {
+    selector: '[data-tour="pro-events"]',
+    title: 'Events & Announcements',
+    body: 'Watch live sessions, catch replays, and ask questions in real time during a live event.',
+  },
+  {
+    title: "You're all set",
+    body: 'Explore the tabs on the left. The ones marked “coming soon” light up once the market-data feed is connected. You can retake this tour anytime.',
+  },
+];
+
 function WorldProInner() {
   const searchParams = useSearchParams();
   const raw = searchParams.get('tab');
   const active: TabKey = isTabKey(raw) ? raw : 'digest';
+  const [tourOpen, setTourOpen] = useState(false);
 
   return (
     <ProStateProvider>
       <div className="w-pro-root" style={{ color: '#fff' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          <button type="button" className="w-tour-trigger" onClick={() => setTourOpen(true)}>
+            <Compass size={14} /> Take a tour
+          </button>
+        </div>
         <TabContent active={active} />
       </div>
+      {tourOpen && <ProductTour steps={PRO_TOUR_STEPS} onClose={() => setTourOpen(false)} />}
     </ProStateProvider>
   );
 }

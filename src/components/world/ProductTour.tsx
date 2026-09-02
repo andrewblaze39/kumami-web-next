@@ -13,6 +13,7 @@
  */
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import './ProductTour.css';
 
 export type TourStep = {
   /** CSS selector for the element to spotlight. Omit for a centred card. */

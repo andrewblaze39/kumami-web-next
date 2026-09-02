@@ -7,6 +7,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useProState } from '../ProState';
+import { moderateQuestion, checkAndRecordRateLimit, MAX_QUESTION_LEN } from '@/lib/pro/moderation';
 import { ProShellHead } from './shared';
 
 interface ProEvent {
@@ -46,6 +47,7 @@ function LiveEvent({ event }: { event: ProEvent }) {
   const { hasVoted, markVoted } = useProState();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [draft, setDraft] = useState('');
+  const [err, setErr] = useState('');
 
   useEffect(() => {
     const q = query(collection(db, 'pro_events', event.id, 'questions'));
@@ -58,10 +60,16 @@ function LiveEvent({ event }: { event: ProEvent }) {
   }, [event.id]);
 
   const submit = async () => {
-    const text = draft.trim();
-    if (!text) return;
+    // Moderate (profanity/links/length) then rate-limit before writing.
+    const mod = moderateQuestion(draft);
+    if (!mod.ok) { setErr(mod.reason!); return; }
+    const rl = checkAndRecordRateLimit();
+    if (!rl.ok) { setErr(rl.reason!); return; }
+    setErr('');
     setDraft('');
-    await addDoc(collection(db, 'pro_events', event.id, 'questions'), { text, votes: 1, createdAt: serverTimestamp() });
+    await addDoc(collection(db, 'pro_events', event.id, 'questions'), {
+      text: mod.clean, votes: 1, createdAt: serverTimestamp(),
+    });
   };
 
   const upvote = async (qId: string) => {
@@ -86,14 +94,16 @@ function LiveEvent({ event }: { event: ProEvent }) {
         </div>
       )}
 
-      <div className="pro-search" style={{ maxWidth: 'none', marginBottom: 10 }}>
+      <div className="pro-search" style={{ maxWidth: 'none', marginBottom: err ? 4 : 10 }}>
         <input
           placeholder="Submit a question…"
           value={draft}
-          onChange={(e) => setDraft(e.target.value)}
+          maxLength={MAX_QUESTION_LEN}
+          onChange={(e) => { setDraft(e.target.value); if (err) setErr(''); }}
           onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
         />
       </div>
+      {err && <div style={{ fontSize: 12, color: 'var(--bear)', margin: '0 0 10px 2px' }}>{err}</div>}
 
       {questions.length === 0 ? (
         <div className="oc-empty" style={{ padding: '20px' }}>No questions yet — be the first to ask.</div>

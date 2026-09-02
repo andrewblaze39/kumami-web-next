@@ -3,6 +3,15 @@
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { Newspaper, BookOpen, GraduationCap, Cpu, FileText, Gamepad2, TrendingUp, Users, UserCog, Crown } from 'lucide-react';
+import AdminPageTour from '@/components/admin/AdminPageTour';
+import type { TourStep } from '@/components/world/ProductTour';
+
+const ADMIN_HOME_STEPS: TourStep[] = [
+  { title: 'Welcome to the Admin Dashboard', body: 'This is where the team publishes and manages everything users see. Here’s a quick orientation.' },
+  { selector: '[data-tour="admin-quicklinks"]', title: 'Quick Links', body: 'Jump straight to any publisher — News, Blog, Education, Research, and the new Pro Dashboard tools.' },
+  { selector: '[data-tour="ql-pro-research"]', title: 'Pro Dashboard content', body: 'The Crown-marked links manage the premium Pro dashboard tabs: Research, Airdrops, Calendar, Real-Time News and Events. Each page has its own “How to use this page” tour.' },
+  { title: 'Publish vs Draft', body: 'On every publisher: Publish makes content live to users immediately; Save as Draft keeps it hidden until you’re ready. Edit and Delete update or remove it in real time.' },
+];
 
 const quickLinks = [
   { href: '/admin/news', label: 'Publish News', icon: Newspaper },
@@ -38,18 +47,22 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
+      <div className="flex items-start justify-between gap-4">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
+        <AdminPageTour steps={ADMIN_HOME_STEPS} label="Take a tour" />
+      </div>
       <p className="text-gray-600 mb-8">
         Welcome back, <span className="font-medium">{currentUser?.email}</span>.
         You are logged in as <span className="font-semibold text-[#40e0d0]">{getRoleDisplay()}</span>.
       </p>
 
       <h2 className="text-xl font-semibold text-gray-800 mb-4">Quick Links</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div data-tour="admin-quicklinks" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {quickLinks.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
+            data-tour={href === '/admin/pro-research' ? 'ql-pro-research' : undefined}
             className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-[#40e0d0] transition-all no-underline text-gray-800"
           >
             <Icon size={20} className="text-[#40e0d0]" />
