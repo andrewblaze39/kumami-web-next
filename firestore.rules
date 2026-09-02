@@ -322,6 +322,32 @@ service cloud.firestore {
       }
     }
 
+    // Pro dashboard content collections (pro_research, pro_airdrops,
+    // pro_calendar, pro_events, ...). Admin-authored content shown on the Pro
+    // dashboard: public read of the authored docs, writes restricted to admins.
+    // Naming any new Pro collection `pro_*` means NO rules change is needed —
+    // this single rule covers it. (Per-user Pro state like follows/alerts lives
+    // under users/{uid}/... instead, covered by the users rules below.)
+    match /{proCollection}/{docId} {
+      allow read: if proCollection.matches('pro_.*');
+      allow create, update, delete: if proCollection.matches('pro_.*') && isAdmin();
+    }
+
+    // Per-user Pro dashboard state: follows, custom alerts, manual watchlist,
+    // and which event questions the user has upvoted. Only the owner can touch it.
+    match /users/{userId}/pro/{docId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Live-event audience Q&A. Any signed-in user can ask a question and upvote;
+    // only admins can remove. Lives under the (admin-authored) pro_events doc.
+    match /pro_events/{eventId}/questions/{questionId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if isAdmin();
+    }
+
     // Default deny-all rule (must come last)
     match /{document=**} {
       allow read, write: if false;

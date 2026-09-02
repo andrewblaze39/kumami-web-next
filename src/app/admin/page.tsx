@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
-import { Newspaper, BookOpen, GraduationCap, Cpu, FileText, Gamepad2, TrendingUp, Users, UserCog } from 'lucide-react';
+import { Newspaper, BookOpen, GraduationCap, Cpu, FileText, Gamepad2, TrendingUp, Users, UserCog, Crown } from 'lucide-react';
 
 const quickLinks = [
   { href: '/admin/news', label: 'Publish News', icon: Newspaper },
@@ -12,6 +12,11 @@ const quickLinks = [
   { href: '/admin/research', label: 'Publish Research', icon: FileText },
   { href: '/admin/games', label: 'Publish Games', icon: Gamepad2 },
   { href: '/admin/market-analysis', label: 'Market Analysis', icon: TrendingUp },
+  { href: '/admin/pro-research', label: 'Kumami Research (Pro)', icon: Crown },
+  { href: '/admin/pro-airdrops', label: 'Airdrops & Whitelist (Pro)', icon: Crown },
+  { href: '/admin/pro-calendar', label: 'Calendar (Pro)', icon: Crown },
+  { href: '/admin/pro-news', label: 'Real-Time News (Pro)', icon: Crown },
+  { href: '/admin/pro-events', label: 'Events & Announcements (Pro)', icon: Crown },
   { href: '/admin/homepage-partners', label: 'Manage Partners', icon: Users },
   { href: '/admin/role-management', label: 'Role Management', icon: UserCog },
 ];

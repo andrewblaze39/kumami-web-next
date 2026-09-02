@@ -394,12 +394,12 @@ export function PortfolioTab() {
               Total balance
             </div>
             <div
-              style={{ fontWeight: 800, color: '#fff', fontFamily: 'ui-monospace, Menlo, monospace', letterSpacing: '-0.02em', lineHeight: 1 }}
-              className="text-[28px] sm:text-[42px]"
+              style={{ fontWeight: 800, color: '#fff', fontFamily: 'ui-monospace, Menlo, monospace', letterSpacing: '-0.02em', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+              className="text-[clamp(18px,5.2vw,36px)]"
             >
               ${formattedInt}
               {fracPart !== '00' && (
-                <span className="text-[18px] sm:text-[24px]" style={{ opacity: 0.6 }}>.{fracPart}</span>
+                <span className="text-[0.65em]" style={{ opacity: 0.6 }}>.{fracPart}</span>
               )}
             </div>
             <div className="flex items-center gap-2 mt-2 flex-wrap" style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)' }}>

@@ -1,6 +1,6 @@
 # Kumami Web — Next.js (Active)
 
-> **This is the active app.** The original CRA project lives at `/Users/andrew/Documents/kumami-web` and is being sunset — it survives only as the source reference for the Pro Dashboard (already migrated here as the `/world/pro` tab) and the Admin panel. All user-facing product lives in the **Kumami World shell** in this repo.
+> **This is the active app.** The original CRA project lives at `/Users/andrew/Documents/kumami-web` and is fully sunset — it survives only as a historical source reference. Everything now lives in this repo: all user-facing product in the **Kumami World shell**, and the **Admin panel** at `/admin` (`src/app/admin`, components under `src/components/admin`). All internal/author/admin editing — including new Pro content types (airdrops, calendar events, KOL research calls, announcements) — is authored from this app's `/admin` panel.
 
 Crypto/Web3 education and news platform. Live at https://kumami.world. Accent color: turquoise `#00c2c7`.
 
@@ -130,7 +130,7 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 | Legacy route redirects into shell | ✅ Done |
 | Research/Blog article detail inside shell | ⏳ Pending — still standalone pages |
 | Market data — real provider (currently mock fixtures) | ⏳ Pending |
-| Admin panel | 🔒 Stays in CRA |
+| Admin panel | ✅ Migrated to this app at `/admin` |
 | Pro Dashboard (CRA original) | 🌅 Sunset — migrated to `/world/pro`; CRA copy kept as source reference |
 
 ## Firebase Firestore Collections

@@ -47,66 +47,122 @@ export default function AlphaRoom() {
     );
   }
 
+  const fmtTime = (ts?: { toDate: () => Date } | null) =>
+    ts?.toDate
+      ? new Date(ts.toDate()).toLocaleString([], {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : 'Just now';
+
   return (
     <div className="flex flex-col h-full text-gray-200">
       <div
-        className="flex-1 flex flex-col-reverse overflow-y-auto p-4 space-y-4 space-y-reverse"
-        style={{ maxHeight: 'calc(100vh - 200px)' }}
+        className="flex-1 flex flex-col-reverse overflow-y-auto"
+        style={{
+          maxHeight: 'calc(100vh - 200px)',
+          padding: '20px 18px',
+          gap: 14,
+          borderRadius: 16,
+          border: '1px solid rgba(120,200,170,.12)',
+          background:
+            'radial-gradient(circle at 20% 10%,rgba(185,164,255,.05),transparent 40%),radial-gradient(circle at 80% 90%,rgba(94,233,168,.04),transparent 40%),#0b1622',
+        }}
       >
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-gray-400">No messages yet. Check back later for updates.</p>
+          <div className="flex items-center justify-center h-full py-10">
+            <p style={{ color: '#8ea69c', fontSize: 13 }}>
+              No alpha yet — the room is quiet. Check back when the market moves.
+            </p>
           </div>
         ) : (
-          messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${msg.isSystem ? 'justify-center' : 'items-start'} space-x-3`}
-            >
-              {!msg.isSystem && (
-                <img
-                  src="/logo192.png"
-                  alt="Kumami Logo"
-                  className="h-8 w-8 rounded-full mt-1 flex-shrink-0"
-                />
-              )}
-              <div className={`flex-1 ${msg.isSystem ? 'text-center' : ''}`}>
-                {!msg.isSystem && (
-                  <div className="flex items-center space-x-2">
-                    <span className="font-semibold text-sm">{msg.user}</span>
-                    <span className="text-xs text-gray-400">
-                      {msg.timestamp?.toDate
-                        ? new Date(msg.timestamp.toDate()).toLocaleString([], {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })
-                        : 'Just now'}
+          messages.map((msg) =>
+            msg.isSystem ? (
+              <div key={msg.id} style={{ display: 'flex', justifyContent: 'center' }}>
+                <span
+                  style={{
+                    background: 'rgba(255,255,255,.06)',
+                    color: '#8ea69c',
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    padding: '5px 14px',
+                    borderRadius: 999,
+                  }}
+                >
+                  {msg.message}
+                </span>
+              </div>
+            ) : (
+              <div key={msg.id} style={{ display: 'flex', gap: 10, maxWidth: 560 }}>
+                <span
+                  style={{
+                    flex: 'none',
+                    width: 34,
+                    height: 34,
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg,#b9a4ff,#7c5cff)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <img src="/logo192.png" alt="Kumami" style={{ width: 22, height: 22 }} />
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <div
+                    style={{
+                      background: '#16222f',
+                      border: '1px solid rgba(255,255,255,.06)',
+                      borderRadius: '4px 16px 16px 16px',
+                      padding: '12px 14px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 12.5,
+                        fontWeight: 800,
+                        color: '#b9a4ff',
+                        marginBottom: 6,
+                      }}
+                    >
+                      {msg.user || 'Kumami Alpha'}
+                    </div>
+                    {msg.isImage ? (
+                      <img
+                        src={msg.message}
+                        alt="Shared content"
+                        style={{
+                          maxWidth: '100%',
+                          height: 'auto',
+                          borderRadius: 10,
+                          border: '1px solid rgba(255,255,255,.08)',
+                          marginBottom: 8,
+                        }}
+                      />
+                    ) : (
+                      <p style={{ margin: '0 0 8px', fontSize: 14, lineHeight: 1.5, color: '#f1f7f4' }}>
+                        {msg.message}
+                      </p>
+                    )}
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: '#5f786e',
+                        fontWeight: 600,
+                        display: 'block',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {fmtTime(msg.timestamp)}
                     </span>
                   </div>
-                )}
-                <div
-                  className={`mt-1 text-sm ${
-                    msg.isSystem
-                      ? 'bg-blue-500/10 text-blue-400 px-3 py-1 rounded-lg inline-block'
-                      : 'text-gray-200'
-                  }`}
-                >
-                  {msg.isImage ? (
-                    <img
-                      src={msg.message}
-                      alt="Shared content"
-                      className="max-w-full h-auto rounded-lg border border-gray-700"
-                    />
-                  ) : (
-                    msg.message
-                  )}
                 </div>
               </div>
-            </div>
-          ))
+            ),
+          )
         )}
         <div ref={messagesEndRef} className="pt-4" />
       </div>

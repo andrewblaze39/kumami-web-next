@@ -121,6 +121,16 @@ const Icons = {
       <path d="M17 3.5 20.5 7 8 19.5 3.5 20.5 4.5 16 17 3.5Z" /><path d="m14.5 6 3.5 3.5" />
     </svg>
   ),
+  clock: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.5 2" />
+    </svg>
+  ),
+  bell: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6" /><path d="M10 20a2 2 0 0 0 4 0" />
+    </svg>
+  ),
 };
 
 const BEGINNER_NAV: NavGroup[] = [
@@ -176,12 +186,26 @@ const ADV_NAV: NavGroup[] = [
 // are now direct nav items under Learn/Explore groups.
 
 // PRO subtabs (premium users) — keys must match ?tab= read by WorldProContent.
+// Content for each panel follows the Kumami World Pro reference design.
 const PRO_SUBTABS = [
+  { key: 'digest', label: 'Daily Digest', icon: Icons.doc },
+  { key: 'followhub', label: 'Following & Alerts', icon: Icons.bookmark },
+  { key: 'smartmoney', label: 'Smart Money Tracker', icon: Icons.users },
+  { key: 'tokentracker', label: 'Coin/Token Tracker', icon: Icons.layers },
+  { key: 'heatmap', label: 'Liquidation Heatmap', icon: Icons.layers },
+  { key: 'watchlist', label: 'Watchlist', icon: Icons.bookmark },
+  { key: 'scanner', label: 'Security Scanner', icon: Icons.shield },
+  { key: 'airdrops', label: 'Airdrops & Whitelist', icon: Icons.spark },
   { key: 'portfolio', label: 'AI Portfolio', icon: Icons.trophy },
+  { key: 'marketcap', label: 'Market Cap Comparison', icon: Icons.layers },
+  { key: 'realtimenews', label: 'Real-Time News', icon: Icons.news },
   { key: 'alpha', label: 'Alpha Room', icon: Icons.bolt },
+  { key: 'feargreed', label: 'Fear & Greed', icon: Icons.spark },
+  { key: 'research', label: 'Kumami Research', icon: Icons.doc },
+  { key: 'calendar', label: 'Calendar', icon: Icons.clock },
+  { key: 'events', label: 'Events & Announcements', icon: Icons.bell },
   { key: 'market', label: 'Market Analysis', icon: Icons.doc },
   { key: 'kumaai', label: 'Kuma AI Chat', icon: Icons.spark },
-  { key: 'marketcap', label: 'Market Cap Tool', icon: Icons.layers },
 ] as const;
 
 /**
@@ -194,7 +218,7 @@ function ProSubnav({ onClose }: { onClose: () => void }) {
   const searchParams = useSearchParams();
   const raw = searchParams.get('tab');
   const active = pathname === '/world/pro'
-    ? (PRO_SUBTABS.some(t => t.key === raw) ? raw : 'portfolio')
+    ? (PRO_SUBTABS.some(t => t.key === raw) ? raw : 'digest')
     : null;
 
   return (

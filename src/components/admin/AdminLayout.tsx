@@ -28,6 +28,7 @@ import {
   ShieldCheck,
   ChevronUp,
   ChevronDown,
+  Crown,
   type LucideIcon,
 } from 'lucide-react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -307,6 +308,14 @@ export default function AdminLayoutClient({ children }: { children: ReactNode })
 
               <SidebarSection title="Market Analysis" icon={TrendingUp} isCollapsed={isCollapsed} defaultOpen={checkActive('/admin/market-analysis')}>
                 <MarketAnalysisAdminMenu isCollapsed={isCollapsed} checkActive={checkActive} />
+              </SidebarSection>
+
+              <SidebarSection title="Pro Dashboard" icon={Crown} isCollapsed={isCollapsed} defaultOpen={checkActive('/admin/pro-')}>
+                <NavItem href="/admin/pro-research" icon={FileText} isCollapsed={isCollapsed} isActive={checkActive('/admin/pro-research')} badge={<DraftCounter collectionName="pro_research" />}>Kumami Research</NavItem>
+                <NavItem href="/admin/pro-airdrops" icon={PlusCircle} isCollapsed={isCollapsed} isActive={checkActive('/admin/pro-airdrops')} badge={<DraftCounter collectionName="pro_airdrops" />}>Airdrops &amp; Whitelist</NavItem>
+                <NavItem href="/admin/pro-calendar" icon={Map} isCollapsed={isCollapsed} isActive={checkActive('/admin/pro-calendar')} badge={<DraftCounter collectionName="pro_calendar" />}>Calendar</NavItem>
+                <NavItem href="/admin/pro-news" icon={Newspaper} isCollapsed={isCollapsed} isActive={checkActive('/admin/pro-news')} badge={<DraftCounter collectionName="pro_news" />}>Real-Time News</NavItem>
+                <NavItem href="/admin/pro-events" icon={Play} isCollapsed={isCollapsed} isActive={checkActive('/admin/pro-events')} badge={<DraftCounter collectionName="pro_events" statusField="pubStatus" />}>Events &amp; Announcements</NavItem>
               </SidebarSection>
 
               {!isCollapsed && (
