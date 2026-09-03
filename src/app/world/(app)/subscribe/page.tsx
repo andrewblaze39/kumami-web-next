@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Sparkles } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Coming Soon — Kumami World',
@@ -7,59 +8,76 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-/** /world/subscribe — Pro subscription "coming soon" page inside the shell. */
+// Pro brand accent (matches --pro in the Pro dashboard's ComingSoon panels).
+const PRO = '#b9a4ff';
+const PRO_SOFT = 'rgba(185, 164, 255, 0.16)';
+
+/**
+ * /world/subscribe — Pro subscription "coming soon" page inside the shell.
+ * Mirrors the Pro dashboard's ComingSoon card (Sparkles badge + "Coming soon"
+ * pill), so the Get-Kumami-Pro flow lands on the same branded placeholder.
+ */
 export default function WorldSubscribePage() {
   return (
     <div className="w-content-inner">
-      <div
-        style={{
-          minHeight: '60vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
+      <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div
           style={{
             background: 'var(--panel)',
             border: '1px solid var(--border-2)',
-            borderRadius: 18,
-            padding: '48px 32px',
+            borderRadius: 20,
+            padding: '52px 36px',
             textAlign: 'center',
             maxWidth: 560,
             width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 16,
           }}
         >
-          <div
+          <span
             style={{
-              width: 72,
-              height: 72,
-              borderRadius: 18,
-              margin: '0 auto 24px',
+              width: 60,
+              height: 60,
+              borderRadius: 16,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 34,
-              background: 'linear-gradient(135deg, #96EDD6, #40e0d0)',
+              background: PRO_SOFT,
+              color: PRO,
             }}
           >
-            🐻
-          </div>
-          <h1
+            <Sparkles size={28} />
+          </span>
+
+          <span
             style={{
-              margin: '0 0 12px',
-              fontSize: 'clamp(26px, 4vw, 38px)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '4px 12px',
+              borderRadius: 999,
+              background: PRO_SOFT,
+              color: PRO,
+              fontSize: 11.5,
               fontWeight: 800,
-              color: 'var(--accent)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
             }}
           >
-            Coming Soon
+            Coming soon
+          </span>
+
+          <h1 style={{ margin: 0, fontSize: 'clamp(24px, 4vw, 32px)', fontWeight: 800, color: 'var(--ink)' }}>
+            Kumami Pro
           </h1>
-          <p style={{ margin: '0 0 28px', color: 'var(--muted)', fontSize: 15, lineHeight: 1.6 }}>
-            Kumami Pro is almost here. We&apos;re putting the finishing touches on something
-            great. Stay tuned!
+
+          <p style={{ margin: 0, maxWidth: '46ch', color: 'var(--muted)', fontSize: 14, lineHeight: 1.6 }}>
+            Real-time alpha, smart-money tracking and exclusive access — all in one place. We&apos;re
+            putting the finishing touches on subscriptions; it lights up here the moment it&apos;s ready.
           </p>
-          <Link href="/world/news" className="w-btn w-btn-primary w-btn-lg">
+
+          <Link href="/world/news" className="w-btn w-btn-surface w-btn-lg" style={{ marginTop: 6 }}>
             Back to Home
           </Link>
         </div>
