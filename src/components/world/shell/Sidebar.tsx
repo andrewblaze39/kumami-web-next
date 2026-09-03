@@ -193,9 +193,10 @@ const PRO_SUBTABS = [
   { key: 'smartmoney', label: 'Smart Money Tracker', icon: Icons.users },
   { key: 'tokentracker', label: 'Coin/Token Tracker', icon: Icons.layers },
   { key: 'spotpulse', label: 'Spot Pulse', icon: Icons.layers },
-  { key: 'watchlist', label: 'Watchlist', icon: Icons.bookmark },
   { key: 'scanner', label: 'Security Scanner', icon: Icons.shield },
   { key: 'airdrops', label: 'Airdrops & Whitelist', icon: Icons.spark },
+  // NOTE: no Watchlist here — it's a Plus tool (/world/watchlist) that Pro
+  // users already see via the included Plus nav, so it isn't duplicated in Pro.
   { key: 'portfolio', label: 'AI Portfolio', icon: Icons.trophy },
   { key: 'marketcap', label: 'Market Cap Comparison', icon: Icons.layers },
   { key: 'realtimenews', label: 'Real-Time News', icon: Icons.news },

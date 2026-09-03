@@ -5,10 +5,10 @@
  *
  * Premium users (userData.isPremium OR role admin/superadmin) get the full Pro
  * dashboard: 18 tabs selected via the ?tab= query param (deep links like
- * /world/pro?tab=watchlist work), driven from the LEFT sidebar (see
+ * /world/pro?tab=research work), driven from the LEFT sidebar (see
  * shell/Sidebar.tsx PRO_SUBTABS). Tabs fall into three groups:
  *   - Group A (built here from the reference design, fixture-driven): digest,
- *     followhub, watchlist, airdrops, realtimenews, research, calendar, events.
+ *     followhub, airdrops, realtimenews, research, calendar, events.
  *   - Group B (data source still being wired — ComingSoon card): smartmoney,
  *     tokentracker, spotpulse, scanner, feargreed.
  *   - Existing components re-slotted: portfolio, alpha, market, kumaai, marketcap.
@@ -25,7 +25,6 @@ import { ProStateProvider } from './ProState';
 import { ComingSoon } from './tabs/ComingSoon';
 import { DailyDigest } from './tabs/DailyDigest';
 import { FollowingAlerts } from './tabs/FollowingAlerts';
-import { Watchlist } from './tabs/Watchlist';
 import { Airdrops } from './tabs/Airdrops';
 import { RealTimeNews } from './tabs/RealTimeNews';
 import { KumamiResearch } from './tabs/KumamiResearch';
@@ -39,7 +38,7 @@ import MarketCapTool from '@/components/MarketCapTool';
 import './pro.css';
 
 const TAB_KEYS = [
-  'digest', 'followhub', 'smartmoney', 'tokentracker', 'spotpulse', 'watchlist',
+  'digest', 'followhub', 'smartmoney', 'tokentracker', 'spotpulse',
   'scanner', 'airdrops', 'portfolio', 'marketcap', 'realtimenews', 'alpha',
   'feargreed', 'research', 'calendar', 'events', 'market', 'kumaai',
 ] as const;
@@ -56,8 +55,6 @@ function TabContent({ active }: { active: TabKey }) {
       return <DailyDigest />;
     case 'followhub':
       return <FollowingAlerts />;
-    case 'watchlist':
-      return <Watchlist />;
     case 'airdrops':
       return <Airdrops />;
     case 'realtimenews':
@@ -169,11 +166,6 @@ const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
   smartmoney: comingSoonTour('Smart Money Tracker', 'Track what known wallets, funds, and exchanges are buying or selling before the wider market catches on. Degen Mode also tracks early buyers of brand-new tokens.', 'on-chain analytics provider'),
   tokentracker: comingSoonTour('Coin/Token Tracker', 'Everything you need to understand a token in one screen — price, derivatives, charts, and newly launched trading pairs.', 'market-data provider'),
   spotpulse: comingSoonTour('Spot Pulse', 'See where actual buying and selling is happening. Compare spot and futures activity to tell whether a move is backed by real demand or speculation.', 'market-data feed'),
-  watchlist: [
-    { selector: HEAD, title: 'Watchlist', body: "Your personal list of tokens, automatically ranked by what's moving and changing today — so you know what deserves your attention." },
-    { selector: '[data-tour="wl-add"]', title: 'Add a ticker', body: 'Type a symbol (e.g. BTC) and press Add or Enter. Remove one with the ✕ on its row.' },
-    { title: 'Live prices', body: 'Prices show “—” for now; live prices and the automatic ranking arrive with the market-data feed.' },
-  ],
   scanner: comingSoonTour('Security Scanner', "Check a token's contract before you trade. Get a quick safety check to spot risks like honeypots and potential rugs.", 'security-data provider'),
   airdrops: [
     { selector: HEAD, title: 'Airdrops & Whitelist', body: "Keep track of airdrop eligibility, whitelist spots, and important deadlines so you don't miss an opportunity." },
