@@ -13,6 +13,8 @@ import { WIcon, coinC } from '@/components/world/panels/console-ui';
 import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
 import { formatPrice, formatChange } from '@/components/world/panels/format';
 import { useWorldMode } from '@/contexts/WorldModeContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useManualWatchlist } from '@/lib/pro/useManualWatchlist';
 import ProductTour, { type TourStep } from '@/components/world/ProductTour';
 import type { WatchlistApiResponse } from '@/lib/market/contracts';
 
@@ -88,6 +90,13 @@ function toRows(assets: WatchlistApiResponse['assets']): WatchRow[] {
 
 export default function WatchlistPage() {
   const { setMode } = useWorldMode();
+  const { userData } = useAuth();
+  // Pro users (or admins) can pin their own tokens; everyone gets the auto list.
+  const isPremium =
+    userData?.isPremium === true || userData?.role === 'admin' || userData?.role === 'superadmin';
+  const { manual, add, remove, ready: wlReady } = useManualWatchlist();
+  const [pin, setPin] = useState('');
+  const addPin = () => { add(pin); setPin(''); };
   const market = useMarketEndpoint<WatchlistApiResponse>('/api/market/watchlist');
   const bw = market.data ? toRows(market.data.assets) : [];
   const loading = market.status === 'loading';
@@ -180,47 +189,104 @@ export default function WatchlistPage() {
             </div>
           </div>
         ))}
-        <div className="w-wl-cap">
-          <span className="w-lk-sm">
-            <WIcon name="lock" />
-          </span>
-          <span>
-            Custom watchlists are a <b style={{ color: 'var(--purple)' }}>Pro</b> feature — pin any
-            token or wallet and set your own order.
-          </span>
-          <button
-            className="w-btn w-btn-pro w-btn-sm"
-            style={{ marginLeft: 'auto' }}
-            onClick={() => setMode('pro')}
-          >
-            <WIcon name="bolt" /> Customize with Pro
-          </button>
-        </div>
+        {!isPremium && (
+          <div className="w-wl-cap">
+            <span className="w-lk-sm">
+              <WIcon name="lock" />
+            </span>
+            <span>
+              Custom watchlists are a <b style={{ color: 'var(--purple)' }}>Pro</b> feature — pin any
+              token or wallet and set your own order.
+            </span>
+            <button
+              className="w-btn w-btn-pro w-btn-sm"
+              style={{ marginLeft: 'auto' }}
+              onClick={() => setMode('pro')}
+            >
+              <WIcon name="bolt" /> Customize with Pro
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* ── Locked alerts panel ── */}
-      <div className="w-apanel w-locked" data-tour="wl-alerts" style={{ marginTop: 16, minHeight: 120 }}>
-        <div className="w-lock-blur" style={{ padding: 20 }}>
-          <div className="w-apanel-h" style={{ padding: '0 0 14px', border: 'none' }}>
+      {/* ── Your pinned tokens (Pro capability) ── */}
+      {isPremium && (
+        <div className="w-wl-table" style={{ marginTop: 16 }}>
+          <div className="w-wl-flowbar">
+            <WIcon name="bookmark" />
+            <span>Your pinned tokens</span>
+            <span className="w-wl-auto" style={{ marginLeft: 'auto' }}>Pro</span>
+          </div>
+          <div style={{ display: 'flex', gap: 8, padding: '12px 16px', borderBottom: '1px solid var(--adv-border, rgba(255,255,255,.08))' }}>
+            <input
+              value={pin}
+              onChange={(e) => setPin(e.target.value.toUpperCase())}
+              onKeyDown={(e) => { if (e.key === 'Enter') addPin(); }}
+              placeholder="Add a ticker (e.g. BTC)"
+              style={{ flex: 1, background: 'var(--adv-surface-2, #142a22)', border: '1px solid var(--adv-border, rgba(255,255,255,.1))', borderRadius: 10, padding: '8px 12px', color: 'var(--text, #f1f7f4)', fontSize: 13, outline: 'none' }}
+            />
+            <button className="w-btn w-btn-pro w-btn-sm" onClick={addPin} disabled={!wlReady}>
+              <WIcon name="spark" /> Pin
+            </button>
+          </div>
+          {manual.length === 0 ? (
+            <div className="w-wl-trow"><div className="w-wl-asset w-muted">No pinned tokens yet — add one above.</div><div /><div /><div /></div>
+          ) : (
+            manual.map((sym) => (
+              <div key={sym} className="w-wl-trow">
+                <div className="w-wl-asset">
+                  <span className="w-coin" style={{ background: coinC(sym) }}>{sym[0]}</span>
+                  <span><b>{sym}</b><span>{COIN_NAME[sym] ?? 'Pinned by you'}</span></span>
+                </div>
+                <div /><div />
+                <div className="w-wl-acts">
+                  <button className="w-btn w-btn-sm" onClick={() => remove(sym)}>Remove</button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* ── Alerts panel — locked for Plus, links to Following & Alerts for Pro ── */}
+      {isPremium ? (
+        <div className="w-apanel" data-tour="wl-alerts" style={{ marginTop: 16, padding: 20 }}>
+          <div className="w-apanel-h" style={{ padding: '0 0 12px', border: 'none' }}>
             <span className="w-ttl">
-              <span className="w-ic">
-                <WIcon name="shield" />
-              </span>{' '}
-              Price &amp; whale alerts
+              <span className="w-ic"><WIcon name="shield" /></span> Price &amp; whale alerts
             </span>
           </div>
-          <p className="w-muted" style={{ fontSize: 13, margin: 0 }}>
-            Get pushed the moment a tracked asset moves or a watched wallet acts.
+          <p className="w-muted" style={{ fontSize: 13, margin: '0 0 12px' }}>
+            Set live alerts on any asset — they fire the moment the price moves past your threshold.
           </p>
+          <a className="w-btn w-btn-pro w-btn-sm" href="/world/pro?tab=followhub">
+            <WIcon name="bolt" /> Open Following &amp; Alerts
+          </a>
         </div>
-        <div className="w-lock-veil">
-          <span className="w-lk">
-            <WIcon name="lock" />
-          </span>
-          <b>Alerts are a Pro feature</b>
-          <span>Real-time alerts on major market moves</span>
+      ) : (
+        <div className="w-apanel w-locked" data-tour="wl-alerts" style={{ marginTop: 16, minHeight: 120 }}>
+          <div className="w-lock-blur" style={{ padding: 20 }}>
+            <div className="w-apanel-h" style={{ padding: '0 0 14px', border: 'none' }}>
+              <span className="w-ttl">
+                <span className="w-ic">
+                  <WIcon name="shield" />
+                </span>{' '}
+                Price &amp; whale alerts
+              </span>
+            </div>
+            <p className="w-muted" style={{ fontSize: 13, margin: 0 }}>
+              Get pushed the moment a tracked asset moves or a watched wallet acts.
+            </p>
+          </div>
+          <div className="w-lock-veil">
+            <span className="w-lk">
+              <WIcon name="lock" />
+            </span>
+            <b>Alerts are a Pro feature</b>
+            <span>Real-time alerts on major market moves</span>
+          </div>
         </div>
-      </div>
+      )}
 
       {tourOpen && <ProductTour steps={WATCHLIST_TOUR} onClose={closeTour} />}
     </div>
