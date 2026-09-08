@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, ADMIN_ONLY_LOGIN_MESSAGE } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { updateProfile } from 'firebase/auth';
 import { isSafeInternalPath } from '@/lib/safeInternalPath';
@@ -278,6 +278,8 @@ export function LogInModal({ onClose, onSwitchToSignUp }: LogInModalProps) {
       else if (code === 'auth/wrong-password') setError('Incorrect password.');
       else if (code === 'auth/too-many-requests')
         setError('Too many attempts. Please try again later.');
+      else if ((err as Error).message === ADMIN_ONLY_LOGIN_MESSAGE)
+        setError(ADMIN_ONLY_LOGIN_MESSAGE);
       else if ((err as Error).message?.includes('verify your email'))
         setError('Please verify your email before logging in.');
       else setError('Unable to sign in. Please try again.');

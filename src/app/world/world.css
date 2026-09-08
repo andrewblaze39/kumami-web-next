@@ -448,6 +448,27 @@
   font-size: 13.5px;
   margin-bottom: 14px;
 }
+.world-root .w-gate-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  max-width: 480px;
+  margin: 0 auto 20px;
+}
+.world-root .w-gate-banner-x {
+  background: none;
+  border: none;
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.world-root .w-gate-banner-x:hover {
+  opacity: 1;
+}
 
 /* ============================================================
    APP SHELL — sidebar, topbar, mode toggle, kuma dock

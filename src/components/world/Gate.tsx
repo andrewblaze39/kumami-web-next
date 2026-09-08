@@ -2,17 +2,32 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { useAuth } from '@/contexts/AuthContext';
 import { SignUpModal, LogInModal } from './AuthModals';
 
 type Modal = 'signup' | 'login' | null;
 
 export default function Gate() {
   const [modal, setModal] = useState<Modal>(null);
+  const { adminOnlyBlockedMessage, clearAdminOnlyBlockedMessage } = useAuth();
 
   return (
     <>
       {/* ── Gate hero ── */}
       <div className="w-gate">
+        {adminOnlyBlockedMessage && (
+          <div className="w-error w-gate-banner">
+            <span>{adminOnlyBlockedMessage}</span>
+            <button
+              className="w-gate-banner-x"
+              onClick={clearAdminOnlyBlockedMessage}
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* Logo */}
         <span className="w-gate-logo">
           <Image
