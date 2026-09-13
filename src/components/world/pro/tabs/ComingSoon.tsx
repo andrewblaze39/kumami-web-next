@@ -15,11 +15,16 @@ export function ComingSoon({
   icon,
   title,
   description,
+  action,
 }: {
   eyebrow: string;
   icon: ReactNode;
   title: string;
   description: string;
+  /** Optional extra content below the description — e.g. a link to a live
+   * equivalent elsewhere in the app, so this placeholder doesn't read as the
+   * only place the feature could possibly live. */
+  action?: ReactNode;
 }) {
   return (
     <>
@@ -59,6 +64,7 @@ export function ComingSoon({
         <p style={{ margin: 0, maxWidth: '52ch', color: 'var(--muted)', fontSize: 13.5, lineHeight: 1.6 }}>
           {description}
         </p>
+        {action}
       </div>
     </>
   );

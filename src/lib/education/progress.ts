@@ -141,19 +141,15 @@ export async function defaultSetDoc(
 }
 
 /**
- * Default injectable for I4: resolves actual part IDs from the seeded course doc.
- * Falls back to journeyData lesson IDs (via returning null) when db is unavailable.
+ * Default injectable for I4: previously resolved part IDs from a seeded
+ * `courses/{courseId}` doc, with journeyData lesson IDs as the fallback. That
+ * course-doc reader (CoursePage/ChapterReader) was never linked from the live
+ * Education tab and had no admin tooling authoring the collection, so it was
+ * removed as dead code — this always takes the journeyData fallback now,
+ * which is what every real request already resolved to in practice.
  */
-export async function defaultGetCoursePartIds(courseId: string): Promise<string[] | null> {
-  try {
-    // Dynamically import to keep this module server-only and avoid circular deps at test time
-    const { getCourseDoc } = await import('./courses');
-    const doc = await getCourseDoc(courseId);
-    if (!doc) return null;
-    return doc.chapters.flatMap(ch => ch.parts.map(p => p.id));
-  } catch {
-    return null;
-  }
+export async function defaultGetCoursePartIds(_courseId: string): Promise<string[] | null> {
+  return null;
 }
 
 // ---------- Validation ----------

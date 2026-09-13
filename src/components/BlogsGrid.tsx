@@ -113,7 +113,7 @@ export default function BlogsGrid() {
       <div className="min-h-screen bg-[#101010] text-white pt-28 pb-8 px-5">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-2">
-            <h1 className="text-4xl lg:text-5xl font-bold m-0">Our Journey</h1>
+            <h1 className="text-4xl lg:text-5xl font-bold m-0">Blogs</h1>
           </div>
           <div className="flex items-center justify-center py-20">
             <Loader className="animate-spin text-[#40e0d0]" size={40} />
@@ -128,7 +128,7 @@ export default function BlogsGrid() {
       <div className="max-w-6xl mx-auto px-4 relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl lg:text-5xl font-bold m-0">Our Journey</h1>
+          <h1 className="text-4xl lg:text-5xl font-bold m-0">Blogs</h1>
         </div>
 
         {/* Toolbar: categories + search */}

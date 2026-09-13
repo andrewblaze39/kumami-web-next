@@ -494,12 +494,6 @@ export default function MarketAnalysis() {
           {/* Footer */}
           <div className="mt-auto flex items-center justify-between gap-2 border-t border-white/[0.08] pt-3">
             <AuthorChip name={item.author} ts={item.timestamp} />
-            <button
-              className="cursor-pointer rounded-[10px] border-none px-4 py-2 text-xs font-extrabold transition-opacity hover:opacity-90"
-              style={{ background: '#96EDD6', color: '#0a0a0f' }}
-            >
-              Read full →
-            </button>
           </div>
         </div>
       </div>

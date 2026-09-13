@@ -12,14 +12,51 @@
  * has already scoped the event list before it reaches the client.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { FlowEvent, FlowRadarPayload } from '@/lib/market/contracts';
 import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatUsd, relativeTime } from '@/components/world/panels/format';
 import { WIcon, CoinBadge } from '@/components/world/panels/console-ui';
+import ProductTour, { type TourStep } from '@/components/world/ProductTour';
 
 type Payload = FlowRadarPayload & { delayed?: boolean; delayMinutes?: number };
+
+const FLOW_RADAR_TOUR: TourStep[] = [
+  {
+    title: 'Where big money moves first 👋',
+    body: "Whale transfers, exchange flow, liquidation spikes and smart-money positions — a live feed of the events that tend to move price before the headlines catch up. Quick tour? Leave anytime.",
+  },
+  {
+    selector: '[data-tour="fr-types"]',
+    title: 'Four event types',
+    body: 'Whale Transfer (a large wallet moving on-chain), Exchange Flow (net direction in/out of exchanges), Liquidation Spike (forced closures), and Smart Money (large Hyperliquid positions).',
+  },
+  {
+    selector: '[data-tour="fr-assets"]',
+    title: 'Filter by asset',
+    body: 'Narrow to one asset, or leave it on All. Plus is scoped to 5 majors; Pro searches and multi-selects across the full tracked universe.',
+  },
+  {
+    selector: '[data-tour="fr-severity"]',
+    title: 'HIGH / MED / LOW severity',
+    body: 'Each event type has its own dollar thresholds for what counts as HIGH vs MED. LOW-severity events are Pro-only — Plus filters them out to keep the feed focused on what matters.',
+  },
+  {
+    selector: '[data-tour="fr-verdict"]',
+    title: 'The market verdict band',
+    body: 'A one-line read on the whole visible window — Distribution Wave, Broad Accumulation, Liquidation Cascade, Mixed, or Quiet — computed from the bullish/bearish split of events you can see.',
+  },
+  {
+    selector: '[data-tour="fr-feed"]',
+    title: 'Reading a row',
+    body: 'The arrow icon shows bullish (→) vs bearish (⚡) lean, the badge shows severity, and the dollar amount is signed to match. On Pro, a green "+ Regime shift confirming" tag appears when a whale outflow lines up with Fear & Greed reading Fear.',
+  },
+  {
+    title: "That's Flow Radar 🎉",
+    body: 'Replay this anytime with the "Take a tour" button. Explore the rest of the tools from the sidebar.',
+  },
+];
 
 const EVENT_TYPES: { key: FlowEvent['type']; label: string; dot: string }[] = [
   { key: 'whale_transfer', label: 'Whale Transfer', dot: '#46e3a0' },
@@ -84,6 +121,22 @@ export default function FlowRadarPage() {
   const [severities, setSeverities] = useState<Set<FlowEvent['severity']>>(new Set(SEVERITIES));
   const [timeframe, setTimeframe] = useState<Timeframe>('24H');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [tourOpen, setTourOpen] = useState(false);
+
+  // Auto-open once for first-time visitors.
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem('kumami_tour_flow_radar_seen')) {
+        const t = setTimeout(() => setTourOpen(true), 700);
+        return () => clearTimeout(t);
+      }
+    } catch { /* localStorage unavailable — skip auto-open */ }
+  }, []);
+
+  const closeTour = () => {
+    setTourOpen(false);
+    try { localStorage.setItem('kumami_tour_flow_radar_seen', '1'); } catch { /* ignore */ }
+  };
 
   const toggleType = (key: FlowEvent['type']) => {
     setVisibleCount(PAGE_SIZE);
@@ -148,11 +201,20 @@ export default function FlowRadarPage() {
               <WIcon name="flame" /> Flow Radar
             </h1>
             <p className="w-oc-sub">Where big money is moving — right now</p>
+            <button type="button" className="w-tour-trigger" onClick={() => setTourOpen(true)} style={{ marginTop: 10 }}>
+              <WIcon name="spark" /> Take a tour
+            </button>
           </div>
           <div className="w-oc-controls">
-            <span className="w-adv-updated">
-              <span className="w-live-dot" /> Live
-            </span>
+            {data?.delayed ? (
+              <span className="w-adv-updated" title="Free tier — upgrade for real-time delivery">
+                <WIcon name="clock" /> Delayed {data.delayMinutes ?? 30}m
+              </span>
+            ) : (
+              <span className="w-adv-updated">
+                <span className="w-live-dot" /> Live
+              </span>
+            )}
             <div className="w-flow-radar-timeframe">
               {(isPremium ? PRO_TIMEFRAMES : TIMEFRAMES).map((tf) => (
                 <button
@@ -169,7 +231,7 @@ export default function FlowRadarPage() {
       </div>
 
       <div className="w-flow-radar-filters">
-        <div className="w-flow-radar-chip-row">
+        <div className="w-flow-radar-chip-row" data-tour="fr-types">
           {EVENT_TYPES.map((t) => (
             <button
               key={t.key}
@@ -182,7 +244,7 @@ export default function FlowRadarPage() {
           ))}
         </div>
         {isPremium ? (
-          <div className="w-flow-radar-pro-assets">
+          <div className="w-flow-radar-pro-assets" data-tour="fr-assets">
             <input
               type="text"
               className="w-flow-radar-asset-search"
@@ -204,7 +266,7 @@ export default function FlowRadarPage() {
             </div>
           </div>
         ) : (
-          <div className="w-oc-asset-tabs">
+          <div className="w-oc-asset-tabs" data-tour="fr-assets">
             {ASSETS.map((a) => (
               <button
                 key={a}
@@ -220,7 +282,7 @@ export default function FlowRadarPage() {
             ))}
           </div>
         )}
-        <div className="w-flow-radar-chip-row">
+        <div className="w-flow-radar-chip-row" data-tour="fr-severity">
           {(isPremium ? PRO_SEVERITIES : SEVERITIES).map((sev) => (
             <button
               key={sev}
@@ -237,7 +299,7 @@ export default function FlowRadarPage() {
         <div className="w-panel-skeleton w-panel-skeleton-list" aria-busy="true" style={{ minHeight: 220 }} />
       ) : data ? (
         <>
-          <div className={`w-flow-radar-verdict w-flow-radar-verdict-${data.verdict.color}`}>
+          <div className={`w-flow-radar-verdict w-flow-radar-verdict-${data.verdict.color}`} data-tour="fr-verdict">
             <div>
               <span className={`w-flow-radar-verdict-label ${VERDICT_TONE[data.verdict.color] ?? 'w-muted'}`}>
                 <WIcon name="bolt" /> {data.verdict.label}
@@ -247,7 +309,7 @@ export default function FlowRadarPage() {
             <div className="w-flow-radar-verdict-stat">{data.statLine}</div>
           </div>
 
-          <section className="w-apanel" aria-label="Flow Radar live feed">
+          <section className="w-apanel" aria-label="Flow Radar live feed" data-tour="fr-feed">
             <div className="w-apanel-h">
               <span className="w-ttl">Live feed</span>
               <span className="w-sub">{filtered.length} events · {timeframe}</span>
@@ -315,13 +377,15 @@ export default function FlowRadarPage() {
               {isPremium ? `${data.footer.assets.length} tracked assets` : 'BTC / ETH / SOL / BNB / HYPE'}
             </span>
             {!isPremium && (
-              <span className="w-flow-radar-pro-nudge">See events on 100+ assets + push alerts → Pro</span>
+              <span className="w-flow-radar-pro-nudge">See events on 100+ assets, every severity → Pro</span>
             )}
           </div>
         </>
       ) : (
         <p className="w-panel-empty">Couldn&apos;t load Flow Radar right now.</p>
       )}
+
+      {tourOpen && <ProductTour steps={FLOW_RADAR_TOUR} onClose={closeTour} />}
     </div>
   );
 }

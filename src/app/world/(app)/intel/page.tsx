@@ -218,7 +218,7 @@ export default function IntelPage() {
             >
               <div className="w-il-badges">
                 <span className="w-tag-badge w-tag-adv">
-                  <WIcon name="star" /> Advanced
+                  <WIcon name="star" /> Plus
                 </span>
                 <span
                   className={`w-tier w-tier-${lead.tier}`}
@@ -241,9 +241,6 @@ export default function IntelPage() {
                 <span className="w-dot-sep" />
                 <span>{lead.time} ago</span>
                 <Tokens tokens={lead.tokens} />
-                <span className="w-adv-link" style={{ margin: 0 }}>
-                  <WIcon name="arrowR" /> Read source
-                </span>
               </div>
             </div>
           </div>

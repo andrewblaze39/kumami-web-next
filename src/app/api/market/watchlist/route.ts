@@ -6,12 +6,12 @@
  *     slots: number,                      // free=5, pro=Infinity (null in JSON)
  *     assets: WatchlistAsset[],           // radar watchlist (auto-detected, capped to slots)
  *     curatedSymbols: string[],           // user's curated symbol list
- *     curatedAssets: WatchlistAsset[],    // market rows for curated symbols (mock data)
+ *     curatedAssets: WatchlistAsset[],    // live rows for curated symbols (price/24h/tags)
  *   }
  *   The `slots` field serializes as null for Infinity (pro unlimited). UI reads
- *   `slots === null` as unlimited. curatedAssets reuses mock rows by symbol; if
- *   the mock radar watchlist doesn't include a curated symbol its row is
- *   generated from the full WatchlistPayload mock keyed by symbol.
+ *   `slots === null` as unlimited. curatedAssets is built directly per curated
+ *   symbol (not looked up from the auto-radar's fixed list) so every symbol a
+ *   user pins gets real live data, even ones outside the auto-radar's set.
  *
  * POST { symbol: string } — Add symbol to curated watchlist.
  *   Returns 200 { symbols: string[] } on success.
@@ -31,6 +31,7 @@ import { getProvider } from '@/lib/market/provider';
 import { getCachedFresh } from '@/lib/market/cache';
 import { watchlistSlots } from '@/lib/market/gating';
 import type { WatchlistApiResponse } from '@/lib/market/contracts';
+import { buildAsset } from '@/lib/market/live/watchlist';
 import {
   getCuratedSymbols,
   addSymbol,
@@ -67,13 +68,14 @@ export async function GET(request: Request) {
   // Curated symbols — always fresh (user edits must reflect immediately)
   const curatedSymbols = await getCuratedSymbols(uid);
 
-  // Build market rows for curated symbols. Re-use rows from the cached
-  // full payload (which covers all 10 assets) keyed by symbol.
-  const allBySymbol = new Map(fullPayload.assets.map(a => [a.asset, a]));
-
-  const curatedAssets = curatedSymbols
-    .map(sym => allBySymbol.get(sym))
-    .filter(Boolean);
+  // Build a real market row per curated symbol directly (not a lookup against
+  // the auto-radar's fixed 10-symbol list) — the pin allowlist (ALLOWED_SYMBOLS
+  // in userWatchlist.ts) isn't identical to that list, so a lookup silently
+  // dropped pinned symbols like ARB/APT that aren't in the auto-radar set.
+  // buildAsset's own CoinGlass calls are cached individually, so this is cheap.
+  const curatedAssets = (
+    await Promise.all(curatedSymbols.map(sym => buildAsset(sym).catch(() => null)))
+  ).filter((a): a is WatchlistApiResponse['curatedAssets'][number] => a !== null);
 
   const body: WatchlistApiResponse = {
     slots: serialiseSlots(slots),

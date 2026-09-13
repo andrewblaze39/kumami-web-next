@@ -1466,6 +1466,16 @@
   .world-root .w-kuma-side.open {
     bottom: 0;
     z-index: 90;
+    /* Full-bleed on phones — the 92vw desktop cap left a sliver of the page
+       (and the bottom tab bar) visible beside the panel. */
+    width: 100vw;
+    max-width: 100vw;
+  }
+  /* !important: KumaDock.tsx sets an inline width style from the saved
+     desktop resize preference — it must lose to the mobile full-bleed rule. */
+  .world-root .w-kuma-inner {
+    width: 100vw !important;
+    max-width: 100vw;
   }
   .world-root .w-kuma-drag-handle {
     display: none;
@@ -1568,6 +1578,9 @@
     height: 100dvh;
     transform: translateX(-100%);
     transition: 0.25s;
+    /* Above the mobile bottom tab bar (z-index 50) so the drawer's profile/
+       logout footer isn't clipped when both are visible on a phone. */
+    z-index: 60;
   }
   .world-root .w-sidebar.open {
     transform: none;

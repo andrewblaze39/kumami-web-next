@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { getBlogById, getLatestBlogs } from '@/lib/blogs';
+import GatedArticleBody from '@/components/world/news/GatedArticleBody';
 
 export const dynamic = 'force-dynamic';
 
@@ -327,42 +328,44 @@ export default async function WorldBlogDetailPage({ params }: PageProps) {
             </p>
           )}
 
-          {/* Content section 1 */}
-          {bodyOneHtml && (
-            <div
-              style={{ fontSize: '15px', lineHeight: 1.75, maxWidth: '680px' }}
-              dangerouslySetInnerHTML={{ __html: bodyOneHtml }}
-            />
-          )}
-
-          {/* Second (detail) image between sections */}
-          {post.detailImage2Url && (
-            <div
-              style={{
-                width: '100%',
-                maxWidth: '680px',
-                margin: '24px 0',
-                borderRadius: '14px',
-                overflow: 'hidden',
-                background: 'var(--panel-2)',
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={post.detailImage2Url}
-                alt={post.title ?? 'Blog detail'}
-                style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
+          {/* Content — gated for non-premium viewers when isPremium is set */}
+          <GatedArticleBody locked={!!post.isPremium} gateLabel="Premium Article">
+            {bodyOneHtml && (
+              <div
+                style={{ fontSize: '15px', lineHeight: 1.75, maxWidth: '680px' }}
+                dangerouslySetInnerHTML={{ __html: bodyOneHtml }}
               />
-            </div>
-          )}
+            )}
 
-          {/* Content section 2 */}
-          {bodyTwoHtml && (
-            <div
-              style={{ fontSize: '15px', lineHeight: 1.75, maxWidth: '680px' }}
-              dangerouslySetInnerHTML={{ __html: bodyTwoHtml }}
-            />
-          )}
+            {/* Second (detail) image between sections */}
+            {post.detailImage2Url && (
+              <div
+                style={{
+                  width: '100%',
+                  maxWidth: '680px',
+                  margin: '24px 0',
+                  borderRadius: '14px',
+                  overflow: 'hidden',
+                  background: 'var(--panel-2)',
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={post.detailImage2Url}
+                  alt={post.title ?? 'Blog detail'}
+                  style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
+                />
+              </div>
+            )}
+
+            {/* Content section 2 */}
+            {bodyTwoHtml && (
+              <div
+                style={{ fontSize: '15px', lineHeight: 1.75, maxWidth: '680px' }}
+                dangerouslySetInnerHTML={{ __html: bodyTwoHtml }}
+              />
+            )}
+          </GatedArticleBody>
         </article>
 
         {/* ── Related sidebar ── */}

@@ -333,9 +333,6 @@ export default function OnChainPage() {
                 </button>
               ))}
             </span>
-            <span className="w-oc-delay">
-              <WIcon name="clock" /> <b>Data delayed 15 min</b> · Upgrade to Pro for real-time
-            </span>
           </div>
         </div>
       </div>

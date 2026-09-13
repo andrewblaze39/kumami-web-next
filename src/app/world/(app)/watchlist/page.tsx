@@ -17,7 +17,6 @@ import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
 import { formatPrice, formatChange } from '@/components/world/panels/format';
 import { useWorldMode } from '@/contexts/WorldModeContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useManualWatchlist } from '@/lib/pro/useManualWatchlist';
 import ProductTour, { type TourStep } from '@/components/world/ProductTour';
 import type { WatchlistApiResponse } from '@/lib/market/contracts';
 
@@ -39,7 +38,7 @@ const WATCHLIST_TOUR: TourStep[] = [
   {
     selector: '[data-tour="wl-alerts"]',
     title: 'Alerts are a Pro upgrade',
-    body: 'Pin your own tokens, set a custom order, and get pushed the moment a tracked asset moves or a watched wallet acts — all part of Pro.',
+    body: 'Pin your own tokens, set a custom order, and get an in-app alert the moment a tracked asset crosses your threshold — all part of Pro.',
   },
   {
     title: "That's your Watchlist 🎉",
@@ -93,17 +92,58 @@ function toRows(assets: WatchlistApiResponse['assets']): WatchRow[] {
 
 export default function WatchlistPage() {
   const { setMode } = useWorldMode();
-  const { userData } = useAuth();
+  const { userData, currentUser } = useAuth();
   // Pro users (or admins) can pin their own tokens; everyone gets the auto list.
   const isPremium =
     userData?.isPremium === true || userData?.role === 'admin' || userData?.role === 'superadmin';
-  const { manual, add, remove, ready: wlReady } = useManualWatchlist();
-  const [pin, setPin] = useState('');
-  const addPin = () => { add(pin); setPin(''); };
   const market = useMarketEndpoint<WatchlistApiResponse>('/api/market/watchlist');
   const bw = market.data ? toRows(market.data.assets) : [];
+  const pinnedRows = market.data ? toRows(market.data.curatedAssets) : [];
   const loading = market.status === 'loading';
   const [tourOpen, setTourOpen] = useState(false);
+
+  const [pin, setPin] = useState('');
+  const [pinBusy, setPinBusy] = useState(false);
+  const [pinError, setPinError] = useState<string | null>(null);
+
+  const callWatchlist = async (method: 'POST' | 'DELETE', symbol: string) => {
+    if (!currentUser) return;
+    setPinBusy(true);
+    setPinError(null);
+    try {
+      const token = await currentUser.getIdToken();
+      const res = await fetch('/api/market/watchlist', {
+        method,
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        setPinError(
+          body?.error === 'slots_exceeded'
+            ? 'Your watchlist is full.'
+            : body?.error === 'invalid_symbol'
+            ? `"${symbol}" isn't a supported ticker yet.`
+            : 'Something went wrong — try again.',
+        );
+        return;
+      }
+      market.refetch();
+    } catch {
+      setPinError('Something went wrong — try again.');
+    } finally {
+      setPinBusy(false);
+    }
+  };
+
+  const addPin = () => {
+    const symbol = pin.trim().toUpperCase();
+    if (!symbol) return;
+    setPin('');
+    void callWatchlist('POST', symbol);
+  };
+
+  const removePin = (symbol: string) => void callWatchlist('DELETE', symbol);
 
   // Auto-open once for first-time visitors.
   useEffect(() => {
@@ -220,30 +260,42 @@ export default function WatchlistPage() {
             <span>Your pinned tokens</span>
             <span className="w-wl-auto" style={{ marginLeft: 'auto' }}>Pro</span>
           </div>
-          <div style={{ display: 'flex', gap: 8, padding: '12px 16px', borderBottom: '1px solid var(--adv-border, rgba(255,255,255,.08))' }}>
-            <input
-              value={pin}
-              onChange={(e) => setPin(e.target.value.toUpperCase())}
-              onKeyDown={(e) => { if (e.key === 'Enter') addPin(); }}
-              placeholder="Add a ticker (e.g. BTC)"
-              style={{ flex: 1, background: 'var(--adv-surface-2, #142a22)', border: '1px solid var(--adv-border, rgba(255,255,255,.1))', borderRadius: 10, padding: '8px 12px', color: 'var(--text, #f1f7f4)', fontSize: 13, outline: 'none' }}
-            />
-            <button className="w-btn w-btn-pro w-btn-sm" onClick={addPin} disabled={!wlReady}>
-              <WIcon name="spark" /> Pin
-            </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '12px 16px', borderBottom: '1px solid var(--adv-border, rgba(255,255,255,.08))' }}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                value={pin}
+                onChange={(e) => { setPin(e.target.value.toUpperCase()); setPinError(null); }}
+                onKeyDown={(e) => { if (e.key === 'Enter') addPin(); }}
+                placeholder="Add a ticker (e.g. BTC)"
+                style={{ flex: 1, background: 'var(--adv-surface-2, #142a22)', border: '1px solid var(--adv-border, rgba(255,255,255,.1))', borderRadius: 10, padding: '8px 12px', color: 'var(--text, #f1f7f4)', fontSize: 13, outline: 'none' }}
+              />
+              <button className="w-btn w-btn-pro w-btn-sm" onClick={addPin} disabled={pinBusy}>
+                <WIcon name="spark" /> Pin
+              </button>
+            </div>
+            {pinError && <span style={{ fontSize: 12, color: 'var(--bear)' }}>{pinError}</span>}
           </div>
-          {manual.length === 0 ? (
+          {(market.data?.curatedSymbols.length ?? 0) === 0 ? (
             <div className="w-wl-trow"><div className="w-wl-asset w-muted">No pinned tokens yet — add one above.</div><div /><div /><div /></div>
           ) : (
-            manual.map((sym) => (
-              <div key={sym} className="w-wl-trow">
+            pinnedRows.map((w) => (
+              <div key={w.sym} className="w-wl-trow">
                 <div className="w-wl-asset">
-                  <span className="w-coin" style={{ background: coinC(sym) }}>{sym[0]}</span>
-                  <span><b>{sym}</b><span>{COIN_NAME[sym] ?? 'Pinned by you'}</span></span>
+                  <span className="w-coin" style={{ background: coinC(w.sym) }}>{w.sym[0]}</span>
+                  <span><b>{w.sym}</b><span>{w.name}</span></span>
                 </div>
-                <div /><div />
+                <div>
+                  <b style={{ fontWeight: 800 }}>{w.price}</b>
+                </div>
+                <div className="w-c-24h">
+                  <span className={w.dir === 'up' ? 'w-bull' : 'w-bear'} style={{ fontWeight: 800 }}>
+                    {w.chg}
+                  </span>
+                </div>
                 <div className="w-wl-acts">
-                  <button className="w-btn w-btn-sm" onClick={() => remove(sym)}>Remove</button>
+                  <button className="w-btn w-btn-sm" onClick={() => removePin(w.sym)} disabled={pinBusy}>
+                    Remove
+                  </button>
                 </div>
               </div>
             ))
@@ -278,7 +330,7 @@ export default function WatchlistPage() {
               </span>
             </div>
             <p className="w-muted" style={{ fontSize: 13, margin: 0 }}>
-              Get pushed the moment a tracked asset moves or a watched wallet acts.
+              Get an in-app alert the moment a tracked asset crosses your price threshold.
             </p>
           </div>
           <div className="w-lock-veil">

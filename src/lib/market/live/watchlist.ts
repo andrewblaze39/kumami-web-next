@@ -17,7 +17,7 @@ const CURATED = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'AVAX', 'LINK', 'ADA
 
 type WlRegime = WatchlistPayload['assets'][number]['regime'];
 
-async function buildAsset(asset: string): Promise<WatchlistPayload['assets'][number] | null> {
+export async function buildAsset(asset: string): Promise<WatchlistPayload['assets'][number] | null> {
   const perp = hasPerp(asset);
   const [pairs, funding, gls] = await Promise.all([
     pairsMarkets(asset).catch(() => []),

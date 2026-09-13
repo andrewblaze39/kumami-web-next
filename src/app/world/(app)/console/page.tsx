@@ -88,7 +88,7 @@ export default function ConsolePage() {
             <h1>
               Market Intelligence{' '}
               <span className="w-pro-badge">
-                <WIcon name="star" /> Advanced
+                <WIcon name="star" /> Plus
               </span>
             </h1>
             <p>
@@ -117,7 +117,7 @@ export default function ConsolePage() {
           <h1>
             Market Intelligence{' '}
             <span className="w-pro-badge">
-              <WIcon name="star" /> Advanced
+              <WIcon name="star" /> Plus
             </span>
           </h1>
           <p>

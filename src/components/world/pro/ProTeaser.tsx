@@ -5,35 +5,40 @@ import { Sparkles, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import LockedCard, { LockedCardFeature } from './LockedCard';
 
+// Each card's tag/desc must match what the tab actually does today — see
+// src/components/world/pro/WorldProContent.tsx for the live-vs-ComingSoon
+// split. Cards for still-building tabs are honestly labeled "Coming Soon"
+// rather than "Live" — overselling here is exactly what erodes trust once a
+// subscriber opens the tab and finds a placeholder.
 const PRO_FEATURES: LockedCardFeature[] = [
   {
-    tag: 'Real-time',
+    tag: 'Live',
     title: 'Alpha Room',
-    desc: 'Real-time news and curated alpha as it breaks — seconds, not a daily digest.',
+    desc: 'Curated alpha calls as they land — a live feed, not a daily digest.',
     shapeVariant: 0,
   },
   {
-    tag: 'Radar',
+    tag: 'Live',
     title: 'Airdrop Radar',
-    desc: 'Track eligibility and upcoming airdrops across chains, ranked by expected value.',
+    desc: 'Track eligibility and upcoming airdrops across chains, with a clear checklist per drop.',
     shapeVariant: 1,
   },
   {
     tag: 'Live',
     title: 'AI Portfolio Manager',
-    desc: 'Kuma reviews your bags — rebalancing, risk and what-it-means-for-you insight.',
+    desc: 'Track your holdings with live pricing, plus a portfolio risk scan you can re-run anytime.',
     shapeVariant: 2,
   },
   {
-    tag: 'Live',
+    tag: 'Coming Soon',
     title: 'Smart Money Tracker',
-    desc: 'Wallet-level, real-time: see exactly what top-PnL addresses do as they do it.',
+    desc: 'Wallet-level flow across market makers, funds and on-chain whales — in active development.',
     shapeVariant: 3,
   },
   {
-    tag: 'Trackers',
+    tag: 'Coming Soon',
     title: 'Coin / Token Tracker',
-    desc: 'Deep per-token analytics with custom alerts on the metrics you care about.',
+    desc: 'Deep per-token analytics with custom alerts on the metrics you care about — in active development.',
     shapeVariant: 4,
   },
   {
@@ -43,27 +48,27 @@ const PRO_FEATURES: LockedCardFeature[] = [
     shapeVariant: 0,
   },
   {
-    tag: 'Human',
-    title: 'Q&A with Core Teams',
-    desc: 'Live sessions with project partners — ask the people actually building.',
+    tag: 'Live',
+    title: 'Events & Announcements',
+    desc: 'Live-streamed sessions with project partners, with real-time audience Q&A.',
     shapeVariant: 1,
   },
   {
     tag: 'Alerts',
-    title: 'Major-Move Alerts',
-    desc: 'Push alerts the moment the market makes a move that matters to you.',
+    title: 'Following & Alerts',
+    desc: 'In-app alerts the moment a price move crosses your threshold — no need to keep checking.',
     shapeVariant: 2,
   },
   {
-    tag: 'Access',
+    tag: 'Live',
     title: 'Whitelist & Events',
-    desc: 'Subscriber-only whitelist access and dedicated events. First month free.',
+    desc: 'Subscriber-only whitelist access and dedicated events, all in one place.',
     shapeVariant: 3,
   },
   {
-    tag: 'Real-time',
-    title: 'Flow Radar',
-    desc: 'Live whale-flow signals across BTC, ETH, SOL and more — know where smart money moves.',
+    tag: 'Breadth',
+    title: 'Flow Radar — Pro',
+    desc: 'The same live whale-flow radar Plus gets, expanded to the full tracked universe with every severity unlocked.',
     shapeVariant: 4,
   },
 ];
@@ -79,10 +84,11 @@ export default function ProTeaser() {
           <span className="w-pro-active-icon">
             <CheckCircle size={28} />
           </span>
-          <h2 className="w-pro-active-title">You&rsquo;re on the PRO whitelist</h2>
+          <h2 className="w-pro-active-title">You&rsquo;re on Kumami Pro</h2>
           <p className="w-pro-active-sub">
-            PRO tools are being built — we&rsquo;ll notify you the moment each feature goes live.
-            You already have full access the instant it ships.
+            Full access is already unlocked — open any tab from the sidebar. A few tools (Smart
+            Money Tracker, Coin/Token Tracker) are still in active development and will light up
+            automatically once they ship.
           </p>
           <span className="w-pro-tag w-pro-tag-lg">Kumami PRO</span>
         </div>

@@ -2,7 +2,16 @@
 
 import { useState, useEffect, useRef } from 'react';
 
-const NumbersSection = () => {
+interface NumbersSectionProps {
+  /** Real counts from Firestore, fetched server-side by the parent — see
+   * AboutKumamiContent.tsx. Previously these were hardcoded constants (5000
+   * users, 40 partners) animated with a count-up effect that implied live
+   * data; now the count-up animates toward the real number. */
+  targetUsers: number;
+  targetPartners: number;
+}
+
+const NumbersSection = ({ targetUsers, targetPartners }: NumbersSectionProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [usersCount, setUsersCount] = useState(0);
   const [partnersCount, setPartnersCount] = useState(0);
@@ -33,8 +42,6 @@ const NumbersSection = () => {
     hasAnimatedRef.current = true;
 
     const duration = 2000;
-    const targetUsers = 5000;
-    const targetPartners = 40;
     const startTime = performance.now();
 
     const animate = (now: number) => {
@@ -52,7 +59,7 @@ const NumbersSection = () => {
     };
 
     requestAnimationFrame(animate);
-  }, [isVisible]);
+  }, [isVisible, targetUsers, targetPartners]);
 
   return (
     <section

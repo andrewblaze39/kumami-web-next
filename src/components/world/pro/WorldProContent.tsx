@@ -16,6 +16,7 @@
  */
 
 import { Suspense, useState } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Users, Layers, Activity, Shield, Gauge, Compass } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -91,7 +92,12 @@ function TabContent({ active }: { active: TabKey }) {
           eyebrow="Tools"
           icon={<Activity size={24} />}
           title="Spot Pulse"
-          description="See where actual buying and selling is happening. Compare spot and futures activity to tell whether a move is backed by real demand or speculation."
+          description="Already live on On-Chain Insights, covering BTC/ETH/SOL/BNB/HYPE. This Pro slot will add a second row of dynamic trending coins once the data provider unlocks per-asset spot volume."
+          action={
+            <Link href="/world/onchain" className="w-btn w-btn-pro w-btn-sm" style={{ marginTop: 4 }}>
+              Open live Spot Pulse →
+            </Link>
+          }
         />
       );
     case 'scanner':
@@ -109,7 +115,12 @@ function TabContent({ active }: { active: TabKey }) {
           eyebrow="News & Signals"
           icon={<Gauge size={24} />}
           title="Fear & Greed"
-          description="A multi-factor market sentiment composite, updated continuously, with the drivers behind the score."
+          description="Already live as its own tab, with a 5-factor composite and historical trend. This Pro slot is reserved for a deeper, Pro-only breakdown — not yet built."
+          action={
+            <Link href="/world/fear-greed" className="w-btn w-btn-pro w-btn-sm" style={{ marginTop: 4 }}>
+              Open live Fear & Greed →
+            </Link>
+          }
         />
       );
 
@@ -165,17 +176,23 @@ const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
   ],
   smartmoney: comingSoonTour('Smart Money Tracker', 'Track what known wallets, funds, and exchanges are buying or selling before the wider market catches on. Degen Mode also tracks early buyers of brand-new tokens.', 'on-chain analytics provider'),
   tokentracker: comingSoonTour('Coin/Token Tracker', 'Everything you need to understand a token in one screen — price, derivatives, charts, and newly launched trading pairs.', 'market-data provider'),
-  spotpulse: comingSoonTour('Spot Pulse', 'See where actual buying and selling is happening. Compare spot and futures activity to tell whether a move is backed by real demand or speculation.', 'market-data feed'),
+  spotpulse: [
+    { selector: HEAD, title: 'Spot Pulse', body: 'See where actual buying and selling is happening. Compare spot and futures activity to tell whether a move is backed by real demand or speculation.' },
+    { title: 'Already live — just not here yet', body: 'The full Spot Pulse engine already runs on On-Chain Insights. This Pro slot is reserved for a second row of dynamic trending coins, blocked on a data-provider upgrade.' },
+  ],
   scanner: comingSoonTour('Security Scanner', "Check a token's contract before you trade. Get a quick safety check to spot risks like honeypots and potential rugs.", 'security-data provider'),
   airdrops: [
     { selector: HEAD, title: 'Airdrops & Whitelist', body: "Keep track of airdrop eligibility, whitelist spots, and important deadlines so you don't miss an opportunity." },
     { title: 'Browse & follow', body: 'Switch between the Airdrops and Whitelists tabs, click any card to open its eligibility checklist, deadline and estimated value, then Follow the ones you want to track.' },
   ],
   portfolio: [
-    { title: 'AI Portfolio', body: 'Your portfolio manager — track holdings and performance, with Kumami surfacing insights on your positions.' },
+    { title: 'AI Portfolio', body: 'Track your holdings with live pricing. Click "Add Asset" to log a coin, amount and price paid — value and 24h change update automatically from live market data.' },
+    { title: 'Reading the numbers', body: 'The 24h change under your total balance is a real weighted average of every holding\'s own price move, not a flat estimate.' },
+    { title: 'Portfolio risk scan', body: 'Click "Scan my portfolio" for a risk read — concentration, diversification, volatility and liquidity — with a note if your holdings changed since the last scan.' },
   ],
   marketcap: [
-    { title: 'Market Cap Comparison', body: 'Compare assets side by side by market cap and other metrics to size up relative value.' },
+    { title: 'Market Cap Comparison', body: '"What if Coin A had Coin B\'s market cap?" — pick two coins (or swap them) to see the implied price.' },
+    { title: 'How it\'s calculated', body: 'Target price = Coin B\'s market cap ÷ Coin A\'s circulating supply. The table below compares price, market cap, supply, rank, ATH and FDV side by side.' },
   ],
   realtimenews: [
     { selector: HEAD, title: 'Real-Time News', body: 'Scan the latest market headlines in seconds, with a simple Bullish, Neutral, or Bearish signal for each story.' },
@@ -184,7 +201,10 @@ const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
   alpha: [
     { title: 'Alpha Room', body: 'Follow curated token calls, project watchlists, and high-conviction opportunities shared by the Kumami team.' },
   ],
-  feargreed: comingSoonTour('Fear & Greed', "Quickly see the market's current mood across five key factors, so you know whether sentiment is working with or against your thesis.", 'CoinGlass feed'),
+  feargreed: [
+    { selector: HEAD, title: 'Fear & Greed', body: "Quickly see the market's current mood across five key factors, so you know whether sentiment is working with or against your thesis." },
+    { title: 'Already live — just not here yet', body: 'A full 5-factor Fear & Greed composite already runs as its own tab under Plus. This Pro slot is reserved for a deeper, Pro-only breakdown that hasn\'t been built yet.' },
+  ],
   research: [
     { selector: HEAD, title: 'Kumami Research', body: 'Detailed research and analysis on specific tokens, sectors, narratives, and market trends.' },
     { title: 'What each call shows', body: 'Every card states a position (long/short/neutral) and asset, when it was made, the reasoning, and a “What this means for you” read.' },
@@ -199,10 +219,12 @@ const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
     { title: 'Replays', body: 'Past events appear below with a “Watch replay” button.' },
   ],
   market: [
-    { title: 'Market Analysis', body: 'In-depth market analysis and write-ups published by the Kumami team.' },
+    { title: 'Market Analysis', body: 'In-depth market takes from the Kumami team — asset, direction (Bullish/Bearish/Rotation/On-chain) and the reasoning behind the call.' },
+    { title: 'Browse the carousel', body: 'Use the arrows to move through the latest analyses, newest first.' },
   ],
   kumaai: [
-    { title: 'Kuma AI Chat', body: 'Ask Kuma anything about the market — it’s your AI assistant, right inside the Pro dashboard.' },
+    { title: 'Kuma AI Chat', body: 'A general chat assistant for market questions — create multiple rooms, each with its own conversation history.' },
+    { title: 'Crypto Address Tracker', body: 'A built-in room that watches up to 20 wallets across Ethereum, Base and Arbitrum. Set a USD alert threshold per wallet and get notified of real on-chain activity — balances, transfers, NFTs.' },
   ],
 };
 

@@ -8,13 +8,37 @@ import FAQSection from '@/components/FAQSection';
 import Partners from '@/components/Partners';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
+import { adminDb } from '@/lib/firebase-admin';
+
+/**
+ * Real counts for NumbersSection, fetched server-side via a cheap Firestore
+ * count() aggregation (one read regardless of collection size) — replaces
+ * the previous hardcoded 5,000 users / 40 partners constants, which animated
+ * as if they were live data. Falls back to 0 (section still renders, just
+ * with a lower number) if Firestore is unreachable rather than crashing the
+ * page over a marketing stat.
+ */
+async function getHomepageCounts(): Promise<{ users: number; partners: number }> {
+  try {
+    const db = adminDb();
+    const [usersSnap, partnersSnap] = await Promise.all([
+      db.collection('users').count().get(),
+      db.collection('all_partners').count().get(),
+    ]);
+    return { users: usersSnap.data().count, partners: partnersSnap.data().count };
+  } catch {
+    return { users: 0, partners: 0 };
+  }
+}
 
 /**
  * AboutKumamiContent — the original marketing homepage section stack,
  * preserved as a reusable component (to be rendered inside the World
  * shell as the "About Kumami" page).
  */
-export default function AboutKumamiContent() {
+export default async function AboutKumamiContent() {
+  const { users, partners } = await getHomepageCounts();
+
   return (
     <div className="min-h-screen bg-black">
       <HeroSection />
@@ -34,7 +58,7 @@ export default function AboutKumamiContent() {
         }}
       >
         <TrendingNews />
-        <NumbersSection />
+        <NumbersSection targetUsers={users} targetPartners={partners} />
         <BlogUpdatesSection />
         <FAQSection />
       </div>
