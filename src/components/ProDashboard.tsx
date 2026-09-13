@@ -364,14 +364,22 @@ export function PortfolioTab() {
   };
 
   const totalValue = portfolio.reduce((sum, item) => sum + (item?.value || 0), 0);
-  const deltaValue = totalValue > 0 ? Math.round(totalValue * 0.023) : 0;
+  // Real weighted 24h change: derive each holding's value 24h ago from its
+  // own change24h%, then compare the summed totals (matches how per-coin %
+  // changes are quoted, rather than a flat guess).
+  const totalValueYesterday = portfolio.reduce((sum, item) => {
+    const value = item?.value || 0;
+    const change = item?.change24h ?? 0;
+    return sum + value / (1 + change / 100);
+  }, 0);
+  const deltaValue = totalValueYesterday > 0 ? totalValue - totalValueYesterday : 0;
   const isIncrease = deltaValue >= 0;
   const totalStr = totalValue.toFixed(2);
   const [intPart, fracPart] = totalStr.split('.');
   const formattedInt = Number(intPart).toLocaleString();
-  const formattedDeltaValue = Number(deltaValue.toFixed(2)).toLocaleString();
+  const formattedDeltaValue = Number(Math.abs(deltaValue).toFixed(2)).toLocaleString();
   const increaseInPercent =
-    totalValue > 0 ? Math.abs((deltaValue / totalValue) * 100).toFixed(2) : '0.00';
+    totalValueYesterday > 0 ? Math.abs((deltaValue / totalValueYesterday) * 100).toFixed(2) : '0.00';
 
   return (
     <>

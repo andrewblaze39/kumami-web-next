@@ -3,9 +3,12 @@
 /**
  * /world/watchlist — Watchlist page.
  *
- * Live: consumes /api/market/watchlist (WatchlistApiResponse). The auto-detected
- * `assets` list (ranked bullish flow, capped to tier slots) drives the table.
- * Falls back to a clean loading/empty state. UI shell unchanged from the port.
+ * Live: consumes /api/market/watchlist (WatchlistApiResponse). The table is a
+ * fixed curated symbol list (capped to tier slots), each row flagged by the
+ * watchlist-tags engine (funding-rate/long-short crowding) or its regime —
+ * NOT a bullish-flow ranking (that ranking is a separate engine used only on
+ * the Console's "Auto-Watchlist" preview panel). Falls back to a clean
+ * loading/empty state. UI shell unchanged from the port.
  */
 
 import { useEffect, useState } from 'react';
@@ -21,17 +24,17 @@ import type { WatchlistApiResponse } from '@/lib/market/contracts';
 const WATCHLIST_TOUR: TourStep[] = [
   {
     title: 'Your auto-watchlist 👋',
-    body: 'No setup needed — this list builds itself from the strongest bullish money flow. Quick tour? Leave anytime.',
+    body: 'No setup needed — a curated list of major assets, always on. Quick tour? Leave anytime.',
   },
   {
     selector: '[data-tour="wl-flowbar"]',
-    title: 'Ranked by bullish flow',
-    body: 'Assets are ordered by the whale inflow and accumulation showing up on your Flow Radar — it refreshes as the radar does. "Auto" means you never curate it by hand.',
+    title: 'Curated majors, live',
+    body: 'A fixed set of major assets, refreshed continuously — price, movement and positioning, so you always have a baseline view without building one yourself.',
   },
   {
     selector: '[data-tour="wl-table"]',
     title: 'Price, move & flow signal',
-    body: 'Each row shows the live price, 24h move, and the single strongest flow signal that put it on the list — so you know why it is here.',
+    body: 'Each row shows the live price, 24h move, and the single most notable signal on that asset right now — crowded positioning, funding stress, or its current trend regime.',
   },
   {
     selector: '[data-tour="wl-alerts"]',
@@ -126,9 +129,9 @@ export default function WatchlistPage() {
           <WIcon name="bookmark" /> Watchlist
         </h1>
         <p>
-          Auto-curated from the strongest <b style={{ color: 'var(--accent)' }}>bullish flow</b> on
-          your Flow Radar — the assets seeing the most whale inflow and accumulation
-          right now. Building your own custom list, price alerts and notes is part of{' '}
+          A live table of <b style={{ color: 'var(--accent)' }}>curated major assets</b> — price,
+          24h move, and a flag when funding or long/short positioning gets crowded. Building your
+          own custom list, price alerts and notes is part of{' '}
           <b style={{ color: 'var(--purple)' }}>Pro</b>.
         </p>
         <button type="button" className="w-tour-trigger" onClick={() => setTourOpen(true)} style={{ marginTop: 10 }}>
@@ -139,7 +142,7 @@ export default function WatchlistPage() {
       {/* ── Flow bar ── */}
       <div className="w-wl-flowbar" data-tour="wl-flowbar">
         <WIcon name="flame" />
-        <span>Ranked by bullish on-chain flow · refreshes with the radar</span>
+        <span>Curated majors · price, positioning &amp; regime, live</span>
         <span className="w-wl-auto">Auto</span>
       </div>
 
@@ -159,7 +162,7 @@ export default function WatchlistPage() {
         )}
         {!loading && bw.length === 0 && (
           <div className="w-wl-trow" role="status">
-            <div className="w-wl-asset w-muted">No bullish flow signals right now.</div>
+            <div className="w-wl-asset w-muted">Couldn&apos;t load the watchlist right now.</div>
             <div /><div /><div />
           </div>
         )}
