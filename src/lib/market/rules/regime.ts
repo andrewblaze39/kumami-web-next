@@ -3,20 +3,22 @@
  *
  * Sources:
  *   - Primary detailed logic: doc lines 356–398 (Console Indicator Logic).
- *   - 5-input list: doc lines 85–99 (Global Regime header).
+ *   - Kumami Plus §1.1 "Global Regime — Rule Engine": 4 inputs (Fear & Greed,
+ *     ETF Flow, Funding Rate, OI vs Price). Long/Short bias was dropped from the
+ *     composite per the cross-cutting fix "Long/Short removed from Console
+ *     engine — kept only in standalone tile" (it still drives the separate
+ *     On-Chain Bias tile and Watchlist tags, just not this score).
  *
  * Edge decisions:
- *   - The Console detailed section (lines 356–387) lists 4 explicit scoring inputs
- *     (Fear/Greed, OI/Price, Stablecoin, Funding) but the Global Regime header
- *     (lines 85–99) specifies 5 inputs including ETF Flow and L/S bias.
- *     We implement all 5. ETF flow is passed as a pre-scored -1/0/+1 (caller's job
- *     to derive direction from raw flow data). L/S bias: >55% long → +1, <45% → -1.
  *   - Doc labels from lines 382–387 are used (Strongly Bullish / Cautiously Bullish /
  *     Neutral / Cautiously Bearish / Strongly Bearish), not the abbreviated labels
  *     in the Global Regime header (lines 93–98) which differ.
  *   - Funding boundary: doc says "> +0.1% → -1, 0 to +0.1% → 0". Exactly 0.1% is 0
  *     (strict greater-than).
- *   - L/S boundary: >55% long → +1 (strict), <45% long → -1 (strict), else 0.
+ *   - Normalized score = raw score / count of active (non-zero) signals, per the
+ *     cross-cutting fix "Score band normalization — divide by active signal count".
+ *     This keeps the verdict meaningful even when some signals return neutral (0)
+ *     rather than diluting the band thresholds with dead weight.
  *   - Confidence = fraction of non-zero signals that agree with the winning direction.
  *     If score = 0 and no non-zero signals exist, confidence = 0.
  */
@@ -28,8 +30,6 @@ export type RegimeInputs = {
   fearGreed: number;
   /** Pre-scored ETF flow direction: +1 = net positive, 0 = neutral, -1 = net negative */
   etfFlowScore: -1 | 0 | 1;
-  /** Global long % (0–100) from long/short ratio */
-  longShortPctLong: number;
   /** OI-weighted funding rate (decimal, e.g. 0.01 = 0.01%) */
   fundingRate: number;
   /**
@@ -44,7 +44,6 @@ export type RegimeInputs = {
 export type RegimeComponents = {
   fearGreed: -1 | 0 | 1;
   etfFlow: -1 | 0 | 1;
-  longShort: -1 | 0 | 1;
   funding: -1 | 0 | 1;
   oiVsPrice: -1 | 0 | 1;
 };
@@ -52,7 +51,10 @@ export type RegimeComponents = {
 export type RegimeResult = {
   verdict: Verdict;
   confidence: number;
+  /** Raw summed score (before normalization). */
   score: number;
+  /** Normalized score (score / active signal count), what the verdict bands are keyed on. */
+  normalizedScore: number;
   components: RegimeComponents;
 };
 
@@ -68,23 +70,17 @@ function scoreFunding(rate: number): -1 | 0 | 1 {
   return 0;                    // 0 to +0.1% inclusive → neutral
 }
 
-function scoreLongShort(pctLong: number): -1 | 0 | 1 {
-  if (pctLong > 55) return 1;  // bullish bias
-  if (pctLong < 45) return -1; // bearish bias
-  return 0;
-}
-
-const VERDICT_MAP: { minScore: number; label: string; color: Verdict['color'] }[] = [
-  { minScore: 3,  label: 'Strongly Bullish',  color: 'green' },
-  { minScore: 1,  label: 'Cautiously Bullish', color: 'grey-green' },
-  { minScore: 0,  label: 'Neutral',            color: 'grey' },
-  { minScore: -2, label: 'Cautiously Bearish', color: 'grey-red' },
-  { minScore: -5, label: 'Strongly Bearish',   color: 'red' },
+const VERDICT_BANDS: { min: number; label: string; color: Verdict['color'] }[] = [
+  { min: 0.6,   label: 'Strongly Bullish',   color: 'green' },
+  { min: 0.25,  label: 'Cautiously Bullish', color: 'grey-green' },
+  { min: -0.25, label: 'Neutral',            color: 'grey' },
+  { min: -0.6,  label: 'Cautiously Bearish', color: 'grey-red' },
+  { min: -Infinity, label: 'Strongly Bearish', color: 'red' },
 ];
 
-function verdictFromScore(score: number): Verdict {
-  for (const row of VERDICT_MAP) {
-    if (score >= row.minScore) return { label: row.label, color: row.color };
+function verdictFromNormalizedScore(normalizedScore: number): Verdict {
+  for (const row of VERDICT_BANDS) {
+    if (normalizedScore >= row.min) return { label: row.label, color: row.color };
   }
   return { label: 'Strongly Bearish', color: 'red' };
 }
@@ -136,14 +132,16 @@ export function computeRegime(inputs: RegimeInputs): RegimeResult {
   const components: RegimeComponents = {
     fearGreed: scoreFearGreed(inputs.fearGreed),
     etfFlow: inputs.etfFlowScore,
-    longShort: scoreLongShort(inputs.longShortPctLong),
     funding: scoreFunding(inputs.fundingRate),
     oiVsPrice: inputs.oiVsPriceScore,
   };
 
-  const score = (Object.values(components) as number[]).reduce((a, b) => a + b, 0);
-  const verdict = verdictFromScore(score);
+  const values = Object.values(components) as number[];
+  const score = values.reduce((a, b) => a + b, 0);
+  const activeSignals = values.filter(v => v !== 0).length;
+  const normalizedScore = activeSignals > 0 ? score / activeSignals : 0;
+  const verdict = verdictFromNormalizedScore(normalizedScore);
   const confidence = computeConfidence(components, score);
 
-  return { verdict, confidence, score, components };
+  return { verdict, confidence, score, normalizedScore, components };
 }

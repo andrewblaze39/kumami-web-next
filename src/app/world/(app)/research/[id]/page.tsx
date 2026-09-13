@@ -177,10 +177,10 @@ export default async function WorldResearchDetailPage({ params }: PageProps) {
         }}
       >
         <Link
-          href="/world/education?tab=research"
+          href="/world/education?tab=cryptopedia&view=tokenpedia"
           style={{ color: 'var(--muted)', textDecoration: 'none' }}
         >
-          Research
+          Tokenpedia
         </Link>
         <ChevronRight size={13} strokeWidth={2.5} />
         {article.category && (
@@ -373,7 +373,7 @@ export default async function WorldResearchDetailPage({ params }: PageProps) {
               ))}
             </div>
             <Link
-              href="/world/education?tab=research"
+              href="/world/education?tab=cryptopedia&view=tokenpedia"
               style={{
                 display: 'block',
                 marginTop: '10px',
@@ -389,7 +389,7 @@ export default async function WorldResearchDetailPage({ params }: PageProps) {
                 transition: 'background 0.14s',
               }}
             >
-              View all research →
+              View all Tokenpedia →
             </Link>
           </aside>
         )}

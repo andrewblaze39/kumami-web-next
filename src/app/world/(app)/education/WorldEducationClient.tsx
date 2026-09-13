@@ -12,8 +12,8 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Send, Globe } from 'lucide-react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { Send, Globe, FileText } from 'lucide-react';
 import type { ResearchArticle } from '@/lib/research';
 import { XIcon, DiscordIcon } from '@/components/icons/BrandIcons';
 import { glossaryTerms } from '@/data/glossaryData';
@@ -304,6 +304,72 @@ export function GlossaryTab() {
   return (
     <div className="w-edu-root">
       <GlossarySection />
+    </div>
+  );
+}
+
+// ---------- Cryptopedia (Tokenpedia + Glossary, underline tab selector) ----------
+
+type CryptopediaView = 'tokenpedia' | 'glossary';
+
+function isCryptopediaView(v: string | null): v is CryptopediaView {
+  return v === 'tokenpedia' || v === 'glossary';
+}
+
+export function CryptopediaTab({ articles }: { articles: ResearchArticle[] }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const view: CryptopediaView = isCryptopediaView(searchParams.get('view'))
+    ? (searchParams.get('view') as CryptopediaView)
+    : 'tokenpedia';
+
+  const setView = (next: CryptopediaView) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', 'cryptopedia');
+    params.set('view', next);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  return (
+    <div className="w-edu-root">
+      <div className="w-crypto-head">
+        <div className="w-ptag">Cryptopedia</div>
+        <h1>
+          <FileText size={22} strokeWidth={2.2} /> Cryptopedia
+        </h1>
+        <p className="w-crypto-sub">
+          Your Web3 reference desk — an onchain asset directory and a plain-language
+          glossary of every term you will meet.
+        </p>
+      </div>
+
+      <div className="w-crypto-tabs" role="tablist" aria-label="Cryptopedia section">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === 'tokenpedia'}
+          className={`w-crypto-tab${view === 'tokenpedia' ? ' is-active' : ''}`}
+          onClick={() => setView('tokenpedia')}
+        >
+          Tokenpedia
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === 'glossary'}
+          className={`w-crypto-tab${view === 'glossary' ? ' is-active' : ''}`}
+          onClick={() => setView('glossary')}
+        >
+          Glossary
+        </button>
+      </div>
+
+      {view === 'tokenpedia' ? (
+        <ResearchSection articles={articles} />
+      ) : (
+        <GlossarySection />
+      )}
     </div>
   );
 }

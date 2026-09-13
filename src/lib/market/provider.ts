@@ -10,6 +10,7 @@
 
 import type {
   ConsolePayload,
+  FearGreedPayload,
   FlowEvent,
   HeatmapPayload,
   IntelligencePayload,
@@ -28,6 +29,7 @@ export interface MarketDataProvider {
   watchlist(uid: string, tier: 'free' | 'pro'): Promise<WatchlistPayload>;
   intelligence(tier: 'free' | 'pro'): Promise<IntelligencePayload>;
   spotPulse(tier: 'free' | 'pro', timeframe: '4H' | '24H' | '7D'): Promise<SpotPulsePayload>;
+  fearGreed(): Promise<FearGreedPayload>;
 }
 
 /**

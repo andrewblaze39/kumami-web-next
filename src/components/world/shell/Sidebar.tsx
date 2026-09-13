@@ -146,17 +146,14 @@ const BEGINNER_NAV: NavGroup[] = [
     collapsible: true,
     items: [
       { k: 'edu-journey', label: 'My Journey', href: '/world/education?tab=journey', icon: Icons.book },
-      { k: 'edu-dashboard', label: 'Dashboard', href: '/world/education?tab=dashboard', icon: Icons.home },
       { k: 'edu-courses', label: 'My Courses', href: '/world/education?tab=courses', icon: Icons.grad },
-      { k: 'edu-achievements', label: 'Achievements', href: '/world/education?tab=achievements', icon: Icons.trophy },
     ],
   },
   {
-    grp: 'Dictionary',
-    collapsible: true,
+    grp: 'cryptopedia',
+    standalone: true,
     items: [
-      { k: 'edu-research', label: 'Tokenpedia', href: '/world/education?tab=research', icon: Icons.doc },
-      { k: 'edu-glossary', label: 'Glossary', href: '/world/education?tab=glossary', icon: Icons.book },
+      { k: 'cryptopedia', label: 'Cryptopedia', href: '/world/education?tab=cryptopedia', icon: Icons.doc },
     ],
   },
   {
@@ -176,6 +173,8 @@ const ADV_NAV: NavGroup[] = [
     items: [
       { k: 'console', label: 'Console', href: '/world/console', icon: Icons.home },
       { k: 'onchain', label: 'On-Chain Insights', href: '/world/onchain', icon: Icons.layers },
+      { k: 'flow-radar', label: 'Flow Radar', href: '/world/flow-radar', icon: Icons.bolt },
+      { k: 'fear-greed', label: 'Fear & Greed', href: '/world/fear-greed', icon: Icons.spark },
       { k: 'intel', label: 'Intelligence', href: '/world/intel', icon: Icons.doc },
       { k: 'watchlist', label: 'Watchlist', href: '/world/watchlist', icon: Icons.bookmark },
     ],

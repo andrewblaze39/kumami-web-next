@@ -2,9 +2,8 @@
  * Live Console (Overview) payload.
  *
  * Market conditions (Fear&Greed, ETF 7d flow, on-chain bias, 24h liquidations),
- * five regime chips (BTC/ETH/SOL via the regime engine, GOLD via XAUT perp,
- * SPX = coming-soon), plus previews of Flow Radar, Intelligence and the
- * auto-scored Radar Watchlist.
+ * five regime chips (BTC/ETH/SOL/BNB/HYPE via the regime engine), plus previews
+ * of Flow Radar, Intelligence and the auto-scored Radar Watchlist.
  */
 
 import type { ConsolePayload, Verdict } from '../contracts';
@@ -14,8 +13,9 @@ import {
   fearGreed, etfFlow, globalLongShort, liqCoinList, liqAggHistory,
   fundingOiWeight, oiAggHistory, pairsMarkets,
 } from './cg-endpoints';
+import { btcDominance } from './coingecko';
 import {
-  primaryPair, pairSymbol, ohlcToSeries, classifyDir, latestClose, nowIso, type Dir,
+  primaryPair, ohlcToSeries, classifyDir, latestClose, nowIso, type Dir,
 } from './helpers';
 import { buildFlowEvents } from './flow';
 import { makeIntelligencePayloadLive } from './intel';
@@ -48,19 +48,18 @@ function floorGlobalVerdict(v: Verdict, conf: number): Verdict {
   return v;
 }
 
-/** Full regime for a perp asset (BTC/ETH/SOL). */
+/** Full regime for a perp asset (BTC/ETH/SOL/BNB/HYPE). Long/Short bias is NOT
+ *  part of this composite (dropped per the Kumami Plus cross-cutting fix) — it
+ *  still drives the separate On-Chain Bias tile via its own fetch below. */
 async function assetRegime(asset: string, etfScore: -1 | 0 | 1, fg: number) {
-  const pair = pairSymbol(asset);
-  const [pairs, gls, funding, oi] = await Promise.all([
+  const [pairs, funding, oi] = await Promise.all([
     pairsMarkets(asset).catch(() => []),
-    globalLongShort(pair, '1h').catch(() => []),
     fundingOiWeight(asset, '1h').catch(() => []),
     oiAggHistory(asset, '1h').catch(() => []),
   ]);
   const primary = primaryPair(pairs);
   const price = primary?.current_price ?? 0;
   const change24h = primary?.price_change_percent_24h ?? 0;
-  const pctLong = gls.length ? gls[gls.length - 1].global_account_long_percent : 50;
   const fundingPct = latestClose(funding) * 100;
   const oiDir: Dir = classifyDir(ohlcToSeries(oi, 24));
   const priceDir: Dir = change24h > 0.5 ? 'up' : change24h < -0.5 ? 'down' : 'flat';
@@ -70,7 +69,6 @@ async function assetRegime(asset: string, etfScore: -1 | 0 | 1, fg: number) {
   const r = computeRegime({
     fearGreed: fg,
     etfFlowScore: etfScore,
-    longShortPctLong: pctLong,
     fundingRate: fundingPct,
     oiVsPriceScore,
   });
@@ -82,10 +80,9 @@ async function assetRegime(asset: string, etfScore: -1 | 0 | 1, fg: number) {
     console.log(
       `[regime] ${asset.padEnd(4)} | F&G ${fg}(${c.fearGreed >= 0 ? '+' : ''}${c.fearGreed})` +
         ` | Funding ${fundingPct.toFixed(3)}%(${c.funding >= 0 ? '+' : ''}${c.funding})` +
-        ` | L/S ${pctLong.toFixed(0)}%(${c.longShort >= 0 ? '+' : ''}${c.longShort})` +
         ` | ETF(${c.etfFlow >= 0 ? '+' : ''}${c.etfFlow})` +
         ` | OIxPrice ${oiDir}/${priceDir}(${c.oiVsPrice >= 0 ? '+' : ''}${c.oiVsPrice})` +
-        ` | Sum ${r.score} | ${r.verdict.label} | Conf ${conf.toFixed(2)}`,
+        ` | Sum ${r.score} | Norm ${r.normalizedScore.toFixed(2)} | ${r.verdict.label} | Conf ${conf.toFixed(2)}`,
     );
   }
 
@@ -102,7 +99,7 @@ async function assetRegime(asset: string, etfScore: -1 | 0 | 1, fg: number) {
 }
 
 export async function makeConsolePayloadLive(): Promise<ConsolePayload> {
-  const [fg, btcEtf, ethEtf, glsBtc, liqCoin, liqAggBtc, flowEvents, intel, goldPairs] = await Promise.all([
+  const [fg, btcEtf, ethEtf, glsBtc, liqCoin, liqAggBtc, flowEvents, intel, dominance] = await Promise.all([
     fearGreed().catch(() => null),
     etfFlow('bitcoin').catch(() => []),
     etfFlow('ethereum').catch(() => []),
@@ -111,7 +108,7 @@ export async function makeConsolePayloadLive(): Promise<ConsolePayload> {
     liqAggHistory('BTC', '1h').catch(() => []),
     buildFlowEvents().catch(() => []),
     makeIntelligencePayloadLive('free').catch(() => ({ briefs: [] })),
-    pairsMarkets('XAUT').catch(() => []),
+    btcDominance().catch(() => null),
   ]);
 
   const fgValue = fg?.data_list?.length ? fg.data_list[fg.data_list.length - 1] : 50;
@@ -141,24 +138,15 @@ export async function makeConsolePayloadLive(): Promise<ConsolePayload> {
   const avgPer24 = totalAgg / windows;
   const liqPctVsAvg = avgPer24 > 0 ? ((last24 - avgPer24) / avgPer24) * 100 : 0;
 
-  // Regime chips.
-  const [btc, eth, sol] = await Promise.all([
+  // Regime chips — BTC, ETH, SOL, BNB, HYPE (none of these have a spot-ETF, so
+  // BNB/HYPE/SOL all pass etfScore 0, same as the existing SOL treatment).
+  const [btc, eth, sol, bnb, hype] = await Promise.all([
     assetRegime('BTC', btcEtfScore, fgValue),
     assetRegime('ETH', ethEtfScore, fgValue),
     assetRegime('SOL', 0, fgValue),
+    assetRegime('BNB', 0, fgValue),
+    assetRegime('HYPE', 0, fgValue),
   ]);
-  const goldPrimary = primaryPair(goldPairs);
-  const goldChange = goldPrimary?.price_change_percent_24h ?? 0;
-  const goldConf = 0.5;
-  const goldRaw: 'Bullish' | 'Neutral' | 'Bearish' = goldChange > 1 ? 'Bullish' : goldChange < -1 ? 'Bearish' : 'Neutral';
-  const gold = {
-    asset: 'GOLD' as const,
-    price: Number((goldPrimary?.current_price ?? 0).toFixed(2)),
-    change24h: Number(goldChange.toFixed(2)),
-    regime: floorRegime(goldRaw, goldConf),
-    confidence: goldConf,
-  };
-  const spx = { asset: 'SPX' as const, price: 0, change24h: 0, regime: 'Neutral' as const, confidence: 0 };
 
   // Keep only the 5 contract fields per chip (drop the raw verdict/rawConf helpers).
   type Chip = ConsolePayload['regimeChips'][number];
@@ -166,7 +154,7 @@ export async function makeConsolePayloadLive(): Promise<ConsolePayload> {
     asset, price: x.price, change24h: x.change24h, regime: x.regime, confidence: x.confidence,
   });
   const regimeChips: ConsolePayload['regimeChips'] = [
-    chip(btc, 'BTC'), chip(eth, 'ETH'), chip(sol, 'SOL'), gold, spx,
+    chip(btc, 'BTC'), chip(eth, 'ETH'), chip(sol, 'SOL'), chip(bnb, 'BNB'), chip(hype, 'HYPE'),
   ];
 
   // Global Regime = the regime engine's verdict (BTC as the market proxy), with a
@@ -221,7 +209,9 @@ export async function makeConsolePayloadLive(): Promise<ConsolePayload> {
       fearGreed: fgValue,
       tiles: {
         etfFlow7d: { usd: Math.round(etf7d), pctVsPrev: Number(etfPctVsPrev.toFixed(1)) },
-        dxy: null, // macro source = coming soon
+        btcDominance: dominance
+          ? { pct: Number(dominance.pct.toFixed(1)), dayChange: Number(dominance.changePct24h.toFixed(2)) }
+          : null,
         onChainBias: { pctLong: Number(pctLong.toFixed(1)), ratio: Number(ratio.toFixed(2)) },
         liq24h: { totalUsd: Math.round(liq24hTotal), pctVsAvg7d: Number(liqPctVsAvg.toFixed(1)) },
       },

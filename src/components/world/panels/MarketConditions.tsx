@@ -77,17 +77,17 @@ export default function MarketConditions({ data }: Props) {
           </div>
 
           <div className="w-macro-tile">
-            <div className="w-ml"><WIcon name="bolt" /> DXY (Dollar Index)</div>
-            {tiles.dxy === null ? (
+            <div className="w-ml"><WIcon name="bolt" /> BTC Dominance</div>
+            {tiles.btcDominance === null ? (
               <>
                 <div className="w-mv w-muted">—</div>
                 <div className="w-mc-chg w-muted">Coming soon</div>
               </>
             ) : (
               <>
-                <div className="w-mv">{tiles.dxy.value.toFixed(1)}</div>
-                <div className={`w-mc-chg ${tiles.dxy.dayChange >= 0 ? 'w-bull' : 'w-bear'}`}>
-                  {formatChange(tiles.dxy.dayChange)} · today
+                <div className="w-mv">{tiles.btcDominance.pct.toFixed(1)}%</div>
+                <div className={`w-mc-chg ${tiles.btcDominance.dayChange >= 0 ? 'w-bull' : 'w-bear'}`}>
+                  {formatChange(tiles.btcDominance.dayChange)} · (24h)
                 </div>
               </>
             )}

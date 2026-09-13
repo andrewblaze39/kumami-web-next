@@ -36,15 +36,15 @@ export type ConsolePayload = {
     fearGreedColor: 'green' | 'lime' | 'grey' | 'amber' | 'red';
     tiles: {
       etfFlow7d: { usd: number; pctVsPrev: number };
-      /** null until macro data source is wired */
-      dxy: { value: number; dayChange: number } | null;
+      /** BTC's share of total crypto market cap (CoinGecko), replacing the DXY slot. */
+      btcDominance: { pct: number; dayChange: number } | null;
       onChainBias: { pctLong: number; ratio: number };
       liq24h: { totalUsd: number; pctVsAvg7d: number };
     };
   };
-  /** Exactly 5 chips: BTC, ETH, SOL, GOLD, SPX */
+  /** Exactly 5 chips: BTC, ETH, SOL, BNB, HYPE */
   regimeChips: {
-    asset: 'BTC' | 'ETH' | 'SOL' | 'GOLD' | 'SPX';
+    asset: 'BTC' | 'ETH' | 'SOL' | 'BNB' | 'HYPE';
     price: number;
     change24h: number;
     regime: 'Bullish' | 'Neutral' | 'Bearish';
@@ -95,6 +95,48 @@ export type FlowEvent = {
   description: string;
   ts: string;
   interpretation?: string;
+};
+
+/** One sub-metric tile on the Fear & Greed page. */
+export type FearGreedSubMetric = {
+  /** 0-100, already mapped through the sub-metric's own scoring bands. */
+  score: number;
+  /** Raw display value — a number (%, $) or a label (e.g. "Low" for volatility). */
+  value: number | string;
+  label: string;
+  /** Small caption crediting the data source, e.g. "CoinGecko · tracked basket". */
+  source: string;
+  /** True only for News Tone until its LLM classification is validated. */
+  estimated?: boolean;
+};
+
+/** Full payload for the standalone /world/fear-greed page (Plus tier). */
+export type FearGreedPayload = {
+  composite: { score: number; label: string; color: Verdict['color'] };
+  subMetrics: {
+    priceMomentum: FearGreedSubMetric;
+    longShortSentiment: FearGreedSubMetric;
+    volatility: FearGreedSubMetric;
+    marketComposition: FearGreedSubMetric;
+    newsTone: FearGreedSubMetric;
+  };
+  /** Raw index history (proxy trend line) — { t: ms epoch, v: 0-100 }. */
+  history: Series;
+  updatedAt: string;
+};
+
+/** Full payload for the standalone /world/flow-radar page (Plus tier: fixed 5-asset roster, HIGH+MED only). */
+export type FlowRadarPayload = {
+  events: FlowEvent[];
+  verdict: Verdict;
+  sentence: string;
+  statLine: string;
+  footer: {
+    eventCount: number;
+    totalUsd: number;
+    assets: string[];
+  };
+  updatedAt: string;
 };
 
 /** Keys for the 10 on-chain metric panels. */

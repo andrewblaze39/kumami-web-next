@@ -2,11 +2,12 @@
  * Live MarketDataProvider — backed by CoinGlass v4.
  *
  * Wiring status (2026-08):
- *   console      → LIVE  (Fear&Greed, ETF, bias, liq24h, regime chips; SPX/DXY coming-soon)
+ *   console      → LIVE  (Fear&Greed, ETF, bias, liq24h, regime chips BTC/ETH/SOL/BNB/HYPE, BTC dominance)
  *   onchain      → LIVE  (9 panels; liquidation heatmap panel = coming-soon, tier-locked)
  *   flowRadar    → LIVE  (whale transfers, netflow flips, liq spikes, HL smart money)
  *   watchlist    → LIVE  (price/funding/long-short → action tags)
  *   intelligence → LIVE  (news + macro calendar + token unlocks)
+ *   fearGreed    → LIVE  (5-metric composite: momentum, L/S, volatility, stablecoin supply, news tone)
  *   heatmap      → COMING SOON (aggregated-heatmap/model1 requires a higher CoinGlass plan)
  *
  * No mock/placeholder path exists: every method returns live data or throws
@@ -17,7 +18,7 @@
  */
 
 import type {
-  ConsolePayload, FlowEvent, HeatmapPayload, IntelligencePayload,
+  ConsolePayload, FearGreedPayload, FlowEvent, HeatmapPayload, IntelligencePayload,
   OnChainPayload, SpotPulsePayload, WatchlistPayload,
 } from '../contracts';
 import type { MarketDataProvider } from '../provider';
@@ -27,6 +28,7 @@ import { makeWatchlistPayloadLive } from './watchlist';
 import { makeIntelligencePayloadLive } from './intel';
 import { makeSpotPulseLive } from './spotPulse';
 import { buildFlowEvents } from './flow';
+import { makeFearGreedPayloadLive } from './fearGreedPage';
 
 /**
  * Log a live-builder failure and rethrow. We do NOT substitute mock data — a
@@ -77,6 +79,10 @@ function makeLiveProvider(): MarketDataProvider {
 
     async spotPulse(tier: 'free' | 'pro', timeframe: '4H' | '24H' | '7D'): Promise<SpotPulsePayload> {
       return live('spotPulse', () => makeSpotPulseLive(tier === 'pro' ? 'pro' : 'plus', timeframe));
+    },
+
+    async fearGreed(): Promise<FearGreedPayload> {
+      return live('fearGreed', makeFearGreedPayloadLive);
     },
   };
 }

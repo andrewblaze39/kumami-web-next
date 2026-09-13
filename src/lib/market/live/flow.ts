@@ -110,11 +110,13 @@ export async function buildFlowEvents(): Promise<FlowEvent[]> {
   }
 
   // --- Hyperliquid smart-money positions (top by USD) ---------------------
-  for (const p of [...hl].sort((a, b) => b.position_value_usd - a.position_value_usd).slice(0, 4)) {
+  for (const [i, p] of [...hl].sort((a, b) => b.position_value_usd - a.position_value_usd).slice(0, 4).entries()) {
     const isLong = p.position_size > 0;
     const r = computeFlowRadar({ type: 'smart_money', asset: p.symbol, amountUsd: p.position_value_usd, isLong });
     events.push({
-      id: `hl-${p.user.slice(0, 10)}-${p.symbol}`,
+      // Index suffix guards against duplicate ids when the same wallet holds
+      // more than one position in the same symbol (React key collision fix).
+      id: `hl-${p.user.slice(0, 10)}-${p.symbol}-${i}`,
       type: 'smart_money',
       asset: p.symbol,
       amountUsd: Math.round(p.position_value_usd),

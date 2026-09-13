@@ -1,29 +1,26 @@
 import { describe, it, expect } from 'vitest';
 import { computeLiquidations, type LiquidationInputs } from '../liquidations';
 
-// Doc lines 466–509
+// Doc lines 466–509; colors corrected per the Kumami Plus cross-cutting fix —
 // long_ratio = long_liq / total_liq
 // Step 2 size thresholds:
 //   Total < $50M    → LOW significance
 //   Total $50-200M  → MEDIUM significance
 //   Total > $200M   → HIGH significance
 //
-// Step 3 verdict matrix:
-//   long_ratio > 70% + HIGH   → "Mass Long Flush"        (green)
-//   long_ratio > 70% + MEDIUM → "Long Cleanup"           (grey-green)
-//   long_ratio < 30% + HIGH   → "Short Squeeze"          (red)
-//   long_ratio < 30% + MEDIUM → "Short Cleanup"          (grey)
+// Step 3 verdict matrix (color = which side got liquidated: long-heavy = bearish = red,
+// short-heavy = bullish = green):
+//   long_ratio > 70% + HIGH   → "Mass Long Flush"        (red)
+//   long_ratio > 70% + MEDIUM → "Long-Heavy"             (grey-red)
+//   long_ratio < 30% + HIGH   → "Short Squeeze"          (green)
+//   long_ratio < 30% + MEDIUM → "Short-Heavy"            (grey-green)
 //   long_ratio 40-60% (any)   → "Balanced Liquidations"  (grey)
 //
 // LOW significance is not covered by the ratio matrix → use "Insignificant" (grey)
 // Edge decision: long_ratio 30–40% or 60–70% with any size not explicitly covered.
-//   Decision: treat 30–40% as "Short Bias Liquidations" (grey-red) and 60–70% as
-//   "Long Bias Liquidations" (grey-green) to cover the gap. Actually doc doesn't name these —
-//   simpler decision: anything 30–70% with MEDIUM/HIGH that doesn't match 40–60% "balanced"
-//   falls through to "Balanced Liquidations" as the doc's 40–60% covers the middle.
-//   The doc is silent on 30–40% + MEDIUM/HIGH and 60–70% + MEDIUM/HIGH.
-//   Decision: 30–40% = "Short Bias" variants, 60–70% = "Long Bias" variants (grey colors).
-//   Document this in code comment.
+//   Decision: 30–40% = "Short Bias Liquidations" (grey-green, short-heavy tilt) and
+//   60–70% = "Long Bias Liquidations" (grey-red, long-heavy tilt), same polarity as
+//   the explicit matrix cells above.
 //
 // Step 4: Total > $500M → prepend "Cascade — "
 //
@@ -65,7 +62,7 @@ describe('computeLiquidations — verdict matrix', () => {
   it('Mass Long Flush: long_ratio > 70% + HIGH', () => {
     const r = computeLiquidations({ totalUsd: 250_000_000, longRatio: 0.71 });
     expect(r.verdict.label).toContain('Mass Long Flush');
-    expect(r.verdict.color).toBe('green');
+    expect(r.verdict.color).toBe('red');
   });
 
   it('boundary: long_ratio exactly 70% + HIGH is NOT Mass Long Flush (not > 70%)', () => {
@@ -73,16 +70,16 @@ describe('computeLiquidations — verdict matrix', () => {
     expect(r.verdict.label).not.toContain('Mass Long Flush');
   });
 
-  it('Long Cleanup: long_ratio > 70% + MEDIUM', () => {
+  it('Long-Heavy: long_ratio > 70% + MEDIUM', () => {
     const r = computeLiquidations({ totalUsd: 100_000_000, longRatio: 0.75 });
-    expect(r.verdict.label).toContain('Long Cleanup');
-    expect(r.verdict.color).toBe('grey-green');
+    expect(r.verdict.label).toContain('Long-Heavy');
+    expect(r.verdict.color).toBe('grey-red');
   });
 
   it('Short Squeeze: long_ratio < 30% + HIGH', () => {
     const r = computeLiquidations({ totalUsd: 250_000_000, longRatio: 0.29 });
     expect(r.verdict.label).toContain('Short Squeeze');
-    expect(r.verdict.color).toBe('red');
+    expect(r.verdict.color).toBe('green');
   });
 
   it('boundary: long_ratio exactly 30% + HIGH is NOT Short Squeeze (not < 30%)', () => {
@@ -90,10 +87,10 @@ describe('computeLiquidations — verdict matrix', () => {
     expect(r.verdict.label).not.toContain('Short Squeeze');
   });
 
-  it('Short Cleanup: long_ratio < 30% + MEDIUM', () => {
+  it('Short-Heavy: long_ratio < 30% + MEDIUM', () => {
     const r = computeLiquidations({ totalUsd: 100_000_000, longRatio: 0.20 });
-    expect(r.verdict.label).toContain('Short Cleanup');
-    expect(r.verdict.color).toBe('grey');
+    expect(r.verdict.label).toContain('Short-Heavy');
+    expect(r.verdict.color).toBe('grey-green');
   });
 
   it('Balanced Liquidations: long_ratio 40–60%', () => {
@@ -128,7 +125,7 @@ describe('computeLiquidations — Cascade prefix', () => {
   it('Cascade prefix with Mass Long Flush', () => {
     const r = computeLiquidations({ totalUsd: 600_000_000, longRatio: 0.75 });
     expect(r.verdict.label).toBe('Cascade — Mass Long Flush');
-    expect(r.verdict.color).toBe('green');
+    expect(r.verdict.color).toBe('red');
   });
 
   it('Cascade prefix with Short Squeeze', () => {

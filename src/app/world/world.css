@@ -1987,6 +1987,69 @@
   cursor: pointer;
 }
 
+/* — Cryptopedia page header — */
+.world-root .w-crypto-head {
+  margin-bottom: 22px;
+}
+.world-root .w-crypto-head .w-ptag {
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.world-root .w-crypto-head h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+.world-root .w-crypto-head h1 svg {
+  width: 22px;
+  height: 22px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.world-root .w-crypto-sub {
+  color: var(--muted);
+  font-size: 14.5px;
+  max-width: 620px;
+  margin: 0;
+}
+
+/* — Cryptopedia underline tab selector (Tokenpedia / Glossary) — */
+.world-root .w-crypto-tabs {
+  display: flex;
+  gap: 32px;
+  border-bottom: 1px solid var(--border);
+  margin: 22px 0 24px;
+}
+.world-root .w-crypto-tab {
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 0 0 14px;
+  cursor: pointer;
+  transition: color 0.14s, border-color 0.14s;
+}
+.world-root .w-crypto-tab:hover {
+  color: var(--ink);
+}
+.world-root .w-crypto-tab.is-active {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+
 /* — Main grid — */
 .world-root .w-np-grid {
   display: grid;
@@ -3210,6 +3273,307 @@
 .world-root .w-oc-delay b {
   color: var(--muted);
   font-weight: 700;
+}
+
+/* ---- Flow Radar (standalone tab) ---- */
+.world-root .w-flow-radar-timeframe {
+  display: inline-flex;
+  background: var(--adv-surface-2);
+  border: 1px solid var(--adv-border);
+  border-radius: 9px;
+  padding: 3px;
+  gap: 2px;
+}
+.world-root .w-flow-radar-timeframe button {
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 5px 11px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+.world-root .w-flow-radar-timeframe button.on {
+  background: var(--adv-surface-3);
+  color: var(--ink);
+}
+
+.world-root .w-flow-radar-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 18px 0 20px;
+}
+.world-root .w-flow-radar-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.world-root .w-flow-radar-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--adv-border);
+  background: var(--adv-surface-2);
+  color: var(--muted);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 12.5px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+.world-root .w-flow-radar-chip:hover { color: var(--ink); }
+.world-root .w-flow-radar-chip.on {
+  border-color: var(--accent);
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.world-root .w-flow-radar-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.world-root .w-flow-radar-chip.w-flow-radar-sev-high.on {
+  border-color: var(--bear);
+  color: var(--bear);
+  background: rgba(255, 107, 129, 0.1);
+}
+.world-root .w-flow-radar-chip.w-flow-radar-sev-med.on {
+  border-color: #f0cd7e;
+  color: #f0cd7e;
+  background: rgba(240, 205, 126, 0.1);
+}
+
+.world-root .w-flow-radar-verdict {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: var(--adv-surface);
+  border: 1px solid var(--adv-border);
+  border-left: 3px solid var(--muted);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.world-root .w-flow-radar-verdict-red { border-left-color: var(--bear); }
+.world-root .w-flow-radar-verdict-green { border-left-color: var(--bull); }
+.world-root .w-flow-radar-verdict-amber,
+.world-root .w-flow-radar-verdict-grey-green,
+.world-root .w-flow-radar-verdict-grey-red { border-left-color: #f0cd7e; }
+.world-root .w-flow-radar-verdict-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 800;
+}
+.world-root .w-flow-radar-verdict p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13.5px;
+  max-width: 60ch;
+}
+.world-root .w-flow-radar-verdict-stat {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.world-root .w-flow-radar-asset-tag {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+  background: var(--adv-surface-3);
+  padding: 2px 7px;
+  border-radius: 6px;
+  margin-left: 4px;
+}
+.world-root .w-flow-radar-sev-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 6px;
+  margin-left: 6px;
+}
+.world-root .w-flow-radar-sev-badge.w-flow-radar-sev-high {
+  color: var(--bear);
+  background: rgba(255, 107, 129, 0.16);
+}
+.world-root .w-flow-radar-sev-badge.w-flow-radar-sev-med {
+  color: #f0cd7e;
+  background: rgba(240, 205, 126, 0.16);
+}
+
+.world-root .w-flow-radar-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px 4px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.world-root .w-flow-radar-pro-nudge {
+  color: #c4b3ff;
+  font-weight: 700;
+}
+
+/* ---- Fear & Greed (standalone tab) ---- */
+.world-root .w-fg-hero {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  background: var(--adv-surface);
+  border: 1px solid var(--adv-border);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+.world-root .w-fg-hero-score {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.world-root .w-fg-hero-score b {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.world-root .w-fg-hero-score span {
+  font-size: 13px;
+  font-weight: 700;
+}
+.world-root .w-fg-hero-desc {
+  flex: 1;
+  min-width: 220px;
+}
+.world-root .w-fg-hero-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.world-root .w-fg-hero-desc p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--muted);
+  max-width: 46ch;
+}
+
+.world-root .w-fg-tiles {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.world-root .w-fg-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--adv-surface);
+  border: 1px solid var(--adv-border);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.world-root .w-fg-tile-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.world-root .w-fg-tile b {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.world-root .w-fg-tile-source {
+  font-size: 11px;
+  color: var(--muted-2);
+}
+.world-root .w-fg-estimated-badge {
+  display: inline-block;
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #f0cd7e;
+  background: rgba(240, 205, 126, 0.14);
+  padding: 2px 6px;
+  border-radius: 5px;
+  margin-right: 6px;
+}
+
+.world-root .w-fg-how-toggle {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-bottom: 6px;
+}
+.world-root .w-fg-how-body {
+  background: var(--adv-surface-2);
+  border: 1px solid var(--adv-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+.world-root .w-fg-how-body p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.world-root .w-fg-chart-panel { margin-top: 20px; }
+.world-root .w-fg-band-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 0 20px 16px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.world-root .w-fg-band-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.world-root .w-fg-band-legend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.world-root .w-fg-disclaimer {
+  margin: 18px 4px 0;
+  font-size: 11.5px;
+  color: var(--muted-2);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .world-root .w-fg-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .world-root .w-fg-tiles { grid-template-columns: 1fr; }
 }
 
 /* ---- Help "?" bubble (reference .oc-q; tooltips are native title) ---- */

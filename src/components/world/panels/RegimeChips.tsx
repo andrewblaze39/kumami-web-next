@@ -39,25 +39,6 @@ export default function RegimeChips({ chips, loading }: Props) {
   return (
     <div className="w-regime-row" role="list" aria-label="Asset regime overview" data-tour="regime">
       {chips.map(chip => {
-        // SPX has no CoinGlass/macro source yet → coming-soon treatment.
-        const comingSoon = chip.asset === 'SPX' && chip.price === 0;
-        if (comingSoon) {
-          return (
-            <div
-              key={chip.asset}
-              className="w-regime-chip w-regime-soon"
-              style={{ '--rc': '#8a94a6' } as CSSProperties}
-              role="listitem"
-              aria-label={`${chip.asset}: coming soon`}
-            >
-              <div className="w-rc-top">
-                <span className="w-sym"><CoinBadge sym={chip.asset} size={17} />{chip.asset}</span>
-              </div>
-              <div className="w-reg-lbl w-muted">Coming soon</div>
-              <div className="w-reg-conf w-muted">S&amp;P 500 macro feed</div>
-            </div>
-          );
-        }
         return (
           <div
             key={chip.asset}
