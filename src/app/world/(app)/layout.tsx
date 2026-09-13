@@ -6,6 +6,7 @@ import WorldProtected from '@/components/world/shell/WorldProtected';
 import { WorldModeProvider, useWorldMode } from '@/contexts/WorldModeContext';
 import Sidebar from '@/components/world/shell/Sidebar';
 import Topbar from '@/components/world/shell/Topbar';
+import MobileTabBar from '@/components/world/shell/MobileTabBar';
 import KumaDock from '@/components/world/kuma/KumaDock';
 
 // Inner layout that has access to WorldModeContext
@@ -57,7 +58,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      {/* Kuma AI dock — push-over panel, always mounted so chat state survives navigation */}
+      {/* Kuma AI dock — floating overlay (doesn't resize .w-main), always mounted so chat state survives navigation */}
       <aside
         className={`w-kuma-side${kumaOpen ? ' open' : ''}`}
         data-side="right"
@@ -68,6 +69,9 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
       >
         <KumaDock />
       </aside>
+
+      {/* Mobile bottom tab bar — CSS-only hidden above 760px, see world.css */}
+      <MobileTabBar onMenuClick={() => setSidebarOpen(v => !v)} />
     </div>
   );
 }

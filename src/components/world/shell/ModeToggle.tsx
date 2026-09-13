@@ -42,35 +42,59 @@ export default function ModeToggle() {
   const modeClass = mode === 'advanced' ? 'w-mode-switch is-adv' : mode === 'pro' ? 'w-mode-switch is-pro' : 'w-mode-switch';
 
   return (
-    <div className={modeClass} ref={switchRef}>
-      <span className="w-knob" ref={knobRef} />
-      <button className={cls('beginner')} onClick={() => setMode('beginner')}>
-        {/* Seedling — beginner/starter glyph (mobile shows icons only for inactive modes) */}
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 21v-8" />
-          <path d="M12 13c0-4-3-7-8-7 0 4 3 7 8 7Z" />
-          <path d="M12 10c0-3.5 2.5-6 8-6 0 3.5-2.5 6-8 6Z" />
-        </svg>
-        <span>Basic</span>
-      </button>
-      <button className={cls('advanced')} onClick={() => setMode('advanced')}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-          <path d="m12 3 2.6 5.6 6.1.7-4.5 4.1 1.2 6L12 16.8 6.6 19.4l1.2-6L3.3 9.3l6.1-.7Z" />
-        </svg>
-        <span>Plus</span>
-      </button>
-      <button className={cls('pro')} onClick={() => setMode('pro')}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M13 3 5 13h5l-1 8 8-10h-5Z" />
-        </svg>
-        <span>Pro</span>
-        {!isPremium && (
-          <svg className="w-lock-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="4.5" y="10.5" width="15" height="10" rx="2.5" />
-            <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
+    <div className="w-mode-toggle-wrap">
+      <span className="w-mode-toggle-label">Workspace</span>
+      <div
+        className={modeClass}
+        ref={switchRef}
+        role="group"
+        aria-label="Switch workspace — changes your whole sidebar and tools"
+      >
+        <span className="w-knob" ref={knobRef} />
+        <button
+          className={cls('beginner')}
+          onClick={() => setMode('beginner')}
+          title="Basic workspace — learning, news & community tools"
+        >
+          {/* Seedling — beginner/starter glyph (mobile shows icons only for inactive modes) */}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 21v-8" />
+            <path d="M12 13c0-4-3-7-8-7 0 4 3 7 8 7Z" />
+            <path d="M12 10c0-3.5 2.5-6 8-6 0 3.5-2.5 6-8 6Z" />
           </svg>
-        )}
-      </button>
+          <span>Basic</span>
+        </button>
+        <button
+          className={cls('advanced')}
+          onClick={() => setMode('advanced')}
+          title="Plus workspace — live market console, on-chain data & alerts"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m12 3 2.6 5.6 6.1.7-4.5 4.1 1.2 6L12 16.8 6.6 19.4l1.2-6L3.3 9.3l6.1-.7Z" />
+          </svg>
+          <span>Plus</span>
+        </button>
+        <button
+          className={cls('pro')}
+          onClick={() => setMode('pro')}
+          title={
+            isPremium
+              ? 'Pro workspace — portfolio, alpha calls & the full toolset'
+              : 'Pro workspace — locked until you upgrade'
+          }
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M13 3 5 13h5l-1 8 8-10h-5Z" />
+          </svg>
+          <span>Pro</span>
+          {!isPremium && (
+            <svg className="w-lock-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="4.5" y="10.5" width="15" height="10" rx="2.5" />
+              <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
+            </svg>
+          )}
+        </button>
+      </div>
     </div>
   );
 }

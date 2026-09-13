@@ -95,6 +95,8 @@ export type FlowEvent = {
   description: string;
   ts: string;
   interpretation?: string;
+  /** Pro-only cross-signal confirmation (e.g. "Regime shift confirming"). */
+  crossSignal?: { label: string; color: Verdict['color'] };
 };
 
 /** One sub-metric tile on the Fear & Greed page. */

@@ -934,7 +934,25 @@
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
-/* ---- Mode toggle (segmented 3-way) ---- */
+/* ---- Mode toggle (segmented 3-way) ----
+   Wrapped with a "Workspace" label so the control reads as "this switches
+   your whole workspace" rather than a generic filter/settings toggle. */
+.world-root .w-mode-toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.world-root .w-mode-toggle-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  white-space: nowrap;
+}
+@media (max-width: 900px) {
+  .world-root .w-mode-toggle-label { display: none; }
+}
 .world-root .w-mode-switch {
   display: inline-flex;
   background: var(--panel-2);
@@ -1085,17 +1103,17 @@
   margin: 0;
 }
 
-/* ---- Kuma AI dock (push-over column) ---- */
+/* ---- Kuma AI dock (floating overlay — does not push/resize .w-main) ---- */
 .world-root .w-kuma-side {
-  flex: 0 0 auto;
   width: 0;
   overflow: hidden;
-  position: sticky;
+  position: fixed;
   top: 0;
+  right: 0;
   height: 100vh;
   background: var(--panel);
   transition: width 0.34s cubic-bezier(0.4, 0.6, 0.2, 1);
-  z-index: 30;
+  z-index: 45;
 }
 .world-root .w-kuma-side.open {
   width: var(--kuma-w, 380px);
@@ -1442,17 +1460,54 @@
   margin: 8px 0 0;
 }
 
-/* Mobile: full-screen overlay on small viewports */
+/* Mobile: dock already floats (fixed) from the base rule above; bump above
+   the mobile bottom tab bar / sidebar drawer and drop the resize handle. */
 @media (max-width: 760px) {
   .world-root .w-kuma-side.open {
-    position: fixed;
-    top: 0;
     bottom: 0;
-    right: 0;
     z-index: 90;
   }
   .world-root .w-kuma-drag-handle {
     display: none;
+  }
+}
+
+/* ---- Mobile bottom tab bar ---- */
+.world-root .w-mobile-tabbar {
+  display: none;
+}
+@media (max-width: 760px) {
+  .world-root .w-mobile-tabbar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    height: 58px;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    background: rgba(6, 6, 9, 0.92);
+    backdrop-filter: blur(14px);
+    border-top: 1px solid var(--border);
+  }
+  .world-root .w-mtb-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .world-root .w-mtb-item.active {
+    color: var(--accent);
   }
 }
 
@@ -1533,12 +1588,9 @@
   /* Mobile: inactive modes are icon-only; the active mode keeps its label
      so the toggle is always self-describing. */
   .world-root .w-mode-switch button:not(.w-mode-on) span { display: none; }
-  .world-root .w-kuma-side.open {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    z-index: 90;
+  /* Clear the fixed bottom tab bar (58px + safe-area-inset-bottom). */
+  .world-root .w-content {
+    padding-bottom: calc(58px + env(safe-area-inset-bottom, 0) + 18px);
   }
 }
 
@@ -3437,6 +3489,44 @@
   color: #c4b3ff;
   font-weight: 700;
 }
+
+/* ---- Flow Radar — Pro-only asset multi-select ---- */
+.world-root .w-flow-radar-pro-assets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.world-root .w-flow-radar-asset-search {
+  background: var(--adv-surface-2, #142a22);
+  border: 1px solid var(--border-2);
+  border-radius: 9px;
+  padding: 7px 12px;
+  font-size: 13px;
+  color: var(--ink);
+  outline: none;
+  max-width: 260px;
+}
+.world-root .w-flow-radar-asset-search:focus {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* ---- Flow Radar — Pro-only cross-signal chip ---- */
+.world-root .w-flow-radar-cross-signal {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  border: 1px solid currentColor;
+}
+.world-root .w-flow-radar-cross-green { color: #46e3a0; }
+.world-root .w-flow-radar-cross-grey-green { color: #7fd9b6; }
+.world-root .w-flow-radar-cross-grey { color: var(--muted); }
+.world-root .w-flow-radar-cross-amber { color: #f0cd7e; }
+.world-root .w-flow-radar-cross-grey-red { color: #e08a95; }
+.world-root .w-flow-radar-cross-red { color: #ff6b81; }
 
 /* ---- Calendar (standalone tab) ---- */
 .world-root .w-cal-type-ic {

@@ -1,17 +1,21 @@
 'use client';
 
 /**
- * /world/flow-radar — standalone Flow Radar tab (Plus tier).
+ * /world/flow-radar — standalone Flow Radar tab (Plus + Pro, shared page).
  *
- * Server already restricts the universe to the fixed 5-asset roster
- * (BTC/ETH/SOL/BNB/HYPE), HIGH+MED severity, and the 4 Plus event types
- * (Kumami Plus §4.1). Client-side controls below only slice that already-
- * scoped list for display — no threshold/gating logic lives here.
+ * Plus (free tier): server restricts the universe to the fixed 5-asset
+ * roster, HIGH+MED severity, and the 4 real event types (Kumami Plus §4.1).
+ * Pro: server lifts the roster/severity restriction entirely (Kumami Pro
+ * §4.1a) — this page adds the matching controls (multi-select assets, LOW
+ * severity, 7D timeframe, dynamic footer, cross-signal chips) only when
+ * `isPremium`. No threshold/gating logic lives here either way — the server
+ * has already scoped the event list before it reaches the client.
  */
 
 import { useMemo, useState } from 'react';
 import type { FlowEvent, FlowRadarPayload } from '@/lib/market/contracts';
 import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
+import { useAuth } from '@/contexts/AuthContext';
 import { formatUsd, relativeTime } from '@/components/world/panels/format';
 import { WIcon, CoinBadge } from '@/components/world/panels/console-ui';
 
@@ -19,7 +23,7 @@ type Payload = FlowRadarPayload & { delayed?: boolean; delayMinutes?: number };
 
 const EVENT_TYPES: { key: FlowEvent['type']; label: string; dot: string }[] = [
   { key: 'whale_transfer', label: 'Whale Transfer', dot: '#46e3a0' },
-  { key: 'exchange_flow', label: 'Exchange Flow', dot: '#56dfe6' },
+  { key: 'netflow_flip', label: 'Exchange Flow', dot: '#56dfe6' },
   { key: 'liq_spike', label: 'Liquidation Spike', dot: '#ff6b81' },
   { key: 'smart_money', label: 'Smart Money', dot: '#b9a4ff' },
 ];
@@ -28,19 +32,22 @@ const ASSETS = ['All', 'BTC', 'ETH', 'SOL', 'BNB', 'HYPE'] as const;
 type AssetFilter = (typeof ASSETS)[number];
 
 const SEVERITIES: FlowEvent['severity'][] = ['HIGH', 'MED'];
+const PRO_SEVERITIES: FlowEvent['severity'][] = ['HIGH', 'MED', 'LOW'];
 const TIMEFRAMES = ['1H', '4H', '24H'] as const;
-type Timeframe = (typeof TIMEFRAMES)[number];
+const PRO_TIMEFRAMES = ['1H', '4H', '24H', '7D'] as const;
+type Timeframe = (typeof PRO_TIMEFRAMES)[number];
 const TIMEFRAME_MS: Record<Timeframe, number> = {
   '1H': 3_600_000,
   '4H': 4 * 3_600_000,
   '24H': 24 * 3_600_000,
+  '7D': 7 * 24 * 3_600_000,
 };
 
 const TYPE_LABEL: Record<FlowEvent['type'], string> = {
   whale_transfer: 'Whale Transfer',
   exchange_flow: 'Exchange Flow',
   liq_spike: 'Liquidation Spike',
-  netflow_flip: 'Netflow Flip',
+  netflow_flip: 'Exchange Flow',
   whale_wall: 'Whale Wall',
   smart_money: 'Smart Money',
 };
@@ -62,11 +69,18 @@ const PAGE_SIZE = 8;
 
 export default function FlowRadarPage() {
   const { status, data } = useMarketEndpoint<Payload>('/api/market/flow-radar');
+  const { userData } = useAuth();
+  const isPremium =
+    userData?.isPremium === true || userData?.role === 'admin' || userData?.role === 'superadmin';
 
   const [types, setTypes] = useState<Set<FlowEvent['type']>>(
     new Set(EVENT_TYPES.map((t) => t.key)),
   );
+  // Plus: single-select fixed roster. Pro: multi-select against the live
+  // asset universe (empty set = "All", per Kumami Pro §4.6a's default).
   const [asset, setAsset] = useState<AssetFilter>('All');
+  const [proAssets, setProAssets] = useState<Set<string>>(new Set());
+  const [proAssetSearch, setProAssetSearch] = useState('');
   const [severities, setSeverities] = useState<Set<FlowEvent['severity']>>(new Set(SEVERITIES));
   const [timeframe, setTimeframe] = useState<Timeframe>('24H');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -91,9 +105,23 @@ export default function FlowRadarPage() {
     });
   };
 
+  const toggleProAsset = (sym: string) => {
+    setVisibleCount(PAGE_SIZE);
+    setProAssets((prev) => {
+      const next = new Set(prev);
+      if (next.has(sym)) next.delete(sym);
+      else next.add(sym);
+      return next;
+    });
+  };
+
   const events = data?.events ?? [];
   const now = Date.now();
   const windowMs = TIMEFRAME_MS[timeframe];
+  const universe = data?.footer.assets ?? [];
+  const visibleAssetChips = proAssetSearch
+    ? universe.filter((a) => a.toLowerCase().includes(proAssetSearch.toLowerCase()))
+    : universe;
 
   const filtered = useMemo(
     () =>
@@ -101,10 +129,10 @@ export default function FlowRadarPage() {
         (e) =>
           types.has(e.type) &&
           severities.has(e.severity) &&
-          (asset === 'All' || e.asset === asset) &&
+          (isPremium ? (proAssets.size === 0 || proAssets.has(e.asset)) : (asset === 'All' || e.asset === asset)) &&
           now - Date.parse(e.ts) <= windowMs,
       ),
-    [events, types, severities, asset, windowMs, now],
+    [events, types, severities, asset, isPremium, proAssets, windowMs, now],
   );
 
   const visible = filtered.slice(0, visibleCount);
@@ -126,7 +154,7 @@ export default function FlowRadarPage() {
               <span className="w-live-dot" /> Live
             </span>
             <div className="w-flow-radar-timeframe">
-              {TIMEFRAMES.map((tf) => (
+              {(isPremium ? PRO_TIMEFRAMES : TIMEFRAMES).map((tf) => (
                 <button
                   key={tf}
                   className={tf === timeframe ? 'on' : ''}
@@ -153,23 +181,47 @@ export default function FlowRadarPage() {
             </button>
           ))}
         </div>
-        <div className="w-oc-asset-tabs">
-          {ASSETS.map((a) => (
-            <button
-              key={a}
-              className={a === asset ? 'on' : ''}
-              onClick={() => {
-                setVisibleCount(PAGE_SIZE);
-                setAsset(a);
-              }}
-            >
-              {a !== 'All' && <CoinBadge sym={a} size={17} />}
-              {a}
-            </button>
-          ))}
-        </div>
+        {isPremium ? (
+          <div className="w-flow-radar-pro-assets">
+            <input
+              type="text"
+              className="w-flow-radar-asset-search"
+              placeholder="Search the tracked universe…"
+              value={proAssetSearch}
+              onChange={(e) => setProAssetSearch(e.target.value)}
+              aria-label="Search assets"
+            />
+            <div className="w-oc-asset-tabs">
+              <button className={proAssets.size === 0 ? 'on' : ''} onClick={() => setProAssets(new Set())}>
+                All
+              </button>
+              {visibleAssetChips.map((a) => (
+                <button key={a} className={proAssets.has(a) ? 'on' : ''} onClick={() => toggleProAsset(a)}>
+                  <CoinBadge sym={a} size={17} />
+                  {a}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="w-oc-asset-tabs">
+            {ASSETS.map((a) => (
+              <button
+                key={a}
+                className={a === asset ? 'on' : ''}
+                onClick={() => {
+                  setVisibleCount(PAGE_SIZE);
+                  setAsset(a);
+                }}
+              >
+                {a !== 'All' && <CoinBadge sym={a} size={17} />}
+                {a}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="w-flow-radar-chip-row">
-          {SEVERITIES.map((sev) => (
+          {(isPremium ? PRO_SEVERITIES : SEVERITIES).map((sev) => (
             <button
               key={sev}
               className={`w-flow-radar-chip w-flow-radar-sev-${sev.toLowerCase()}${severities.has(sev) ? ' on' : ''}`}
@@ -224,7 +276,14 @@ export default function FlowRadarPage() {
                             {event.severity}
                           </span>
                         </b>
-                        <div className="w-rsub">{event.description}</div>
+                        <div className="w-rsub">
+                          {event.description}
+                          {event.crossSignal && (
+                            <span className={`w-flow-radar-cross-signal w-flow-radar-cross-${event.crossSignal.color}`}>
+                              + {event.crossSignal.label}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="w-radar-amt">
                         <b className={bullish ? 'w-bull' : 'w-bear'}>
@@ -252,9 +311,12 @@ export default function FlowRadarPage() {
 
           <div className="w-flow-radar-footer">
             <span>
-              {filtered.length} events in {timeframe} · {formatUsd(totalUsd)} across BTC / ETH / SOL / BNB / HYPE
+              {filtered.length} events in {timeframe} · {formatUsd(totalUsd)} across{' '}
+              {isPremium ? `${data.footer.assets.length} tracked assets` : 'BTC / ETH / SOL / BNB / HYPE'}
             </span>
-            <span className="w-flow-radar-pro-nudge">See events on 100+ assets + push alerts → Pro</span>
+            {!isPremium && (
+              <span className="w-flow-radar-pro-nudge">See events on 100+ assets + push alerts → Pro</span>
+            )}
           </div>
         </>
       ) : (

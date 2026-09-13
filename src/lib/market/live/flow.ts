@@ -47,7 +47,10 @@ export async function buildFlowEvents(): Promise<FlowEvent[]> {
   const events: FlowEvent[] = [];
 
   // --- whale transfers (top by USD) ---------------------------------------
-  for (const w of whales.slice(0, 40)) {
+  // Caps sized for Pro's wider breadth (Kumami Pro §4.1a) — Plus then slices
+  // this same cached list back down to its 5-asset roster at the route layer,
+  // so raising these caps costs zero extra CoinGlass calls either way.
+  for (const w of whales.slice(0, 80)) {
     const amountUsd = Number(w.amount_usd);
     if (!Number.isFinite(amountUsd) || amountUsd < 5_000_000) continue;
     const toEx = isExchangeLabel(w.to);
@@ -65,14 +68,14 @@ export async function buildFlowEvents(): Promise<FlowEvent[]> {
       description: r.description,
       ts: tsToIso(w.block_timestamp),
     });
-    if (events.filter((e) => e.type === 'whale_transfer').length >= 8) break;
+    if (events.filter((e) => e.type === 'whale_transfer').length >= 20) break;
   }
 
   // --- netflow flips (5m vs 30m opposite sign, ranked by 1h magnitude) -----
   const flips = netflow
     .filter((n) => sign(n.net_flow_usd_5m) !== 0 && sign(n.net_flow_usd_5m) !== sign(n.net_flow_usd_30m))
     .sort((a, b) => Math.abs(b.net_flow_usd_1h) - Math.abs(a.net_flow_usd_1h))
-    .slice(0, 4);
+    .slice(0, 12);
   for (const n of flips) {
     const flippedPositive = n.net_flow_usd_5m > 0;
     const amountUsd = Math.abs(n.net_flow_usd_1h);
@@ -94,7 +97,7 @@ export async function buildFlowEvents(): Promise<FlowEvent[]> {
     .map((l) => ({ l, spike: Number((l as LiqCoinRow & { liquidation_usd_1h?: number }).liquidation_usd_1h ?? 0) }))
     .filter((x) => x.spike > 1_000_000)
     .sort((a, b) => b.spike - a.spike)
-    .slice(0, 4);
+    .slice(0, 12);
   for (const { l, spike } of bySpike) {
     const r = computeFlowRadar({ type: 'liq_spike', asset: l.symbol, amountUsd: spike });
     events.push({
@@ -110,7 +113,7 @@ export async function buildFlowEvents(): Promise<FlowEvent[]> {
   }
 
   // --- Hyperliquid smart-money positions (top by USD) ---------------------
-  for (const [i, p] of [...hl].sort((a, b) => b.position_value_usd - a.position_value_usd).slice(0, 4).entries()) {
+  for (const [i, p] of [...hl].sort((a, b) => b.position_value_usd - a.position_value_usd).slice(0, 8).entries()) {
     const isLong = p.position_size > 0;
     const r = computeFlowRadar({ type: 'smart_money', asset: p.symbol, amountUsd: p.position_value_usd, isLong });
     events.push({
