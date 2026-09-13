@@ -125,6 +125,24 @@ export type FearGreedPayload = {
   updatedAt: string;
 };
 
+/** One event on the standalone /world/calendar page. */
+export type CalendarEvent = {
+  id: string;
+  type: 'macro' | 'unlock' | 'protocol';
+  title: string;
+  /** ISO timestamp — may be past (unlocks/econ prints) or future (scheduled). */
+  ts: string;
+  impact: 'HIGH' | 'MED' | 'LOW';
+  assets: string[];
+  description: string;
+};
+
+/** Full payload for the standalone /world/calendar page (Plus tier). */
+export type CalendarPayload = {
+  events: CalendarEvent[];
+  updatedAt: string;
+};
+
 /** Full payload for the standalone /world/flow-radar page (Plus tier: fixed 5-asset roster, HIGH+MED only). */
 export type FlowRadarPayload = {
   events: FlowEvent[];

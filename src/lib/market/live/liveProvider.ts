@@ -18,7 +18,7 @@
  */
 
 import type {
-  ConsolePayload, FearGreedPayload, FlowEvent, HeatmapPayload, IntelligencePayload,
+  CalendarPayload, ConsolePayload, FearGreedPayload, FlowEvent, HeatmapPayload, IntelligencePayload,
   OnChainPayload, SpotPulsePayload, WatchlistPayload,
 } from '../contracts';
 import type { MarketDataProvider } from '../provider';
@@ -29,6 +29,7 @@ import { makeIntelligencePayloadLive } from './intel';
 import { makeSpotPulseLive } from './spotPulse';
 import { buildFlowEvents } from './flow';
 import { makeFearGreedPayloadLive } from './fearGreedPage';
+import { makeCalendarPayloadLive } from './calendarPage';
 
 /**
  * Log a live-builder failure and rethrow. We do NOT substitute mock data — a
@@ -83,6 +84,10 @@ function makeLiveProvider(): MarketDataProvider {
 
     async fearGreed(): Promise<FearGreedPayload> {
       return live('fearGreed', makeFearGreedPayloadLive);
+    },
+
+    async calendar(): Promise<CalendarPayload> {
+      return live('calendar', makeCalendarPayloadLive);
     },
   };
 }

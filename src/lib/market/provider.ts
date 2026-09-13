@@ -9,6 +9,7 @@
  */
 
 import type {
+  CalendarPayload,
   ConsolePayload,
   FearGreedPayload,
   FlowEvent,
@@ -30,6 +31,7 @@ export interface MarketDataProvider {
   intelligence(tier: 'free' | 'pro'): Promise<IntelligencePayload>;
   spotPulse(tier: 'free' | 'pro', timeframe: '4H' | '24H' | '7D'): Promise<SpotPulsePayload>;
   fearGreed(): Promise<FearGreedPayload>;
+  calendar(): Promise<CalendarPayload>;
 }
 
 /**
