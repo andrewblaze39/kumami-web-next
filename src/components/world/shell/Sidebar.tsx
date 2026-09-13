@@ -186,60 +186,71 @@ const ADV_NAV: NavGroup[] = [
 // Education subtabs — no longer rendered as nested subnav; education items
 // are now direct nav items under Learn/Explore groups.
 
-// PRO subtabs (premium users) — keys must match ?tab= read by WorldProContent.
-// Content for each panel follows the Kumami World Pro reference design.
-const PRO_SUBTABS = [
-  { key: 'digest', label: 'Daily Digest', icon: Icons.doc },
-  { key: 'followhub', label: 'Following & Alerts', icon: Icons.bookmark },
-  { key: 'smartmoney', label: 'Smart Money Tracker', icon: Icons.users },
-  { key: 'tokentracker', label: 'Coin/Token Tracker', icon: Icons.layers },
-  { key: 'spotpulse', label: 'Spot Pulse', icon: Icons.layers },
-  { key: 'scanner', label: 'Security Scanner', icon: Icons.shield },
-  { key: 'airdrops', label: 'Airdrops & Whitelist', icon: Icons.spark },
-  // NOTE: no Watchlist here — it's a Plus tool (/world/watchlist) that Pro
-  // users already see via the included Plus nav, so it isn't duplicated in Pro.
-  { key: 'portfolio', label: 'AI Portfolio', icon: Icons.trophy },
-  { key: 'marketcap', label: 'Market Cap Comparison', icon: Icons.layers },
-  { key: 'realtimenews', label: 'Real-Time News', icon: Icons.news },
-  { key: 'alpha', label: 'Alpha Room', icon: Icons.bolt },
-  { key: 'feargreed', label: 'Fear & Greed', icon: Icons.spark },
-  { key: 'research', label: 'Kumami Research', icon: Icons.doc },
-  { key: 'calendar', label: 'Calendar', icon: Icons.clock },
-  { key: 'events', label: 'Events & Announcements', icon: Icons.bell },
-  { key: 'market', label: 'Market Analysis', icon: Icons.doc },
-  { key: 'kumaai', label: 'Kuma AI Chat', icon: Icons.spark },
-] as const;
+// PRO nav (premium users) — item keys must match ?tab= read by WorldProContent.
+// Grouped to match the reference design's "News & Signals" / "Tools" /
+// "AI Tools" sections (the design predates Fear & Greed, Calendar, Market
+// Analysis and Coin/Token Tracker, which are slotted into the nearest-fit
+// group below since the design has no explicit home for them).
+// NOTE: no Watchlist, Flow Radar or Settings items here — those are Plus
+// tools Pro users already see via the included Plus nav, so they aren't
+// duplicated here.
+const PRO_NAV: NavGroup[] = [
+  {
+    grp: 'pro-top',
+    standalone: true,
+    items: [
+      { k: 'digest', label: 'Daily Digest', href: '/world/pro?tab=digest', icon: Icons.doc },
+      { k: 'followhub', label: 'Following & Alerts', href: '/world/pro?tab=followhub', icon: Icons.bookmark },
+    ],
+  },
+  {
+    grp: 'News & Signals',
+    collapsible: true,
+    items: [
+      { k: 'realtimenews', label: 'Real-Time News', href: '/world/pro?tab=realtimenews', icon: Icons.news },
+      { k: 'alpha', label: 'Alpha Room', href: '/world/pro?tab=alpha', icon: Icons.bolt },
+      { k: 'research', label: 'Kumami Research', href: '/world/pro?tab=research', icon: Icons.doc },
+      { k: 'market', label: 'Market Analysis', href: '/world/pro?tab=market', icon: Icons.doc },
+      { k: 'feargreed', label: 'Fear & Greed', href: '/world/pro?tab=feargreed', icon: Icons.spark },
+    ],
+  },
+  {
+    grp: 'Tools',
+    collapsible: true,
+    items: [
+      { k: 'spotpulse', label: 'Spot Pulse', href: '/world/pro?tab=spotpulse', icon: Icons.layers },
+      { k: 'smartmoney', label: 'Smart Money Tracker', href: '/world/pro?tab=smartmoney', icon: Icons.users },
+      { k: 'tokentracker', label: 'Coin/Token Tracker', href: '/world/pro?tab=tokentracker', icon: Icons.layers },
+      { k: 'scanner', label: 'Security Scanner', href: '/world/pro?tab=scanner', icon: Icons.shield },
+      { k: 'marketcap', label: 'Market Cap Comparison', href: '/world/pro?tab=marketcap', icon: Icons.layers },
+      { k: 'airdrops', label: 'Airdrops & Whitelist', href: '/world/pro?tab=airdrops', icon: Icons.spark },
+    ],
+  },
+  {
+    grp: 'AI Tools',
+    collapsible: true,
+    items: [
+      { k: 'portfolio', label: 'AI Portfolio', href: '/world/pro?tab=portfolio', icon: Icons.trophy },
+      { k: 'kumaai', label: 'Kuma AI Chat', href: '/world/pro?tab=kumaai', icon: Icons.spark },
+    ],
+  },
+  {
+    grp: 'pro-bottom',
+    standalone: true,
+    items: [
+      { k: 'calendar', label: 'Calendar', href: '/world/pro?tab=calendar', icon: Icons.clock },
+      { k: 'events', label: 'Events & Announcements', href: '/world/pro?tab=events', icon: Icons.bell },
+    ],
+  },
+];
 
 /**
- * Pro sub-nav (premium users) — reads ?tab= to highlight the active tab
- * (default: portfolio) while on /world/pro. Needs useSearchParams, so it is
- * mounted inside <Suspense/>.
+ * Pro sub-nav (premium users) — grouped per PRO_NAV, reads ?tab= to
+ * highlight the active tab (default: digest) while on /world/pro. Needs
+ * useSearchParams (via NavGroupList), so it is mounted inside <Suspense/>.
  */
 function ProSubnav({ onClose }: { onClose: () => void }) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const raw = searchParams.get('tab');
-  const active = pathname === '/world/pro'
-    ? (PRO_SUBTABS.some(t => t.key === raw) ? raw : 'digest')
-    : null;
-
-  return (
-    <>
-      {PRO_SUBTABS.map(t => (
-        <Link
-          key={t.key}
-          href={`/world/pro?tab=${t.key}`}
-          data-tour={`pro-${t.key}`}
-          className={`w-nav-item${active === t.key ? ' active' : ''}`}
-          aria-current={active === t.key ? 'page' : undefined}
-          onClick={onClose}
-        >
-          {t.icon}
-          <span>{t.label}</span>
-        </Link>
-      ))}
-    </>
-  );
+  return <NavGroupList groups={PRO_NAV} onClose={onClose} defaultTab="digest" />;
 }
 
 /**
@@ -249,7 +260,16 @@ function ProSubnav({ onClose }: { onClose: () => void }) {
  * default "dashboard" tab) — needs useSearchParams, so it is mounted inside
  * <Suspense/>.
  */
-function NavGroupList({ groups, onClose }: { groups: NavGroup[]; onClose: () => void }) {
+function NavGroupList({
+  groups,
+  onClose,
+  defaultTab = 'dashboard',
+}: {
+  groups: NavGroup[];
+  onClose: () => void;
+  /** Fallback ?tab= value when the URL has none (e.g. Pro's bare /world/pro defaults to 'digest'). */
+  defaultTab?: string;
+}) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   // Collapsed group headers, by group key. Default: all expanded.
@@ -259,8 +279,8 @@ function NavGroupList({ groups, onClose }: { groups: NavGroup[]; onClose: () => 
     const [path, query] = item.href.split('?');
     if (!pathname.startsWith(path)) return false;
     if (!query) return true;
-    const itemTab = new URLSearchParams(query).get('tab') || 'dashboard';
-    const activeTab = searchParams.get('tab') || 'dashboard';
+    const itemTab = new URLSearchParams(query).get('tab') || defaultTab;
+    const activeTab = searchParams.get('tab') || defaultTab;
     return itemTab === activeTab;
   };
 
