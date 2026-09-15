@@ -161,16 +161,6 @@ export async function makeConsolePayloadLive(): Promise<ConsolePayload> {
   // confidence floor — NOT the Fear & Greed label (that stays on the sentiment bar).
   const globalVerdict = floorGlobalVerdict(btc.verdict, btc.rawConf);
 
-  // Heatmap preview from liquidation coin-list.
-  const previewAssets = ['BTC', 'ETH', 'SOL', 'BNB', 'AVAX'];
-  const heatmapPreview = previewAssets.map((a) => {
-    const row = liqCoin.find((l) => l.symbol === a);
-    const long = row?.long_liquidation_usd_24h ?? 0;
-    const short = row?.short_liquidation_usd_24h ?? 0;
-    const longShare = long + short > 0 ? (long / (long + short)) * 100 : 50;
-    return { asset: a, liqUsd24h: Math.round(row?.liquidation_usd_24h ?? 0), longShare: Number(longShare.toFixed(1)) };
-  });
-
   // Radar watchlist (auto-scored from flow events, enriched with price).
   const radar = computeRadarWatchlist({
     events: flowEvents.map((e) => ({ type: e.type, asset: e.asset, direction: e.direction, severity: e.severity, ts: e.ts })),
@@ -217,7 +207,6 @@ export async function makeConsolePayloadLive(): Promise<ConsolePayload> {
       },
     },
     regimeChips,
-    heatmapPreview,
     flowRadar: flowEvents.slice(0, 6),
     intelPreview,
     radarWatchlist: radarWatchlist.slice(0, 4),

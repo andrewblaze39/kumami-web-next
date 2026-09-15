@@ -173,6 +173,7 @@ const ADV_NAV: NavGroup[] = [
     items: [
       { k: 'console', label: 'Console', href: '/world/console', icon: Icons.home },
       { k: 'onchain', label: 'On-Chain Insights', href: '/world/onchain', icon: Icons.layers },
+      { k: 'spot-pulse', label: 'Spot Pulse', href: '/world/spot-pulse', icon: Icons.layers },
       { k: 'flow-radar', label: 'Flow Radar', href: '/world/flow-radar', icon: Icons.bolt },
       { k: 'fear-greed', label: 'Fear & Greed', href: '/world/fear-greed', icon: Icons.spark },
       { k: 'calendar', label: 'Calendar', href: '/world/calendar', icon: Icons.clock },

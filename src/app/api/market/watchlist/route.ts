@@ -69,7 +69,7 @@ export async function GET(request: Request) {
   const curatedSymbols = await getCuratedSymbols(uid);
 
   // Build a real market row per curated symbol directly (not a lookup against
-  // the auto-radar's fixed 10-symbol list) — the pin allowlist (ALLOWED_SYMBOLS
+  // the auto-radar's fixed 5-symbol list) — the pin allowlist (ALLOWED_SYMBOLS
   // in userWatchlist.ts) isn't identical to that list, so a lookup silently
   // dropped pinned symbols like ARB/APT that aren't in the auto-radar set.
   // buildAsset's own CoinGlass calls are cached individually, so this is cheap.

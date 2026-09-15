@@ -6,7 +6,7 @@ import { relativeTime } from '@/components/world/panels/format';
 import { WIcon } from '@/components/world/panels/console-ui';
 import MarketConditions from '@/components/world/panels/MarketConditions';
 import RegimeChips from '@/components/world/panels/RegimeChips';
-import HeatmapPreview from '@/components/world/panels/HeatmapPreview';
+import SpotPulsePreview from '@/components/world/panels/SpotPulsePreview';
 import FlowRadarFeed from '@/components/world/panels/FlowRadarFeed';
 import IntelPreview from '@/components/world/panels/IntelPreview';
 import RadarWatchlist from '@/components/world/panels/RadarWatchlist';
@@ -28,9 +28,9 @@ const CONSOLE_TOUR: TourStep[] = [
     body: 'A quick report card for each major asset — price, 24h move, and whether it\'s leaning bullish, bearish, or neutral, with how confident the read is.',
   },
   {
-    selector: '[data-tour="onchain"]',
-    title: 'On-Chain Insights',
-    body: 'A peek under the hood — where money is moving and how risky things are right now. Click "Open full insights" for the deep breakdown of every metric.',
+    selector: '[data-tour="spotpulse"]',
+    title: 'Spot Pulse',
+    body: 'Where real money is moving right now — spot buying vs. futures leverage, five majors at a glance. Click "Open Spot Pulse" for the full grid and divergence alerts.',
   },
   {
     selector: '[data-tour="flow"]',
@@ -157,7 +157,7 @@ export default function ConsolePage() {
 
       {/* 3. Bento row 2 — On-Chain Insights + Flow Radar */}
       <div className="w-bento w-r2">
-        <HeatmapPreview data={data?.heatmapPreview ?? []} loading={isLoading} />
+        <SpotPulsePreview />
         <FlowRadarFeed events={data?.flowRadar ?? []} loading={isLoading} />
       </div>
 

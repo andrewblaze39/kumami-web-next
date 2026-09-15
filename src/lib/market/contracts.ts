@@ -50,7 +50,6 @@ export type ConsolePayload = {
     regime: 'Bullish' | 'Neutral' | 'Bearish';
     confidence: number;
   }[];
-  heatmapPreview: { asset: string; liqUsd24h: number; longShare: number }[];
   /** Last 6 flow events */
   flowRadar: FlowEvent[];
   /** Top 4 intel briefs — no summaries on console */

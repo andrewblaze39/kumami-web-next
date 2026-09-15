@@ -8,6 +8,7 @@ import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { cn } from '@/utils/cn';
 import DonutChart from '@/components/DonutChart';
 import AddCryptoModal from '@/components/AddCryptoModal';
+import ImportWalletModal, { type ImportedHolding } from '@/components/ImportWalletModal';
 import EditCryptoModal from '@/components/EditCryptoModal';
 import AlphaRoom from '@/components/AlphaRoom';
 import KumaInline from '@/components/portfolio/KumaInline';
@@ -28,6 +29,7 @@ import {
   Bot,
   Trash2,
   Calculator,
+  Wallet,
 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -162,6 +164,7 @@ export function PortfolioTab() {
   const { currentUser, userData } = useAuth();
   const [portfolio, setPortfolio] = useState<PortfolioCoin[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedCoin, setSelectedCoin] = useState<PortfolioCoin | null>(null);
   const [marketPrices, setMarketPrices] = useState<Record<string, MarketPriceEntry>>({});
@@ -323,6 +326,23 @@ export function PortfolioTab() {
     }
   };
 
+  // Wallet import (§ ImportWalletModal) — reuses handleAddCrypto's own merge
+  // logic per holding, sequentially, so each write re-reads Firestore fresh.
+  const handleImportWallet = async (imported: ImportedHolding[]) => {
+    for (const item of imported) {
+      const newCrypto: PortfolioCoin = {
+        name: item.symbol,
+        coinId: item.coinId,
+        value: item.amount * item.price,
+        unitNum: item.amount,
+        logo: item.logo,
+        pricePerUnit: item.price,
+      };
+      const existingCoin = portfolio.find((c) => c.name === newCrypto.name);
+      await handleAddCrypto(newCrypto, existingCoin);
+    }
+  };
+
   const handleEditCrypto = async (editedCrypto: PortfolioCoin) => {
     if (!currentUser || !selectedCoin) return;
     try {
@@ -429,6 +449,15 @@ export function PortfolioTab() {
                 <CirclePlus size={14} />
                 <span className="hidden sm:inline">Add Asset</span>
                 <span className="sm:hidden">Add</span>
+              </button>
+              <button
+                onClick={() => setIsImportModalOpen(true)}
+                className="inline-flex items-center gap-1 rounded-xl font-semibold"
+                style={{ background: 'rgba(255,255,255,0.04)', color: '#96EDD6', border: '1px solid rgba(150,237,214,0.3)', padding: '8px 12px', fontSize: 13 }}
+              >
+                <Wallet size={13} />
+                <span className="hidden sm:inline">Import Wallet</span>
+                <span className="sm:hidden">Import</span>
               </button>
               <button
                 onClick={fetchMarketPrices}
@@ -815,6 +844,12 @@ export function PortfolioTab() {
         onClose={() => setIsModalOpen(false)}
         onAdd={handleAddCrypto}
         portfolio={portfolio}
+      />
+      <ImportWalletModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        marketPrices={marketPrices}
+        onImport={handleImportWallet}
       />
       <EditCryptoModal
         isOpen={isEditModalOpen}

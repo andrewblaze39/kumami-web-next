@@ -6,6 +6,9 @@
  * is tier-locked (heatmap), so priceToLiqPct is passed as Infinity (no tag).
  *
  * Call budget is kept to 3 endpoints/asset (pairs + funding + gls), all cached.
+ *
+ * Curated roster is the same fixed 5-asset universe used everywhere else on
+ * Plus (Console, Fear & Greed, Spot Pulse, Calendar) — per PM spec.
  */
 
 import type { WatchlistPayload, Verdict } from '../contracts';
@@ -13,7 +16,7 @@ import { computeWatchlistTags } from '../rules/watchlistTags';
 import { fundingOiWeight, globalLongShort, pairsMarkets } from './cg-endpoints';
 import { primaryPair, pairSymbol, hasPerp, latestClose, type Dir } from './helpers';
 
-const CURATED = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'AVAX', 'LINK', 'ADA', 'SUI'];
+const CURATED = ['BTC', 'ETH', 'SOL', 'BNB', 'HYPE'];
 
 type WlRegime = WatchlistPayload['assets'][number]['regime'];
 
@@ -56,7 +59,7 @@ export async function buildAsset(asset: string): Promise<WatchlistPayload['asset
 }
 
 export async function makeWatchlistPayloadLive(_uid: string, tier: 'free' | 'pro'): Promise<WatchlistPayload> {
-  const slots = tier === 'pro' ? 10 : 4;
+  const slots = tier === 'pro' ? CURATED.length : Math.min(4, CURATED.length);
   const symbols = CURATED.slice(0, slots);
   const results = await Promise.all(symbols.map((s) => buildAsset(s).catch(() => null)));
   const assets = results.filter((a): a is WatchlistPayload['assets'][number] => a !== null);

@@ -92,9 +92,9 @@ function TabContent({ active }: { active: TabKey }) {
           eyebrow="Tools"
           icon={<Activity size={24} />}
           title="Spot Pulse"
-          description="Already live on On-Chain Insights, covering BTC/ETH/SOL/BNB/HYPE. This Pro slot will add a second row of dynamic trending coins once the data provider unlocks per-asset spot volume."
+          description="Already live on its own Plus tab (and embedded on On-Chain Insights), covering BTC/ETH/SOL/BNB/HYPE. This Pro slot will add a second row of dynamic trending coins once the data provider unlocks per-asset spot volume."
           action={
-            <Link href="/world/onchain" className="w-btn w-btn-pro w-btn-sm" style={{ marginTop: 4 }}>
+            <Link href="/world/spot-pulse" className="w-btn w-btn-pro w-btn-sm" style={{ marginTop: 4 }}>
               Open live Spot Pulse →
             </Link>
           }
@@ -178,7 +178,7 @@ const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
   tokentracker: comingSoonTour('Coin/Token Tracker', 'Everything you need to understand a token in one screen — price, derivatives, charts, and newly launched trading pairs.', 'market-data provider'),
   spotpulse: [
     { selector: HEAD, title: 'Spot Pulse', body: 'See where actual buying and selling is happening. Compare spot and futures activity to tell whether a move is backed by real demand or speculation.' },
-    { title: 'Already live — just not here yet', body: 'The full Spot Pulse engine already runs on On-Chain Insights. This Pro slot is reserved for a second row of dynamic trending coins, blocked on a data-provider upgrade.' },
+    { title: 'Already live — just not here yet', body: 'The full Spot Pulse engine already runs on its own Plus tab and on On-Chain Insights. This Pro slot is reserved for a second row of dynamic trending coins, blocked on a data-provider upgrade.' },
   ],
   scanner: comingSoonTour('Security Scanner', "Check a token's contract before you trade. Get a quick safety check to spot risks like honeypots and potential rugs.", 'security-data provider'),
   airdrops: [
