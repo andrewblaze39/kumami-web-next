@@ -20,7 +20,10 @@ const CURATED = ['BTC', 'ETH', 'SOL', 'BNB', 'HYPE'];
 
 type WlRegime = WatchlistPayload['assets'][number]['regime'];
 
-export async function buildAsset(asset: string): Promise<WatchlistPayload['assets'][number] | null> {
+export async function buildAsset(
+  asset: string,
+  whaleEventCounts?: { bullish: number; bearish: number },
+): Promise<WatchlistPayload['assets'][number] | null> {
   const perp = hasPerp(asset);
   const [pairs, funding, gls] = await Promise.all([
     pairsMarkets(asset).catch(() => []),
@@ -43,6 +46,7 @@ export async function buildAsset(asset: string): Promise<WatchlistPayload['asset
     oiDirection: priceDir, // OI history omitted to cap call budget; approximate with price
     priceDirection: priceDir,
     isLowOiLowVolume: Math.abs(change24h) < 0.5,
+    whaleEventCounts,
   });
 
   const regime = (['Trending Up', 'Trending Down', 'Coiling', 'Ranging'] as const).includes(regimeTag.label as WlRegime)

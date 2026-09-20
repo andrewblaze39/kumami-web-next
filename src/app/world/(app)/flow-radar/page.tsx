@@ -19,6 +19,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { formatUsd, relativeTime } from '@/components/world/panels/format';
 import { WIcon, CoinBadge } from '@/components/world/panels/console-ui';
 import ProductTour, { type TourStep } from '@/components/world/ProductTour';
+import { computeFlowBalance } from '@/lib/market/rules/flowBalance';
 
 type Payload = FlowRadarPayload & { delayed?: boolean; delayMinutes?: number };
 
@@ -50,7 +51,7 @@ const FLOW_RADAR_TOUR: TourStep[] = [
   {
     selector: '[data-tour="fr-feed"]',
     title: 'Reading a row',
-    body: 'The arrow icon shows bullish (→) vs bearish (⚡) lean, the badge shows severity, and the dollar amount is signed to match. On Pro, a green "+ Regime shift confirming" tag appears when a whale outflow lines up with Fear & Greed reading Fear.',
+    body: 'The arrow icon shows bullish (→) vs bearish (⚡) lean, the badge shows severity, and the dollar amount is signed to match. On Pro, a subtle colored outline appears on a row when another Kumami panel (Spot Pulse, Console, or Watchlist) confirms the same read — hover the row to see why.',
   },
   {
     title: "That's Flow Radar 🎉",
@@ -192,6 +193,13 @@ export default function FlowRadarPage() {
   const remaining = filtered.length - visible.length;
   const totalUsd = filtered.reduce((sum, e) => sum + e.amountUsd, 0);
 
+  // Flow Balance Panel (Pro) — always a fixed 24H window, independent of the
+  // user's selected timeframe toggle above (Kumami Pro §1.5).
+  const flowBalance = useMemo(() => {
+    const events24h = events.filter((e) => now - Date.parse(e.ts) <= TIMEFRAME_MS['24H']);
+    return computeFlowBalance(events24h);
+  }, [events, now]);
+
   return (
     <div className="w-content-inner">
       <div className="w-oc-head">
@@ -309,6 +317,40 @@ export default function FlowRadarPage() {
             <div className="w-flow-radar-verdict-stat">{data.statLine}</div>
           </div>
 
+          {isPremium && (
+            <div className="w-flow-balance" data-tour="fr-balance">
+              <div className="w-flow-balance-h">
+                <span className="w-ttl">Flow balance</span>
+                <span className="w-sub">Last 24H</span>
+              </div>
+              <div className="w-flow-balance-rows">
+                <div className="w-flow-balance-row">
+                  <span className="w-bull">🟢 Bullish · off exchanges</span>
+                  <b className="w-bull">{formatUsd(flowBalance.bullishUsd)}</b>
+                </div>
+                <div className="w-flow-balance-row">
+                  <span className="w-bear">🔴 Bearish · into exchanges</span>
+                  <b className="w-bear">{formatUsd(flowBalance.bearishUsd)}</b>
+                </div>
+              </div>
+              <div className="w-flow-balance-bar">
+                <div className="w-flow-balance-bar-bull" style={{ width: `${flowBalance.bullishPct}%` }} />
+                <div className="w-flow-balance-bar-bear" style={{ width: `${flowBalance.bearishPct}%` }} />
+              </div>
+              <div className="w-flow-balance-pct">
+                <span>{flowBalance.bullishPct}%</span>
+                <span>{flowBalance.bearishPct}%</span>
+              </div>
+              <div className="w-flow-balance-net">
+                <span>NET</span>
+                <span className={flowBalance.netUsd >= 0 ? 'w-bull' : 'w-bear'}>
+                  {flowBalance.netUsd >= 0 ? '+' : '−'}
+                  {formatUsd(Math.abs(flowBalance.netUsd))} {flowBalance.verdict}
+                </span>
+              </div>
+            </div>
+          )}
+
           <section className="w-apanel" aria-label="Flow Radar live feed" data-tour="fr-feed">
             <div className="w-apanel-h">
               <span className="w-ttl">Live feed</span>
@@ -323,7 +365,11 @@ export default function FlowRadarPage() {
                 {visible.map((event) => {
                   const bullish = BULLISH_DIRECTIONS.has(event.direction);
                   return (
-                    <div key={event.id} className="w-radar-item">
+                    <div
+                      key={event.id}
+                      className={`w-radar-item${event.crossSignal ? ` w-radar-item-cross-${event.crossSignal.color}` : ''}`}
+                      title={event.crossSignal ? `${event.crossSignal.label} — confirmed by another Kumami panel` : undefined}
+                    >
                       <span
                         className={`w-radar-ic ${bullish ? 'w-in' : 'w-out'}`}
                         title={`Direction: ${event.direction}`}
@@ -338,14 +384,7 @@ export default function FlowRadarPage() {
                             {event.severity}
                           </span>
                         </b>
-                        <div className="w-rsub">
-                          {event.description}
-                          {event.crossSignal && (
-                            <span className={`w-flow-radar-cross-signal w-flow-radar-cross-${event.crossSignal.color}`}>
-                              + {event.crossSignal.label}
-                            </span>
-                          )}
-                        </div>
+                        <div className="w-rsub">{event.description}</div>
                       </div>
                       <div className="w-radar-amt">
                         <b className={bullish ? 'w-bull' : 'w-bear'}>

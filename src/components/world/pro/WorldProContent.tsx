@@ -12,6 +12,8 @@
  *   - Group B (data source still being wired — ComingSoon card): smartmoney,
  *     tokentracker, spotpulse, scanner, feargreed.
  *   - Existing components re-slotted: portfolio, alpha, market, kumaai, marketcap.
+ *   - addresstracker: new standalone wallet-lookup page (Kumami Pro §4) — see
+ *     tabs/CryptoAddressTracker.tsx.
  * Non-premium users keep the existing teaser / whitelist page (ProTeaser).
  */
 
@@ -32,6 +34,7 @@ import { KumamiResearch } from './tabs/KumamiResearch';
 import { Calendar } from './tabs/Calendar';
 import { Events } from './tabs/Events';
 import { PortfolioTab } from '@/components/ProDashboard';
+import { CryptoAddressTracker } from './tabs/CryptoAddressTracker';
 import AlphaRoom from '@/components/AlphaRoom';
 import MarketAnalysis from '@/components/MarketAnalysis';
 import KumaAIChatTab from '@/components/KumaAIChatTab';
@@ -40,7 +43,7 @@ import './pro.css';
 
 const TAB_KEYS = [
   'digest', 'followhub', 'smartmoney', 'tokentracker', 'spotpulse',
-  'scanner', 'airdrops', 'portfolio', 'marketcap', 'realtimenews', 'alpha',
+  'scanner', 'airdrops', 'portfolio', 'addresstracker', 'marketcap', 'realtimenews', 'alpha',
   'feargreed', 'research', 'calendar', 'events', 'market', 'kumaai',
 ] as const;
 
@@ -127,6 +130,8 @@ function TabContent({ active }: { active: TabKey }) {
     // Existing components re-slotted.
     case 'portfolio':
       return <PortfolioTab />;
+    case 'addresstracker':
+      return <CryptoAddressTracker />;
     case 'alpha':
       return (
         <div className="w-full h-full flex-1 overflow-hidden">
@@ -189,6 +194,10 @@ const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
     { title: 'AI Portfolio', body: 'Track your holdings with live pricing. Click "Add Asset" to log a coin, amount and price paid — value and 24h change update automatically from live market data.' },
     { title: 'Reading the numbers', body: 'The 24h change under your total balance is a real weighted average of every holding\'s own price move, not a flat estimate.' },
     { title: 'Portfolio risk scan', body: 'Click "Scan my portfolio" for a risk read — concentration, diversification, volatility and liquidity — with a note if your holdings changed since the last scan.' },
+  ],
+  addresstracker: [
+    { title: 'Crypto Address Tracker', body: 'Paste any EVM wallet address to get a readable profile — portfolio value, holdings, and recent activity, computed live from on-chain data.' },
+    { title: 'What\'s real vs. placeholder', body: 'Portfolio value, holdings, and recent activity are genuinely live. Realised PnL and win rate show "—" — those need a full trade-history reconstruction that isn\'t built yet.' },
   ],
   marketcap: [
     { title: 'Market Cap Comparison', body: '"What if Coin A had Coin B\'s market cap?" — pick two coins (or swap them) to see the implied price.' },

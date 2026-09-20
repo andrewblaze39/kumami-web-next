@@ -36,9 +36,14 @@ const WATCHLIST_TOUR: TourStep[] = [
     body: 'Each row shows the live price, 24h move, and the single most notable signal on that asset right now — crowded positioning, funding stress, or its current trend regime.',
   },
   {
+    selector: '[data-tour="wl-sections"]',
+    title: 'Your Watchlist + Also Worth Watching',
+    body: "Pro adds two more sections below: pin up to 15 tokens of your own, and \"Also Worth Watching\" — assets Flow Radar flags as significant that you haven't added yet, refreshed every 5 minutes.",
+  },
+  {
     selector: '[data-tour="wl-alerts"]',
     title: 'Alerts are a Pro upgrade',
-    body: 'Pin your own tokens, set a custom order, and get an in-app alert the moment a tracked asset crosses your threshold — all part of Pro.',
+    body: 'Get an in-app alert the moment a tracked asset crosses your threshold — all part of Pro.',
   },
   {
     title: "That's your Watchlist 🎉",
@@ -68,6 +73,7 @@ type WatchRow = {
   chg: string;
   dir: 'up' | 'down';
   signal: string;
+  reasons?: string[];
 };
 
 /** Map the live payload assets into display rows. */
@@ -86,6 +92,11 @@ function toRows(assets: WatchlistApiResponse['assets']): WatchRow[] {
   });
 }
 
+/** Same as toRows, but carries Section C's per-asset "why this" reasons. */
+function toSectionCRows(assets: WatchlistApiResponse['sectionC']): WatchRow[] {
+  return toRows(assets).map((row, i) => ({ ...row, reasons: assets[i].reasons }));
+}
+
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
@@ -99,6 +110,9 @@ export default function WatchlistPage() {
   const market = useMarketEndpoint<WatchlistApiResponse>('/api/market/watchlist');
   const bw = market.data ? toRows(market.data.assets) : [];
   const pinnedRows = market.data ? toRows(market.data.curatedAssets) : [];
+  const sectionCRows = market.data ? toSectionCRows(market.data.sectionC) : [];
+  const pinCap = market.data?.pinCap ?? null;
+  const pinnedCount = market.data?.curatedSymbols.length ?? 0;
   const loading = market.status === 'loading';
   const [tourOpen, setTourOpen] = useState(false);
 
@@ -252,13 +266,15 @@ export default function WatchlistPage() {
         )}
       </div>
 
-      {/* ── Your pinned tokens (Pro capability) ── */}
+      {/* ── Section B — Your Watchlist (Pro capability) ── */}
       {isPremium && (
-        <div className="w-wl-table" style={{ marginTop: 16 }}>
+        <div className="w-wl-table" data-tour="wl-sections" style={{ marginTop: 16 }}>
           <div className="w-wl-flowbar">
             <WIcon name="bookmark" />
-            <span>Your pinned tokens</span>
-            <span className="w-wl-auto" style={{ marginLeft: 'auto' }}>Pro</span>
+            <span>Your Watchlist</span>
+            <span className="w-wl-auto" style={{ marginLeft: 'auto' }}>
+              {pinCap !== null ? `${pinnedCount}/${pinCap} assets tracked` : 'Pro'}
+            </span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '12px 16px', borderBottom: '1px solid var(--adv-border, rgba(255,255,255,.08))' }}>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -269,14 +285,23 @@ export default function WatchlistPage() {
                 placeholder="Add a ticker (e.g. BTC)"
                 style={{ flex: 1, background: 'var(--adv-surface-2, #142a22)', border: '1px solid var(--adv-border, rgba(255,255,255,.1))', borderRadius: 10, padding: '8px 12px', color: 'var(--text, #f1f7f4)', fontSize: 13, outline: 'none' }}
               />
-              <button className="w-btn w-btn-pro w-btn-sm" onClick={addPin} disabled={pinBusy}>
+              <button
+                className="w-btn w-btn-pro w-btn-sm"
+                onClick={addPin}
+                disabled={pinBusy || (pinCap !== null && pinnedCount >= pinCap)}
+              >
                 <WIcon name="spark" /> Pin
               </button>
             </div>
             {pinError && <span style={{ fontSize: 12, color: 'var(--bear)' }}>{pinError}</span>}
           </div>
-          {(market.data?.curatedSymbols.length ?? 0) === 0 ? (
-            <div className="w-wl-trow"><div className="w-wl-asset w-muted">No pinned tokens yet — add one above.</div><div /><div /><div /></div>
+          {pinnedCount === 0 ? (
+            <div className="w-wl-trow">
+              <div className="w-wl-asset w-muted">
+                Build your custom watchlist — add up to {pinCap ?? 15} tokens or wallets.
+              </div>
+              <div /><div /><div />
+            </div>
           ) : (
             pinnedRows.map((w) => (
               <div key={w.sym} className="w-wl-trow">
@@ -293,6 +318,7 @@ export default function WatchlistPage() {
                   </span>
                 </div>
                 <div className="w-wl-acts">
+                  <span className="w-wl-sig"><WIcon name="flame" /> {w.signal}</span>
                   <button className="w-btn w-btn-sm" onClick={() => removePin(w.sym)} disabled={pinBusy}>
                     Remove
                   </button>
@@ -300,6 +326,38 @@ export default function WatchlistPage() {
               </div>
             ))
           )}
+        </div>
+      )}
+
+      {/* ── Section C — Also Worth Watching (Pro, auto-detected) ── */}
+      {isPremium && sectionCRows.length > 0 && (
+        <div className="w-wl-table" style={{ marginTop: 16 }}>
+          <div className="w-wl-flowbar">
+            <WIcon name="flame" />
+            <span>Also Worth Watching</span>
+            <span className="w-wl-auto" style={{ marginLeft: 'auto' }}>Auto · every 5 min</span>
+          </div>
+          {sectionCRows.map((w) => (
+            <div key={w.sym} className="w-wl-trow">
+              <div className="w-wl-asset">
+                <span className="w-coin" style={{ background: coinC(w.sym) }}>{w.sym[0]}</span>
+                <span><b>◆ {w.sym}</b><span>{w.name}</span></span>
+              </div>
+              <div>
+                <b style={{ fontWeight: 800 }}>{w.price}</b>
+              </div>
+              <div className="w-c-24h">
+                <span className={w.dir === 'up' ? 'w-bull' : 'w-bear'} style={{ fontWeight: 800 }}>
+                  {w.chg}
+                </span>
+              </div>
+              <div className="w-wl-acts">
+                <span className="w-wl-sig" title={w.reasons?.join(' · ')}>
+                  🔥 {w.reasons?.[0] ?? w.signal}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

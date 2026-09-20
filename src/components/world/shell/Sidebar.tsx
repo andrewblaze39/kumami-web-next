@@ -232,6 +232,7 @@ const PRO_NAV: NavGroup[] = [
     collapsible: true,
     items: [
       { k: 'portfolio', label: 'AI Portfolio', href: '/world/pro?tab=portfolio', icon: Icons.trophy },
+      { k: 'addresstracker', label: 'Crypto Address Tracker', href: '/world/pro?tab=addresstracker', icon: Icons.users },
       { k: 'kumaai', label: 'Kuma AI Chat', href: '/world/pro?tab=kumaai', icon: Icons.spark },
     ],
   },

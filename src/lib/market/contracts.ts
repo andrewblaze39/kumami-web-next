@@ -307,4 +307,12 @@ export type WatchlistApiResponse = {
   assets: WatchlistPayload['assets'];
   curatedSymbols: string[];
   curatedAssets: WatchlistPayload['assets'];
+  /**
+   * Pro-only — Watchlist "Section C: Also Worth Watching" (Kumami Pro §2.8).
+   * Auto-detected assets outside the user's anchors/custom list, scored from
+   * the Flow Radar event buffer. Empty array on Plus/free.
+   */
+  sectionC: (WatchlistPayload['assets'][number] & { reasons: string[] })[];
+  /** Pro-only pin cap (Kumami Pro §2.7) — 15. Not applicable on free (can't pin). */
+  pinCap: number | null;
 };

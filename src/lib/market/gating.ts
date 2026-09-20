@@ -123,3 +123,16 @@ export function watchlistSlots(tier: Tier): number {
   if (tier === 'pro') return Infinity;
   return getFreeWatchlistSlots();
 }
+
+/**
+ * Cap on user-pinned symbols (Watchlist Pro "Section B — Your Watchlist"),
+ * distinct from watchlistSlots() above (which governs the fixed auto/curated
+ * table, a different concept). Kumami Pro §2.7 sets this at 15 per list —
+ * multiple saved lists (up to 5) are the spec's way of going beyond 15 in
+ * aggregate, not a higher single cap; that multi-list feature isn't built
+ * yet, so today this is a hard ceiling of 15. Pinning itself is Pro-only —
+ * free tier gets 0 (matches the existing isPremium-gated UI).
+ */
+export function pinCap(tier: Tier): number {
+  return tier === 'pro' ? 15 : 0;
+}

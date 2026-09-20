@@ -2868,6 +2868,7 @@
   gap: 13px;
   padding: 13px 20px;
   border-bottom: 1px solid var(--grid-line);
+  border-left: 3px solid transparent;
   transition: 0.14s;
 }
 .world-root .w-radar-item:hover {
@@ -2876,6 +2877,10 @@
 .world-root .w-radar-item:last-child {
   border-bottom: none;
 }
+/* Cross-signal amplification (Pro, Kumami Pro §1.8) — a subtle row outline
+   only, no stacked chip or extra text. */
+.world-root .w-radar-item-cross-green { border-left-color: var(--bull); }
+.world-root .w-radar-item-cross-red { border-left-color: var(--bear); }
 .world-root .w-radar-ic {
   width: 34px;
   height: 34px;
@@ -3458,6 +3463,58 @@
   white-space: nowrap;
 }
 
+/* Flow Balance Panel (Pro) — Kumami Pro §1.5 */
+.world-root .w-flow-balance {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--adv-surface);
+  border: 1px solid var(--adv-border);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+.world-root .w-flow-balance-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.world-root .w-flow-balance-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+.world-root .w-flow-balance-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.world-root .w-flow-balance-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--adv-border);
+}
+.world-root .w-flow-balance-bar-bull { background: var(--bull); }
+.world-root .w-flow-balance-bar-bear { background: var(--bear); }
+.world-root .w-flow-balance-pct {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+}
+.world-root .w-flow-balance-net {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  padding-top: 6px;
+  border-top: 1px solid var(--adv-border);
+}
+
 .world-root .w-flow-radar-asset-tag {
   font-size: 11px;
   font-weight: 800;
@@ -3522,24 +3579,6 @@
 .world-root .w-flow-radar-asset-search:focus {
   border-color: color-mix(in srgb, var(--accent) 55%, transparent);
 }
-
-/* ---- Flow Radar — Pro-only cross-signal chip ---- */
-.world-root .w-flow-radar-cross-signal {
-  display: inline-flex;
-  align-items: center;
-  margin-left: 8px;
-  padding: 1px 7px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 800;
-  border: 1px solid currentColor;
-}
-.world-root .w-flow-radar-cross-green { color: #46e3a0; }
-.world-root .w-flow-radar-cross-grey-green { color: #7fd9b6; }
-.world-root .w-flow-radar-cross-grey { color: var(--muted); }
-.world-root .w-flow-radar-cross-amber { color: #f0cd7e; }
-.world-root .w-flow-radar-cross-grey-red { color: #e08a95; }
-.world-root .w-flow-radar-cross-red { color: #ff6b81; }
 
 /* ---- Calendar (standalone tab) ---- */
 .world-root .w-cal-type-ic {
