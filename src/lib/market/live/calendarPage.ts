@@ -21,6 +21,12 @@ import { tsToIso } from './helpers';
 const PLUS_ASSETS = new Set(['BTC', 'ETH', 'SOL', 'BNB', 'HYPE']);
 
 export async function makeCalendarPayloadLive(): Promise<CalendarPayload> {
+  // Unlike Flow Radar/Spot Pulse, an empty Calendar isn't ambiguous: the day
+  // grid renders every date regardless of data (pure date arithmetic) and
+  // each empty day already says "No scheduled events" explicitly — there's
+  // no way to mistake that for a fake reading. So a fetch failure here
+  // degrades to an empty (but still fully-rendered) calendar, never a hard
+  // failure of the whole page.
   const [calendar, unlocks] = await Promise.all([
     economicCalendar().catch(() => []),
     coinUnlocks().catch(() => []),

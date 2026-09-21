@@ -151,6 +151,13 @@ const exNum = (panel: P | undefined, key: string): number => {
   return typeof v === 'number' ? v : 0;
 };
 
+/** Like exNum, but returns null (never a fake 0) when the value truly isn't there —
+ * used for the tiles where a real reading vs "no data" must render differently. */
+const exNumOrNull = (panel: P | undefined, key: string): number | null => {
+  const v = panel?.extra?.[key];
+  return typeof v === 'number' ? v : null;
+};
+
 const signPct = (n: number, dp = 2) => `${n >= 0 ? '+' : ''}${n.toFixed(dp)}%`;
 
 /* ------------------------------------------------------------------ */
@@ -246,24 +253,25 @@ export default function OnChainPage() {
 
   /* Panel-derived display values — always fall back to '—' (never a misleading 0). */
   const D = '—';
-  const hasData = !!P;
 
-  const fundingRate = hasData ? signPct(exNum(P.funding, 'currentRatePct'), 4) : D;
+  const fundingRateNum = exNumOrNull(P?.funding, 'currentRatePct');
+  const fundingRate = fundingRateNum !== null ? signPct(fundingRateNum, 4) : D;
 
-  const liqTotal = exNum(P?.liquidations, 'totalUsd');
+  const liqTotalNum = exNumOrNull(P?.liquidations, 'totalUsd');
   const liqLongPct = exNum(P?.liquidations, 'longPct') / 100;
-  const liqTotalDisp = hasData ? formatUsd(liqTotal) : D;
-  const liqLongsDisp = hasData ? formatUsd(liqTotal * liqLongPct) : D;
-  const liqShortsDisp = hasData ? formatUsd(liqTotal * (1 - liqLongPct)) : D;
+  const liqTotalDisp = liqTotalNum !== null ? formatUsd(liqTotalNum) : D;
+  const liqLongsDisp = liqTotalNum !== null ? formatUsd(liqTotalNum * liqLongPct) : D;
+  const liqShortsDisp = liqTotalNum !== null ? formatUsd(liqTotalNum * (1 - liqLongPct)) : D;
 
-  const netUsd = exNum(P?.netflow, 'netUsd');
-  const netDir: 'in' | 'out' = netUsd >= 0 ? 'out' : 'in';
-  const netDisp = hasData ? formatUsd(Math.abs(netUsd)) : D;
+  const netUsdNum = exNumOrNull(P?.netflow, 'netUsd');
+  const netDir: 'in' | 'out' = (netUsdNum ?? 0) >= 0 ? 'out' : 'in';
+  const netDisp = netUsdNum !== null ? formatUsd(Math.abs(netUsdNum)) : D;
+  const netHasData = netUsdNum !== null;
 
-  const glsPct = exNum(P?.longshort, 'globalPctLong');
-  const topPct = exNum(P?.longshort, 'topTraderPctLong');
-  const glsDisp = hasData ? `${glsPct.toFixed(0)}% Long` : D;
-  const topDisp = hasData ? `${topPct.toFixed(0)}%` : D;
+  const glsPctNum = exNumOrNull(P?.longshort, 'globalPctLong');
+  const topPctNum = exNumOrNull(P?.longshort, 'topTraderPctLong');
+  const glsDisp = glsPctNum !== null ? `${glsPctNum.toFixed(0)}% Long` : D;
+  const topDisp = topPctNum !== null ? `${topPctNum.toFixed(0)}%` : D;
   const lsDiv = P?.longshort?.tags?.[0]
     ? { t: P.longshort.tags[0].label, k: TAG_K[P.longshort.tags[0].color] }
     : null;
@@ -346,7 +354,7 @@ export default function OnChainPage() {
             </span>
             <OcQ tip={TIP_FUNDING} />
           </div>
-          <div className="w-oc-tv">{fundingRate}</div>
+          <div className={`w-oc-tv${fundingRateNum === null ? ' w-muted' : ''}`}>{fundingRate}</div>
           <div className="w-oc-tags">
             <OcTag tag={verdictTag(P?.funding)} />
           </div>
@@ -362,7 +370,7 @@ export default function OnChainPage() {
             </span>
             <OcQ tip={TIP_LIQ} />
           </div>
-          <div className="w-oc-tv">{liqTotalDisp}</div>
+          <div className={`w-oc-tv${liqTotalNum === null ? ' w-muted' : ''}`}>{liqTotalDisp}</div>
           <div className="w-oc-tags">
             <OcTag tag={verdictTag(P?.liquidations)} />
           </div>
@@ -385,10 +393,10 @@ export default function OnChainPage() {
             <OcQ tip={TIP_NETFLOW} />
           </div>
           <div
-            className="w-oc-tv"
-            style={{ color: !hasData ? 'inherit' : netDir === 'out' ? 'var(--bull)' : 'var(--bear)' }}
+            className={`w-oc-tv${!netHasData ? ' w-muted' : ''}`}
+            style={{ color: !netHasData ? 'inherit' : netDir === 'out' ? 'var(--bull)' : 'var(--bear)' }}
           >
-            {hasData ? (
+            {netHasData ? (
               <>{netDisp} <span className="sub-unit">{netDir}</span></>
             ) : (
               netDisp
@@ -397,7 +405,7 @@ export default function OnChainPage() {
           <div className="w-oc-tags">
             <OcTag tag={verdictTag(P?.netflow)} />
           </div>
-          <div className="w-oc-support">{hasData ? (netDir === 'out' ? 'Coins leaving exchanges' : 'Coins arriving to exchanges') : 'Exchange balance flow'} · {range}</div>
+          <div className="w-oc-support">{netHasData ? (netDir === 'out' ? 'Coins leaving exchanges' : 'Coins arriving to exchanges') : 'Exchange balance flow'} · {range}</div>
         </div>
 
         <div className="w-oc-tile">
@@ -407,7 +415,7 @@ export default function OnChainPage() {
             </span>
             <OcQ tip={TIP_LS} />
           </div>
-          <div className="w-oc-tv">{glsDisp}</div>
+          <div className={`w-oc-tv${glsPctNum === null ? ' w-muted' : ''}`}>{glsDisp}</div>
           <div className="w-oc-tags">
             <OcTag tag={verdictTag(P?.longshort)} />
             <OcTag tag={lsDiv} />

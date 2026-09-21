@@ -12,7 +12,7 @@
 import { NextResponse } from 'next/server';
 import { authenticate } from '@/lib/market/api-helpers';
 import { getProvider } from '@/lib/market/provider';
-import { getCached } from '@/lib/market/cache';
+import { getCachedFresh } from '@/lib/market/cache';
 import { capAssets } from '@/lib/market/gating';
 
 export const dynamic = 'force-dynamic';
@@ -24,7 +24,7 @@ export async function GET(request: Request) {
   const { tier } = auth;
 
   // Always fetch the pro (full) payload so the cache key is tier-independent
-  const fullPayload = await getCached('market:heatmap', 300, () => getProvider().heatmap('pro'));
+  const fullPayload = await getCachedFresh('market:heatmap', 300, () => getProvider().heatmap('pro'));
 
   const originalLength = fullPayload.assets.length;
   const cappedAssets = capAssets(fullPayload.assets, tier);

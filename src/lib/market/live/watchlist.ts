@@ -13,6 +13,7 @@
 
 import type { WatchlistPayload, Verdict } from '../contracts';
 import { computeWatchlistTags } from '../rules/watchlistTags';
+import { computePrimarySignal } from '../rules/watchlistSignal';
 import { fundingOiWeight, globalLongShort, pairsMarkets } from './cg-endpoints';
 import { primaryPair, pairSymbol, hasPerp, latestClose, type Dir } from './helpers';
 
@@ -20,9 +21,18 @@ const CURATED = ['BTC', 'ETH', 'SOL', 'BNB', 'HYPE'];
 
 type WlRegime = WatchlistPayload['assets'][number]['regime'];
 
+/** Cross-engine inputs for the Signal column — all optional so callers that
+ *  can't afford the extra fetches (or are on a code path without the shared
+ *  Flow Radar/Spot Pulse reads) still get a sensible "Quiet" fallback. */
+export type SignalInputs = {
+  whale?: { bullish: number; bearish: number; bullishUsd: number; bearishUsd: number };
+  smartMoney?: { bullish: number; bearish: number };
+  spotPulse?: { verdict: string; priceChange4h: number };
+};
+
 export async function buildAsset(
   asset: string,
-  whaleEventCounts?: { bullish: number; bearish: number },
+  signalInputs?: SignalInputs,
 ): Promise<WatchlistPayload['assets'][number] | null> {
   const perp = hasPerp(asset);
   const [pairs, funding, gls] = await Promise.all([
@@ -46,12 +56,22 @@ export async function buildAsset(
     oiDirection: priceDir, // OI history omitted to cap call budget; approximate with price
     priceDirection: priceDir,
     isLowOiLowVolume: Math.abs(change24h) < 0.5,
-    whaleEventCounts,
   });
 
   const regime = (['Trending Up', 'Trending Down', 'Coiling', 'Ranging'] as const).includes(regimeTag.label as WlRegime)
     ? (regimeTag.label as WlRegime)
     : 'Ranging';
+
+  const primarySignal = computePrimarySignal({
+    whaleBullishCount: signalInputs?.whale?.bullish ?? 0,
+    whaleBearishCount: signalInputs?.whale?.bearish ?? 0,
+    whaleBullishUsd: signalInputs?.whale?.bullishUsd ?? 0,
+    whaleBearishUsd: signalInputs?.whale?.bearishUsd ?? 0,
+    smartMoneyBullishCount: signalInputs?.smartMoney?.bullish ?? 0,
+    smartMoneyBearishCount: signalInputs?.smartMoney?.bearish ?? 0,
+    spotPulseVerdict: signalInputs?.spotPulse?.verdict,
+    spotPulsePriceChange4h: signalInputs?.spotPulse?.priceChange4h,
+  });
 
   return {
     asset,
@@ -59,6 +79,7 @@ export async function buildAsset(
     change24h: Number(change24h.toFixed(2)),
     regime,
     actionTags: actionTags as Verdict[],
+    primarySignal,
   };
 }
 

@@ -37,12 +37,27 @@ function isExchangeLabel(label: string | undefined): boolean {
 const sign = (n: number) => (n > 0 ? 1 : n < 0 ? -1 : 0);
 
 export async function buildFlowEvents(): Promise<FlowEvent[]> {
-  const [whales, netflow, liqs, hl] = await Promise.all([
-    whaleTransfers().catch(() => [] as Awaited<ReturnType<typeof whaleTransfers>>),
-    netflowList('futures').catch(() => [] as Awaited<ReturnType<typeof netflowList>>),
-    liqCoinList().catch(() => [] as Awaited<ReturnType<typeof liqCoinList>>),
-    hyperliquidWhales().catch(() => [] as Awaited<ReturnType<typeof hyperliquidWhales>>),
+  // null (not []) distinguishes "this source's fetch failed" from "it
+  // genuinely returned no rows" — if every source fails, the empty event list
+  // this function would otherwise return is indistinguishable from a real
+  // "quiet market", which then renders as a fake $0 / 0-events footer instead
+  // of an honest failure. Individual source failures still degrade gracefully
+  // (fewer event types, not a hard failure) per this builder's existing design.
+  const [whalesRaw, netflowRaw, liqsRaw, hlRaw] = await Promise.all([
+    whaleTransfers().catch(() => null as Awaited<ReturnType<typeof whaleTransfers>> | null),
+    netflowList('futures').catch(() => null as Awaited<ReturnType<typeof netflowList>> | null),
+    liqCoinList().catch(() => null as Awaited<ReturnType<typeof liqCoinList>> | null),
+    hyperliquidWhales().catch(() => null as Awaited<ReturnType<typeof hyperliquidWhales>> | null),
   ]);
+
+  if (whalesRaw === null && netflowRaw === null && liqsRaw === null && hlRaw === null) {
+    throw new Error('Flow Radar data unavailable — all sources failed');
+  }
+
+  const whales = whalesRaw ?? [];
+  const netflow = netflowRaw ?? [];
+  const liqs = liqsRaw ?? [];
+  const hl = hlRaw ?? [];
 
   const events: FlowEvent[] = [];
 

@@ -15,10 +15,13 @@
  *   symbol (not looked up from the auto-radar's fixed list) so every symbol a
  *   user pins gets real live data, even ones outside the auto-radar's set.
  *
- *   Pro tier additionally reuses the shared Flow Radar event buffer (Kumami
- *   Pro §2.9, §2.8 — zero extra CoinGlass calls) to: (a) compute Whale
- *   Accumulation/Distribution tags for every Section A/B asset, and (b)
- *   score Section C candidates from whatever's left in the buffer.
+ *   Every tier's rows carry two independent tag concepts: `actionTags`
+ *   (Status column — up to 2 risk/positioning/regime tags) and
+ *   `primarySignal` (Signal column — a dedicated whale/smart-money/Spot
+ *   Pulse narrative, never counted toward the Status 2-tag cap). Both reuse
+ *   the shared Flow Radar event buffer and a cached Spot Pulse read (zero
+ *   extra CoinGlass calls beyond what those tabs already fetch). Pro tier
+ *   additionally scores Section C candidates from whatever's left in the buffer.
  *
  * POST { symbol: string } — Add symbol to curated watchlist ("Section B").
  *   Returns 200 { symbols: string[] } on success.
@@ -38,8 +41,10 @@ import { getProvider } from '@/lib/market/provider';
 import { getCachedFresh } from '@/lib/market/cache';
 import { watchlistSlots, pinCap } from '@/lib/market/gating';
 import type { WatchlistApiResponse } from '@/lib/market/contracts';
-import { buildAsset } from '@/lib/market/live/watchlist';
-import { computeWhaleEventCounts, computeSectionC } from '@/lib/market/rules/watchlistSectionC';
+import { buildAsset, type SignalInputs } from '@/lib/market/live/watchlist';
+import {
+  computeWhaleEventCounts, computeWhaleEventUsd, computeSmartMoneyCounts, computeSectionC,
+} from '@/lib/market/rules/watchlistSectionC';
 import {
   getCuratedSymbols,
   addSymbol,
@@ -91,34 +96,60 @@ export async function GET(request: Request) {
   let curatedAssets: WatchlistApiResponse['curatedAssets'] = [];
   let sectionC: WatchlistApiResponse['sectionC'] = [];
 
-  if (isPro) {
-    // Pro-only: reuse the shared Flow Radar event buffer (Kumami Pro §2.9,
-    // §2.8 — same cache key the flow-radar route uses, zero extra CoinGlass
-    // calls) to compute Whale Accumulation/Distribution tags and Section C.
-    const flowEvents = await withTimeout(
+  // Signal column inputs (Kumami Plus — shared across tiers, not Pro-exclusive):
+  // whale flow + smart money both come from the shared Flow Radar event
+  // buffer (zero extra CoinGlass calls); Spot Pulse verdict is its own cached
+  // read, used only as a fallback when no whale/smart-money signal fired.
+  // Each fetch is independently timeout-guarded so a slow upstream degrades
+  // that one signal rather than the page.
+  const [flowEvents, spotPulse] = await Promise.all([
+    withTimeout(
       getCachedFresh('market:v2:flow-radar', 60, () => getProvider().flowRadar('pro')),
       ENRICHMENT_TIMEOUT_MS,
-    ).catch(() => null) ?? [];
-    const now = Date.now();
-    const events24h = flowEvents.filter((e) => now - Date.parse(e.ts) <= 24 * 3_600_000);
-    const whaleCounts = computeWhaleEventCounts(events24h);
+    ).catch(() => null),
+    withTimeout(
+      getCachedFresh('market:v2:spot-pulse:pro:4H', 60, () => getProvider().spotPulse('pro', '4H')),
+      ENRICHMENT_TIMEOUT_MS,
+    ).catch(() => null),
+  ]);
+  const events = flowEvents ?? [];
+  const now = Date.now();
+  const events24h = events.filter((e) => now - Date.parse(e.ts) <= 24 * 3_600_000);
+  const whaleCounts = computeWhaleEventCounts(events24h);
+  const whaleUsd = computeWhaleEventUsd(events24h);
+  const smartMoneyCounts = computeSmartMoneyCounts(events24h);
+  const spotPulseByAsset = new Map((spotPulse?.tiles ?? []).map((t) => [t.asset, t]));
 
-    // Re-derive Section A + B rows with whale tags folded in. buildAsset's own
-    // per-endpoint CoinGlass calls are individually cached (see live/watchlist.ts),
-    // so re-invoking it here is cheap — no new network calls, just a fresh tag pass.
-    const [sectionARebuilt, curatedRebuilt] = await Promise.all([
-      Promise.all(sectionAAssets.map((a) => buildAsset(a.asset, whaleCounts[a.asset]).catch(() => null))),
-      Promise.all(curatedSymbols.map((sym) => buildAsset(sym, whaleCounts[sym]).catch(() => null))),
-    ]);
-    sectionAAssets = sectionARebuilt.filter((a): a is WatchlistApiResponse['assets'][number] => a !== null);
-    curatedAssets = curatedRebuilt.filter((a): a is WatchlistApiResponse['curatedAssets'][number] => a !== null);
+  function signalInputsFor(asset: string): SignalInputs {
+    const tile = spotPulseByAsset.get(asset);
+    return {
+      whale: { ...(whaleCounts[asset] ?? { bullish: 0, bearish: 0 }), ...(whaleUsd[asset] ?? { bullishUsd: 0, bearishUsd: 0 }) },
+      smartMoney: smartMoneyCounts[asset],
+      spotPulse: tile && !tile.insufficient ? { verdict: tile.verdict, priceChange4h: tile.priceChange4h } : undefined,
+    };
+  }
 
-    // Section C — score whatever's left in the buffer, excluding anchors + the user's own list.
+  // Re-derive Section A with Signal + Status tags folded in for every tier.
+  // buildAsset's own per-endpoint CoinGlass calls are individually cached
+  // (see live/watchlist.ts), so re-invoking it here is cheap — no new
+  // network calls, just a fresh tag pass.
+  const sectionARebuilt = await Promise.all(
+    sectionAAssets.map((a) => buildAsset(a.asset, signalInputsFor(a.asset)).catch(() => null)),
+  );
+  sectionAAssets = sectionARebuilt.filter((a): a is WatchlistApiResponse['assets'][number] => a !== null);
+
+  if (isPro) {
+    // Pro-only: Section B (custom list) also gets Signal/Status tags, plus
+    // Section C ("Also Worth Watching") is scored from whatever's left in the buffer.
+    curatedAssets = (
+      await Promise.all(curatedSymbols.map((sym) => buildAsset(sym, signalInputsFor(sym)).catch(() => null)))
+    ).filter((a): a is WatchlistApiResponse['curatedAssets'][number] => a !== null);
+
     const exclude = new Set([...sectionAAssets.map((a) => a.asset), ...curatedSymbols]);
     const scored = computeSectionC(events24h, exclude, now);
     sectionC = (
       await Promise.all(scored.map(async (s) => {
-        const row = await buildAsset(s.asset, whaleCounts[s.asset]).catch(() => null);
+        const row = await buildAsset(s.asset, signalInputsFor(s.asset)).catch(() => null);
         return row ? { ...row, reasons: s.reasons } : null;
       }))
     ).filter((r): r is WatchlistApiResponse['sectionC'][number] => r !== null);
@@ -127,8 +158,10 @@ export async function GET(request: Request) {
     // auto-radar's fixed 5-symbol list) — the pin allowlist (ALLOWED_SYMBOLS
     // in userWatchlist.ts) isn't identical to that list, so a lookup silently
     // dropped pinned symbols like ARB/APT that aren't in the auto-radar set.
+    // Plus's own pin cap is 0 (§8.1 — no customization on Plus), so this list
+    // is empty in practice today; kept for admins/any future cap change.
     curatedAssets = (
-      await Promise.all(curatedSymbols.map((sym) => buildAsset(sym).catch(() => null)))
+      await Promise.all(curatedSymbols.map((sym) => buildAsset(sym, signalInputsFor(sym)).catch(() => null)))
     ).filter((a): a is WatchlistApiResponse['curatedAssets'][number] => a !== null);
   }
 

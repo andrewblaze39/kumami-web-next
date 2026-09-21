@@ -65,7 +65,7 @@ export default function SpotPulsePreview() {
 
       <div className="w-apanel-foot">
         <span className="w-fmeta">{data ? data.marketVerdict : 'Spot vs. futures, five majors'}</span>
-        <Link href="/world/spot-pulse">
+        <Link href="/world/onchain">
           Open Spot Pulse <WIcon name="arrowR" />
         </Link>
       </div>

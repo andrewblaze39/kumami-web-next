@@ -73,11 +73,13 @@ describe('scoreNewsTone', () => {
 });
 
 describe('classifyComposite', () => {
-  it('labels 0-24 Extreme Fear', () => {
+  it('labels 0-24 Extreme Fear, colored red (not greed-green)', () => {
     expect(classifyComposite(10).label).toBe('Extreme Fear');
+    expect(classifyComposite(10).color).toBe('red');
   });
-  it('labels 75-100 Extreme Greed', () => {
+  it('labels 75-100 Extreme Greed, colored green (not fear-red)', () => {
     expect(classifyComposite(90).label).toBe('Extreme Greed');
+    expect(classifyComposite(90).color).toBe('green');
   });
   it('labels 46-55 Neutral', () => {
     expect(classifyComposite(50).label).toBe('Neutral');

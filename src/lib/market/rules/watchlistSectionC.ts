@@ -52,6 +52,36 @@ export function computeWhaleEventCounts(events: FlowEvent[]): Record<string, { b
   return counts;
 }
 
+/** Real USD totals behind the whale tags above — for the Watchlist's Signal
+ *  detail line (e.g. "$340M outflow · 24h"), never a fabricated figure. */
+export function computeWhaleEventUsd(events: FlowEvent[]): Record<string, { bullishUsd: number; bearishUsd: number }> {
+  const usd: Record<string, { bullishUsd: number; bearishUsd: number }> = {};
+  for (const e of events) {
+    if (e.type !== 'whale_transfer') continue;
+    const bucket = usd[e.asset] ?? { bullishUsd: 0, bearishUsd: 0 };
+    if (e.direction === 'Outflow') bucket.bullishUsd += e.amountUsd;
+    else if (e.direction === 'Inflow') bucket.bearishUsd += e.amountUsd;
+    usd[e.asset] = bucket;
+  }
+  return usd;
+}
+
+/** Per-asset smart-money (Hyperliquid whale) direction counts, for the
+ *  Signal column's "Multi-signal" composite (whale + smart money aligned). */
+export function computeSmartMoneyCounts(events: FlowEvent[]): Record<string, { bullish: number; bearish: number }> {
+  const counts: Record<string, { bullish: number; bearish: number }> = {};
+  const bullishDirections = new Set<FlowEvent['direction']>(['Smart Money', 'Outflow', 'Buy Pressure', 'Support Wall', 'Accumulation']);
+  const bearishDirections = new Set<FlowEvent['direction']>(['Inflow', 'Sell Pressure', 'Resistance Wall']);
+  for (const e of events) {
+    if (e.type !== 'smart_money') continue;
+    const bucket = counts[e.asset] ?? { bullish: 0, bearish: 0 };
+    if (bullishDirections.has(e.direction)) bucket.bullish += 1;
+    else if (bearishDirections.has(e.direction)) bucket.bearish += 1;
+    counts[e.asset] = bucket;
+  }
+  return counts;
+}
+
 export function computeSectionC(
   events24h: FlowEvent[],
   excludeAssets: Set<string>,

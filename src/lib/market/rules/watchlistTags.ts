@@ -66,12 +66,6 @@ export type WatchlistTagsInputs = {
    * When true, takes priority over the OI/price-direction regime logic.
    */
   isLowOiLowVolume?: boolean;
-  /**
-   * Pro-only (Kumami Pro §2.9): count of bullish (Outflow) / bearish (Inflow)
-   * whale_transfer events on this asset in the last 24H, from the shared
-   * Flow Radar event buffer. Omit on Plus — no tag is produced without it.
-   */
-  whaleEventCounts?: { bullish: number; bearish: number };
 };
 
 export type WatchlistTagsResult = {
@@ -94,7 +88,7 @@ const SEVERITY_RANK: Record<Verdict['color'], number> = {
 type CandidateTag = { tag: Verdict; priority: number }; // priority = signal order (lower = first)
 
 function computeSignalTags(inputs: WatchlistTagsInputs): CandidateTag[] {
-  const { fundingRate, priceToLiqPct, pctLong, whaleEventCounts } = inputs;
+  const { fundingRate, priceToLiqPct, pctLong } = inputs;
   const candidates: CandidateTag[] = [];
 
   // Signal 1 — Funding Rate
@@ -116,16 +110,6 @@ function computeSignalTags(inputs: WatchlistTagsInputs): CandidateTag[] {
     candidates.push({ tag: { label: 'Crowded Long', color: 'amber' }, priority: 3 });
   } else if (pctLong < 30) {
     candidates.push({ tag: { label: 'Crowded Short', color: 'amber' }, priority: 3 });
-  }
-
-  // Signal 4 — Whale Accumulation/Distribution (Pro-only, Kumami Pro §2.9):
-  // 2+ bullish/bearish whale transfers on this asset in the last 24H.
-  if (whaleEventCounts) {
-    if (whaleEventCounts.bearish >= 2) {
-      candidates.push({ tag: { label: 'Whale Distribution', color: 'red' }, priority: 4 });
-    } else if (whaleEventCounts.bullish >= 2) {
-      candidates.push({ tag: { label: 'Whale Accumulation', color: 'green' }, priority: 4 });
-    }
   }
 
   return candidates;

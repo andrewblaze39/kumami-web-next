@@ -5,7 +5,7 @@
  * replacing the DXY "coming soon" slot per the Kumami Plus cross-cutting fix).
  */
 
-import { getCached } from '../cache';
+import { getCachedFresh } from '../cache';
 
 const CG_ORIGIN = 'https://api.coingecko.com/api/v3';
 
@@ -37,4 +37,4 @@ async function fetchBtcDominance(): Promise<BtcDominance> {
 }
 
 /** Cached 15 min per the doc's refresh cadence for this tile. */
-export const btcDominance = () => getCached<BtcDominance>('cg:btc-dominance', 900, fetchBtcDominance);
+export const btcDominance = () => getCachedFresh<BtcDominance>('cg:btc-dominance', 900, fetchBtcDominance);

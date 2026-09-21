@@ -105,12 +105,15 @@ const WEIGHTS: Record<keyof SubMetricScores, number> = {
   newsTone: 0.15,
 };
 
+// Industry convention (matches the standard Crypto Fear & Greed Index):
+// greed reads green (bullish sentiment), fear reads red (bearish sentiment) —
+// NOT a contrarian mapping. This previously had the two swapped.
 export function classifyComposite(score: number): { label: string; color: Verdict['color'] } {
-  if (score >= 75) return { label: 'Extreme Greed', color: 'red' };
-  if (score >= 56) return { label: 'Greed', color: 'amber' };
+  if (score >= 75) return { label: 'Extreme Greed', color: 'green' };
+  if (score >= 56) return { label: 'Greed', color: 'grey-green' };
   if (score >= 46) return { label: 'Neutral', color: 'grey' };
-  if (score >= 25) return { label: 'Fear', color: 'grey-green' };
-  return { label: 'Extreme Fear', color: 'green' };
+  if (score >= 25) return { label: 'Fear', color: 'amber' };
+  return { label: 'Extreme Fear', color: 'red' };
 }
 
 export function computeCompositeFearGreed(scores: SubMetricScores): {

@@ -8,8 +8,9 @@ import MarketConditions from '@/components/world/panels/MarketConditions';
 import RegimeChips from '@/components/world/panels/RegimeChips';
 import SpotPulsePreview from '@/components/world/panels/SpotPulsePreview';
 import FlowRadarFeed from '@/components/world/panels/FlowRadarFeed';
-import IntelPreview from '@/components/world/panels/IntelPreview';
-import RadarWatchlist from '@/components/world/panels/RadarWatchlist';
+import CalendarPreview from '@/components/world/panels/CalendarPreview';
+import WatchlistPreview from '@/components/world/panels/WatchlistPreview';
+import AttentionPopup from '@/components/world/panels/AttentionPopup';
 import ProductTour, { type TourStep } from '@/components/world/ProductTour';
 
 const CONSOLE_TOUR: TourStep[] = [
@@ -38,14 +39,14 @@ const CONSOLE_TOUR: TourStep[] = [
     body: 'Big money leaves footprints. This is a live feed of the largest moves as they happen — whale transfers, liquidation spikes, and smart-wallet bets.',
   },
   {
-    selector: '[data-tour="intel"]',
-    title: 'Intelligence',
-    body: 'The news, but ranked by how much it actually matters. Every story is tagged A (market-moving), B (notable), or C (context) so nothing important slips past.',
+    selector: '[data-tour="calendar-preview"]',
+    title: 'Calendar',
+    body: 'Macro prints and token unlocks landing in the next 7 days, soonest first — click through for the full calendar and filters.',
   },
   {
     selector: '[data-tour="watchlist"]',
     title: 'Watchlist',
-    body: 'An auto-curated hot list of the assets seeing the strongest bullish money flow right now — so you don\'t have to hunt for them.',
+    body: 'BTC, ETH, SOL, BNB and HYPE — always on, with a live flag when funding or positioning gets crowded. Building your own custom list is part of Pro.',
   },
   {
     title: "That's the tour! 🎉",
@@ -161,13 +162,14 @@ export default function ConsolePage() {
         <FlowRadarFeed events={data?.flowRadar ?? []} loading={isLoading} />
       </div>
 
-      {/* 4. Bento row 3 — Intelligence + Watchlist */}
+      {/* 4. Bento row 3 — Calendar + Watchlist */}
       <div className="w-bento w-r3">
-        <IntelPreview briefs={data?.intelPreview ?? []} loading={isLoading} />
-        <RadarWatchlist items={data?.radarWatchlist ?? []} loading={isLoading} />
+        <CalendarPreview />
+        <WatchlistPreview />
       </div>
 
       {tourOpen && <ProductTour steps={CONSOLE_TOUR} onClose={closeTour} />}
+      <AttentionPopup />
     </div>
   );
 }

@@ -64,22 +64,25 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
   const etfChain = A === 'ETH' ? 'ethereum' : 'bitcoin';
 
   // Fetch everything in parallel; each panel guards its own inputs.
+  // `.catch(() => null)` (not `[]`) on feeds whose absence must NOT silently
+  // read as a real "0"/"50" value downstream — null lets each panel tell a
+  // genuine fetch failure apart from a fetch that legitimately returned no rows.
   const empty = <T>(): T[] => [];
   const [
     fundingRows, oiRows, liqCoin, liqAgg, gls, tls, cvdFut, cvdSpot,
     premiumRows, etfRows, exchBal, exchBalChart, stable, pairs, priceRows, hlWhales,
   ] = await Promise.all([
-    fundingOiWeight(A, interval).catch(empty<OHLC>),
+    fundingOiWeight(A, interval).catch(() => null as OHLC[] | null),
     oiAggHistory(A, interval).catch(empty<OHLC>),
-    liqCoinList().catch(empty<LiqCoinRow>),
+    liqCoinList().catch(() => null as LiqCoinRow[] | null),
     perp ? liqAggHistory(A, interval).catch(empty<LiqAggRow>) : Promise.resolve(empty<LiqAggRow>()),
-    perp ? globalLongShort(pair, interval).catch(empty<GlsRow>) : Promise.resolve(empty<GlsRow>()),
+    perp ? globalLongShort(pair, interval).catch(() => null as GlsRow[] | null) : Promise.resolve(empty<GlsRow>()),
     perp ? topLongShort(pair, interval).catch(empty<TlsRow>) : Promise.resolve(empty<TlsRow>()),
     perp ? cvdHistory('futures', A, interval).catch(empty<CvdRow>) : Promise.resolve(empty<CvdRow>()),
     perp ? cvdHistory('spot', A, interval).catch(empty<CvdRow>) : Promise.resolve(empty<CvdRow>()),
     coinbasePremium(interval).catch(empty<PremiumRow>),
     etfFlow(etfChain).catch(empty<EtfFlowRow>),
-    exchangeBalance(A).catch(empty<ExchBalanceRow>),
+    exchangeBalance(A).catch(() => null as ExchBalanceRow[] | null),
     exchangeBalanceChart(A).catch(() => null),
     stablecoinMcap().catch(() => null),
     pairsMarkets(A).catch(empty<PairMarketRow>),
@@ -88,24 +91,31 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
   ]);
 
   const primary = primaryPair(pairs);
-  const price = primary?.current_price ?? 0;
-  const change24h = primary?.price_change_percent_24h ?? 0;
+  // null (not 0) when the price fetch failed — feeds netflow below, which must
+  // itself fall back to "unavailable" rather than a fake $0 net flow.
+  const price = primary?.current_price ?? null;
+  const change24h = primary?.price_change_percent_24h ?? null;
   const priceSeries = ohlcToSeries(priceRows, points);
-  const priceDir: Dir = priceSeries.length >= 2 ? classifyDir(priceSeries) : (change24h > 1 ? 'up' : change24h < -1 ? 'down' : 'flat');
+  const priceDir: Dir = priceSeries.length >= 2 ? classifyDir(priceSeries) : (change24h === null ? 'flat' : change24h > 1 ? 'up' : change24h < -1 ? 'down' : 'flat');
 
   // Exchange-balance netflow (shared by netflow + premium/etf cross-signals).
+  // null when the exchange-balance fetch failed OR price is unknown — a $ net
+  // flow needs both a real balance-change quantity and a real price.
   const balField: 'balance_change_1d' | 'balance_change_7d' | 'balance_change_30d' =
     range === '24h' ? 'balance_change_1d' : range === '7d' ? 'balance_change_7d' : 'balance_change_30d';
-  const netBalanceQty = exchBal.reduce((acc, r) => acc + (Number(r[balField]) || 0), 0);
+  const netBalanceQty = (exchBal ?? []).reduce((acc, r) => acc + (Number(r[balField]) || 0), 0);
   // Positive netUsd = net OUTFLOW = accumulation. Balance falling (negative change) = outflow.
-  const netUsd = -netBalanceQty * (price || 0);
+  const netUsd = exchBal === null || price === null ? null : -netBalanceQty * price;
   const exchangeFlowDir: 'inflow' | 'outflow' | 'neutral' =
-    netUsd > 50_000_000 ? 'outflow' : netUsd < -50_000_000 ? 'inflow' : 'neutral';
+    netUsd === null ? 'neutral' : netUsd > 50_000_000 ? 'outflow' : netUsd < -50_000_000 ? 'inflow' : 'neutral';
 
   const panels = {} as OnChainPayload['panels'];
 
-  // ---- funding -----------------------------------------------------------
+  // ---- funding -------------------------------------------------------------
+  // fundingRows is null when the fetch failed — `.map` on null throws, which the
+  // catch below turns into an honest "unavailable" panel (no fake 0.0000% rate).
   try {
+    if (fundingRows === null) throw new Error('funding fetch failed');
     const closesPct = fundingRows.map((r) => num(r.close) * 100); // decimal → percent
     const last3 = closesPct.slice(-3);
     const avg3 = last3.length ? last3.reduce((a, b) => a + b, 0) / last3.length : 0;
@@ -119,8 +129,12 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
     });
   } catch { panels.funding = neutral('Funding rate unavailable', { asset: A, range }); }
 
-  // ---- liquidations ------------------------------------------------------
+  // ---- liquidations ----------------------------------------------------------
+  // liqCoin is null when the fetch failed — `.find` on null throws, caught below
+  // (no fake $0 liquidated). A genuinely-fetched list with no row for this asset
+  // still legitimately means "$0 liquidated" and is left as a real reading.
   try {
+    if (liqCoin === null) throw new Error('liquidations fetch failed');
     const row = liqCoin.find((l) => l.symbol === A);
     const totalUsd = row?.liquidation_usd_24h ?? 0;
     const longUsd = row?.long_liquidation_usd_24h ?? 0;
@@ -136,8 +150,12 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
     });
   } catch { panels.liquidations = neutral('Liquidations unavailable', { asset: A, range }); }
 
-  // ---- netflow (exchange balance) ---------------------------------------
+  // ---- netflow (exchange balance) --------------------------------------------
+  // netUsd is null when the exchange-balance fetch or price lookup failed —
+  // thrown here so the catch below produces an honest "unavailable" panel
+  // instead of a fake "$0 net flow".
   try {
+    if (netUsd === null || change24h === null) throw new Error('netflow inputs unavailable');
     const priceChange = change24h / 100;
     const flowAccelerating = Math.abs(netUsd) > 50_000_000;
     const r = computeNetflow({ netUsd, priceChange, flowAccelerating });
@@ -158,15 +176,30 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
   } catch { panels.netflow = neutral('Exchange netflow unavailable', { asset: A, range }); }
 
   // ---- longshort ---------------------------------------------------------
+  // gls is null only when the fetch failed (a non-perp asset resolves to a real
+  // `[]` above, by design — no long/short market exists for it either way).
+  // globalPctLong still falls back to 50 as a NEUTRAL input to the verdict
+  // engine only; the raw displayed value is omitted from `extra` whenever there
+  // is no real reading, so the UI shows "No data" rather than a fake 50% Long.
   try {
-    const globalPctLong = gls.length ? gls[gls.length - 1].global_account_long_percent : 50;
-    const topTraderPctLong = tls.length ? tls[tls.length - 1].top_account_long_percent : globalPctLong;
+    const hasGls = gls !== null && gls.length > 0;
+    const globalPctLongRaw = hasGls ? gls[gls.length - 1].global_account_long_percent : null;
+    const globalPctLong = globalPctLongRaw ?? 50;
+    const hasTls = tls.length > 0;
+    const topTraderPctLong = hasTls ? tls[tls.length - 1].top_account_long_percent : globalPctLong;
     const r = computeLongShort({ globalPctLong, topTraderPctLong });
-    panels.longshort = panel(r.verdict, `Long ${globalPctLong.toFixed(1)}% / Short ${(100 - globalPctLong).toFixed(1)}% — ${r.verdict.label}`, {
+    const headline = hasGls
+      ? `Long ${globalPctLong.toFixed(1)}% / Short ${(100 - globalPctLong).toFixed(1)}% — ${r.verdict.label}`
+      : 'Long/short ratio unavailable';
+    panels.longshort = panel(r.verdict, headline, {
       tags: r.tags,
-      series: toSeries(gls, points, (x) => Number(x.time), (x) => x.global_account_long_percent),
+      series: toSeries(gls ?? [], points, (x) => Number(x.time), (x) => x.global_account_long_percent),
       series2: toSeries(tls, points, (x) => Number(x.time), (x) => x.top_account_long_percent),
-      extra: { asset: A, range, globalPctLong: Number(globalPctLong.toFixed(1)), topTraderPctLong: Number(topTraderPctLong.toFixed(1)) },
+      extra: {
+        asset: A, range,
+        ...(hasGls ? { globalPctLong: Number(globalPctLong.toFixed(1)) } : {}),
+        ...(hasTls ? { topTraderPctLong: Number(topTraderPctLong.toFixed(1)) } : {}),
+      },
     });
   } catch { panels.longshort = neutral('Long/short ratio unavailable', { asset: A, range }); }
 
@@ -286,7 +319,7 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
       sizeUsd: Math.round(p.position_value_usd),
       entryPrice: p.entry_price,
       liqPrice: p.liq_price,
-      distanceToLiqPct: price > 0 && p.liq_price > 0 ? Number((((p.liq_price - price) / price) * 100).toFixed(1)) : 0,
+      distanceToLiqPct: price !== null && price > 0 && p.liq_price > 0 ? Number((((p.liq_price - price) / price) * 100).toFixed(1)) : 0,
     }));
 
   return { asset: A, range, panels, whalePositions };

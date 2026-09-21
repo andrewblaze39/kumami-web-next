@@ -29,44 +29,34 @@ export type Series = { t: number; v: number }[];
 /** Full payload for the /world Console page. */
 export type ConsolePayload = {
   marketConditions: PanelVerdict & {
-    fearGreed: number;
+    /** null when the Fear & Greed fetch failed — render "No data", never a fake midpoint. */
+    fearGreed: number | null;
     /** Server-derived label for the Fear & Greed value (e.g. "Extreme Greed"). */
     fearGreedLabel: string;
     /** Server-derived color token for the Fear & Greed bar fill. */
     fearGreedColor: 'green' | 'lime' | 'grey' | 'amber' | 'red';
     tiles: {
-      etfFlow7d: { usd: number; pctVsPrev: number };
+      /** null when the ETF flow fetch failed. */
+      etfFlow7d: { usd: number; pctVsPrev: number } | null;
       /** BTC's share of total crypto market cap (CoinGecko), replacing the DXY slot. */
       btcDominance: { pct: number; dayChange: number } | null;
-      onChainBias: { pctLong: number; ratio: number };
-      liq24h: { totalUsd: number; pctVsAvg7d: number };
+      /** null when the long/short fetch failed. */
+      onChainBias: { pctLong: number; ratio: number } | null;
+      /** null when the liquidation fetch failed. */
+      liq24h: { totalUsd: number; pctVsAvg7d: number } | null;
     };
   };
   /** Exactly 5 chips: BTC, ETH, SOL, BNB, HYPE */
   regimeChips: {
     asset: 'BTC' | 'ETH' | 'SOL' | 'BNB' | 'HYPE';
-    price: number;
-    change24h: number;
+    /** null when the price fetch failed for this asset — render "No data", never $0. */
+    price: number | null;
+    change24h: number | null;
     regime: 'Bullish' | 'Neutral' | 'Bearish';
     confidence: number;
   }[];
   /** Last 6 flow events */
   flowRadar: FlowEvent[];
-  /** Top 4 intel briefs — no summaries on console */
-  intelPreview: {
-    tier: 'A' | 'B' | 'C';
-    headline: string;
-    category: string;
-    source: string;
-    ts: string;
-  }[];
-  /** Up to 4 auto-selected watchlist items */
-  radarWatchlist: {
-    asset: string;
-    price: number;
-    change24h: number;
-    signal: string;
-  }[];
 };
 
 /** A discrete market flow / on-chain event. */
@@ -109,11 +99,19 @@ export type FearGreedSubMetric = {
   source: string;
   /** True only for News Tone until its LLM classification is validated. */
   estimated?: boolean;
+  /**
+   * True when every underlying live source for this sub-metric failed —
+   * `value`/`score` are neutral placeholders feeding the composite only, not a
+   * real reading, and the UI should render "No data" rather than format them.
+   */
+  unavailable?: boolean;
 };
 
 /** Full payload for the standalone /world/fear-greed page (Plus tier). */
 export type FearGreedPayload = {
-  composite: { score: number; label: string; color: Verdict['color'] };
+  /** unavailable: true when every sub-metric failed — score/label are neutral
+   *  fallbacks feeding nothing real, UI shows "No data" instead. */
+  composite: { score: number; label: string; color: Verdict['color']; unavailable?: boolean };
   subMetrics: {
     priceMomentum: FearGreedSubMetric;
     longShortSentiment: FearGreedSubMetric;
@@ -271,8 +269,11 @@ export type WatchlistPayload = {
     price: number;
     change24h: number;
     regime: 'Trending Up' | 'Trending Down' | 'Coiling' | 'Ranging';
-    /** Maximum 2 tags per asset */
+    /** Status column — maximum 2 risk/positioning/regime tags per asset. */
     actionTags: Verdict[];
+    /** Signal column — a dedicated whale/smart-money/Spot-Pulse narrative,
+     *  independent of actionTags (never counts toward its 2-tag limit). */
+    primarySignal: { icon: string; label: string; detail: string; color: Verdict['color'] };
   }[];
 };
 

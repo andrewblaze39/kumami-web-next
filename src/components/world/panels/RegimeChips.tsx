@@ -45,23 +45,33 @@ export default function RegimeChips({ chips, loading }: Props) {
             className="w-regime-chip"
             style={{ '--rc': REGIME_RC[chip.regime] ?? '#f0b65e' } as CSSProperties}
             role="listitem"
-            aria-label={`${chip.asset}: ${chip.regime}, price $${formatPrice(chip.price)}, 24h ${formatChange(chip.change24h)}, AI confidence ${chip.confidence.toFixed(2)}`}
+            aria-label={
+              chip.price !== null && chip.change24h !== null
+                ? `${chip.asset}: ${chip.regime}, price $${formatPrice(chip.price)}, 24h ${formatChange(chip.change24h)}, AI confidence ${chip.confidence.toFixed(2)}`
+                : `${chip.asset}: ${chip.regime}, price data unavailable`
+            }
           >
             <div className="w-rc-top">
               <span className="w-sym">
                 <CoinBadge sym={chip.asset} size={17} />
                 {chip.asset}
               </span>
-              <span
-                className={`w-chg ${chip.change24h >= 0 ? 'w-bull' : 'w-bear'}`}
-                title="24h price change"
-              >
-                {formatChange(chip.change24h)}
-              </span>
+              {chip.change24h !== null ? (
+                <span
+                  className={`w-chg ${chip.change24h >= 0 ? 'w-bull' : 'w-bear'}`}
+                  title="24h price change"
+                >
+                  {formatChange(chip.change24h)}
+                </span>
+              ) : (
+                <span className="w-chg w-muted">—</span>
+              )}
             </div>
             <div className="w-reg-lbl">{chip.regime}</div>
             <div className="w-reg-conf">
-              AI conf {chip.confidence.toFixed(2)} · ${formatPrice(chip.price)}
+              {chip.price !== null
+                ? <>AI conf {chip.confidence.toFixed(2)} · ${formatPrice(chip.price)}</>
+                : <span className="w-muted">No price data</span>}
             </div>
           </div>
         );

@@ -14,11 +14,11 @@
 import { useEffect, useState } from 'react';
 import { WIcon, coinC } from '@/components/world/panels/console-ui';
 import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
-import { formatPrice, formatChange } from '@/components/world/panels/format';
+import { formatPrice, formatChange, verdictColorClass } from '@/components/world/panels/format';
 import { useWorldMode } from '@/contexts/WorldModeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import ProductTour, { type TourStep } from '@/components/world/ProductTour';
-import type { WatchlistApiResponse } from '@/lib/market/contracts';
+import type { Verdict, WatchlistApiResponse } from '@/lib/market/contracts';
 
 const WATCHLIST_TOUR: TourStep[] = [
   {
@@ -72,7 +72,10 @@ type WatchRow = {
   price: string;
   chg: string;
   dir: 'up' | 'down';
-  signal: string;
+  /** Signal column — dedicated whale/smart-money/Spot Pulse narrative. */
+  signal: WatchlistApiResponse['assets'][number]['primarySignal'];
+  /** Status column — up to 2 risk/positioning/regime tags, independent of Signal. */
+  statusTags: Verdict[];
   reasons?: string[];
 };
 
@@ -80,14 +83,14 @@ type WatchRow = {
 function toRows(assets: WatchlistApiResponse['assets']): WatchRow[] {
   return assets.map((a) => {
     const dir: 'up' | 'down' = a.change24h >= 0 ? 'up' : 'down';
-    const signal = a.actionTags[0]?.label ?? a.regime;
     return {
       sym: a.asset,
       name: COIN_NAME[a.asset] ?? a.asset,
       price: `$${formatPrice(a.price)}`,
       chg: formatChange(a.change24h),
       dir,
-      signal,
+      signal: a.primarySignal,
+      statusTags: a.actionTags,
     };
   });
 }
@@ -102,18 +105,32 @@ function toSectionCRows(assets: WatchlistApiResponse['sectionC']): WatchRow[] {
 /* ------------------------------------------------------------------ */
 
 export default function WatchlistPage() {
-  const { setMode } = useWorldMode();
+  const { mode, setMode } = useWorldMode();
   const { userData, currentUser } = useAuth();
-  // Pro users (or admins) can pin their own tokens; everyone gets the auto list.
-  const isPremium =
+  // Pro users (or admins) can pin their own tokens; everyone gets the auto
+  // list. Gated on the CURRENT view mode too, not just account tier: an
+  // admin/Pro account previewing the Plus experience via the mode toggle
+  // should see the plain fixed watchlist a real Plus user sees, not have
+  // Pro sections bleed through just because their account can access them.
+  const hasProAccess =
     userData?.isPremium === true || userData?.role === 'admin' || userData?.role === 'superadmin';
+  const isPremium = hasProAccess && mode === 'pro';
   const market = useMarketEndpoint<WatchlistApiResponse>('/api/market/watchlist');
   const bw = market.data ? toRows(market.data.assets) : [];
   const pinnedRows = market.data ? toRows(market.data.curatedAssets) : [];
   const sectionCRows = market.data ? toSectionCRows(market.data.sectionC) : [];
   const pinCap = market.data?.pinCap ?? null;
   const pinnedCount = market.data?.curatedSymbols.length ?? 0;
-  const loading = market.status === 'loading';
+  // Safety net: if the fetch is somehow still unresolved after 12s (a hung
+  // upstream, not just a slow one), stop showing a skeleton forever and fall
+  // through to the "No data" + Retry state instead.
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
+  useEffect(() => {
+    if (market.status !== 'loading') return;
+    const t = setTimeout(() => setLoadingTimedOut(true), 12_000);
+    return () => clearTimeout(t);
+  }, [market.status]);
+  const loading = market.status === 'loading' && !loadingTimedOut;
   const [tourOpen, setTourOpen] = useState(false);
 
   const [pin, setPin] = useState('');
@@ -183,10 +200,9 @@ export default function WatchlistPage() {
           <WIcon name="bookmark" /> Watchlist
         </h1>
         <p>
-          A live table of <b style={{ color: 'var(--accent)' }}>curated major assets</b> — price,
-          24h move, and a flag when funding or long/short positioning gets crowded. Building your
-          own custom list, price alerts and notes is part of{' '}
-          <b style={{ color: 'var(--purple)' }}>Pro</b>.
+          Track <b style={{ color: 'var(--accent)' }}>BTC, ETH, SOL, BNB, and HYPE</b> with live
+          flow signals and positioning tags — updated every minute. Custom watchlists and alerts
+          are part of <b style={{ color: 'var(--purple)' }}>Pro</b>.
         </p>
         <button type="button" className="w-tour-trigger" onClick={() => setTourOpen(true)} style={{ marginTop: 10 }}>
           <WIcon name="spark" /> Take a tour
@@ -206,18 +222,19 @@ export default function WatchlistPage() {
           <span>Asset</span>
           <span>Price</span>
           <span className="w-h-24h">24h</span>
-          <span className="w-sig-col">Flow signal</span>
+          <span>Signal</span>
+          <span className="w-status-col">Status</span>
         </div>
         {loading && (
-          <div className="w-wl-trow" role="status">
-            <div className="w-wl-asset w-muted">Loading live watchlist…</div>
-            <div /><div /><div />
-          </div>
+          <div className="w-panel-skeleton w-panel-skeleton-list" aria-busy="true" style={{ margin: '14px 20px' }} />
         )}
         {!loading && bw.length === 0 && (
           <div className="w-wl-trow" role="status">
-            <div className="w-wl-asset w-muted">Couldn&apos;t load the watchlist right now.</div>
-            <div /><div /><div />
+            <div className="w-wl-asset w-muted" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              No data
+              <button type="button" className="w-btn w-btn-ghost w-btn-sm" onClick={market.refetch}>Retry</button>
+            </div>
+            <div /><div /><div /><div />
           </div>
         )}
         {bw.map(w => (
@@ -239,10 +256,22 @@ export default function WatchlistPage() {
                 {w.chg}
               </span>
             </div>
-            <div className="w-wl-acts">
-              <span className="w-wl-sig">
-                <WIcon name="flame" /> {w.signal}
+            <div className="w-wl-signal">
+              <span className={`w-wl-signal-lbl ${verdictColorClass(w.signal.color)}`}>
+                {w.signal.icon} {w.signal.label}
               </span>
+              <span className="w-wl-signal-detail">{w.signal.detail}</span>
+            </div>
+            <div className="w-wl-acts w-status-col">
+              {w.statusTags.length === 0 ? (
+                <span className="w-wl-status-empty">—</span>
+              ) : (
+                w.statusTags.map((tag, i) => (
+                  <span key={i} className={`w-tag-chip ${verdictColorClass(tag.color)}`}>
+                    {tag.label}
+                  </span>
+                ))
+              )}
             </div>
           </div>
         ))}
@@ -300,7 +329,7 @@ export default function WatchlistPage() {
               <div className="w-wl-asset w-muted">
                 Build your custom watchlist — add up to {pinCap ?? 15} tokens or wallets.
               </div>
-              <div /><div /><div />
+              <div /><div /><div /><div />
             </div>
           ) : (
             pinnedRows.map((w) => (
@@ -317,8 +346,16 @@ export default function WatchlistPage() {
                     {w.chg}
                   </span>
                 </div>
-                <div className="w-wl-acts">
-                  <span className="w-wl-sig"><WIcon name="flame" /> {w.signal}</span>
+                <div className="w-wl-signal">
+                  <span className={`w-wl-signal-lbl ${verdictColorClass(w.signal.color)}`}>
+                    {w.signal.icon} {w.signal.label}
+                  </span>
+                  <span className="w-wl-signal-detail">{w.signal.detail}</span>
+                </div>
+                <div className="w-wl-acts w-status-col">
+                  {w.statusTags.map((tag, i) => (
+                    <span key={i} className={`w-tag-chip ${verdictColorClass(tag.color)}`}>{tag.label}</span>
+                  ))}
                   <button className="w-btn w-btn-sm" onClick={() => removePin(w.sym)} disabled={pinBusy}>
                     Remove
                   </button>
@@ -351,10 +388,20 @@ export default function WatchlistPage() {
                   {w.chg}
                 </span>
               </div>
-              <div className="w-wl-acts">
-                <span className="w-wl-sig" title={w.reasons?.join(' · ')}>
-                  🔥 {w.reasons?.[0] ?? w.signal}
+              <div className="w-wl-signal" title={w.reasons?.join(' · ')}>
+                <span className={`w-wl-signal-lbl ${verdictColorClass(w.signal.color)}`}>
+                  🔥 {w.reasons?.[0] ?? w.signal.label}
                 </span>
+                <span className="w-wl-signal-detail">{w.reasons?.[1] ?? w.signal.detail}</span>
+              </div>
+              <div className="w-wl-acts w-status-col">
+                {w.statusTags.length === 0 ? (
+                  <span className="w-wl-status-empty">—</span>
+                ) : (
+                  w.statusTags.map((tag, i) => (
+                    <span key={i} className={`w-tag-chip ${verdictColorClass(tag.color)}`}>{tag.label}</span>
+                  ))
+                )}
               </div>
             </div>
           ))}

@@ -57,11 +57,19 @@ type Built = {
 async function buildAsset(asset: string, row: 1 | 2, tf: SpotPulseTimeframe): Promise<Built | null> {
   const pair = pairSymbol(asset);
   const { interval, rangeBars } = TF_CFG[tf];
-  const [spotCvd, futCvd, priceRows] = await Promise.all([
-    cvdHistory('spot', asset, interval).catch(() => [] as CvdRow[]),
-    cvdHistory('futures', asset, interval).catch(() => [] as CvdRow[]),
-    priceHistory(pair, interval).catch(() => []),
+  // null (not []) distinguishes "the fetch failed" from "the fetch succeeded
+  // with genuinely no rows" — the former must never silently feed a fake 0
+  // into a displayed CVD/price change.
+  const [spotCvdRaw, futCvdRaw, priceRowsRaw] = await Promise.all([
+    cvdHistory('spot', asset, interval).catch(() => null as CvdRow[] | null),
+    cvdHistory('futures', asset, interval).catch(() => null as CvdRow[] | null),
+    priceHistory(pair, interval).catch(() => null),
   ]);
+  const spotCvd = spotCvdRaw ?? [];
+  const futCvd = futCvdRaw ?? [];
+  const priceRows = priceRowsRaw ?? [];
+  const futFailed = futCvdRaw === null;
+  const priceFailed = priceRowsRaw === null;
 
   // No CVD at all on either side → skip the tile entirely (§11).
   if (!spotCvd.length && !futCvd.length) return null;
@@ -79,7 +87,11 @@ async function buildAsset(asset: string, row: 1 | 2, tf: SpotPulseTimeframe): Pr
   }
 
   const res = computeSpotVerdict({ priceChange4h, spotCvdChange, futCvdChange, spotCvdRange, futCvdRange });
-  const insufficient = !spotCvd.length; // spot side is what makes the verdict meaningful
+  // Insufficient (renders "NO DATA" / '—' on the tile, per the UI's existing
+  // convention) when the spot side is genuinely missing (spec §11), OR when
+  // the futures/price fetch outright failed — in either failure case the
+  // 0-fallbacks above would otherwise masquerade as a real flat reading.
+  const insufficient = !spotCvd.length || futFailed || priceFailed;
 
   const tile: SpotPulseTile = insufficient
     ? {
@@ -137,6 +149,14 @@ export async function makeSpotPulseLive(
     // Degrades to null (hidden) if the spot endpoint isn't on the current plan.
     netflowList('spot').catch(() => [] as Awaited<ReturnType<typeof netflowList>>),
   ]);
+
+  // Every anchor failed (or had no CVD on either side) — a total CoinGlass
+  // outage, not a genuinely quiet market. Throw rather than return an empty
+  // grid that would look like "no signals right now" (matches the live
+  // provider's documented "throw on catastrophic failure" convention).
+  if (built.length === 0) {
+    throw new Error('Spot Pulse data unavailable — all asset fetches failed');
+  }
 
   const tiles = built.map((b) => b.tile);
   const verdicts = tiles.map((t) => t.verdict as SpotVerdict);

@@ -12,7 +12,18 @@ import type { FearGreedPayload } from '@/lib/market/contracts';
 import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
 import { WIcon } from '@/components/world/panels/console-ui';
 import { formatUsd } from '@/components/world/panels/format';
-import { computeDomain, scaleX, scaleY, buildSmoothPath } from '@/components/world/panels/chart-utils';
+import { scaleX, scaleY, buildSmoothPath, buildAreaPath, type Domain } from '@/components/world/panels/chart-utils';
+
+/** Fixed score bands, top to bottom — index score is always 0-100, so the
+ *  chart's colour bands are fixed thresholds, never a data-dependent range. */
+const BANDS = [
+  { from: 76, to: 100, label: 'EXTREME GREED', display: 'Extreme Greed', color: '#46e3a0' },
+  { from: 56, to: 76, label: 'GREED', display: 'Greed', color: '#8fd6b4' },
+  { from: 44, to: 56, label: 'NEUTRAL', display: 'Neutral', color: '#8ea69c' },
+  { from: 24, to: 44, label: 'FEAR', display: 'Fear', color: '#f0cd7e' },
+  { from: 0, to: 24, label: 'EXTREME FEAR', display: 'Extreme Fear', color: '#ff6b81' },
+];
+const SCORE_DOMAIN: Domain = { min: 0, max: 100 };
 
 const RANGES = ['7D', '30D', '90D', '1Y'] as const;
 type Range = (typeof RANGES)[number];
@@ -76,9 +87,10 @@ export default function FearGreedPage() {
   const history = data?.history ?? [];
   const filteredHistory = useMemo(() => history.slice(-RANGE_DAYS[range]), [history, range]);
 
-  const W = 640, H = 160;
-  const domain = filteredHistory.length ? computeDomain(filteredHistory) : { min: 0, max: 100 };
+  const W = 640, H = 220;
+  const domain = SCORE_DOMAIN;
   const path = filteredHistory.length ? buildSmoothPath(filteredHistory, W, H, domain) : '';
+  const areaPath = filteredHistory.length ? buildAreaPath(filteredHistory, W, H, domain) : '';
 
   if (status === 'loading') {
     return (
@@ -110,45 +122,79 @@ export default function FearGreedPage() {
       </div>
 
       <div className="w-fg-hero">
-        <Gauge score={composite.score} color={composite.color} />
+        {composite.unavailable ? (
+          <Gauge score={0} color="grey" />
+        ) : (
+          <Gauge score={composite.score} color={composite.color} />
+        )}
         <div className="w-fg-hero-score">
-          <b className={tone}>{composite.score}</b>
-          <span className={tone}>{composite.label}</span>
+          {composite.unavailable ? (
+            <b className="w-muted">No data</b>
+          ) : (
+            <>
+              <b className={tone}>{composite.score}</b>
+              <span className={tone}>{composite.label}</span>
+            </>
+          )}
         </div>
         <div className="w-fg-hero-desc">
           <div className="w-fg-hero-title">Kumami Index · BTC, ETH, SOL, BNB, HYPE</div>
-          <p>Composite of price momentum, long/short sentiment, volatility, market composition and news tone.</p>
+          <p>
+            {composite.unavailable
+              ? 'All 5 underlying signals failed to load — showing no data rather than a false reading.'
+              : 'Composite of price momentum, long/short sentiment, volatility, market composition and news tone.'}
+          </p>
         </div>
       </div>
 
       <div className="w-fg-tiles">
         <div className="w-fg-tile">
           <span className="w-fg-tile-label">Price Momentum</span>
-          <b>{subMetrics.priceMomentum.score}</b>
+          {subMetrics.priceMomentum.unavailable ? (
+            <b className="w-muted">No data</b>
+          ) : (
+            <b>{subMetrics.priceMomentum.score}</b>
+          )}
           <span className="w-fg-tile-source">{subMetrics.priceMomentum.source}</span>
         </div>
         <div className="w-fg-tile">
           <span className="w-fg-tile-label">Long/Short Sentiment</span>
-          <b>{subMetrics.longShortSentiment.value}% Long</b>
+          {subMetrics.longShortSentiment.unavailable ? (
+            <b className="w-muted">No data</b>
+          ) : (
+            <b>{subMetrics.longShortSentiment.value}% Long</b>
+          )}
           <span className="w-fg-tile-source">{subMetrics.longShortSentiment.source}</span>
         </div>
         <div className="w-fg-tile">
           <span className="w-fg-tile-label">Volatility · 7D vs 30D</span>
-          <b>{subMetrics.volatility.value}</b>
+          {subMetrics.volatility.unavailable ? (
+            <b className="w-muted">No data</b>
+          ) : (
+            <b>{subMetrics.volatility.value}</b>
+          )}
           <span className="w-fg-tile-source">{subMetrics.volatility.source}</span>
         </div>
         <div className="w-fg-tile">
           <span className="w-fg-tile-label">Market Composition</span>
-          <b className={Number(subMetrics.marketComposition.value) >= 0 ? 'w-bull' : 'w-bear'}>
-            {formatUsd(Number(subMetrics.marketComposition.value))}
-          </b>
+          {subMetrics.marketComposition.unavailable ? (
+            <b className="w-muted">No data</b>
+          ) : (
+            <b className={Number(subMetrics.marketComposition.value) >= 0 ? 'w-bull' : 'w-bear'}>
+              {formatUsd(Number(subMetrics.marketComposition.value))}
+            </b>
+          )}
           <span className="w-fg-tile-source">{subMetrics.marketComposition.source}</span>
         </div>
         <div className="w-fg-tile">
           <span className="w-fg-tile-label">News Tone</span>
-          <b>
-            {subMetrics.newsTone.estimated && <span className="w-fg-estimated-badge">Estimated</span>} {subMetrics.newsTone.value}% pos
-          </b>
+          {subMetrics.newsTone.unavailable ? (
+            <b className="w-muted">No data</b>
+          ) : (
+            <b>
+              {subMetrics.newsTone.estimated && <span className="w-fg-estimated-badge">Estimated</span>} {subMetrics.newsTone.value}% pos
+            </b>
+          )}
           <span className="w-fg-tile-source">{subMetrics.newsTone.source}</span>
         </div>
       </div>
@@ -181,40 +227,75 @@ export default function FearGreedPage() {
             ))}
           </div>
         </div>
-        <div className="w-apanel-b">
+        <div className="w-apanel-b w-fg-chart-wrap">
           {filteredHistory.length === 0 ? (
             <p className="w-panel-empty">No history available yet.</p>
           ) : (
-            <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} role="img" aria-label="Fear and Greed index history">
-              {[24, 44, 56, 76].map((band) => (
-                <line
-                  key={band}
-                  x1={0}
-                  y1={scaleY(band, domain, H)}
-                  x2={W}
-                  y2={scaleY(band, domain, H)}
-                  stroke="rgba(142,166,156,0.15)"
-                  strokeDasharray="3 3"
-                />
-              ))}
-              <path d={path} fill="none" stroke="var(--accent)" strokeWidth={1.75} strokeLinejoin="round" />
-              {filteredHistory.length > 0 && (
+            <div className="w-fg-chart-row">
+              <div className="w-fg-chart-axis">
+                {BANDS.map((b) => (
+                  <span key={b.label} style={{ top: scaleY(b.to, domain, H) }}>
+                    <b style={{ color: b.color }}>{b.to}</b> {b.label}
+                  </span>
+                ))}
+                <span style={{ top: scaleY(0, domain, H) }}><b style={{ color: BANDS[BANDS.length - 1].color }}>0</b></span>
+              </div>
+              <svg
+                viewBox={`0 0 ${W} ${H}`}
+                width="100%"
+                height={H}
+                role="img"
+                aria-label="Fear and Greed index history, colour-coded by band"
+                preserveAspectRatio="none"
+              >
+                <defs>
+                  <linearGradient id="fgBandGradient" x1="0" y1="0" x2="0" y2="1">
+                    {BANDS.map((b) => (
+                      <stop key={b.label} offset={`${100 - b.to}%`} stopColor={b.color} stopOpacity={0.28} />
+                    ))}
+                    <stop offset="100%" stopColor={BANDS[BANDS.length - 1].color} stopOpacity={0.28} />
+                  </linearGradient>
+                </defs>
+                {BANDS.map((b) => (
+                  <rect
+                    key={b.label}
+                    x={0}
+                    y={scaleY(b.to, domain, H)}
+                    width={W}
+                    height={scaleY(b.from, domain, H) - scaleY(b.to, domain, H)}
+                    fill={b.color}
+                    opacity={0.08}
+                  />
+                ))}
+                {[24, 44, 56, 76].map((band) => (
+                  <line
+                    key={band}
+                    x1={0}
+                    y1={scaleY(band, domain, H)}
+                    x2={W}
+                    y2={scaleY(band, domain, H)}
+                    stroke="rgba(255,255,255,0.14)"
+                    strokeDasharray="3 3"
+                  />
+                ))}
+                <path d={areaPath} fill="url(#fgBandGradient)" stroke="none" />
+                <path d={path} fill="none" stroke="#fff" strokeWidth={2} strokeLinejoin="round" />
                 <circle
                   cx={scaleX(filteredHistory.length - 1, filteredHistory.length, W)}
                   cy={scaleY(filteredHistory[filteredHistory.length - 1].v, domain, H)}
-                  r={3.5}
-                  fill="var(--accent)"
+                  r={4}
+                  fill="#fff"
+                  stroke={COLOR_HEX[composite.color] ?? 'var(--accent)'}
+                  strokeWidth={2}
                 />
-              )}
-            </svg>
+              </svg>
+            </div>
           )}
         </div>
         <div className="w-fg-band-legend">
-          <span><i style={{ background: '#ff6b81' }} /> Extreme Greed · 76–100</span>
-          <span><i style={{ background: '#f0cd7e' }} /> Greed · 56–76</span>
-          <span><i style={{ background: '#8ea69c' }} /> Neutral · 44–56</span>
-          <span><i style={{ background: '#8fd6b4' }} /> Fear · 24–44</span>
-          <span><i style={{ background: '#46e3a0' }} /> Extreme Fear · 0–24</span>
+          {BANDS.map((b) => (
+            <span key={b.label}><i style={{ background: b.color }} /> {b.display} · {b.from}–{b.to}</span>
+          ))}
         </div>
       </section>
 

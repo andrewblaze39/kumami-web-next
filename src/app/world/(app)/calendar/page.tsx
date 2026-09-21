@@ -3,13 +3,17 @@
 /**
  * /world/calendar — standalone Calendar tab (Plus tier).
  *
+ * A real month-grid calendar (not just a list): month navigation, a "next
+ * up" hero card for the nearest event, and every day cell always rendered
+ * (empty days just show no chips) so the page never looks broken just
+ * because no admin content has been added yet for a given day.
+ *
  * Scoping notes (disclosed, not silently cut):
- *   - List view only. The doc also specs a day/week/month grid ("Main View")
- *     with a list-view toggle — the grid is a separate, larger UI piece not
- *     built yet; this ships the list view as the primary (and only) view.
  *   - "Protocol" events (governance votes, mainnet launches) are described as
  *     editorial/manual entries — no such content pipeline exists yet, so the
- *     filter chip exists but the type is always empty.
+ *     filter chip exists but the type is always empty. The mockup also shows
+ *     Security/Regulatory/Launches categories with no corresponding data
+ *     source in this codebase — not added here rather than faked.
  *   - The D-1 popup here fires on this page specifically (on mount, once per
  *     browser via localStorage), not truly "on next login" app-wide as the
  *     doc describes — a global version would need to live in the shell layout.
@@ -31,13 +35,30 @@ const IMPACTS: CalendarEvent['impact'][] = ['HIGH', 'MED', 'LOW'];
 const ASSETS = ['All', 'BTC', 'ETH', 'SOL', 'BNB', 'HYPE'] as const;
 type AssetFilter = (typeof ASSETS)[number];
 
-const TIMEFRAMES = ['Today', 'This Week', 'Next 30D'] as const;
-type Timeframe = (typeof TIMEFRAMES)[number];
-const TIMEFRAME_MS: Record<Timeframe, number> = {
-  Today: 24 * 3_600_000,
-  'This Week': 7 * 24 * 3_600_000,
-  'Next 30D': 30 * 24 * 3_600_000,
+const DAY_MS = 24 * 3_600_000;
+const WEEKDAY_HEADERS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const MAX_CHIPS_PER_CELL = 3;
+
+const TYPE_COLOR: Record<CalendarEvent['type'], string> = {
+  macro: '#5b9bff',
+  unlock: '#46e3a0',
+  protocol: '#8ea69c',
 };
+const TYPE_LABEL: Record<CalendarEvent['type'], string> = {
+  macro: 'Macro',
+  unlock: 'On-chain',
+  protocol: 'Protocol',
+};
+
+function startOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+function startOfMonth(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+function addMonths(d: Date, n: number): Date {
+  return new Date(d.getFullYear(), d.getMonth() + n, 1);
+}
 
 const IMPACT_BADGE: Record<CalendarEvent['impact'], string> = {
   HIGH: 'w-flow-radar-sev-badge w-flow-radar-sev-high',
@@ -45,16 +66,13 @@ const IMPACT_BADGE: Record<CalendarEvent['impact'], string> = {
   LOW: 'w-flow-radar-sev-badge w-flow-radar-sev-low',
 };
 
-const TYPE_ICON: Record<CalendarEvent['type'], string> = {
-  macro: '🌐',
-  unlock: '🔓',
-  protocol: '🗳️',
-};
-
 function formatEventDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
     month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
   });
+}
+function formatEventTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 }
 
 const D1_DISMISSED_KEY = 'kumami_calendar_d1_dismissed';
@@ -64,7 +82,7 @@ export default function CalendarPage() {
   const [type, setType] = useState<(typeof TYPES)[number]['key']>('all');
   const [impacts, setImpacts] = useState<Set<CalendarEvent['impact']>>(new Set(IMPACTS));
   const [asset, setAsset] = useState<AssetFilter>('All');
-  const [timeframe, setTimeframe] = useState<Timeframe>('This Week');
+  const [monthCursor, setMonthCursor] = useState<Date>(() => startOfMonth(new Date()));
   const [popupEvent, setPopupEvent] = useState<CalendarEvent | null>(null);
 
   const events = data?.events ?? [];
@@ -105,18 +123,57 @@ export default function CalendarPage() {
     });
   };
 
-  const now = Date.now();
   const filtered = useMemo(
     () =>
       events.filter((e) => {
         if (type !== 'all' && e.type !== type) return false;
         if (!impacts.has(e.impact)) return false;
         if (asset !== 'All' && !e.assets.includes(asset)) return false;
-        const dt = Math.abs(Date.parse(e.ts) - now);
-        return dt <= TIMEFRAME_MS[timeframe];
+        return true;
       }),
-    [events, type, impacts, asset, timeframe, now],
+    [events, type, impacts, asset],
   );
+
+  // Nearest upcoming event overall — the hero card ignores the filters below,
+  // it's always "what's next", not "what's next that matches my filter".
+  const nextUp = useMemo(() => {
+    const now = Date.now();
+    return events
+      .filter((e) => Date.parse(e.ts) > now)
+      .sort((a, b) => Date.parse(a.ts) - Date.parse(b.ts))[0] ?? null;
+  }, [events]);
+
+  // Full month grid — every day cell always renders (Monday-start), including
+  // the leading/trailing days from adjacent months to fill the week rows.
+  const monthGrid = useMemo(() => {
+    const firstWeekday = (monthCursor.getDay() + 6) % 7; // Mon=0..Sun=6
+    const gridStart = new Date(monthCursor.getTime() - firstWeekday * DAY_MS);
+    const daysInMonth = new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 0).getDate();
+    const totalCells = Math.ceil((firstWeekday + daysInMonth) / 7) * 7;
+    const today = startOfDay(new Date()).getTime();
+
+    const byDateKey = new Map<string, CalendarEvent[]>();
+    for (const e of filtered) {
+      const key = startOfDay(new Date(e.ts)).toDateString();
+      const list = byDateKey.get(key) ?? [];
+      list.push(e);
+      byDateKey.set(key, list);
+    }
+
+    return Array.from({ length: totalCells }, (_, i) => {
+      const d = new Date(gridStart.getTime() + i * DAY_MS);
+      const dayEvents = (byDateKey.get(d.toDateString()) ?? []).sort((a, b) => Date.parse(a.ts) - Date.parse(b.ts));
+      return {
+        key: d.toDateString(),
+        date: d,
+        inMonth: d.getMonth() === monthCursor.getMonth(),
+        isToday: d.getTime() === today,
+        events: dayEvents,
+      };
+    });
+  }, [filtered, monthCursor]);
+
+  const monthLabel = monthCursor.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 
   return (
     <div className="w-content-inner">
@@ -124,19 +181,29 @@ export default function CalendarPage() {
         <div className="w-oc-head-top">
           <div>
             <h1>
-              <WIcon name="clock" /> Calendar
+              <WIcon name="clock" /> Economic &amp; Events Calendar
             </h1>
-            <p className="w-oc-sub">Full economic calendar + token unlocks + protocol events.</p>
-          </div>
-          <div className="w-flow-radar-timeframe">
-            {TIMEFRAMES.map((tf) => (
-              <button key={tf} className={tf === timeframe ? 'on' : ''} onClick={() => setTimeframe(tf)}>
-                {tf}
-              </button>
-            ))}
+            <p className="w-oc-sub">
+              Macro releases and on-chain events that matter to your positions.
+            </p>
           </div>
         </div>
       </div>
+
+      {nextUp && (
+        <div className="w-cal-nextup" style={{ borderLeftColor: TYPE_COLOR[nextUp.type] }}>
+          <div className="w-cal-nextup-main">
+            <div className="w-cal-nextup-title">
+              {nextUp.title} <span className={IMPACT_BADGE[nextUp.impact]}>{nextUp.impact}</span>
+            </div>
+            <p>{nextUp.description}</p>
+            <span className="w-cal-nextup-when">{formatEventDate(nextUp.ts)}</span>
+          </div>
+          <span className="w-cal-nextup-type" style={{ color: TYPE_COLOR[nextUp.type] }}>
+            {TYPE_LABEL[nextUp.type]}
+          </span>
+        </div>
+      )}
 
       <div className="w-flow-radar-filters">
         <div className="w-flow-radar-chip-row">
@@ -171,38 +238,42 @@ export default function CalendarPage() {
       </div>
 
       {status === 'loading' ? (
-        <div className="w-panel-skeleton w-panel-skeleton-list" aria-busy="true" style={{ minHeight: 220 }} />
-      ) : !data ? (
-        <p className="w-panel-empty">Couldn&apos;t load the calendar right now.</p>
+        <div className="w-panel-skeleton w-panel-skeleton-list" aria-busy="true" style={{ minHeight: 400 }} />
       ) : (
-        <section className="w-apanel" aria-label="Calendar events">
-          <div className="w-apanel-h">
-            <span className="w-ttl">Upcoming &amp; recent</span>
-            <span className="w-sub">{filtered.length} events · {timeframe}</span>
+        <section className="w-apanel w-cal-month" aria-label="Calendar">
+          <div className="w-cal-month-nav">
+            <button type="button" aria-label="Previous month" onClick={() => setMonthCursor((m) => addMonths(m, -1))}>‹</button>
+            <span className="w-cal-month-label">{monthLabel}</span>
+            <button type="button" aria-label="Next month" onClick={() => setMonthCursor((m) => addMonths(m, 1))}>›</button>
           </div>
-          {filtered.length === 0 ? (
-            <div className="w-apanel-b">
-              <p className="w-panel-empty">No events match these filters right now.</p>
-            </div>
-          ) : (
-            <div className="w-radar-list">
-              {filtered.map((event) => (
-                <div key={event.id} className="w-radar-item">
-                  <span className="w-cal-type-ic" aria-hidden="true">{TYPE_ICON[event.type]}</span>
-                  <div className="w-radar-main">
-                    <b>
-                      {event.title} <span className={IMPACT_BADGE[event.impact]}>{event.impact}</span>
-                    </b>
-                    <div className="w-rsub">{event.description}</div>
-                  </div>
-                  <div className="w-radar-amt">
-                    <b className="w-muted">{formatEventDate(event.ts)}</b>
-                    <span>{event.assets.join(', ')}</span>
-                  </div>
+          <div className="w-cal-grid-headers">
+            {WEEKDAY_HEADERS.map((d) => <span key={d}>{d}</span>)}
+          </div>
+          <div className="w-cal-grid-body">
+            {monthGrid.map((cell) => (
+              <div key={cell.key} className={`w-cal-cell${cell.inMonth ? '' : ' w-cal-cell-outside'}`}>
+                <span className={`w-cal-cell-num${cell.isToday ? ' w-cal-cell-today' : ''}`}>
+                  {cell.date.getDate()}
+                </span>
+                <div className="w-cal-cell-events">
+                  {cell.events.slice(0, MAX_CHIPS_PER_CELL).map((e) => (
+                    <div
+                      key={e.id}
+                      className="w-cal-cell-event"
+                      style={{ borderLeftColor: TYPE_COLOR[e.type] }}
+                      title={`${e.title} — ${e.description}`}
+                    >
+                      <b>{e.title}</b>
+                      <span>{formatEventTime(e.ts)}</span>
+                    </div>
+                  ))}
+                  {cell.events.length > MAX_CHIPS_PER_CELL && (
+                    <div className="w-cal-cell-more">+{cell.events.length - MAX_CHIPS_PER_CELL} more</div>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
         </section>
       )}
 

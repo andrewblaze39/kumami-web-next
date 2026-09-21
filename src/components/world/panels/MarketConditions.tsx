@@ -45,12 +45,12 @@ export default function MarketConditions({ data }: Props) {
           <div
             className="w-senti-bar"
             role="progressbar"
-            aria-valuenow={fearGreed}
+            aria-valuenow={fearGreed ?? undefined}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label={`Fear and greed: ${fearGreed}`}
+            aria-label={fearGreed !== null ? `Fear and greed: ${fearGreed}` : 'Fear and greed: no data'}
           >
-            <span className="w-mk" style={{ left: `${fearGreed}%` }} />
+            {fearGreed !== null && <span className="w-mk" style={{ left: `${fearGreed}%` }} />}
           </div>
           <div className="w-senti-scale">
             <span>Extreme Fear</span>
@@ -58,8 +58,14 @@ export default function MarketConditions({ data }: Props) {
             <span>Extreme Greed</span>
           </div>
           <div className="w-mc-fearval">
-            <b>{fearGreed}</b>
-            <span>{fearGreedLabel}</span>
+            {fearGreed !== null ? (
+              <>
+                <b>{fearGreed}</b>
+                <span>{fearGreedLabel}</span>
+              </>
+            ) : (
+              <span className="w-muted">No data</span>
+            )}
           </div>
         </div>
 
@@ -67,13 +73,22 @@ export default function MarketConditions({ data }: Props) {
         <div className="w-mc-right">
           <div className="w-macro-tile">
             <div className="w-ml"><WIcon name="layers" /> BTC ETF Net Flow</div>
-            <div className="w-mv">{formatUsd(tiles.etfFlow7d.usd)}</div>
-            <div
-              className={`w-mc-chg ${tiles.etfFlow7d.usd >= 0 ? 'w-bull' : 'w-bear'}`}
-              title="Change vs previous 7-day period"
-            >
-              {formatChange(tiles.etfFlow7d.pctVsPrev)} · vs prior 7d
-            </div>
+            {tiles.etfFlow7d === null ? (
+              <>
+                <div className="w-mv w-muted">No data</div>
+                <div className="w-mc-chg w-muted">Failed to load</div>
+              </>
+            ) : (
+              <>
+                <div className="w-mv">{formatUsd(tiles.etfFlow7d.usd)}</div>
+                <div
+                  className={`w-mc-chg ${tiles.etfFlow7d.usd >= 0 ? 'w-bull' : 'w-bear'}`}
+                  title="Change vs previous 7-day period"
+                >
+                  {formatChange(tiles.etfFlow7d.pctVsPrev)} · vs prior 7d
+                </div>
+              </>
+            )}
           </div>
 
           <div className="w-macro-tile">
@@ -95,23 +110,41 @@ export default function MarketConditions({ data }: Props) {
 
           <div className="w-macro-tile">
             <div className="w-ml"><WIcon name="flame" /> On-Chain Bias</div>
-            <div className="w-mv">{tiles.onChainBias.pctLong.toFixed(0)}% Long</div>
-            <div
-              className={`w-mc-chg ${tiles.onChainBias.pctLong >= 50 ? 'w-bull' : 'w-bear'}`}
-              title="Long/short account ratio"
-            >
-              {tiles.onChainBias.pctLong >= 50
-                ? `Longs outweigh shorts ${tiles.onChainBias.ratio.toFixed(2)} : 1`
-                : `Shorts outweigh longs ${(1 / (tiles.onChainBias.ratio || 1)).toFixed(2)} : 1`}
-            </div>
+            {tiles.onChainBias === null ? (
+              <>
+                <div className="w-mv w-muted">No data</div>
+                <div className="w-mc-chg w-muted">Failed to load</div>
+              </>
+            ) : (
+              <>
+                <div className="w-mv">{tiles.onChainBias.pctLong.toFixed(0)}% Long</div>
+                <div
+                  className={`w-mc-chg ${tiles.onChainBias.pctLong >= 50 ? 'w-bull' : 'w-bear'}`}
+                  title="Long/short account ratio"
+                >
+                  {tiles.onChainBias.pctLong >= 50
+                    ? `Longs outweigh shorts ${tiles.onChainBias.ratio.toFixed(2)} : 1`
+                    : `Shorts outweigh longs ${(1 / (tiles.onChainBias.ratio || 1)).toFixed(2)} : 1`}
+                </div>
+              </>
+            )}
           </div>
 
           <div className="w-macro-tile">
             <div className="w-ml"><WIcon name="shield" /> Total Liquidations 24h</div>
-            <div className="w-mv">{formatUsd(tiles.liq24h.totalUsd)}</div>
-            <div className="w-mc-chg w-bear" title="Change vs 7-day average liquidation volume">
-              {formatChange(tiles.liq24h.pctVsAvg7d)} vs avg
-            </div>
+            {tiles.liq24h === null ? (
+              <>
+                <div className="w-mv w-muted">No data</div>
+                <div className="w-mc-chg w-muted">Failed to load</div>
+              </>
+            ) : (
+              <>
+                <div className="w-mv">{formatUsd(tiles.liq24h.totalUsd)}</div>
+                <div className="w-mc-chg w-bear" title="Change vs 7-day average liquidation volume">
+                  {formatChange(tiles.liq24h.pctVsAvg7d)} vs avg
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

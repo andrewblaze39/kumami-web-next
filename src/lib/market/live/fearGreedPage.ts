@@ -66,11 +66,17 @@ function classifyHeadline(headline: string): 'bullish' | 'bearish' | 'neutral' {
   return 'neutral';
 }
 
-/** Per-asset momentum % and 7D/30D volatility ratio from daily closes. */
-async function assetMomentumAndVol(asset: string): Promise<{ momentumPct: number; volRatio: number }> {
+/**
+ * Per-asset momentum % and 7D/30D volatility ratio from daily closes.
+ * Returns `null` for both when the price-history fetch fails OR there's
+ * genuinely too little history to compute a meaningful reading — either way
+ * this asset must not contribute a fake "flat/normal" number to the basket
+ * average, which is instead re-weighted over whichever assets did succeed.
+ */
+async function assetMomentumAndVol(asset: string): Promise<{ momentumPct: number; volRatio: number } | null> {
   const rows = await priceHistory(asset, '1d').catch(() => []);
   const closes = rows.map((r) => Number(r.close)).filter((n) => Number.isFinite(n) && n > 0);
-  if (closes.length < 8) return { momentumPct: 0, volRatio: 1 };
+  if (closes.length < 8) return null;
 
   const current = closes[closes.length - 1];
   const last30 = closes.slice(Math.max(0, closes.length - 31), closes.length - 1);
@@ -87,9 +93,20 @@ async function assetMomentumAndVol(asset: string): Promise<{ momentumPct: number
   return { momentumPct, volRatio };
 }
 
-async function assetLongPct(asset: string): Promise<number> {
-  const rows = await globalLongShort(pairSymbol(asset), '1h').catch(() => []);
-  return rows.length ? rows[rows.length - 1].global_account_long_percent : 50;
+/** null when the long/short fetch fails for this asset — never a fake 50/50. */
+async function assetLongPct(asset: string): Promise<number | null> {
+  const rows = await globalLongShort(pairSymbol(asset), '1h').catch(() => null);
+  return rows?.length ? rows[rows.length - 1].global_account_long_percent : null;
+}
+
+/** Weighted average over only the entries that actually resolved, re-normalised
+ * against the weight that's actually present — a partial outage degrades the
+ * average's precision, not its honesty (never dilutes toward a fake neutral). */
+function weightedAvg(entries: { weight: number; value: number | null }[], fallback: number): { value: number; hasAny: boolean } {
+  const present = entries.filter((e): e is { weight: number; value: number } => e.value !== null);
+  const weightSum = present.reduce((s, e) => s + e.weight, 0);
+  if (weightSum <= 0) return { value: fallback, hasAny: false };
+  return { value: present.reduce((s, e) => s + e.weight * e.value, 0) / weightSum, hasAny: true };
 }
 
 export async function makeFearGreedPayloadLive(): Promise<FearGreedPayload> {
@@ -102,39 +119,60 @@ export async function makeFearGreedPayloadLive(): Promise<FearGreedPayload> {
   ]);
 
   // --- Sub-metric 1 + 3: weighted basket momentum & volatility ratio -------
-  const basketMomentum = BASKET.reduce((sum, b, i) => sum + b.weight * basketStats[i].momentumPct, 0);
-  const basketVolRatio = BASKET.reduce((sum, b, i) => sum + b.weight * basketStats[i].volRatio, 0);
+  // Renormalised over whichever basket assets actually resolved — a partial
+  // outage narrows the sample, it doesn't get diluted toward a fake neutral.
+  const momentumAvg = weightedAvg(
+    BASKET.map((b, i) => ({ weight: b.weight, value: basketStats[i]?.momentumPct ?? null })), 0,
+  );
+  const volAvg = weightedAvg(
+    BASKET.map((b, i) => ({ weight: b.weight, value: basketStats[i]?.volRatio ?? null })), 1,
+  );
+  const basketMomentum = momentumAvg.value;
+  const basketVolRatio = volAvg.value;
   const momentumScore = scorePriceMomentum(basketMomentum);
   const vol = scoreVolatility(basketVolRatio);
 
   // --- Sub-metric 2: weighted basket long % ---------------------------------
-  const basketLongPctAvg = BASKET.reduce((sum, b, i) => sum + b.weight * basketLongPct[i], 0);
+  const longAvg = weightedAvg(
+    BASKET.map((b, i) => ({ weight: b.weight, value: basketLongPct[i] })), 50,
+  );
+  const basketLongPctAvg = longAvg.value;
   const lsScore = scoreLongShortSentiment(basketLongPctAvg);
 
   // --- Sub-metric 4: stablecoin supply 7D change -----------------------------
+  // stable is null only on a genuine fetch failure (stablecoinMcap already
+  // resolves that way) — never fabricate a "$0 change" from a dead endpoint.
+  const stableFailed = stable === null;
   const dl = stable?.data_list ?? [];
   const tl = stable?.time_list ?? [];
   const totals = dl.map((m) => Object.values(m).reduce((a, b) => a + (Number(b) || 0), 0));
   const latestTotal = totals[totals.length - 1] ?? 0;
   const idx7 = Math.max(0, totals.length - 8);
   const total7 = totals[idx7] ?? latestTotal;
-  const change7dUsd = latestTotal - total7;
-  const compScore = scoreMarketComposition(change7dUsd);
+  const change7dUsd = stableFailed ? null : latestTotal - total7;
+  const compScore = scoreMarketComposition(change7dUsd ?? 0);
 
   // --- Sub-metric 5: news tone (estimated, keyword heuristic) ---------------
   const headlines = intel.briefs.map((b) => b.headline);
   const classified = headlines.map(classifyHeadline);
   const bullishCount = classified.filter((c) => c === 'bullish').length;
-  const bullishPct = headlines.length ? (bullishCount / headlines.length) * 100 : 50;
+  const newsUnavailable = headlines.length === 0;
+  const bullishPct = newsUnavailable ? 50 : (bullishCount / headlines.length) * 100;
   const newsScore = scoreNewsTone(bullishPct);
 
-  const composite = computeCompositeFearGreed({
-    priceMomentum: momentumScore,
-    longShortSentiment: lsScore,
-    volatility: vol.score,
-    marketComposition: compScore,
-    newsTone: newsScore,
-  });
+  const composite = {
+    ...computeCompositeFearGreed({
+      priceMomentum: momentumScore,
+      longShortSentiment: lsScore,
+      volatility: vol.score,
+      marketComposition: compScore,
+      newsTone: newsScore,
+    }),
+    // Every sub-metric failed — the weighted score above is built entirely
+    // from neutral fallbacks, not a real reading. Flag it rather than show a
+    // synthesized number as if it meant something.
+    unavailable: !momentumAvg.hasAny && !longAvg.hasAny && !volAvg.hasAny && stableFailed && newsUnavailable,
+  };
 
   // --- Historical chart: raw index history as a proxy trend line -----------
   const fgSeries = (rawFg?.data_list ?? []).map((v, i) => ({
@@ -149,25 +187,29 @@ export async function makeFearGreedPayloadLive(): Promise<FearGreedPayload> {
         score: momentumScore,
         value: Number(basketMomentum.toFixed(1)),
         label: 'Price Momentum',
-        source: 'CoinGlass · tracked basket',
+        source: 'Tracked basket · daily closes',
+        unavailable: !momentumAvg.hasAny,
       },
       longShortSentiment: {
         score: lsScore,
         value: Number(basketLongPctAvg.toFixed(1)),
         label: 'Long/Short Sentiment',
         source: 'Exchange APIs · avg top traders',
+        unavailable: !longAvg.hasAny,
       },
       volatility: {
         score: vol.score,
         value: vol.label,
         label: 'Volatility · 7D vs 30D',
         source: 'Kumami OHLC history',
+        unavailable: !volAvg.hasAny,
       },
       marketComposition: {
         score: compScore,
-        value: change7dUsd,
+        value: change7dUsd ?? 0,
         label: 'Market Composition',
         source: 'Stablecoin market cap · 7D change',
+        unavailable: stableFailed,
       },
       newsTone: {
         score: newsScore,
@@ -175,6 +217,7 @@ export async function makeFearGreedPayloadLive(): Promise<FearGreedPayload> {
         label: 'News Tone',
         source: 'AI scoring (estimated) · pipeline in progress',
         estimated: true,
+        unavailable: newsUnavailable,
       },
     },
     history: fgSeries,

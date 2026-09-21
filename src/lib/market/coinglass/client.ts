@@ -8,12 +8,14 @@
  *   handlers / server components).
  * - Envelope: v4 responses are `{ code, msg, data }`; `code === "0"` means success.
  *
- * Per-endpoint TTL caching goes through the shared market cache (getCached),
- * so Console / On-Chain / Watchlist etc. that read overlapping endpoints share
- * one cached result instead of each making its own call.
+ * Per-endpoint TTL caching goes through the shared market cache (getCachedFresh —
+ * never serves stale data on a fetch failure, throws instead), so Console /
+ * On-Chain / Watchlist etc. that read overlapping endpoints share one cached
+ * result instead of each making its own call, and a dead upstream shows as a
+ * real error/empty state rather than silently stale numbers.
  */
 
-import { getCached } from '../cache';
+import { getCachedFresh } from '../cache';
 
 const CG_ORIGIN = 'https://open-api-v4.coinglass.com';
 
@@ -123,5 +125,5 @@ export function cgCached<T>(
   path: string,
   params?: CgParams,
 ): Promise<T> {
-  return getCached<T>(cacheKey, ttlSec, () => cgFetch<T>(path, params));
+  return getCachedFresh<T>(cacheKey, ttlSec, () => cgFetch<T>(path, params));
 }

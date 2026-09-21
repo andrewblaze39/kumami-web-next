@@ -4,23 +4,27 @@
  * WorldProContent — gated Pro dashboard content for /world/pro.
  *
  * Premium users (userData.isPremium OR role admin/superadmin) get the full Pro
- * dashboard: 18 tabs selected via the ?tab= query param (deep links like
+ * dashboard: tabs selected via the ?tab= query param (deep links like
  * /world/pro?tab=research work), driven from the LEFT sidebar (see
- * shell/Sidebar.tsx PRO_SUBTABS). Tabs fall into three groups:
+ * shell/Sidebar.tsx PRO_NAV). Tabs fall into three groups:
  *   - Group A (built here from the reference design, fixture-driven): digest,
  *     followhub, airdrops, realtimenews, research, calendar, events.
- *   - Group B (data source still being wired — ComingSoon card): smartmoney,
- *     tokentracker, spotpulse, scanner, feargreed.
+ *   - Group B (data source still being wired — ComingSoon card): spotpulse, scanner.
  *   - Existing components re-slotted: portfolio, alpha, market, kumaai, marketcap.
  *   - addresstracker: new standalone wallet-lookup page (Kumami Pro §4) — see
  *     tabs/CryptoAddressTracker.tsx.
  * Non-premium users keep the existing teaser / whitelist page (ProTeaser).
+ *
+ * Retired (per the latest mockup, which drops these entirely rather than
+ * showing an empty placeholder): Smart Money Tracker, Coin/Token Tracker,
+ * and the Pro-tier Fear & Greed slot (that composite already lives on its
+ * own Plus tab, no Pro-specific version was ever built).
  */
 
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Users, Layers, Activity, Shield, Gauge, Compass } from 'lucide-react';
+import { Activity, Shield, Compass } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProductTour, { type TourStep } from '@/components/world/ProductTour';
 import ProTeaser from './ProTeaser';
@@ -42,9 +46,9 @@ import MarketCapTool from '@/components/MarketCapTool';
 import './pro.css';
 
 const TAB_KEYS = [
-  'digest', 'followhub', 'smartmoney', 'tokentracker', 'spotpulse',
+  'digest', 'followhub', 'spotpulse',
   'scanner', 'airdrops', 'portfolio', 'addresstracker', 'marketcap', 'realtimenews', 'alpha',
-  'feargreed', 'research', 'calendar', 'events', 'market', 'kumaai',
+  'research', 'calendar', 'events', 'market', 'kumaai',
 ] as const;
 
 type TabKey = (typeof TAB_KEYS)[number];
@@ -71,33 +75,15 @@ function TabContent({ active }: { active: TabKey }) {
       return <Events />;
 
     // Group B — data source being wired.
-    case 'smartmoney':
-      return (
-        <ComingSoon
-          eyebrow="Tools"
-          icon={<Users size={24} />}
-          title="Smart Money Tracker"
-          description="Wallet-level flow across market makers, funds and on-chain whales — see exactly what top-PnL addresses do, as they do it."
-        />
-      );
-    case 'tokentracker':
-      return (
-        <ComingSoon
-          eyebrow="Tools"
-          icon={<Layers size={24} />}
-          title="Coin/Token Tracker"
-          description="Deep per-token analytics with custom alerts on the metrics you care about."
-        />
-      );
     case 'spotpulse':
       return (
         <ComingSoon
           eyebrow="Tools"
           icon={<Activity size={24} />}
           title="Spot Pulse"
-          description="Already live on its own Plus tab (and embedded on On-Chain Insights), covering BTC/ETH/SOL/BNB/HYPE. This Pro slot will add a second row of dynamic trending coins once the data provider unlocks per-asset spot volume."
+          description="Already live on the Console preview and the full grid on On-Chain Insights, covering BTC/ETH/SOL/BNB/HYPE. This Pro slot will add a second row of dynamic trending coins once the data provider unlocks per-asset spot volume."
           action={
-            <Link href="/world/spot-pulse" className="w-btn w-btn-pro w-btn-sm" style={{ marginTop: 4 }}>
+            <Link href="/world/onchain" className="w-btn w-btn-pro w-btn-sm" style={{ marginTop: 4 }}>
               Open live Spot Pulse →
             </Link>
           }
@@ -112,21 +98,6 @@ function TabContent({ active }: { active: TabKey }) {
           description="Contract- and wallet-level risk scoring before you interact — honeypots, mint authority, LP locks and more."
         />
       );
-    case 'feargreed':
-      return (
-        <ComingSoon
-          eyebrow="News & Signals"
-          icon={<Gauge size={24} />}
-          title="Fear & Greed"
-          description="Already live as its own tab, with a 5-factor composite and historical trend. This Pro slot is reserved for a deeper, Pro-only breakdown — not yet built."
-          action={
-            <Link href="/world/fear-greed" className="w-btn w-btn-pro w-btn-sm" style={{ marginTop: 4 }}>
-              Open live Fear & Greed →
-            </Link>
-          }
-        />
-      );
-
     // Existing components re-slotted.
     case 'portfolio':
       return <PortfolioTab />;
@@ -179,8 +150,6 @@ const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
     { selector: '[data-tour="fa-builder"]', title: 'Build an alert', body: 'Pick a ticker, choose a trigger (price / volume / sentiment) and a threshold, then click Add.' },
     { title: 'Alerts fire live', body: 'A price alert arms at the current price and flips to TRIGGERED the moment it moves past your threshold — powered by the live price feed. Use the ↻ button to re-arm at the new price.' },
   ],
-  smartmoney: comingSoonTour('Smart Money Tracker', 'Track what known wallets, funds, and exchanges are buying or selling before the wider market catches on. Degen Mode also tracks early buyers of brand-new tokens.', 'on-chain analytics provider'),
-  tokentracker: comingSoonTour('Coin/Token Tracker', 'Everything you need to understand a token in one screen — price, derivatives, charts, and newly launched trading pairs.', 'market-data provider'),
   spotpulse: [
     { selector: HEAD, title: 'Spot Pulse', body: 'See where actual buying and selling is happening. Compare spot and futures activity to tell whether a move is backed by real demand or speculation.' },
     { title: 'Already live — just not here yet', body: 'The full Spot Pulse engine already runs on its own Plus tab and on On-Chain Insights. This Pro slot is reserved for a second row of dynamic trending coins, blocked on a data-provider upgrade.' },
@@ -209,10 +178,6 @@ const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
   ],
   alpha: [
     { title: 'Alpha Room', body: 'Follow curated token calls, project watchlists, and high-conviction opportunities shared by the Kumami team.' },
-  ],
-  feargreed: [
-    { selector: HEAD, title: 'Fear & Greed', body: "Quickly see the market's current mood across five key factors, so you know whether sentiment is working with or against your thesis." },
-    { title: 'Already live — just not here yet', body: 'A full 5-factor Fear & Greed composite already runs as its own tab under Plus. This Pro slot is reserved for a deeper, Pro-only breakdown that hasn\'t been built yet.' },
   ],
   research: [
     { selector: HEAD, title: 'Kumami Research', body: 'Detailed research and analysis on specific tokens, sectors, narratives, and market trends.' },

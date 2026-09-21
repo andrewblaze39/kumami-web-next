@@ -37,7 +37,7 @@ export function useWorldMode() {
 // (/world/courses/[phaseId]/…). The bare /world/courses and /world/dashboard
 // pages now redirect to /world/education subtabs.
 const BEGINNER_ROUTES = ['/world/news', '/world/courses', '/world/education', '/world/ailabs', '/world/games'];
-const ADVANCED_ROUTES = ['/world/console', '/world/onchain', '/world/intel', '/world/watchlist'];
+const ADVANCED_ROUTES = ['/world/console', '/world/onchain', '/world/watchlist'];
 const PRO_ROUTES = ['/world/pro'];
 // Shared routes: visible in every mode — visiting them never changes the mode.
 const SHARED_ROUTES = ['/world/home', '/world/about', '/world/blogs', '/world/profile'];
@@ -143,9 +143,9 @@ export function WorldModeProvider({ children }: { children: React.ReactNode }) {
       else if (newMode === 'beginner' && pathname.startsWith('/world/news')) {
         destination = '/world/news';
       }
-      // news → intel continuity when going beginner → advanced
+      // news → console continuity when going beginner → advanced
       else if (mode === 'beginner' && pathname.startsWith('/world/news') && newMode === 'advanced') {
-        destination = '/world/intel';
+        destination = '/world/console';
       }
       else {
         destination = defaultPageForMode(newMode);

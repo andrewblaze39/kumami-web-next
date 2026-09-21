@@ -178,37 +178,5 @@ describe('computeWatchlistTags — regime tag', () => {
   });
 });
 
-describe('computeWatchlistTags — Signal 4: Whale Accumulation/Distribution (Pro-only)', () => {
-  it('no tag when whaleEventCounts is omitted (Plus tier)', () => {
-    const r = computeWatchlistTags({ ...neutral });
-    expect(r.actionTags.some((t) => t.label.startsWith('Whale'))).toBe(false);
-  });
-
-  it('Whale Accumulation (green) when bullish >= 2 and bearish < 2', () => {
-    const r = computeWatchlistTags({ ...neutral, whaleEventCounts: { bullish: 2, bearish: 0 } });
-    expect(r.actionTags).toContainEqual({ label: 'Whale Accumulation', color: 'green' });
-  });
-
-  it('Whale Distribution (red) when bearish >= 2', () => {
-    const r = computeWatchlistTags({ ...neutral, whaleEventCounts: { bullish: 0, bearish: 2 } });
-    expect(r.actionTags).toContainEqual({ label: 'Whale Distribution', color: 'red' });
-  });
-
-  it('Whale Distribution takes priority over Whale Accumulation when both would fire', () => {
-    const r = computeWatchlistTags({ ...neutral, whaleEventCounts: { bullish: 3, bearish: 2 } });
-    expect(r.actionTags).toContainEqual({ label: 'Whale Distribution', color: 'red' });
-    expect(r.actionTags.some((t) => t.label === 'Whale Accumulation')).toBe(false);
-  });
-
-  it('no whale tag below the 2-event threshold', () => {
-    const r = computeWatchlistTags({ ...neutral, whaleEventCounts: { bullish: 1, bearish: 1 } });
-    expect(r.actionTags.some((t) => t.label.startsWith('Whale'))).toBe(false);
-  });
-
-  it('Whale Distribution (red, rank 4) beats Crowded Long (amber) for one of the 2 shown slots', () => {
-    const r = computeWatchlistTags({
-      ...neutral, pctLong: 75, whaleEventCounts: { bullish: 0, bearish: 2 },
-    });
-    expect(r.actionTags[0]).toEqual({ label: 'Whale Distribution', color: 'red' });
-  });
-});
+// Whale Accumulation/Distribution moved to the dedicated Signal column
+// (watchlistSignal.ts) — see watchlistSignal.test.ts.

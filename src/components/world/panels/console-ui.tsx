@@ -72,6 +72,12 @@ const ICON_PATHS: Record<string, React.ReactNode> = {
       <path d="M7 8h2M7 12h2M7 16h2M15 13h1M15 17h1" />
     </>
   ),
+  bell: (
+    <>
+      <path d="M6 9a6 6 0 0 1 12 0c0 4 1.5 5.5 2 6.5H4c.5-1 2-2.5 2-6.5Z" />
+      <path d="M10.5 19a1.8 1.8 0 0 0 3 0" />
+    </>
+  ),
 };
 
 export type ConsoleIconName = keyof typeof ICON_PATHS;

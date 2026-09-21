@@ -173,11 +173,9 @@ const ADV_NAV: NavGroup[] = [
     items: [
       { k: 'console', label: 'Console', href: '/world/console', icon: Icons.home },
       { k: 'onchain', label: 'On-Chain Insights', href: '/world/onchain', icon: Icons.layers },
-      { k: 'spot-pulse', label: 'Spot Pulse', href: '/world/spot-pulse', icon: Icons.layers },
       { k: 'flow-radar', label: 'Flow Radar', href: '/world/flow-radar', icon: Icons.bolt },
       { k: 'fear-greed', label: 'Fear & Greed', href: '/world/fear-greed', icon: Icons.spark },
       { k: 'calendar', label: 'Calendar', href: '/world/calendar', icon: Icons.clock },
-      { k: 'intel', label: 'Intelligence', href: '/world/intel', icon: Icons.doc },
       { k: 'watchlist', label: 'Watchlist', href: '/world/watchlist', icon: Icons.bookmark },
       { k: 'settings', label: 'Settings', href: '/world/settings', icon: Icons.gear },
     ],
@@ -189,9 +187,9 @@ const ADV_NAV: NavGroup[] = [
 
 // PRO nav (premium users) — item keys must match ?tab= read by WorldProContent.
 // Grouped to match the reference design's "News & Signals" / "Tools" /
-// "AI Tools" sections (the design predates Fear & Greed, Calendar, Market
-// Analysis and Coin/Token Tracker, which are slotted into the nearest-fit
-// group below since the design has no explicit home for them).
+// "AI Tools" sections. Smart Money Tracker, Coin/Token Tracker, and the
+// Pro-tier Fear & Greed slot were retired (per the latest mockup) — all
+// three were ComingSoon placeholders with zero real content.
 // NOTE: no Watchlist, Flow Radar or Settings items here — those are Plus
 // tools Pro users already see via the included Plus nav, so they aren't
 // duplicated here.
@@ -212,7 +210,6 @@ const PRO_NAV: NavGroup[] = [
       { k: 'alpha', label: 'Alpha Room', href: '/world/pro?tab=alpha', icon: Icons.bolt },
       { k: 'research', label: 'Kumami Research', href: '/world/pro?tab=research', icon: Icons.doc },
       { k: 'market', label: 'Market Analysis', href: '/world/pro?tab=market', icon: Icons.doc },
-      { k: 'feargreed', label: 'Fear & Greed', href: '/world/pro?tab=feargreed', icon: Icons.spark },
     ],
   },
   {
@@ -220,8 +217,6 @@ const PRO_NAV: NavGroup[] = [
     collapsible: true,
     items: [
       { k: 'spotpulse', label: 'Spot Pulse', href: '/world/pro?tab=spotpulse', icon: Icons.layers },
-      { k: 'smartmoney', label: 'Smart Money Tracker', href: '/world/pro?tab=smartmoney', icon: Icons.users },
-      { k: 'tokentracker', label: 'Coin/Token Tracker', href: '/world/pro?tab=tokentracker', icon: Icons.layers },
       { k: 'scanner', label: 'Security Scanner', href: '/world/pro?tab=scanner', icon: Icons.shield },
       { k: 'marketcap', label: 'Market Cap Comparison', href: '/world/pro?tab=marketcap', icon: Icons.layers },
       { k: 'airdrops', label: 'Airdrops & Whitelist', href: '/world/pro?tab=airdrops', icon: Icons.spark },

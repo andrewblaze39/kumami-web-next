@@ -107,17 +107,31 @@ export default function SpotPulse({ onSelectAsset }: { onSelectAsset?: (asset: s
 
       {/* Market-wide verdict + one-liner */}
       <div className="w-oc-wi-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 3 }}>
-        <b style={{ fontSize: 16, color: 'var(--ink)' }}>{loading ? 'Reading spot markets…' : data?.marketVerdict}</b>
+        <b style={{ fontSize: 16, color: 'var(--ink)' }}>
+          {loading ? 'Reading spot markets…' : data ? data.marketVerdict : 'No data'}
+        </b>
         {data && <span className="w-muted" style={{ fontSize: 12.5, lineHeight: 1.45 }}>{data.marketSentence}</span>}
+        {!loading && !data && (
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span className="w-muted" style={{ fontSize: 12.5 }}>Couldn&apos;t load Spot Pulse right now.</span>
+            <button type="button" className="w-btn w-btn-ghost w-btn-sm" onClick={market.refetch}>Retry</button>
+          </span>
+        )}
       </div>
 
       <div className="w-oc-pb">
         {/* Tile grid */}
-        <div className="w-sp-grid">
-          {loading
-            ? Array.from({ length: 5 }).map((_, i) => <div key={i} className="w-sp-tile w-sp-skeleton" />)
-            : (data?.tiles ?? []).map((t) => <Tile key={t.asset} t={t} tf={tf} onSelect={onSelectAsset} />)}
-        </div>
+        {loading ? (
+          <div className="w-sp-grid">
+            {Array.from({ length: 5 }).map((_, i) => <div key={i} className="w-sp-tile w-sp-skeleton" />)}
+          </div>
+        ) : !data || data.tiles.length === 0 ? (
+          <p className="w-panel-empty">No Spot Pulse data available.</p>
+        ) : (
+          <div className="w-sp-grid">
+            {data.tiles.map((t) => <Tile key={t.asset} t={t} tf={tf} onSelect={onSelectAsset} />)}
+          </div>
+        )}
 
         {/* Divergence alert cards */}
         {data && data.alerts.length > 0 && (
