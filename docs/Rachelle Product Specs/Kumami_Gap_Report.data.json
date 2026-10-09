@@ -1,0 +1,276 @@
+{
+  "report_version": "1.0",
+  "date": "2026-10-09",
+  "rachelle_doc": "Kumami Website (6).docx",
+  "code_commit": "1ff3383",
+  "asbuilt_version": "1.3",
+  "summary": [
+    "Plus is in good shape: every tool Rachelle listed exists and runs on live data, and the six “Tier 1 — fix immediately” bugs from her spec are all fixed. The gaps are mostly small rule details (a few thresholds and scoring weights differ from her numbers), three missing extras on Flow Radar, the AI-written sentences (no AI layer is connected yet), and two places where we followed her later mockup instead of the written spec (Spot Pulse and Intelligence no longer have their own tabs).",
+    "Pro is about half built against her four Pro briefs. The visible structure is there — Flow Balance panel, cross-signal outlines, the three-section Watchlist, the wallet lookup page — but the “smart” layers are not: the per-asset significance engine, the six ◆ early-signal tags, saved lists, wallet rows, signal history, the full alert system, and most of the Crypto Address Tracker's analysis (PnL, win rate, AI read, behaviour flags, linked wallets).",
+    "A handful of items are blocked only by the CoinGlass plan (STARTUP). Upgrading would unlock Pro Spot Pulse's second row, the liquidation-zone tags, large-order events and the single-call coin data the spec assumes."
+  ],
+  "priorities": [
+    {
+      "title": "Fix the Console regime scoring to match the spec",
+      "why": "Five small rule differences (extreme Fear & Greed weighted ±1.5, the ±$100M ETF band, the funding neutral zone, the OI-vs-price matrix, confidence measured on active signals only, and HYPE's 0.7 confidence cap). The Console verdict is the first thing every Plus user reads, and right now it can disagree with what Rachelle's rules would say.",
+      "effort": "S"
+    },
+    {
+      "title": "Flow Radar: correct liquidation direction and smart-money severity",
+      "why": "Every liquidation spike is currently labelled “Sell Pressure”, even short squeezes (which the spec says are bullish/green). Smart-money events never reach HIGH. Both are small rule fixes using data we already fetch.",
+      "effort": "S"
+    },
+    {
+      "title": "Add the On-Chain asset HYPE (replace AVAX) and the missing OI / funding bands",
+      "why": "On-Chain Insights is the only Plus page whose asset switcher doesn't match the BTC/ETH/SOL/BNB/HYPE universe used everywhere else.",
+      "effort": "S"
+    },
+    {
+      "title": "Decide the open questions (see “Decisions needed”)",
+      "why": "Plus Flow Radar delay, Spot Pulse/Intelligence tabs, Console preview panels, the Watchlist Signal column, and the three removed Pro tabs. Each one changes what gets built next.",
+      "effort": "S"
+    },
+    {
+      "title": "Build the Exchange Flow event type and turn on cross-signal outlines for Plus",
+      "why": "The endpoint is available on our plan; Plus Flow Radar currently shows a “Netflow Flip” event in its place (which the spec reserves for Pro). Cross-signal outlines already work for Pro — the Plus spec wants them too.",
+      "effort": "M"
+    },
+    {
+      "title": "Connect an AI layer for the written interpretations",
+      "why": "Console regime sentence, Flow Radar verdict paragraph, Spot Pulse sentence and Fear & Greed News Tone all specify an LLM (with template fallback). None is connected; a GEMINI_API_KEY already exists in the environment.",
+      "effort": "M"
+    },
+    {
+      "title": "Flow Radar Pro significance engine",
+      "why": "The single biggest Pro differentiator in the spec (“$10M is routine for BTC but huge for HYPE”). Needs a daily background job for per-asset baselines — the repo has no scheduled jobs yet, so this is the first one.",
+      "effort": "L"
+    },
+    {
+      "title": "Watchlist Pro: add-time validation, ◆ early-signal tags, saved lists",
+      "why": "Validation stops users adding illiquid coins (spec: spot + futures + $10M volume). The ◆ tags are the Pro-only value of the Watchlist; Liquidity Vacuum's order-book data is available on our plan.",
+      "effort": "L"
+    },
+    {
+      "title": "Crypto Address Tracker: PnL, win rate, Trader/Farmer tags, multi-chain",
+      "why": "Today it reads Ethereum mainnet only and shows “—” for PnL and win rate. These need trade-history reconstruction and explorer APIs (Etherscan-family, Solscan), which are free tiers.",
+      "effort": "L"
+    }
+  ],
+  "decisions": [
+    {
+      "topic": "Plus Flow Radar speed",
+      "rachelle": "Plus gets real-time delivery, no delay (Plus §4.1).",
+      "built": "Non-Pro users see events 30 minutes late (FREE_TIER_DELAY_MINUTES), as an upgrade incentive.",
+      "question": "Keep the 30-minute delay as a Pro upsell, or make Plus real-time as written?"
+    },
+    {
+      "topic": "Spot Pulse as its own tab",
+      "rachelle": "“Dedicated tab in Advanced nav” (Plus §3).",
+      "built": "No tab. Spot Pulse lives inside On-Chain Insights and on the Console; the tab was removed on 21 Sep following the later mockup.",
+      "question": "Is the embedded version enough, or should the dedicated Plus tab come back?"
+    },
+    {
+      "topic": "Intelligence",
+      "rachelle": "Listed in the Plus nav and as a Console preview (top 4 A-tier briefs), and in Tools Info — but the Plus brief has no section 5 for it.",
+      "built": "Removed from the nav on 21 Sep (redirects to Console); still used behind the scenes for Fear & Greed's News Tone.",
+      "question": "Is Intelligence officially dropped from Plus? If not, it needs its section back in the spec."
+    },
+    {
+      "topic": "Console preview panels",
+      "rachelle": "Three previews: Spot Pulse, Flow Radar (last 4 HIGH events), Intelligence (top 4 A-tier).",
+      "built": "Four previews: Spot Pulse, Flow Radar, Calendar (next 7 days), Watchlist — following the later mockup.",
+      "question": "Confirm the mockup's four panels replace the written three."
+    },
+    {
+      "topic": "Watchlist: whale tags",
+      "rachelle": "Whale Accumulation / Distribution are action tags (Priority 2) in the tags column.",
+      "built": "Whale activity has its own “Signal” column (with Spot Pulse and smart-money); the tags column is now “Status” (risk + regime), per the later mockup.",
+      "question": "Keep the separate Signal column?"
+    },
+    {
+      "topic": "Pro tabs that were removed",
+      "rachelle": "Tools Info still lists Smart Money Tracker, Coin/Token Tracker and a Pro Fear & Greed, and the Pro Tool Logic sheet specs them.",
+      "built": "All three were empty “Coming Soon” placeholders and were removed from the Pro nav on 21 Sep (absent from the later mockup).",
+      "question": "Are these three tools cancelled, or postponed? If postponed, which comes first?"
+    },
+    {
+      "topic": "One calendar for Plus and Pro",
+      "rachelle": "Plus Calendar from the API feed + an editorial pipeline; the Pro Tool Logic sheet describes a separate Pro calendar.",
+      "built": "Since 9 Oct there is one Calendar for both tiers: API feed + team events added in /admin/pro-calendar (Andrew's decision).",
+      "question": "Confirm one shared calendar is the intended design."
+    },
+    {
+      "topic": "Pro Spot Pulse",
+      "rachelle": "10 tiles: the 5 anchors + top 5 trending coins by spot volume.",
+      "built": "Shows the same 5-tile panel as Plus (Andrew's decision, 9 Oct); the trending row is blocked by the data plan.",
+      "question": "OK as the interim Pro version until the plan is upgraded?"
+    }
+  ],
+  "blocked": [
+    {"endpoint": "/api/spot/coins-markets", "unlocks": "Pro Spot Pulse's second row (top 5 trending coins) and its 10-tile verdict rules; Spot Pulse footer “Total spot vol 24H”; hiding Flow Radar events on illiquid coins (< $1M volume); the Watchlist add-time $10M volume check."},
+    {"endpoint": "/api/futures/coins-markets", "unlocks": "The single batched call the spec uses for Console chips and Watchlist prices/OI/volume. We work around it today with one call per coin (/api/futures/pairs-markets), so nothing user-visible is missing."},
+    {"endpoint": "/api/futures/liquidation/heatmap/* (aggregated + per-exchange)", "unlocks": "Watchlist “Near Liquidation Zone” / “Watch Level” tags (price within 3% of a big liquidation cluster)."},
+    {"endpoint": "/api/futures/orderbook/large-limit-order", "unlocks": "Flow Radar Pro event 6 “Large Limit Order” (support/resistance walls)."},
+    {"endpoint": "/api/coin/unlock-list (forward dates)", "unlocks": "Upcoming token unlocks on the Calendar. On our plan the endpoint only returns unlocks happening today — future unlocks need a different endpoint or plan."}
+  ],
+  "sections": [
+    {
+      "tier": "Plus", "tool": "Console", "overall": "partial",
+      "note": "Layout, tiles and the six Tier-1 bug fixes match. The regime engine's scoring details differ from §1.1, and the AI sentence is missing.",
+      "items": [
+        {"want": "Regime verdict from the rule engine (not the Fear & Greed label), confidence floor (< 0.60 → “Neutral · Low Signal”, 0.60–0.75 → “Leaning …”), score normalised by active signals.", "have": "All built as specified.", "status": "done", "effort": "—"},
+        {"want": "Fear & Greed scored contrarian with extra weight at the extremes: 0–24 → +1.5, 25–45 → +1, 46–55 → 0, 56–74 → −1, 75–100 → −1.5.", "have": "Every band scores ±1 — extremes aren't weighted more.", "status": "partial", "effort": "S"},
+        {"want": "ETF signal only counts when 7-day flow is beyond ±$100M.", "have": "Any positive or negative 7-day flow counts.", "status": "partial", "effort": "S"},
+        {"want": "Funding: > +0.1% → −1; within ±0.05% → 0; below −0.05% → +1.", "have": "Any negative funding scores +1 (no −0.05% threshold).", "status": "partial", "effort": "S"},
+        {"want": "OI vs price: OI up + price up → +1; OI up + price flat → 0; OI up + price down → −1 (overleveraged).", "have": "OI up + price flat scores −1 and OI up + price down scores 0 — the two cases are swapped.", "status": "missing", "effort": "S"},
+        {"want": "Confidence = share of the active (non-neutral) signals that agree with the verdict.", "have": "Divides by all 4 signals, so confidence reads low when some signals are neutral — pushing more readings into “Neutral · Low Signal”.", "status": "partial", "effort": "S"},
+        {"want": "HYPE chip: cap confidence at 0.7 (fewer reliable signals).", "have": "No cap.", "status": "missing", "effort": "S"},
+        {"want": "Two-sentence AI interpretation under the regime (cached 15–30 min, template fallback).", "have": "No sentence at all.", "status": "missing", "effort": "M"},
+        {"want": "4 macro tiles: BTC ETF Net Flow, BTC Dominance (CoinGecko), On-Chain Bias (both numbers from one response), Total Liquidations 24H “vs 7D avg”.", "have": "All four built as specified.", "status": "done", "effort": "—"},
+        {"want": "5 asset regime chips (BTC/ETH/SOL/BNB/HYPE), each with its own independent engine run.", "have": "Built; prices come from one call per coin because the batched endpoint is locked.", "status": "done", "effort": "—"},
+        {"want": "Preview panels: Spot Pulse, Flow Radar (last 4 HIGH), Intelligence (top 4 A-tier).", "have": "Spot Pulse, Flow Radar, Calendar, Watchlist — per the later mockup.", "status": "decision", "effort": "—"},
+        {"want": "Console badge for HIGH calendar events, e.g. “CPI in 4h — expect volatility” (Calendar §7.4).", "have": "Not built as a badge; the “Needs your attention today” popup covers the same events.", "status": "partial", "effort": "S"}
+      ]
+    },
+    {
+      "tier": "Plus", "tool": "On-Chain Insights", "overall": "partial",
+      "note": "All panels exist with live data. The asset switcher and a few verdict bands differ from the spec.",
+      "items": [
+        {"want": "Asset switcher: BTC / ETH / SOL / BNB / HYPE.", "have": "BTC / ETH / SOL / BNB / AVAX — HYPE missing, AVAX isn't in the Plus universe.", "status": "missing", "effort": "S"},
+        {"want": "Funding bands: Crowded Long from +0.05%, Neutral ±0.05%, Crowded Short −0.05% to −0.1%.", "have": "Crowded Long starts at +0.06%, an extra “Mild Short Bias” band exists (−0.01% to −0.05%), Crowded Short starts at −0.06%.", "status": "partial", "effort": "S"},
+        {"want": "Liquidations 24H: Mass Long Flush = red, Short Squeeze = green, “Cascade —” over $500M.", "have": "Built as specified (the colour-inversion fix is in).", "status": "done", "effort": "—"},
+        {"want": "Exchange Netflow, Long/Short (with smart-money divergence), CVD, Coinbase Premium, ETF (always 30D).", "have": "Built as specified.", "status": "done", "effort": "—"},
+        {"want": "OI matrix includes “OI flat + price up → Trend Without Leverage” and “OI flat + price down → Decline Without Panic”.", "have": "Any flat OI shows “Stable OI”.", "status": "partial", "effort": "S"},
+        {"want": "OI Trend and Stablecoin Supply collapsed under “Show More”.", "have": "Built.", "status": "done", "effort": "—"},
+        {"want": "Spot Pulse panel embedded (replaces the Liquidation Heatmap).", "have": "Built.", "status": "done", "effort": "—"}
+      ]
+    },
+    {
+      "tier": "Plus", "tool": "Spot Pulse", "overall": "partial",
+      "note": "The verdict engine matches §3.3–3.5. It has no tab of its own (see Decisions).",
+      "items": [
+        {"want": "Per-tile verdicts, market-wide verdict, top-3 divergence cards with BTC/ETH × 1.3.", "have": "Built as specified.", "status": "done", "effort": "—"},
+        {"want": "Dedicated tab in the Plus nav.", "have": "Embedded in On-Chain Insights + Console preview only.", "status": "decision", "effort": "S"},
+        {"want": "Footer: total spot volume 24H, net spot flow, divergence count.", "have": "Spot volume needs a locked endpoint; the other footer stats are shown.", "status": "blocked", "effort": "—"},
+        {"want": "AI one-line market sentence.", "have": "Fixed template sentence per verdict.", "status": "partial", "effort": "M"}
+      ]
+    },
+    {
+      "tier": "Plus", "tool": "Flow Radar", "overall": "partial",
+      "items": [
+        {"want": "5-asset roster, HIGH + MED only, 1H/4H/24H, verdict band (last 4H), filters, footer.", "have": "Built.", "status": "done", "effort": "—"},
+        {"want": "Real-time delivery (no delay).", "have": "30-minute delay for non-Pro users.", "status": "decision", "effort": "S"},
+        {"want": "Event type “Exchange Flow” from /api/exchange/chain/tx/list (available on our plan).", "have": "Not built — a “Netflow Flip” event (a Pro event type in the spec) is shown instead.", "status": "missing", "effort": "M"},
+        {"want": "Liquidation spikes coloured by who got liquidated: > 70% longs → bearish (red), < 30% longs → bullish (green).", "have": "Every liquidation spike is labelled “Sell Pressure”.", "status": "missing", "effort": "S"},
+        {"want": "Smart-money severity by size and confidence (HIGH above $100M regardless).", "have": "Always MED.", "status": "partial", "effort": "S"},
+        {"want": "Cross-signal outlines on Plus (Spot Pulse / Console / Watchlist confirming).", "have": "Built for Pro only.", "status": "missing", "effort": "S"},
+        {"want": "AI sentence under the verdict band.", "have": "Fixed template sentence.", "status": "partial", "effort": "M"}
+      ]
+    },
+    {
+      "tier": "Plus", "tool": "Fear & Greed", "overall": "partial",
+      "items": [
+        {"want": "5 sub-metrics with the spec's weights (0.30 / 0.20 / 0.15 / 0.20 / 0.15) and bands.", "have": "Built; colours fixed on 21 Sep; shows “unavailable” instead of a fake 50 when inputs fail.", "status": "done", "effort": "—"},
+        {"want": "News Tone from an AI classifier, marked “Estimated”.", "have": "Keyword-based estimate, marked “Estimated”.", "status": "partial", "effort": "M"},
+        {"want": "Momentum from CoinGecko; stablecoins from DefiLlama.", "have": "Both from CoinGlass equivalents — same idea, different source.", "status": "partial", "effort": "S"},
+        {"want": "History chart in the CoinMarketCap style.", "have": "Own chart of the raw index history with colour bands (not a backfill of our own composite).", "status": "partial", "effort": "M"}
+      ]
+    },
+    {
+      "tier": "Plus", "tool": "Calendar", "overall": "partial",
+      "note": "Rebuilt on 9 Oct: one calendar for Plus and Pro, upcoming macro events now load, team events from the admin panel appear on it.",
+      "items": [
+        {"want": "Macro events + token unlocks + editorial (team-added) protocol events.", "have": "All three sources merged; admins add/edit/delete at /admin/pro-calendar.", "status": "done", "effort": "—"},
+        {"want": "Upcoming token unlocks on their real dates.", "have": "Dated correctly, but our plan only returns today's unlocks.", "status": "blocked", "effort": "—"},
+        {"want": "Calendar grid with a day / week / month toggle, plus a list-view toggle.", "have": "Month grid only.", "status": "partial", "effort": "M"},
+        {"want": "Filters: type, impact, assets, timeframe (Today / This Week / Next 30D).", "have": "Type, impact and asset filters; no timeframe filter.", "status": "partial", "effort": "S"},
+        {"want": "D-1 popup on next login for HIGH events on BTC/ETH/SOL/BNB/HYPE, max 1 per session, dismissed events don't re-fire, “Add to my events” button.", "have": "Popup on the Calendar page and a Console version; correct scope and dismiss logic; no “Add to my events”.", "status": "partial", "effort": "S"}
+      ]
+    },
+    {
+      "tier": "Plus", "tool": "Watchlist", "overall": "partial",
+      "items": [
+        {"want": "Fixed 5 assets (BTC/ETH/SOL/BNB/HYPE), no customisation on Plus.", "have": "Built.", "status": "done", "effort": "—"},
+        {"want": "Columns: asset, price, 24h %, 7-day sparkline, action tags, regime tag.", "have": "No 7-day sparkline; Signal + Status columns instead of tags + regime.", "status": "partial", "effort": "S"},
+        {"want": "Tags: Overheated, Crowded Long/Short, Whale Accumulation/Distribution, regime tags (Trending Up green, Trending Down red, Coiling grey).", "have": "Built; whale activity moved to the Signal column; regime colours differ slightly.", "status": "decision", "effort": "S"},
+        {"want": "“Near Liquidation Zone” risk tag.", "have": "Needs the liquidation heatmap endpoint.", "status": "blocked", "effort": "—"}
+      ]
+    },
+    {
+      "tier": "Plus", "tool": "Settings", "overall": "done",
+      "items": [
+        {"want": "Not detailed in the brief — placeholder.", "have": "Placeholder page.", "status": "done", "effort": "—"}
+      ]
+    },
+    {
+      "tier": "Pro", "tool": "Flow Radar Pro", "overall": "partial",
+      "items": [
+        {"want": "All assets, LOW severity added, no delay.", "have": "Built.", "status": "done", "effort": "—"},
+        {"want": "Flow Balance panel (24H bullish vs bearish $, 5-band verdict).", "have": "Built.", "status": "done", "effort": "—"},
+        {"want": "Cross-signal outlines (Spot Pulse / Console / Watchlist confirming).", "have": "Built (plus a Fear & Greed fallback).", "status": "done", "effort": "—"},
+        {"want": "Six event types incl. Exchange Flow and Large Limit Order.", "have": "Four: whale transfer, netflow flip, liquidation spike, smart money. Exchange Flow missing (available); Large Limit Order blocked.", "status": "partial", "effort": "M"},
+        {"want": "Per-asset significance engine (baselines, 5 rules, ⭐ chip on unusual events).", "have": "Not built — needs a daily background job.", "status": "missing", "effort": "L"},
+        {"want": "“+ Custom” asset picker (up to 10 extra assets, saved to profile) and event counts on filter chips.", "have": "Not built.", "status": "missing", "effort": "M"},
+        {"want": "Verdict order for Pro: “Liquidation Cascade” checked first.", "have": "Uses the Plus order (Distribution / Accumulation checked first).", "status": "partial", "effort": "S"},
+        {"want": "AI verdict paragraph (2–3 sentences).", "have": "Template sentence.", "status": "partial", "effort": "M"},
+        {"want": "Hide events on illiquid coins (< $1M spot volume).", "have": "Needs the spot coins-markets endpoint.", "status": "blocked", "effort": "—"}
+      ]
+    },
+    {
+      "tier": "Pro", "tool": "Watchlist Pro", "overall": "partial",
+      "items": [
+        {"want": "Three sections: A market anchors, B your watchlist (max 15), C also worth watching (auto, 5 rows, ◆ marker).", "have": "Built.", "status": "done", "effort": "—"},
+        {"want": "Section C scoring on 5 criteria with multipliers (incl. top-30 market cap × 1.2).", "have": "3 of 5 criteria (volume spike and significance chip missing); no market-cap multiplier.", "status": "partial", "effort": "M"},
+        {"want": "Validation when adding a coin: has spot + futures markets and ≥ $10M daily volume.", "have": "Only checks the symbol is known.", "status": "missing", "effort": "M"},
+        {"want": "Six ◆ early-signal tags (Sustained Accumulation, Silent Shift, Divergent Funding, Liquidity Vacuum, Rotation Target/Source, Coiling with Volume).", "have": "Not built.", "status": "missing", "effort": "L"},
+        {"want": "Up to 5 saved lists with a switcher.", "have": "Not built (one list).", "status": "missing", "effort": "M"},
+        {"want": "Wallet addresses as watchlist rows.", "have": "Not built.", "status": "missing", "effort": "M"},
+        {"want": "30-day signal history per row with accuracy %.", "have": "Not built — needs stored signal history.", "status": "missing", "effort": "L"},
+        {"want": "Alert rules on any row (tag / price / whale / multi-condition), push + email, 20 rules, 30-day log.", "have": "Following & Alerts has in-app price alerts only; volume and sentiment alerts marked “soon”.", "status": "partial", "effort": "L"},
+        {"want": "Pro refresh: prices every 1s / WebSocket.", "have": "Same refresh as Plus.", "status": "missing", "effort": "M"}
+      ]
+    },
+    {
+      "tier": "Pro", "tool": "Spot Pulse Pro", "overall": "blocked",
+      "items": [
+        {"want": "10 tiles: 5 anchors + top 5 trending by 24h spot volume, with 10-tile verdict thresholds.", "have": "Shows the Plus 5-tile panel (faster refresh). The trending row needs a locked endpoint; the 10-tile rules are already in the code.", "status": "blocked", "effort": "—"}
+      ]
+    },
+    {
+      "tier": "Pro", "tool": "Crypto Address Tracker", "overall": "partial",
+      "items": [
+        {"want": "Portfolio value, holdings with % split, transactions, first seen, recent activity.", "have": "Built (Ethereum mainnet).", "status": "done", "effort": "—"},
+        {"want": "All chains (EVM chains + Solana).", "have": "Ethereum mainnet only.", "status": "partial", "effort": "M"},
+        {"want": "Behaviour tag: Whale / Trader / Farmer.", "have": "Whale only (≥ $10M).", "status": "partial", "effort": "M"},
+        {"want": "Realised PnL and win rate (FIFO).", "have": "Shown as “—”.", "status": "missing", "effort": "L"},
+        {"want": "“What this wallet is doing” — AI read over the computed stats.", "have": "Not built.", "status": "missing", "effort": "M"},
+        {"want": "Behaviour flags (consistent accumulator, net outflow from exchanges, contract-risk check).", "have": "Not built — needs a verified exchange-address list.", "status": "missing", "effort": "M"},
+        {"want": "Activity labels (“Deposit to Binance”, “Withdrawal to cold wallet”).", "have": "Direction and counterparty only.", "status": "missing", "effort": "M"},
+        {"want": "Possible linked wallets (radial view).", "have": "Not built.", "status": "missing", "effort": "L"}
+      ]
+    },
+    {
+      "tier": "Pro", "tool": "Other Pro tabs (Tools Info list)", "overall": "partial",
+      "note": "Rachelle's Tools Info lists 15 Pro tools. Status of the ones not covered above:",
+      "items": [
+        {"want": "Daily Digest: overnight recap across Watchlist, Smart Money and Alpha Room.", "have": "Recap of research, news, airdrops, team calendar events and Alpha Room — no Watchlist or smart-money lines.", "status": "partial", "effort": "M"},
+        {"want": "Following & Alerts: one hub for follows and all alerts.", "have": "Follows + live in-app price alerts; volume/sentiment alerts not live.", "status": "partial", "effort": "M"},
+        {"want": "Smart Money Tracker, Coin/Token Tracker, Pro Fear & Greed.", "have": "Removed from the nav on 21 Sep.", "status": "decision", "effort": "—"},
+        {"want": "Security Scanner (honeypots, rugs).", "have": "“Coming Soon” placeholder — needs the GoPlus integration.", "status": "missing", "effort": "M"},
+        {"want": "Airdrops & Whitelist, Real-Time News, Alpha Room, Kumami Research, Calendar, Events & Announcements.", "have": "Built and live (admin-authored).", "status": "done", "effort": "—"},
+        {"want": "AI Portfolio: add holdings by wallet address; ideally multiple wallets (Future Development).", "have": "Single-wallet import built; multiple wallets not yet.", "status": "partial", "effort": "M"}
+      ]
+    }
+  ],
+  "release_notes": [
+    {
+      "version": "1.0",
+      "date": "2026-10-09",
+      "bullets": [
+        "First gap report. Compares the Plus brief and the four Pro briefs (Flow Radar Pro, Watchlist Pro, Spot Pulse, Crypto Address Tracker) plus the Tools Info list in “Kumami Website (6)” against dev @ 1ff3383.",
+        "Every row was checked against the code, and every “blocked” row against the live CoinGlass key (STARTUP plan) on 9 Oct 2026.",
+        "Not compared: the older sheets in the same file (Revisi Logic Plus, Advanced / Plus, Pro Tool Logic details, Inputs, Naming Notes) — they are earlier drafts superseded by the two briefs. Rachelle's linked mockup could not be opened (the link shows only a loading screen)."
+      ]
+    }
+  ]
+}
