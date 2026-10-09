@@ -163,6 +163,13 @@ export type UnlockRow = {
   total_unlocked: number;
   circulating_supply: number;
   total_supply: number;
+  /** ms epoch of the next scheduled unlock (0/absent when none is scheduled). */
+  next_unlock_date?: number;
+  next_unlock_usd?: number;
+  next_unlock_tokens?: number;
+  /** Size of the next unlock as a PERCENT of circulating supply (0.81 = 0.81%). */
+  next_unlock_of_circulating?: number;
+  next_unlock_of_supply?: number;
 };
 
 // --- fetchers -------------------------------------------------------------
@@ -237,8 +244,20 @@ export const exchangeBalanceChart = (symbol: string) =>
 export const articleList = () =>
   cgCached<ArticleRow[]>('cg:articles', 600, '/api/article/list');
 
-export const economicCalendar = () =>
-  cgCached<EconCalRow[]>('cg:econcal', 1800, '/api/calendar/economic-data');
+// Without start_time/end_time the endpoint only returns the PAST 30 days, so
+// nothing upcoming would ever show. Ask for 30 days back → 60 days ahead
+// (window anchored to the hour so the cached entry stays coherent). Cache key
+// is versioned (v2) because the market cache is shared in Firestore — the
+// old key still held the past-only response.
+const ECON_PAST_MS = 30 * 86_400_000;
+const ECON_AHEAD_MS = 60 * 86_400_000;
+export const economicCalendar = () => {
+  const hour = Math.floor(Date.now() / 3_600_000) * 3_600_000;
+  return cgCached<EconCalRow[]>('cg:econcal:v2', 1800, '/api/calendar/economic-data', {
+    start_time: hour - ECON_PAST_MS,
+    end_time: hour + ECON_AHEAD_MS,
+  });
+};
 
 export const coinUnlocks = () =>
   cgCached<UnlockRow[]>('cg:unlocks', 1800, '/api/coin/unlock-list');

@@ -134,9 +134,15 @@ export type CalendarEvent = {
   impact: 'HIGH' | 'MED' | 'LOW';
   assets: string[];
   description: string;
+  /** 'feed' = market-data API (macro prints, unlocks); 'kumami' = added by the team in /admin/pro-calendar. */
+  source?: 'feed' | 'kumami';
+  /** True for admin events saved without a time — render the date only. */
+  allDay?: boolean;
+  /** Admin-chosen category label (e.g. "Regulatory", "Project") — admin events only. */
+  category?: string;
 };
 
-/** Full payload for the standalone /world/calendar page (Plus tier). */
+/** Full payload for the shared /world/calendar page (Plus and Pro). */
 export type CalendarPayload = {
   events: CalendarEvent[];
   updatedAt: string;

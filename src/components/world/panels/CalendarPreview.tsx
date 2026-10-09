@@ -31,6 +31,17 @@ function formatTime(ts: string): string {
 
 type DayBucket = { key: string; label: string; dateNum: number; events: CalendarEvent[] };
 
+/** With the feed's forward window there can be ~30 macro prints a day — the
+ *  agenda shows the most relevant few: team events, then HIGH → LOW, then time. */
+const MAX_ROWS_PER_DAY = 3;
+const IMPACT_RANK: Record<CalendarEvent['impact'], number> = { HIGH: 0, MED: 1, LOW: 2 };
+function agendaOrder(a: CalendarEvent, b: CalendarEvent): number {
+  const k = Number(b.source === 'kumami') - Number(a.source === 'kumami');
+  if (k !== 0) return k;
+  const i = IMPACT_RANK[a.impact] - IMPACT_RANK[b.impact];
+  return i !== 0 ? i : Date.parse(a.ts) - Date.parse(b.ts);
+}
+
 export default function CalendarPreview() {
   const { status, data } = useMarketEndpoint<CalendarPayload>('/api/market/calendar');
   const loading = status === 'loading';
@@ -59,7 +70,7 @@ export default function CalendarPreview() {
     totalEvents += 1;
     if (event.impact === 'HIGH') highImpact += 1;
   }
-  for (const d of days) d.events.sort((a, b) => Date.parse(a.ts) - Date.parse(b.ts));
+  for (const d of days) d.events.sort(agendaOrder);
 
   return (
     <section className="w-apanel" aria-label="Calendar" data-tour="calendar-preview">
@@ -70,7 +81,7 @@ export default function CalendarPreview() {
           <span
             className="w-oc-q"
             tabIndex={0}
-            title="Macro prints and token unlocks landing this week, day by day."
+            title="Macro prints, token unlocks and Kumami team events landing this week, day by day (top 3 per day)."
           >
             ?
           </span>
@@ -100,15 +111,18 @@ export default function CalendarPreview() {
                 <div className="w-cal-agenda-empty">No scheduled events</div>
               ) : (
                 <div className="w-cal-agenda-rows">
-                  {day.events.map((event) => (
+                  {day.events.slice(0, MAX_ROWS_PER_DAY).map((event) => (
                     <div key={event.id} className="w-cal-agenda-row">
                       <span className="w-cal-agenda-time">
-                        {event.type === 'macro' ? formatTime(event.ts) : '—'}
+                        {event.allDay ? 'All day' : formatTime(event.ts)}
                       </span>
-                      <span className="w-cal-agenda-title">{event.title}</span>
+                      <span className="w-cal-agenda-title">{event.source === 'kumami' ? '★ ' : ''}{event.title}</span>
                       <span className="w-cal-agenda-cat">{CATEGORY_LABEL[event.type]}</span>
                     </div>
                   ))}
+                  {day.events.length > MAX_ROWS_PER_DAY && (
+                    <div className="w-cal-agenda-empty">+{day.events.length - MAX_ROWS_PER_DAY} more</div>
+                  )}
                 </div>
               )}
             </div>

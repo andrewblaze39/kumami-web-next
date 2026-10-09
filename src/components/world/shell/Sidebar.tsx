@@ -190,9 +190,10 @@ const ADV_NAV: NavGroup[] = [
 // "AI Tools" sections. Smart Money Tracker, Coin/Token Tracker, and the
 // Pro-tier Fear & Greed slot were retired (per the latest mockup) — all
 // three were ComingSoon placeholders with zero real content.
-// NOTE: no Watchlist, Flow Radar or Settings items here — those are Plus
+// NOTE: no Watchlist, Flow Radar, Calendar or Settings items here — those are Plus
 // tools Pro users already see via the included Plus nav, so they aren't
-// duplicated here.
+// duplicated here. (Calendar is one shared page for Plus and Pro — admin
+// events from /admin/pro-calendar are merged into it.)
 const PRO_NAV: NavGroup[] = [
   {
     grp: 'pro-top',
@@ -235,7 +236,6 @@ const PRO_NAV: NavGroup[] = [
     grp: 'pro-bottom',
     standalone: true,
     items: [
-      { k: 'calendar', label: 'Calendar', href: '/world/pro?tab=calendar', icon: Icons.clock },
       { k: 'events', label: 'Events & Announcements', href: '/world/pro?tab=events', icon: Icons.bell },
     ],
   },

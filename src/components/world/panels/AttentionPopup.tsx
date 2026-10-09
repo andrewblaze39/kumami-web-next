@@ -19,9 +19,12 @@ import Link from 'next/link';
 import type { CalendarPayload } from '@/lib/market/contracts';
 import { useMarketEndpoint } from './useMarketEndpoint';
 import { WIcon } from './console-ui';
+import { isAttentionEligible } from '@/lib/market/rules/calendarEvents';
 
 const DISMISSED_KEY = 'kumami_console_attention_dismissed';
 const WINDOW_MS = 24 * 3_600_000;
+/** Upcoming HIGH macro prints can cluster (CPI + jobless claims + …) — keep the popup scannable. */
+const MAX_ITEMS = 5;
 
 function timeUntilLabel(ts: string): string {
   const hours = (Date.parse(ts) - Date.now()) / 3_600_000;
@@ -49,9 +52,10 @@ export default function AttentionPopup() {
     return data.events
       .filter((e) => {
         const dt = Date.parse(e.ts) - now;
-        return e.impact === 'HIGH' && dt > 0 && dt <= WINDOW_MS && !dismissedIds.includes(e.id);
+        return isAttentionEligible(e) && dt > 0 && dt <= WINDOW_MS && !dismissedIds.includes(e.id);
       })
-      .sort((a, b) => Date.parse(a.ts) - Date.parse(b.ts));
+      .sort((a, b) => Date.parse(a.ts) - Date.parse(b.ts))
+      .slice(0, MAX_ITEMS);
   }, [data, dismissedIds]);
 
   const dismiss = () => {

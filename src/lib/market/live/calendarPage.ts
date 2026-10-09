@@ -1,80 +1,58 @@
 /**
- * Live Calendar payload — standalone /world/calendar tab.
+ * Live Calendar payload — the ONE calendar, shown at /world/calendar for both
+ * Plus and Pro (Pro's old separate admin-only Calendar tab now redirects here).
  *
- * Source: Kumami Plus §7 "CALENDAR". Merges two live CoinGlass feeds:
- *   macro events ← /api/calendar/economic-data
- *   token unlocks ← /api/coin/unlock-list
+ * Source: Kumami Plus §7 "CALENDAR". Merges three sources:
+ *   macro events  ← CoinGlass /api/calendar/economic-data (30d back → 60d ahead)
+ *   token unlocks ← CoinGlass /api/coin/unlock-list, dated on each token's NEXT unlock
+ *   team events   ← Firestore pro_calendar (status == 'published'), authored at
+ *                   /admin/pro-calendar — the spec's editorial pipeline. Admins
+ *                   add/edit/delete there; drafts never show.
  *
- * "Protocol" events (governance votes, mainnet launches) are described in the
- * doc as an editorial pipeline added manually — no such content pipeline
- * exists yet, so the 'protocol' type is wired in the contract/UI filter but
- * never populated. Disclosed here rather than faked.
+ * Freshness: the two CoinGlass feeds are cached per endpoint (30 min, shared
+ * with Intelligence). The Firestore read is NOT cached, so an admin publish,
+ * edit or delete shows up on the next page load / poll instead of up to 30
+ * minutes later.
  *
- * Impact classification mirrors the existing Intelligence builder's logic
- * (same source data, same thresholds) for consistency across the two tabs.
+ * Failure handling: each source degrades independently to an empty list — the
+ * day grid still renders every date, so a dead feed never fakes data and
+ * never takes the admin events down with it (and vice versa).
  */
+
+import 'server-only';
 
 import type { CalendarEvent, CalendarPayload } from '../contracts';
 import { economicCalendar, coinUnlocks } from './cg-endpoints';
-import { tsToIso } from './helpers';
+import {
+  adminToEvent,
+  macroToEvent,
+  mergeCalendarEvents,
+  unlockToEvent,
+  type AdminCalendarDoc,
+} from '../rules/calendarEvents';
 
-const PLUS_ASSETS = new Set(['BTC', 'ETH', 'SOL', 'BNB', 'HYPE']);
-
-export async function makeCalendarPayloadLive(): Promise<CalendarPayload> {
-  // Unlike Flow Radar/Spot Pulse, an empty Calendar isn't ambiguous: the day
-  // grid renders every date regardless of data (pure date arithmetic) and
-  // each empty day already says "No scheduled events" explicitly — there's
-  // no way to mistake that for a fake reading. So a fetch failure here
-  // degrades to an empty (but still fully-rendered) calendar, never a hard
-  // failure of the whole page.
-  const [calendar, unlocks] = await Promise.all([
-    economicCalendar().catch(() => []),
-    coinUnlocks().catch(() => []),
-  ]);
-
-  const events: CalendarEvent[] = [];
-
-  // --- Macro events (importance >= 1, wider window than the Intelligence preview) --
-  for (const c of calendar) {
-    const impact: CalendarEvent['impact'] =
-      c.importance_level >= 3 ? 'HIGH' : c.importance_level >= 2 ? 'MED' : 'LOW';
-    const fc = c.forecast_value ? ` · forecast ${c.forecast_value}` : '';
-    const prev = c.previous_value ? ` · prev ${c.previous_value}` : '';
-    events.push({
-      id: `macro-${c.publish_timestamp}-${events.length}`,
-      type: 'macro',
-      title: `${c.calendar_name} (${c.country_code})`,
-      ts: tsToIso(c.publish_timestamp),
-      impact,
-      assets: ['BTC'], // macro prints are market-wide; BTC as the Plus-roster proxy
-      description: `${c.data_effect || 'Scheduled economic release.'}${fc}${prev}`.trim(),
-    });
+async function adminEvents(): Promise<CalendarEvent[]> {
+  try {
+    const { adminDb } = await import('@/lib/firebase-admin');
+    const snap = await adminDb().collection('pro_calendar').where('status', '==', 'published').get();
+    return snap.docs
+      .map((d) => adminToEvent(d.id, d.data() as AdminCalendarDoc))
+      .filter((e): e is CalendarEvent => e !== null);
+  } catch (err) {
+    console.error('[calendar] admin events (pro_calendar) unavailable:', err);
+    return [];
   }
-
-  // --- Token unlocks (recognizable projects, meaningful locked supply) -----------
-  const fmtUsd = (v: number) => (v >= 1e9 ? `$${(v / 1e9).toFixed(1)}B` : `$${(v / 1e6).toFixed(0)}M`);
-  for (const u of unlocks) {
-    if (!(u.total_locked > 0 && u.price > 0 && u.market_cap > 50_000_000)) continue;
-    const lockedUsd = u.total_locked * u.price;
-    const pctSupply = u.total_supply > 0 ? u.total_locked / u.total_supply : 0;
-    const impact: CalendarEvent['impact'] = pctSupply > 0.05 ? 'HIGH' : pctSupply > 0.01 ? 'MED' : 'LOW';
-    events.push({
-      id: `unlock-${u.symbol}-${events.length}`,
-      type: 'unlock',
-      title: `${u.name} (${u.symbol}) token unlock`,
-      ts: new Date().toISOString(),
-      impact,
-      assets: [u.symbol],
-      description: `${fmtUsd(lockedUsd)} of ${u.symbol} locked (${(pctSupply * 100).toFixed(0)}% of supply) · market cap ${fmtUsd(u.market_cap)}.`,
-    });
-  }
-
-  events.sort((a, b) => Date.parse(a.ts) - Date.parse(b.ts));
-
-  return { events, updatedAt: new Date().toISOString() };
 }
 
-/** Whether an event's assets overlap the Plus 5-asset roster (BTC/ETH/SOL/BNB/HYPE). */
-export function isPlusRosterEvent(event: CalendarEvent): boolean {
-  return event.assets.some((a) => PLUS_ASSETS.has(a));
+export async function makeCalendarPayloadLive(): Promise<CalendarPayload> {
+  const [calendar, unlocks, team] = await Promise.all([
+    economicCalendar().catch(() => []),
+    coinUnlocks().catch(() => []),
+    adminEvents(),
+  ]);
+
+  const macro = calendar.map(macroToEvent);
+  const unlock = unlocks.map(unlockToEvent).filter((e): e is CalendarEvent => e !== null);
+
+  return { events: mergeCalendarEvents(macro, unlock, team), updatedAt: new Date().toISOString() };
 }

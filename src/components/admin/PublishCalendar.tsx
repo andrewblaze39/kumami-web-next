@@ -7,18 +7,35 @@ import {
 } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminPageTour, { proAdminTourSteps } from './AdminPageTour';
+import { parseAdminWhen } from '@/lib/market/rules/calendarEvents';
 
 /**
- * PublishCalendar — admin authoring for the Pro dashboard's Calendar tab. Each
- * entry is a dated market event (macro print, unlock, upgrade). Writes to
- * `pro_calendar` (covered by the pro_* wildcard rule). Dates are stored as
- * `YYYY-MM-DD` strings so the calendar grid renders them on real days.
+ * PublishCalendar — admin authoring for the shared Calendar (/world/calendar,
+ * seen by Plus AND Pro). Published entries are merged server-side with the
+ * market-data feed (macro prints + token unlocks) — see
+ * lib/market/live/calendarPage.ts. Drafts never show; edits and deletes show
+ * on the user's next load. Writes to `pro_calendar` (covered by the pro_*
+ * wildcard rule — the collection name is historical).
+ *
+ * Fields: date `YYYY-MM-DD`; time `HH:MM` in UTC (blank = all-day); category
+ * Macro / Token unlock map to those calendar types, everything else shows
+ * under "Protocol & other"; assets = comma-separated tickers (blank macro
+ * events count as market-wide/BTC). HIGH-impact events trigger the
+ * "high-impact event soon" popups for every user in the 24h before.
  */
 
 const IMPS = ['high', 'med', 'low'] as const;
 type Imp = (typeof IMPS)[number];
 const IMP_LABEL: Record<Imp, string> = { high: 'High impact', med: 'Medium', low: 'Low' };
-const CATS = ['Macro', 'On-chain', 'Regulatory', 'Project', 'Other'];
+const CATS = ['Macro', 'Token unlock', 'On-chain', 'Regulatory', 'Project', 'Other'];
+
+/** Legacy docs stored free-text times ("8:30 AM UTC") — normalise to HH:MM for the time picker. */
+function toPickerTime(date: string, time: string | undefined): string {
+  if (!time) return '';
+  if (/^\d{2}:\d{2}$/.test(time)) return time;
+  const when = parseAdminWhen(date || '2000-01-01', time);
+  return when && !when.allDay ? when.ts.slice(11, 16) : '';
+}
 
 interface CalDoc {
   id: string;
@@ -28,10 +45,11 @@ interface CalDoc {
   imp: Imp;
   cat: string;
   d: string;
+  assets?: string;
   status: 'published' | 'draft';
 }
 
-const EMPTY = { t: '', date: '', time: '', imp: 'med' as Imp, cat: 'Macro', d: '' };
+const EMPTY = { t: '', date: '', time: '', imp: 'med' as Imp, cat: 'Macro', d: '', assets: '' };
 
 export default function PublishCalendar() {
   const { currentUser } = useAuth();
@@ -70,7 +88,10 @@ export default function PublishCalendar() {
 
   const startEdit = (item: CalDoc) => {
     setEditingId(item.id);
-    setForm({ t: item.t, date: item.date, time: item.time, imp: item.imp, cat: item.cat, d: item.d });
+    setForm({
+      t: item.t, date: item.date, time: toPickerTime(item.date, item.time), imp: item.imp,
+      cat: item.cat, d: item.d, assets: item.assets ?? '',
+    });
     setMessage('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -90,9 +111,12 @@ export default function PublishCalendar() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      <div className="flex justify-end mb-2"><AdminPageTour steps={proAdminTourSteps('Calendar', '/world/pro?tab=calendar')} /></div>
+      <div className="flex justify-end mb-2"><AdminPageTour steps={proAdminTourSteps('Calendar', '/world/calendar')} /></div>
       <h2 className="text-2xl font-bold text-gray-900 mb-1">Calendar</h2>
-      <p className="text-gray-600 mb-6 text-sm">Dated market events shown on the Pro dashboard&apos;s Calendar tab.</p>
+      <p className="text-gray-600 mb-6 text-sm">
+        Events you publish here appear on the Calendar for every Plus and Pro user, alongside the automatic macro
+        and token-unlock feed. Drafts stay hidden. High-impact events trigger a reminder popup 24h before.
+      </p>
 
       <form onSubmit={(e) => { e.preventDefault(); save('published'); }} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
         <div className="md:col-span-2">
@@ -104,8 +128,8 @@ export default function PublishCalendar() {
           <input type="date" className={inputCls} value={form.date} onChange={(e) => set('date', e.target.value)} required />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Time (optional)</label>
-          <input className={inputCls} value={form.time} onChange={(e) => set('time', e.target.value)} placeholder="e.g. 8:30 AM UTC" />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Time in UTC (optional — blank = all day)</label>
+          <input type="time" className={inputCls} value={form.time} onChange={(e) => set('time', e.target.value)} />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Impact</label>
@@ -118,6 +142,15 @@ export default function PublishCalendar() {
           <select className={`${inputCls} bg-white`} value={form.cat} onChange={(e) => set('cat', e.target.value)}>
             {CATS.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
+        </div>
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Affected assets (optional)</label>
+          <input
+            className={inputCls}
+            value={form.assets}
+            onChange={(e) => set('assets', e.target.value)}
+            placeholder="e.g. BTC, ETH — powers the asset filter; blank Macro events count as market-wide"
+          />
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
@@ -143,9 +176,10 @@ export default function PublishCalendar() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-semibold text-gray-900">{item.t}</span>
-                <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">{item.date}{item.time ? ` · ${item.time}` : ''}</span>
+                <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">{item.date}{item.time ? ` · ${item.time}${/^\d{2}:\d{2}$/.test(item.time) ? ' UTC' : ''}` : ' · all day'}</span>
                 <span className="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-700">{IMP_LABEL[item.imp]}</span>
                 <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">{item.cat}</span>
+                {item.assets && <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">{item.assets}</span>}
                 <span className={`text-xs px-2 py-0.5 rounded ${item.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{item.status}</span>
               </div>
               {item.d && <p className="text-sm text-gray-600 mt-1 line-clamp-2">{item.d}</p>}

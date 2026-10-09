@@ -8,8 +8,15 @@
  * /world/pro?tab=research work), driven from the LEFT sidebar (see
  * shell/Sidebar.tsx PRO_NAV). Tabs fall into three groups:
  *   - Group A (built here from the reference design, fixture-driven): digest,
- *     followhub, airdrops, realtimenews, research, calendar, events.
- *   - Group B (data source still being wired — ComingSoon card): spotpulse, scanner.
+ *     followhub, airdrops, realtimenews, research, events.
+ *   - spotpulse: renders the same live Spot Pulse panel as Plus (On-Chain
+ *     Insights / Console preview) — one Spot Pulse for both tiers for now;
+ *     the API already gives Pro the faster 15s refresh.
+ *   - calendar: redirects to the single shared Calendar at /world/calendar
+ *     (live feed + admin-authored pro_calendar events merged server-side), so
+ *     Plus and Pro never show two different calendars. Kept as a tab key only
+ *     so old ?tab=calendar links (Daily Digest, bookmarks) still land there.
+ *   - Group B (data source still being wired — ComingSoon card): scanner.
  *   - Existing components re-slotted: portfolio, alpha, market, kumaai, marketcap.
  *   - addresstracker: new standalone wallet-lookup page (Kumami Pro §4) — see
  *     tabs/CryptoAddressTracker.tsx.
@@ -21,10 +28,9 @@
  * own Plus tab, no Pro-specific version was ever built).
  */
 
-import { Suspense, useState } from 'react';
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { Activity, Shield, Compass } from 'lucide-react';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Shield, Compass } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProductTour, { type TourStep } from '@/components/world/ProductTour';
 import ProTeaser from './ProTeaser';
@@ -35,7 +41,7 @@ import { FollowingAlerts } from './tabs/FollowingAlerts';
 import { Airdrops } from './tabs/Airdrops';
 import { RealTimeNews } from './tabs/RealTimeNews';
 import { KumamiResearch } from './tabs/KumamiResearch';
-import { Calendar } from './tabs/Calendar';
+import SpotPulse from '@/components/world/panels/SpotPulse';
 import { Events } from './tabs/Events';
 import { PortfolioTab } from '@/components/ProDashboard';
 import { CryptoAddressTracker } from './tabs/CryptoAddressTracker';
@@ -57,6 +63,15 @@ function isTabKey(v: string | null): v is TabKey {
   return TAB_KEYS.some((k) => k === v);
 }
 
+/** Old ?tab=calendar links → the one shared Calendar page. */
+function CalendarRedirect() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace('/world/calendar');
+  }, [router]);
+  return <div className="w-courses-loading">Opening Calendar…</div>;
+}
+
 function TabContent({ active }: { active: TabKey }) {
   switch (active) {
     case 'digest':
@@ -70,25 +85,18 @@ function TabContent({ active }: { active: TabKey }) {
     case 'research':
       return <KumamiResearch />;
     case 'calendar':
-      return <Calendar />;
+      return <CalendarRedirect />;
     case 'events':
       return <Events />;
 
-    // Group B — data source being wired.
+    // Same live Spot Pulse panel as Plus (On-Chain Insights / Console).
     case 'spotpulse':
       return (
-        <ComingSoon
-          eyebrow="Tools"
-          icon={<Activity size={24} />}
-          title="Spot Pulse"
-          description="Already live on the Console preview and the full grid on On-Chain Insights, covering BTC/ETH/SOL/BNB/HYPE. This Pro slot will add a second row of dynamic trending coins once the data provider unlocks per-asset spot volume."
-          action={
-            <Link href="/world/onchain" className="w-btn w-btn-pro w-btn-sm" style={{ marginTop: 4 }}>
-              Open live Spot Pulse →
-            </Link>
-          }
-        />
+        <div data-tour="pro-page-head">
+          <SpotPulse />
+        </div>
       );
+    // Group B — data source being wired.
     case 'scanner':
       return (
         <ComingSoon
@@ -152,7 +160,8 @@ const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
   ],
   spotpulse: [
     { selector: HEAD, title: 'Spot Pulse', body: 'See where actual buying and selling is happening. Compare spot and futures activity to tell whether a move is backed by real demand or speculation.' },
-    { title: 'Already live — just not here yet', body: 'The full Spot Pulse engine already runs on its own Plus tab and on On-Chain Insights. This Pro slot is reserved for a second row of dynamic trending coins, blocked on a data-provider upgrade.' },
+    { title: 'Reading the tiles', body: 'Each tile compares spot buying, futures leverage and price for one coin and gives a verdict (e.g. REAL BUYING, SPECULATIVE, DISTRIBUTION). The banner sums up the whole market, and alert cards flag the biggest divergences.' },
+    { title: 'Same engine as Plus', body: 'This is the same Spot Pulse as On-Chain Insights, refreshed faster for Pro. A second row of trending coins will be added once the data-provider plan includes per-coin spot volume.' },
   ],
   scanner: comingSoonTour('Security Scanner', "Check a token's contract before you trade. Get a quick safety check to spot risks like honeypots and potential rugs.", 'security-data provider'),
   airdrops: [
@@ -184,8 +193,7 @@ const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
     { title: 'What each call shows', body: 'Every card states a position (long/short/neutral) and asset, when it was made, the reasoning, and a “What this means for you” read.' },
   ],
   calendar: [
-    { selector: HEAD, title: 'Calendar', body: 'See upcoming macro events and token unlocks in advance and prepare for known market catalysts.' },
-    { title: 'How to use it', body: 'Move between months with the arrows; click a day’s chip or an item in the Upcoming list to see its impact, category and details.' },
+    { title: 'Calendar', body: 'The Calendar lives on its own page, shared by Plus and Pro — macro events, token unlocks and events added by the Kumami team.' },
   ],
   events: [
     { selector: HEAD, title: 'Events & Announcements', body: 'Discover events and join live Q&As with project teams.' },

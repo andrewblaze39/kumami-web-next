@@ -1,7 +1,15 @@
 'use client';
 
 /**
- * /world/calendar — standalone Calendar tab (Plus tier).
+ * /world/calendar — the ONE Calendar, shared by Plus and Pro (Pro's sidebar
+ * shows it via the included Plus group; old /world/pro?tab=calendar links
+ * redirect here).
+ *
+ * Data (see lib/market/live/calendarPage.ts): macro prints + token unlocks
+ * from the market-data feed, merged with events the Kumami team adds by hand
+ * at /admin/pro-calendar (published only — edits/deletes show on next load).
+ * Team events are labelled "Kumami" and float to the top of each day cell so
+ * they're never buried under dozens of low-impact macro prints.
  *
  * A real month-grid calendar (not just a list): month navigation, a "next
  * up" hero card for the nearest event, and every day cell always rendered
@@ -9,11 +17,9 @@
  * because no admin content has been added yet for a given day.
  *
  * Scoping notes (disclosed, not silently cut):
- *   - "Protocol" events (governance votes, mainnet launches) are described as
- *     editorial/manual entries — no such content pipeline exists yet, so the
- *     filter chip exists but the type is always empty. The mockup also shows
- *     Security/Regulatory/Launches categories with no corresponding data
- *     source in this codebase — not added here rather than faked.
+ *   - "Protocol & other" = admin-authored events whose category isn't Macro or
+ *     Token unlock (On-chain, Regulatory, Project, Other). The feed itself has
+ *     no protocol events, so this filter only ever shows team-added items.
  *   - The D-1 popup here fires on this page specifically (on mount, once per
  *     browser via localStorage), not truly "on next login" app-wide as the
  *     doc describes — a global version would need to live in the shell layout.
@@ -23,12 +29,13 @@ import { useEffect, useMemo, useState } from 'react';
 import type { CalendarEvent, CalendarPayload } from '@/lib/market/contracts';
 import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
 import { WIcon } from '@/components/world/panels/console-ui';
+import { isAttentionEligible } from '@/lib/market/rules/calendarEvents';
 
 const TYPES: { key: CalendarEvent['type'] | 'all'; label: string }[] = [
   { key: 'all', label: 'All' },
   { key: 'macro', label: 'Macro' },
   { key: 'unlock', label: 'Token Unlocks' },
-  { key: 'protocol', label: 'Protocol' },
+  { key: 'protocol', label: 'Protocol & other' },
 ];
 
 const IMPACTS: CalendarEvent['impact'][] = ['HIGH', 'MED', 'LOW'];
@@ -66,13 +73,30 @@ const IMPACT_BADGE: Record<CalendarEvent['impact'], string> = {
   LOW: 'w-flow-radar-sev-badge w-flow-radar-sev-low',
 };
 
-function formatEventDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
+function formatEventDate(e: CalendarEvent): string {
+  if (e.allDay) {
+    return `${new Date(e.ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' })} · All day`;
+  }
+  return new Date(e.ts).toLocaleDateString(undefined, {
     month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
   });
 }
-function formatEventTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+function formatEventTime(e: CalendarEvent): string {
+  if (e.allDay) return 'All day';
+  return new Date(e.ts).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+/** "Macro", "Token unlock · Kumami", "Regulatory · Kumami", … */
+function eventLabel(e: CalendarEvent): string {
+  const base = e.category ?? TYPE_LABEL[e.type];
+  return e.source === 'kumami' ? `${base} · Kumami` : base;
+}
+const IMPACT_RANK: Record<CalendarEvent['impact'], number> = { HIGH: 0, MED: 1, LOW: 2 };
+/** Within a day: team events first, then by impact, then by time. */
+function cellOrder(a: CalendarEvent, b: CalendarEvent): number {
+  const k = Number(b.source === 'kumami') - Number(a.source === 'kumami');
+  if (k !== 0) return k;
+  const i = IMPACT_RANK[a.impact] - IMPACT_RANK[b.impact];
+  return i !== 0 ? i : Date.parse(a.ts) - Date.parse(b.ts);
 }
 
 const D1_DISMISSED_KEY = 'kumami_calendar_d1_dismissed';
@@ -99,7 +123,7 @@ export default function CalendarPage() {
     }
     const upcoming = data.events.find((e) => {
       const dt = Date.parse(e.ts) - now;
-      return e.impact === 'HIGH' && dt > 0 && dt <= 24 * 3_600_000 && !dismissed.includes(e.id);
+      return isAttentionEligible(e) && dt > 0 && dt <= 24 * 3_600_000 && !dismissed.includes(e.id);
     });
     if (upcoming) setPopupEvent(upcoming);
   }, [data]);
@@ -197,10 +221,10 @@ export default function CalendarPage() {
               {nextUp.title} <span className={IMPACT_BADGE[nextUp.impact]}>{nextUp.impact}</span>
             </div>
             <p>{nextUp.description}</p>
-            <span className="w-cal-nextup-when">{formatEventDate(nextUp.ts)}</span>
+            <span className="w-cal-nextup-when">{formatEventDate(nextUp)}</span>
           </div>
           <span className="w-cal-nextup-type" style={{ color: TYPE_COLOR[nextUp.type] }}>
-            {TYPE_LABEL[nextUp.type]}
+            {eventLabel(nextUp)}
           </span>
         </div>
       )}
@@ -256,15 +280,15 @@ export default function CalendarPage() {
                   {cell.date.getDate()}
                 </span>
                 <div className="w-cal-cell-events">
-                  {cell.events.slice(0, MAX_CHIPS_PER_CELL).map((e) => (
+                  {[...cell.events].sort(cellOrder).slice(0, MAX_CHIPS_PER_CELL).map((e) => (
                     <div
                       key={e.id}
                       className="w-cal-cell-event"
                       style={{ borderLeftColor: TYPE_COLOR[e.type] }}
-                      title={`${e.title} — ${e.description}`}
+                      title={`${e.title} (${eventLabel(e)}, ${e.impact})${e.description ? ` — ${e.description}` : ''}`}
                     >
-                      <b>{e.title}</b>
-                      <span>{formatEventTime(e.ts)}</span>
+                      <b>{e.source === 'kumami' ? '★ ' : ''}{e.title}</b>
+                      <span>{formatEventTime(e)}</span>
                     </div>
                   ))}
                   {cell.events.length > MAX_CHIPS_PER_CELL && (
@@ -282,9 +306,11 @@ export default function CalendarPage() {
           <div className="w-cal-d1-modal">
             <div className="w-cal-d1-head">📅 High-impact event soon</div>
             <div className="w-cal-d1-title">{popupEvent.title}</div>
-            <div className="w-cal-d1-when">{formatEventDate(popupEvent.ts)}</div>
+            <div className="w-cal-d1-when">{formatEventDate(popupEvent)}</div>
             <p>{popupEvent.description}</p>
-            <div className="w-cal-d1-assets">Affected: {popupEvent.assets.join(', ')}</div>
+            <div className="w-cal-d1-assets">
+              Affected: {popupEvent.assets.length ? popupEvent.assets.join(', ') : 'market-wide'}
+            </div>
             <div className="w-cal-d1-actions">
               <button className="w-btn w-btn-ghost w-btn-sm" onClick={() => dismissPopup(popupEvent)}>
                 Dismiss
