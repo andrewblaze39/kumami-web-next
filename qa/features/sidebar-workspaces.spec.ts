@@ -67,6 +67,22 @@ test.describe('Plus account', () => {
   });
 });
 
+test.describe('Sign-up name', () => {
+  test.use({ storageState: AUTH.plus });
+  test('the name typed at sign-up shows in the sidebar, and can be edited in Profile', async ({ page }) => {
+    await openPage(page, '/world/console');
+    await expect(page.locator('.w-sidebar-foot')).toContainText('QA1 Free');
+    await page.goto('/world/profile');
+    const input = page.locator('#profile-name');
+    await expect(input).toHaveValue('QA1 Free', { timeout: 30_000 });
+    await input.fill('QA1 Renamed');
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await page.waitForLoadState('load');
+    await openPage(page, '/world/console');
+    await expect(page.locator('.w-sidebar-foot')).toContainText('QA1 Renamed', { timeout: 30_000 });
+  });
+});
+
 test.describe('Pro account', () => {
   test.use({ storageState: AUTH.pro });
 

@@ -6,7 +6,7 @@ Each workspace's sidebar shows only its own tier: **Basic → Basic items**, **P
 
 ## Prerequisites
 - `npm run dev` → http://localhost:3000 (kumami-dev).
-- A free account for the Plus steps, and a subscribed account for the Pro steps (use Profile → Subscription → **Grant Pro** on your own account; testing-only button).
+- A free account for the Plus steps, and a subscribed account for the Pro steps (a superadmin can grant Pro at Admin → Subscriptions).
 
 ## Step 1 — Plus account
 1. Open `/world/console`.

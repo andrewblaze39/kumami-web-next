@@ -211,15 +211,18 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
             <h1>
               <WIcon name="flame" /> {isPremium ? 'Flow Radar Pro' : 'Flow Radar Plus'}
             </h1>
-            <p className="w-oc-sub">Where big money is moving — right now</p>
+            <p className="w-oc-sub">
+              {isPremium ? 'Where big money is moving — right now' : 'Where big money is moving — 15 minutes behind (real-time in Flow Radar Pro)'}
+            </p>
             <button type="button" className="w-tour-trigger" onClick={() => setTourOpen(true)} style={{ marginTop: 10 }}>
               <WIcon name="spark" /> Take a tour
             </button>
           </div>
           <div className="w-oc-controls">
-            {data?.delayed ? (
+            {/* By VERSION, not payload: before data loads (or if it fails) Plus must never claim "Live". */}
+            {!isPremium ? (
               <span className="w-adv-updated" title="Flow Radar Plus is delayed — Flow Radar Pro is real-time">
-                <WIcon name="clock" /> Delayed {data.delayMinutes ?? 15}m
+                <WIcon name="clock" /> Delayed {data?.delayMinutes ?? 15}m
               </span>
             ) : (
               <span className="w-adv-updated">

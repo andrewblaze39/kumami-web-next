@@ -16,6 +16,7 @@
 import 'server-only';
 
 import type { FlowEvent } from './contracts';
+import { isProActive } from '@/lib/pro';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -79,7 +80,8 @@ function getFreeWatchlistSlots(): number {
 
 /**
  * Resolve the tier for a user — Pro means SUBSCRIBED, nothing else
- * (Andrew, 10 Oct 2026): pro only if `isPremium === true`. Admin/superadmin
+ * (Andrew, 10 Oct 2026): pro only if `isPremium === true` and any end date
+ * set by a superadmin grant (`proUntil`) hasn't passed (lib/pro.ts). Admin/superadmin
  * roles do NOT grant Pro (they control /admin access only); an admin who
  * wants to test Pro turns isPremium on for their own account.
  */
@@ -87,7 +89,7 @@ export async function resolveTier(uid: string, deps: GatingDeps = makeFirestoreD
   const doc = await deps.getUser(uid);
   if (!doc) return 'free';
 
-  if (doc.isPremium === true) return 'pro';
+  if (isProActive(doc as Parameters<typeof isProActive>[0])) return 'pro';
 
   return 'free';
 }

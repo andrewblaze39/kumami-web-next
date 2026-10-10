@@ -57,11 +57,11 @@ function topTypeLabel(events: ConsolePayload['flowRadar']): string {
 
 export default function FlowRadarFeed({ events, loading }: Props) {
   return (
-    <section className="w-apanel" aria-label="Flow Radar" data-tour="flow">
+    <section className="w-apanel" aria-label="Flow Radar Plus" data-tour="flow">
       <div className="w-apanel-h">
         <span className="w-ttl">
           <span className="w-ic"><WIcon name="flame" /></span>
-          {' '}Flow Radar{' '}
+          {' '}Flow Radar Plus{' '}
           <span
             className="w-oc-q"
             tabIndex={0}
@@ -70,6 +70,10 @@ export default function FlowRadarFeed({ events, loading }: Props) {
             ?
           </span>{' '}
           <span className="w-sub">· whale &amp; fund</span>
+        </span>
+        {/* The Console is a Plus page: this feed is the Flow Radar Plus snapshot from 15 min ago. */}
+        <span className="w-delay-note" title="Flow Radar Plus is 15 minutes behind — Flow Radar Pro is real-time">
+          <WIcon name="clock" /> Delayed 15m
         </span>
       </div>
 

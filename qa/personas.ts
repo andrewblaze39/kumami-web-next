@@ -3,8 +3,8 @@
  * deleted afterwards (Andrew, 10 Oct 2026). kumami-dev only.
  *
  *   qa1  new free user        → sees Basic + Plus, never Pro
- *   qa2  new user + Grant Pro → clicks "Grant Pro" in Profile → Subscription
- *   qa3  admin, NOT subscribed → Pro admin pages work, Pro tabs stay locked
+ *   qa2  new user, granted Pro by qa3 on /admin/subscriptions (1 month)
+ *   qa3  superadmin, NOT subscribed → admin pages work, Pro tabs stay locked
  *
  * global-setup.ts writes the run's accounts to qa/.auth/personas.json;
  * global-teardown.ts deletes them (auth user, users doc + subcollections,
@@ -60,6 +60,8 @@ export async function deleteQaAccounts(extraUids: string[] = []) {
   for (const uid of uids) {
     await db.recursiveDelete(db.collection('users').doc(uid)).catch(() => {});
     await db.collection('user_prefs').doc(uid).delete().catch(() => {});
+    const audit = await db.collection('admin_audit').where('targetUid', '==', uid).get();
+    await Promise.all(audit.docs.map((d) => d.ref.delete()));
     const subs = await db.collection('subscriptions').where('userId', '==', uid).get();
     await Promise.all(subs.docs.map((d) => d.ref.delete()));
     await auth.deleteUser(uid).catch(() => {});

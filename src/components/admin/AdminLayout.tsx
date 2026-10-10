@@ -399,6 +399,9 @@ export default function AdminLayoutClient({ children }: { children: ReactNode })
               <NavItem href="/admin/role-management" icon={UserCog} isCollapsed={isCollapsed} isActive={checkActive('/admin/role-management')}>
                 Role Management
               </NavItem>
+              <NavItem href="/admin/subscriptions" icon={UserCog} isCollapsed={isCollapsed} isActive={checkActive('/admin/subscriptions')}>
+                Subscriptions
+              </NavItem>
             </>
           )}
         </nav>

@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth, ADMIN_ONLY_LOGIN_MESSAGE } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { updateProfile } from 'firebase/auth';
 import { isSafeInternalPath } from '@/lib/safeInternalPath';
 
 const REDIRECT_TARGET = '/world/news';
@@ -85,10 +84,8 @@ export function SignUpModal({ onClose, onSwitchToLogin }: SignUpModalProps) {
       // user object is still valid (before email verification gating).
       // Note: currentUser in AuthContext will remain null until email is verified;
       // displayName is persisted on the Firebase Auth profile regardless.
-      const result = await signup(email, password);
-      if (name.trim() && result?.user) {
-        await updateProfile(result.user, { displayName: name.trim() });
-      }
+      // signup() saves the name on the Auth profile and users/{uid} before returning.
+      await signup(email, password, name);
       setVerificationSent(true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to create account.';

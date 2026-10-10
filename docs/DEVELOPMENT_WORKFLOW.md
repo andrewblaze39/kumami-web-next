@@ -91,7 +91,7 @@ Every feature passes through the same stages. Each stage has an owner, an output
 Andrew merges `dev` → `main` when he chooses. Claude **never** commits to, merges into, rebases onto or pushes `main`.
 
 **Release checklist: Claude reminds Andrew of these whenever a release to `main` comes up.**
-- [ ] **Remove the temporary "Grant Pro" / "Remove Pro" testing buttons** (Profile → Subscription, `TestSubscriptionButtons` in `src/components/ProfileContent.tsx`) **and their endpoint** `src/app/api/dev/test-subscription/route.ts`. They're disabled in production anyway, but must not ship.
+- [ ] **Deploy the Firestore rules fix** before or with the release (`docs/security/2026-10-10-firestore-rules-pro-leaks.md`): the Subscriptions tool is safe, but the browser-side self-upgrade hole exists until the rules ship.
 - [ ] Firestore rules are deployed to the prod project if they changed.
 - [ ] The prod App Hosting env has every env var the new code needs (e.g. `FIREBASE_SERVICE_ACCOUNT_JSON`, `COINGLASS_API_KEY`).
 
@@ -149,7 +149,7 @@ The orchestrating skill is `kumami-feature-workflow`. It knows the stages and ca
 
 ## 8. Environment needed
 
-- `.env.local` (kumami-dev): Firebase public config, `COINGLASS_API_KEY`, `FIREBASE_SERVICE_ACCOUNT_JSON` (without it every `/api/market/*` call returns 401). No QA accounts are stored: each Playwright run signs up fresh personas (qa1 free, qa2 Grant Pro, qa3 admin not subscribed) and deletes them afterwards.
+- `.env.local` (kumami-dev): Firebase public config, `COINGLASS_API_KEY`, `FIREBASE_SERVICE_ACCOUNT_JSON` (without it every `/api/market/*` call returns 401). No QA accounts are stored: each Playwright run signs up fresh personas (qa1 free, qa2 granted Pro by qa3, qa3 superadmin not subscribed) and deletes them afterwards.
 - Playwright (`@playwright/test`, Chromium) for Stage 5. Setup and accounts: see `.claude/skills/kumami-qa/SKILL.md`.
 - CoinGlass plan: STARTUP. Locked endpoints are listed in the gap report's "Blocked" section.
 

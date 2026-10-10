@@ -28,7 +28,7 @@ const EXCHANGE_HINTS = [
   'huobi', 'htx', 'gate', 'bitget', 'upbit', 'mexc', 'exchange', 'crypto.com',
 ];
 
-function isExchangeLabel(label: string | undefined): boolean {
+export function isExchangeLabel(label: string | undefined): boolean {
   if (!label) return false;
   const l = label.toLowerCase();
   return EXCHANGE_HINTS.some((h) => l.includes(h));

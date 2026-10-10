@@ -26,10 +26,6 @@ const ALLOW_TEXT: Record<string, RegExp[]> = {
   'pro:marketcap': [/\d+(?:\.\d+)?%/],
   // The QA Pro account holds no assets: "$0 · +$0 last 24h" is the honest empty state.
   'pro:portfolio': [/\$0/],
-  // KNOWN ISSUE (reported 10 Oct 2026): Exchange Netflow on the 24H range reads "$0 out · Neutral"
-  // because CoinGlass exchange balances update once a day — the 24H window compares a value with
-  // itself. Rachelle's spec says daily cadence / 7D default. Remove once the panel handles it.
-  'plus:/world/onchain': [/\$0/],
   // KNOWN DATA ISSUE (kumami-dev): Alpha Room has "Lorem Ipsum" test messages.
   // Delete them at /admin/alpha-room, then remove this allowance.
   'pro:alpha': [/lorem ipsum/i],

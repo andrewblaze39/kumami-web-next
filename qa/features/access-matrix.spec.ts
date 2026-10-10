@@ -1,7 +1,7 @@
 /**
  * QA — Plus vs Pro access layer: nothing Pro may leak to non-subscribers.
  * Part of the standard regression (Andrew, 10 Oct 2026). Personas (fresh each run):
- *   qa1 = new free user · qa2 = Grant Pro (subscribed) · qa3 = admin, NOT subscribed
+ *   qa1 = new free user · qa2 = Pro (granted by qa3 on /admin/subscriptions) · qa3 = superadmin, NOT subscribed
  * Rule (spec v1.6): Pro = subscribed (isPremium) ONLY — admin roles don't unlock Pro;
  * Plus pages are always the cut-down Plus version, even for Pro accounts.
  *
@@ -13,6 +13,7 @@
  */
 import { expect, test, type Browser, type Page } from '@playwright/test';
 import { AUTH, apiAsUser, guard, openPage, type Role } from '../helpers';
+import { Timestamp } from 'firebase-admin/firestore';
 import { admin, readPersonas } from '../personas';
 
 const PRO_TABS = [
@@ -277,5 +278,82 @@ test.describe('Firestore rules — a free user must not grant themselves Pro', (
       const r = await firestore(page, 'GET', 'pro_research');
       expect(r.status, 'non-subscriber read pro_research directly').toBe(403);
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 5 · Subscriptions admin tool (superadmin only, durations, expiry)
+// ---------------------------------------------------------------------------
+
+test.describe('Subscriptions admin tool — grant, expiry, remove', () => {
+  test.describe.configure({ mode: 'serial' });
+  let qa1: { uid: string; email: string };
+  test.beforeAll(() => { const p = readPersonas().qa1; qa1 = { uid: p.uid!, email: p.email }; });
+  test.afterAll(async () => {
+    await admin().db.collection('users').doc(qa1.uid).set({ isPremium: false, proUntil: null, subscriptionStatus: 'cancelled-immediate' }, { merge: true });
+  });
+
+  test('only superadmins can call the grant API', async ({ browser }) => {
+    for (const role of ['plus', 'pro'] as const) {
+      await as(browser, role, async (page) => {
+        await openPage(page, '/world/console');
+        const status = await page.evaluate(async (uid) => {
+          const db = await new Promise<IDBDatabase>((res) => { const r = indexedDB.open('firebaseLocalStorageDb'); r.onsuccess = () => res(r.result); });
+          const rows: { value?: { stsTokenManager?: { accessToken?: string } } }[] = await new Promise((res) => {
+            const q = db.transaction('firebaseLocalStorage', 'readonly').objectStore('firebaseLocalStorage').getAll(); q.onsuccess = () => res(q.result);
+          });
+          const token = rows.map((r) => r.value?.stsTokenManager?.accessToken).find(Boolean);
+          const res = await fetch('/api/admin/subscription', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ uid, action: 'grant', months: 1 }) });
+          return res.status;
+        }, qa1.uid);
+        expect(status, `${role} could grant Pro`).toBe(403);
+      });
+    }
+  });
+
+  test('qa3 grants qa1 Pro for 1 month → qa1 gets Pro', async ({ browser }) => {
+    await as(browser, 'admin', async (page) => {
+      page.on('dialog', (d) => d.accept());
+      await openPage(page, '/admin/subscriptions', { ready: 'text=Subscriptions' });
+      await page.getByPlaceholder('Search by email or name').fill(qa1.email);
+      const row = page.locator(`tr[data-user-email="${qa1.email}"]`);
+      await row.getByLabel(`Duration for ${qa1.email}`).selectOption('1');
+      await row.getByRole('button', { name: 'Grant Pro' }).click();
+      await expect(row.getByRole('button', { name: 'Remove Pro' })).toBeVisible({ timeout: 30_000 });
+      await expect(row).toContainText('Pro');
+    });
+    const d = (await admin().db.collection('users').doc(qa1.uid).get()).data()!;
+    expect(d.isPremium).toBe(true);
+    expect(d.proUntil?.toMillis() - Date.now()).toBeGreaterThan(27 * 86_400_000);
+    await as(browser, 'plus', async (page) => {
+      await openPage(page, '/world/pro?tab=flowradar');
+      await expect(page.locator('.w-pro-teaser')).toHaveCount(0);
+      await expect(page.getByRole('heading', { name: /Flow Radar Pro/ })).toBeVisible();
+    });
+  });
+
+  test('an expired grant locks qa1 out again (UI + API)', async ({ browser }) => {
+    await admin().db.collection('users').doc(qa1.uid).set({ proUntil: Timestamp.fromMillis(Date.now() - 60_000) }, { merge: true });
+    await as(browser, 'plus', async (page) => {
+      await openPage(page, '/world/pro?tab=flowradar');
+      await expect(page.locator('.w-pro-teaser')).toBeVisible();
+      const fr = await apiAsUser<{ delayed: boolean }>(page, '/api/market/flow-radar?view=pro');
+      expect(fr.body.delayed, 'expired grant still got the real-time feed').toBe(true);
+    });
+  });
+
+  test('qa3 removes Pro → status Free', async ({ browser }) => {
+    await admin().db.collection('users').doc(qa1.uid).set({ proUntil: null }, { merge: true }); // active again, to remove it
+    await as(browser, 'admin', async (page) => {
+      page.on('dialog', (d) => d.accept());
+      await openPage(page, '/admin/subscriptions', { ready: 'text=Subscriptions' });
+      await page.getByPlaceholder('Search by email or name').fill(qa1.email);
+      const row = page.locator(`tr[data-user-email="${qa1.email}"]`);
+      await row.getByRole('button', { name: 'Remove Pro' }).click();
+      await expect(row.getByRole('button', { name: 'Grant Pro' })).toBeVisible({ timeout: 30_000 });
+      await expect(row).toContainText('Free');
+    });
+    const audit = await admin().db.collection('admin_audit').where('targetUid', '==', qa1.uid).get();
+    expect(audit.size, 'grant + remove should be audited').toBeGreaterThanOrEqual(2);
   });
 });

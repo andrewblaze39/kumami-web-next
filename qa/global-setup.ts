@@ -5,10 +5,9 @@
  *      Firebase Admin SDK (kumami-dev only) — what clicking the email link does.
  *   3. Log in through the "Log In" modal and save the session (Firebase auth
  *      lives in IndexedDB → storageState with indexedDB: true).
- *   4. qa2 clicks "Grant Pro" in Profile → Subscription (the temporary testing
- *      button that simulates a completed subscription), then re-saves its session.
- *   5. qa3 is promoted to role "admin" by the harness (stands in for a
- *      superadmin's Role Management change — never done on real users). Not subscribed.
+ *   4. qa3 is promoted to role "superadmin" by the harness (stands in for a
+ *      Role Management change — never done on real users). NOT subscribed.
+ *   5. qa3 grants qa2 Pro (1 month) on /admin/subscriptions — the real admin tool.
  * Then warms the data pages. Teardown: global-teardown.ts.
  */
 import { chromium, expect, type Browser, type FullConfig, type Page } from '@playwright/test';
@@ -24,6 +23,9 @@ async function signUp(page: Page, p: Persona) {
   await form.locator('input[type="email"]').fill(p.email);
   await form.locator('input[type="password"]').fill(p.password);
   await form.locator('button[type="submit"]').click();
+  // Wait for the real "Check your inbox" state — sign-up saves the name and the
+  // users doc before showing it; closing earlier would cut those writes off.
+  await expect(page.getByRole('heading', { name: 'Check your inbox' })).toBeVisible({ timeout: 30_000 });
   // The account now exists (unverified). Wait until Firebase knows it.
   const { auth } = admin();
   await expect
@@ -44,26 +46,30 @@ async function logIn(page: Page, p: Persona) {
   await page.waitForURL(/\/world\//, { timeout: 60_000 });
 }
 
-async function grantPro(page: Page) {
-  await page.goto('/world/profile');
-  await page.getByRole('button', { name: /^subscription$/i }).first().click();
+/** qa3 (superadmin) grants qa2 Pro through /admin/subscriptions — the real admin tool. */
+async function grantViaAdmin(browser: Browser, baseURL: string, target: Persona) {
+  const ctx = await browser.newContext({ baseURL, storageState: AUTH.admin });
+  const page = await ctx.newPage();
+  page.on('dialog', (d) => d.accept()); // "Grant Pro to …?" confirm
+  await page.goto('/admin/subscriptions');
+  await page.getByPlaceholder('Search by email or name').fill(target.email);
+  const row = page.locator(`tr[data-user-email="${target.email}"]`);
+  await expect(row).toBeVisible({ timeout: 60_000 });
+  await row.getByLabel(`Duration for ${target.email}`).selectOption('1');
   const [res] = await Promise.all([
-    page.waitForResponse((r) => r.url().includes('/api/dev/test-subscription'), { timeout: 30_000 }),
-    page.getByRole('button', { name: 'Grant Pro', exact: true }).click(),
+    page.waitForResponse((r) => r.url().includes('/api/admin/subscription'), { timeout: 30_000 }),
+    row.getByRole('button', { name: 'Grant Pro' }).click(),
   ]);
-  if (!res.ok()) throw new Error(`Grant Pro failed: HTTP ${res.status()} ${await res.text()}`);
-  // The button reloads the page itself; don't race it — open the profile fresh.
-  await page.waitForTimeout(1500);
-  await page.goto('/world/profile');
-  await page.getByRole('button', { name: /^subscription$/i }).first().click();
-  await expect(page.getByRole('button', { name: 'Remove Pro', exact: true })).toBeEnabled({ timeout: 30_000 });
+  if (!res.ok()) throw new Error(`Admin grant failed: HTTP ${res.status()} ${await res.text()}`);
+  await expect(row.getByRole('button', { name: 'Remove Pro' })).toBeVisible({ timeout: 30_000 });
+  await ctx.close();
 }
 
 async function createPersona(browser: Browser, baseURL: string, p: Persona) {
   const context = await browser.newContext({ baseURL });
   const page = await context.newPage();
   await signUp(page, p);
-  if (p.key === 'qa3') await admin().db.collection('users').doc(p.uid!).set({ role: 'admin' }, { merge: true });
+  if (p.key === 'qa3') await admin().db.collection('users').doc(p.uid!).set({ role: 'superadmin' }, { merge: true });
   await context.close(); // the sign-up session is unverified — log in fresh
   const ctx2 = await browser.newContext({ baseURL });
   const page2 = await ctx2.newPage();
@@ -73,12 +79,7 @@ async function createPersona(browser: Browser, baseURL: string, p: Persona) {
   await expect
     .poll(async () => (await admin().db.collection('users').doc(p.uid!).get()).exists, { timeout: 30_000 })
     .toBe(true);
-  if (p.key === 'qa2') {
-    await grantPro(page2);
-    await expect
-      .poll(async () => (await admin().db.collection('users').doc(p.uid!).get()).get('isPremium'), { timeout: 30_000 })
-      .toBe(true);
-  }
+
   const role = p.key === 'qa1' ? 'plus' : p.key === 'qa2' ? 'pro' : 'admin';
   await ctx2.storageState({ path: AUTH[role], indexedDB: true });
   await ctx2.close();
@@ -106,6 +107,12 @@ export default async function globalSetup(config: FullConfig) {
   const browser = await chromium.launch();
   try {
     for (const p of personas) await createPersona(browser, baseURL, p);
+    // qa2 becomes Pro the way a superadmin would do it: via /admin/subscriptions.
+    const qa2 = personas.find((x) => x.key === 'qa2')!;
+    await grantViaAdmin(browser, baseURL, qa2);
+    await expect
+      .poll(async () => (await admin().db.collection('users').doc(qa2.uid!).get()).get('isPremium'), { timeout: 30_000 })
+      .toBe(true);
   } finally {
     fs.writeFileSync(PERSONAS_FILE, JSON.stringify(personas, null, 2));
   }

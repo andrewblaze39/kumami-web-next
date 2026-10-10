@@ -76,7 +76,7 @@ test.describe('Pro tools (qa2)', () => {
     expect(body.extraMode).toBeDefined();
     for (const tf of ['24H', '7D', '4H']) {
       await page.getByRole('button', { name: tf, exact: true }).first().click();
-      await expect(tiles.first()).toBeVisible();
+      await expect(tiles.first()).toBeVisible({ timeout: 60_000 }); // cold cache per timeframe
     }
     await snap(page, info, 'spotpulse-pro');
     g.assertClean();

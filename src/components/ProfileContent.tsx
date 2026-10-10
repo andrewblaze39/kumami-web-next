@@ -13,7 +13,9 @@ import {
   serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { updateProfile } from 'firebase/auth'
 import { useAuth } from '@/contexts/AuthContext'
+import { isProActive } from '@/lib/pro'
 import { Copy, Check, Loader } from 'lucide-react'
 
 /* ------------------------------------------------------------------ */
@@ -93,42 +95,49 @@ function formatFirestoreDate(
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-/* ⚠️ TEMPORARY TESTING BUTTONS — REMOVE BEFORE MERGING TO MAIN (Andrew, 10 Oct 2026).
- * "Grant Pro" / "Remove Pro" simulate a completed / cancelled subscription via
- * /api/dev/test-subscription. Hidden (and the endpoint refuses) in production. */
-function TestSubscriptionButtons({ isPremium }: { isPremium: boolean }) {
-  const { currentUser } = useAuth()
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  if (process.env.NEXT_PUBLIC_ENV === 'production') return null
-  const run = async (action: 'grant' | 'remove') => {
-    if (!currentUser) return
-    setBusy(true)
-    setError(null)
+/* Name shown across Kumami (sidebar, profile). Saved on users/{uid}.displayName
+ * and the Firebase Auth profile; existing users without a name add one here. */
+function NameEditor() {
+  const { currentUser, userData } = useAuth()
+  const current = (userData?.displayName as string | undefined) || currentUser?.displayName || ''
+  const [value, setValue] = useState(current)
+  const [saving, setSaving] = useState(false)
+  const [msg, setMsg] = useState<string | null>(null)
+  const dirty = value.trim() !== current && value.trim().length > 0
+  const save = async () => {
+    if (!currentUser || !dirty) return
+    setSaving(true)
+    setMsg(null)
     try {
-      const token = await currentUser.getIdToken()
-      const res = await fetch('/api/dev/test-subscription', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action }),
-      })
-      if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? res.statusText)
+      const name = value.trim().slice(0, 60)
+      await updateDoc(doc(db, 'users', currentUser.uid), { displayName: name })
+      await updateProfile(currentUser, { displayName: name })
       window.location.reload()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed')
-      setBusy(false)
+    } catch {
+      setMsg('Could not save your name — try again.')
+      setSaving(false)
     }
   }
   return (
-    <div className="mt-6 rounded border border-dashed border-amber-400/60 p-4" data-testid="test-subscription">
-      <p className="mb-3 text-xs text-amber-300">Testing only — simulates a subscription. Not shown in production.</p>
-      <div className="flex flex-wrap gap-3">
-        <button type="button" disabled={busy || isPremium} onClick={() => run('grant')}
-          className="rounded bg-amber-500 px-4 py-2 text-sm font-semibold text-black disabled:opacity-40">Grant Pro</button>
-        <button type="button" disabled={busy || !isPremium} onClick={() => run('remove')}
-          className="rounded border border-amber-400 px-4 py-2 text-sm font-semibold text-amber-300 disabled:opacity-40">Remove Pro</button>
-      </div>
-      {error && <p className="mt-2 text-xs text-red-400">Error: {error}</p>}
+    <div className="mb-4 flex flex-col gap-2 border-b border-[#333] pb-4 sm:flex-row sm:items-center">
+      <label htmlFor="profile-name" className="w-40 font-medium text-gray-400">Name:</label>
+      <input
+        id="profile-name"
+        className="flex-1 rounded border border-[#444] bg-[#1a1a1a] px-3 py-2 text-white"
+        value={value}
+        placeholder="Add your name"
+        maxLength={60}
+        onChange={(e) => setValue(e.target.value)}
+      />
+      <button
+        type="button"
+        onClick={save}
+        disabled={!dirty || saving}
+        className="rounded bg-gradient-to-br from-[#6e45e2] to-[#88d3ce] px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
+      >
+        {saving ? 'Saving…' : 'Save'}
+      </button>
+      {msg && <span className="text-xs text-red-400">{msg}</span>}
     </div>
   )
 }
@@ -228,7 +237,8 @@ export default function ProfileContent() {
 
         if (userDoc.exists()) {
           const raw = userDoc.data() as UserDataRaw
-          const isPremium = raw.isPremium === true
+          // Expired superadmin grants (proUntil in the past) are not Pro.
+          const isPremium = isProActive(raw as Parameters<typeof isProActive>[0])
 
           // Query active subscriptions
           const subsRef = collection(db, 'subscriptions')
@@ -389,6 +399,8 @@ export default function ProfileContent() {
               Account Information
             </h3>
 
+            <NameEditor />
+
             <DetailRow label="Email:" value={currentUser.email ?? ''} />
 
             <DetailRow
@@ -526,7 +538,6 @@ export default function ProfileContent() {
                 </Link>
               </>
             )}
-            <TestSubscriptionButtons isPremium={userData?.isPremium === true} />
           </div>
         )}
 

@@ -8,7 +8,7 @@
  */
 import { expect, type Page, type TestInfo } from '@playwright/test';
 
-/** plus = qa1 (new free user) · pro = qa2 (Grant Pro) · admin = qa3 (admin, not subscribed). See personas.ts. */
+/** plus = qa1 (new free user) · pro = qa2 (granted Pro by qa3) · admin = qa3 (superadmin, not subscribed). See personas.ts. */
 export type Role = 'plus' | 'pro' | 'admin';
 
 export const AUTH: Record<Role, string> = {

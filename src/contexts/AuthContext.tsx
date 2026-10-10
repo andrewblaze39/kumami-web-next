@@ -10,10 +10,12 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   sendPasswordResetEmail,
+  updateProfile,
   User,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { isProActive } from "@/lib/pro";
 
 interface UserData {
   email: string;
@@ -31,7 +33,7 @@ interface AuthContextType {
   loading: boolean;
   adminOnlyBlockedMessage: string | null;
   clearAdminOnlyBlockedMessage: () => void;
-  signup: (email: string, password: string) => Promise<any>;
+  signup: (email: string, password: string, name?: string) => Promise<any>;
   login: (email: string, password: string) => Promise<any>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -86,19 +88,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }, { merge: true });
     }
 
+    // Older accounts: the name was only saved on the Auth profile — copy it over once.
+    if (userDoc.exists() && !userDoc.data()?.displayName && user.displayName) {
+      await setDoc(userDocRef, { displayName: user.displayName }, { merge: true });
+    }
+
     const freshDoc = await getDoc(userDocRef);
     if (freshDoc.exists()) {
       const data = freshDoc.data() as UserData;
-      setUserData(data);
+      // Pro may have an end date (superadmin grants with a duration) — expired = not Pro.
+      setUserData({ ...data, isPremium: isProActive(data as Parameters<typeof isProActive>[0]) });
       setIsAdmin(hasAdminRole(data));
     }
   }
 
-  async function signup(email: string, password: string) {
+  async function signup(email: string, password: string, name?: string) {
     if (ADMIN_ONLY_LOGIN_ENABLED) {
       throw new Error(ADMIN_ONLY_LOGIN_MESSAGE);
     }
     const result = await createUserWithEmailAndPassword(auth, email, password);
+    // Save the sign-up name BEFORE anything else can race it: on the Auth
+    // profile AND on users/{uid} (the shell reads userData.displayName first —
+    // previously the name only lived on the Auth profile and never showed).
+    const displayName = name?.trim();
+    if (displayName) {
+      await updateProfile(result.user, { displayName });
+    }
+    await setDoc(doc(db, "users", result.user.uid), {
+      email: result.user.email,
+      ...(displayName ? { displayName } : {}),
+      role: "user",
+      isAdmin: false,
+      isPremium: false,
+      createdAt: serverTimestamp(),
+    }, { merge: true });
     await sendEmailVerification(result.user);
     return result;
   }

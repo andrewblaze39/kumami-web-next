@@ -192,7 +192,8 @@ export const liqCoinList = () =>
   cgCached<LiqCoinRow[]>('cg:liqcoinlist', 180, '/api/futures/liquidation/coin-list');
 
 export const liqAggHistory = (symbol: string, interval: string, exchange_list = 'Binance') =>
-  cgCached<LiqAggRow[]>(`cg:liqagg:${symbol}:${interval}`, 180,
+  // exchange_list is part of the key — different venue sets are different data.
+  cgCached<LiqAggRow[]>(`cg:liqagg:${symbol}:${interval}:${exchange_list}`, 180,
     '/api/futures/liquidation/aggregated-history', { symbol, interval, exchange_list });
 
 export const globalLongShort = (symbol: string, interval: string, exchange = 'Binance') =>

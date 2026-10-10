@@ -18,7 +18,9 @@ export const ANCHOR_ASSETS = ['BTC', 'ETH', 'SOL', 'BNB', 'HYPE'];
 
 /** Stablecoins move in huge whale transfers constantly but aren't coins to
  *  "watch" (or to read spot-vs-futures on) — never pick them as extra coins. */
-export const STABLECOINS = ['USDT', 'USDC', 'DAI', 'FDUSD', 'TUSD', 'USDE', 'PYUSD', 'USDD', 'BUSD', 'USD1', 'RLUSD', 'USDS'];
+export const STABLECOINS = ['USDT', 'USDC', 'DAI', 'FDUSD', 'TUSD', 'USDE', 'PYUSD', 'USDD', 'BUSD', 'USD1', 'RLUSD', 'USDS',
+  // Wrapped / staked versions of the anchors are the same asset — not "extra" coins.
+  'WBTC', 'CBBTC', 'TBTC', 'WETH', 'STETH', 'WSTETH', 'WEETH', 'RETH', 'CBETH', 'WSOL', 'WBNB'];
 const isStable = (asset: string) => STABLECOINS.includes(asset.toUpperCase());
 
 /** One coin on one day. `max*` fields keep the largest value seen in any buffer snapshot that day. */

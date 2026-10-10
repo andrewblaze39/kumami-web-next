@@ -266,7 +266,10 @@ export default function OnChainPage() {
   const netUsdNum = exNumOrNull(P?.netflow, 'netUsd');
   const netDir: 'in' | 'out' = (netUsdNum ?? 0) >= 0 ? 'out' : 'in';
   const netDisp = netUsdNum !== null ? formatUsd(Math.abs(netUsdNum)) : D;
-  const netHasData = netUsdNum !== null;
+  // CoinGlass exchange balances update once a day, so a 24H window usually
+  // compares a value with itself → "$0 · Neutral" is misleading. Say so instead.
+  const netDailyOnly = range === '24H' && netUsdNum !== null && Math.abs(netUsdNum) < 1;
+  const netHasData = netUsdNum !== null && !netDailyOnly;
 
   const glsPctNum = exNumOrNull(P?.longshort, 'globalPctLong');
   const topPctNum = exNumOrNull(P?.longshort, 'topTraderPctLong');
@@ -398,14 +401,20 @@ export default function OnChainPage() {
           >
             {netHasData ? (
               <>{netDisp} <span className="sub-unit">{netDir}</span></>
+            ) : netDailyOnly ? (
+              'Updates daily'
             ) : (
               netDisp
             )}
           </div>
           <div className="w-oc-tags">
-            <OcTag tag={verdictTag(P?.netflow)} />
+            {!netDailyOnly && <OcTag tag={verdictTag(P?.netflow)} />}
           </div>
-          <div className="w-oc-support">{netHasData ? (netDir === 'out' ? 'Coins leaving exchanges' : 'Coins arriving to exchanges') : 'Exchange balance flow'} · {range}</div>
+          <div className="w-oc-support">
+            {netDailyOnly
+              ? 'Exchange balances update once a day — switch to 7D to see the flow'
+              : `${netHasData ? (netDir === 'out' ? 'Coins leaving exchanges' : 'Coins arriving to exchanges') : 'Exchange balance flow'} · ${range}`}
+          </div>
         </div>
 
         <div className="w-oc-tile">

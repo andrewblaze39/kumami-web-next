@@ -59,8 +59,8 @@ Write it as numbered steps a non-engineer could follow. Cover these, in order:
      view Pro content — note when one account satisfies both).
    - Which environment/project it hits. Local `.env.local` points at **`kumami-dev`**
      (since Sep 2026); production is `kumami-6df47` (main branch, Andrew deploys).
-     Say which one the steps write to. For a subscribed test account, use the temporary Profile → Subscription →
-     **Grant Pro** button (testing only; removed before release).
+     Say which one the steps write to. To make a test account Pro, a superadmin grants it at Admin →
+     Administration → Subscriptions (`/admin/subscriptions`).
    - Any deploy that must have happened — e.g. **Firestore rules deployed**
      (`firebase deploy --only firestore:rules --project <project>`). A new
      collection without deployed rules fails with "Missing or insufficient

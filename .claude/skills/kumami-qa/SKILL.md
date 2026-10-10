@@ -2,8 +2,8 @@
 name: kumami-qa
 description: >-
   Workflow stage 5 — AI-driven QA of a Kumami feature with Playwright in a real browser,
-  using three personas signed up fresh each run on kumami-dev (qa1 free user, qa2 who
-  clicks Grant Pro, qa3 admin who is not subscribed), always including the Plus-vs-Pro
+  using three personas signed up fresh each run on kumami-dev (qa1 free user, qa2 granted
+  Pro by qa3 on the admin Subscriptions page, qa3 superadmin who is not subscribed), always including the Plus-vs-Pro
   access/leak matrix (UI + direct API + Firestore rules). Covers smoke/regression of
   every page, spec conformance (labels, thresholds, colours, tier gating vs Andrew's
   spec), clicking every button/filter/toggle, data sanity (no NaN/$0/undefined, plausible
@@ -27,10 +27,10 @@ payloads) yourself.
 | Persona | Created how | Session file | What it proves |
 |---|---|---|---|
 | **qa1**, new free user | real sign-up form | `AUTH.plus` | Basic + Plus only, never any Pro |
-| **qa2**, subscriber | sign-up, then **Grant Pro** in Profile → Subscription (the temporary testing button) | `AUTH.pro` | full Pro, and Plus pages still show the Plus version |
-| **qa3**, admin, *not subscribed* | sign-up, then the harness sets `role: admin` (stands in for a superadmin's Role Management change) | `AUTH.admin` | Pro admin pages work; Pro tabs stay **locked** (admin ≠ Pro) |
+| **qa2**, subscriber | sign-up, then **qa3 grants Pro (1 month) on `/admin/subscriptions`**, the real admin tool | `AUTH.pro` | full Pro, and Plus pages still show the Plus version |
+| **qa3**, superadmin, *not subscribed* | sign-up, then the harness sets `role: superadmin` (stands in for a Role Management change) | `AUTH.admin` | admin pages and the Subscriptions tool work; Pro tabs stay **locked** (admin ≠ Pro) |
 
-- `qa/global-setup.ts` deletes leftovers, signs all three up through the gate's Sign Up modal, and marks the email verified with the Admin SDK (what clicking the email link does). It then logs in through the Log In modal, saves sessions (`indexedDB: true`), runs qa2's Grant Pro and promotes qa3.
+- `qa/global-setup.ts` deletes leftovers, signs all three up through the gate's Sign Up modal, and marks the email verified with the Admin SDK (what clicking the email link does). It then logs in through the Log In modal, saves sessions (`indexedDB: true`), promotes qa3 to superadmin, then has qa3 grant qa2 Pro through the Subscriptions page.
 - `qa/global-teardown.ts` deletes the accounts (auth, `users` doc and subcollections, `subscriptions`, `user_prefs`) and every `[QA]` doc in `pro_*`. `QA_KEEP_ACCOUNTS=1` keeps them for manual inspection.
 - `qa/personas.ts` refuses to run unless both the app and the service account are **kumami-dev**. Never point QA at production (`kumami-6df47`).
 - **Scope (Andrew, 10 Oct 2026):** deep-test Plus/Pro work that isn't live on kumami.world yet. Existing live features only get smoke-loaded. QA3 only uses the Pro dashboard admin pages (`/admin/pro-*`). **Ask Andrew before any admin-dashboard change.**
@@ -113,6 +113,7 @@ Re-run until the suite is clean, or remaining items are listed as known issues. 
 - First-visit overlays (the guided tour, high-impact popups) block clicks for fresh accounts. `openPage` dismisses them. A test that asserts on a popup must target it by name (`getByRole('dialog', { name: '…' })`), because the tour can be open at the same time.
 - On mobile, the workspace toggle is icon-only and the sidebar is a drawer. Skip text-label navigation tests there (`test.skip(isMobile, …)`) and cover them on desktop.
 - The shared market cache lives in Firestore. Data you see may be up to one TTL old.
+- One big Playwright run can exhaust memory on Andrew's machine (Claude Code then stops it). Run suites in chunks (see the QA report's re-run commands).
 - Real bugs caught by the first runs: duplicate React keys from repeated macro events (calendar), and "Spot buying $0M" on Spot Pulse cards (sub-$1M amounts).
 
 ## Safety

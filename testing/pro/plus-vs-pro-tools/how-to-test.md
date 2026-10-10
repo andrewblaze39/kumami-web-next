@@ -6,16 +6,16 @@ Each market tool has a cut-down **Plus** version and a complete **Pro** version.
 
 ## Prerequisites
 - `npm run dev` → http://localhost:3000 (kumami-dev).
-- Two accounts: one **free** account, plus your own account. Use the temporary **Grant Pro / Remove Pro** buttons (Profile → Subscription) to switch your account between subscribed and not subscribed. They do what a real subscription will do. ⚠️ These buttons are for testing only and get removed before release.
+- Two accounts: one **free** account and one test account to make Pro. As a **superadmin**, grant or remove Pro at **Admin → Administration → Subscriptions** (`/admin/subscriptions`); see `testing/admin/subscriptions/how-to-test.md`.
 
-## Step 1 — Not subscribed (free account, or your account after "Remove Pro")
+## Step 1 — Not subscribed (free account, or the test account after Remove Pro)
 1. Workspace **Plus**. ✅ The sidebar shows **Flow Radar Plus** and **Watchlist Plus**.
 2. **Flow Radar Plus:** ✅ title "Flow Radar Plus", a **"Delayed 15m"** chip, only BTC/ETH/SOL/BNB/HYPE events, no **LOW** filter, no "Flow balance" panel. Right after a server start it may say "The 15-minute delayed feed is starting".
 3. **Watchlist Plus:** ✅ exactly 5 rows (BTC, ETH, SOL, BNB, HYPE), no "Add a ticker" box, no "Also Worth Watching", and an **Open Watchlist Pro** button.
 4. **On-Chain Insights:** ✅ the Spot Pulse panel has 5 tiles, **no "15-min delayed" text**, and an **Unlock Spot Pulse Pro →** link.
 5. Workspace **Pro** → open **any** Pro tab (e.g. `/world/pro?tab=flowradar`, `?tab=watchlist`, `?tab=spotpulse`, `?tab=research`). ✅ You always see the **Pro teaser**, never Pro content. Even an **admin** account sees the teaser if it isn't subscribed.
 
-## Step 2 — Subscribed (Profile → Subscription → **Grant Pro**)
+## Step 2 — Subscribed (Admin → Subscriptions → **Grant Pro** for the test account)
 1. Workspace **Pro** → **Tools**. ✅ It lists **Flow Radar Pro, Watchlist Pro, Spot Pulse Pro**, then Security Scanner, Market Cap Comparison, Airdrops & Whitelist.
 2. **Flow Radar Pro:** ✅ "Live" (no delay chip), a **LOW** filter, the **Flow balance** panel, and coins beyond the 5 majors.
 3. **Watchlist Pro:** ✅ the 5 anchors, then **Your Watchlist**: type `DOGE` and click **Pin** → "1/15 assets tracked"; remove it (desktop: **Remove**; phone: **×** next to the coin) → "0/15". Then **Also Worth Watching** shows up to 5 extra coins, never the anchors, your pins or stablecoins, labelled "In Flow Radar n of the last 7 days" or "building 7-day history (n/7 days)".
@@ -23,7 +23,7 @@ Each market tool has a cut-down **Plus** version and a complete **Pro** version.
 5. Go back to the **Plus** workspace → Flow Radar Plus / Watchlist Plus. ✅ Still the **Plus** versions (Plus pages are Plus for everyone).
 
 ## Step 3 — Remove Pro
-Profile → Subscription → **Remove Pro** → reload → ✅ every Pro tab shows the teaser again.
+Admin → Subscriptions → **Remove Pro** → reload as the test account → ✅ every Pro tab shows the teaser again.
 
 ## Pass criteria
 ✅ Non-subscribers (admins included) never see Pro content or Pro data · ✅ subscribers see all three Pro tools under Tools · ✅ Plus pages show the Plus versions for every account · ✅ no red console errors.
