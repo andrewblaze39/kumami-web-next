@@ -148,7 +148,9 @@ export function coinLogo(sym: string): string | null {
 export function CoinBadge({ sym, size, className = 'w-coin' }: { sym: string; size?: number; className?: string }) {
   const logo = coinLogo(sym);
   const [failed, setFailed] = useState(false);
-  const dims: CSSProperties = size ? { width: size, height: size } : {};
+  // flex-basis too: some contexts (.w-regime-chip .w-coin { flex: 0 0 24px }) would
+  // otherwise stretch the width past `size` and turn the round logo into an oval.
+  const dims: CSSProperties = size ? { width: size, height: size, flex: `0 0 ${size}px`, minWidth: size } : {};
   if (logo && !failed) {
     return (
       // eslint-disable-next-line @next/next/no-img-element -- tiny static icons; next/image adds nothing here
@@ -159,7 +161,7 @@ export function CoinBadge({ sym, size, className = 'w-coin' }: { sym: string; si
         loading="lazy"
         className={className}
         onError={() => setFailed(true)}
-        style={{ ...dims, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, background: 'transparent', padding: 0 }}
+        style={{ flexShrink: 0, ...dims, aspectRatio: '1 / 1', borderRadius: '50%', objectFit: 'cover', background: 'transparent', padding: 0 }}
       />
     );
   }

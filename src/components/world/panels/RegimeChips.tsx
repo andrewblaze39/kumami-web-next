@@ -53,7 +53,7 @@ export default function RegimeChips({ chips, loading }: Props) {
           >
             <div className="w-rc-top">
               <span className="w-sym">
-                <CoinBadge sym={chip.asset} size={17} />
+                <CoinBadge sym={chip.asset} size={24} />
                 {chip.asset}
               </span>
               {chip.change24h !== null ? (

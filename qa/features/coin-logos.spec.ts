@@ -13,6 +13,11 @@ async function checkBadges(page: Page, min: number) {
   const broken = await page.locator('img.w-coin').evaluateAll((els) =>
     (els as HTMLImageElement[]).filter((i) => i.complete && i.naturalWidth === 0).map((i) => i.src));
   expect(broken, 'logo images that failed to load').toEqual([]);
+  // Round, not oval: every badge is as wide as it is tall.
+  const ovals = await page.locator('img.w-coin, span.w-coin').evaluateAll((els) =>
+    els.map((e) => e.getBoundingClientRect()).filter((r) => r.width > 0 && Math.abs(r.width - r.height) > 0.5)
+      .map((r) => `${r.width.toFixed(1)}×${r.height.toFixed(1)}`));
+  expect(ovals, 'coin badges that are not square (oval logos)').toEqual([]);
   const letters = await page.locator('span.w-coin').allInnerTexts();
   const symbolsWithLetters = await page.locator('span.w-coin').evaluateAll((els) =>
     els.map((e) => e.closest('[class]')?.parentElement?.textContent ?? ''));
