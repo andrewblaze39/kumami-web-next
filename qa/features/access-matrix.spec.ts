@@ -1,7 +1,9 @@
 /**
  * QA — Plus vs Pro access layer: nothing Pro may leak to non-subscribers.
- * Part of the standard regression (Andrew, 10 Oct 2026). Personas (fresh each run):
- *   qa1 = new free user · qa2 = Pro (granted by qa3 on /admin/subscriptions) · qa3 = superadmin, NOT subscribed
+ * Part of the standard regression (Andrew, 10 Oct 2026). Personas:
+ *   qa1 = fixed free user · qa2 = fixed Pro (granted by qa3 on /admin/subscriptions) · qa3 = fixed superadmin, NOT subscribed
+ *   qa0 = brand-new account every run — the Firestore-rules probes and the Subscriptions
+ *         grant/expiry/remove tests use it, so the fixed accounts are never changed.
  * Rule (spec v1.6): Pro = subscribed (isPremium) ONLY — admin roles don't unlock Pro;
  * Plus pages are always the cut-down Plus version, even for Pro accounts.
  *
@@ -15,6 +17,7 @@ import { expect, test, type Browser, type Page } from '@playwright/test';
 import { AUTH, apiAsUser, guard, openPage, type Role } from '../helpers';
 import { Timestamp } from 'firebase-admin/firestore';
 import { admin, readPersonas } from '../personas';
+import { deleteQaDocs } from '../admin-data';
 
 const PRO_TABS = [
   'digest', 'followhub', 'flowradar', 'watchlist', 'spotpulse', 'realtimenews', 'alpha', 'research',
@@ -204,16 +207,17 @@ test.describe('API — Pro data only for subscribers', () => {
 
 test.describe('Cross-check — QA3 publishes Pro research', () => {
   test.describe.configure({ mode: 'serial' });
-  const title = `[QA] Access check ${Date.now().toString(36)}`;
+  const title = `[TEST] Access check ${Date.now().toString(36)}`;
+  test.afterAll(async () => { await deleteQaDocs('pro_research', 'name', ['[TEST] Access check']); });
 
   test('qa3 publishes; qa2 sees it on Kumami Research; qa1 gets the teaser', async ({ browser }) => {
     await as(browser, 'admin', async (page) => {
       await openPage(page, '/admin/pro-research', { ready: 'form' });
       const form = page.locator('form').first();
       await form.locator('input').nth(0).fill(title);
-      await form.locator('input').nth(1).fill('QA analyst');
+      await form.locator('input').nth(1).fill('[TEST] QA analyst');
       await form.locator('input').nth(2).fill('BTC');
-      await form.locator('textarea').nth(0).fill('Temporary QA call — deleted automatically.');
+      await form.locator('textarea').nth(0).fill('[TEST] Temporary access-check call — deleted automatically.');
       await page.getByRole('button', { name: /^Publish$/ }).click();
       await expect(page.getByText('Research call published!')).toBeVisible();
     });
@@ -235,45 +239,45 @@ test.describe('Cross-check — QA3 publishes Pro research', () => {
 
 test.describe('Firestore rules — a free user must not grant themselves Pro', () => {
   test.describe.configure({ mode: 'serial' });
-  let qa1Uid = '';
-  test.beforeAll(() => { qa1Uid = readPersonas().qa1.uid!; });
+  let qa0Uid = '';
+  test.beforeAll(() => { qa0Uid = readPersonas().qa0.uid!; });
   test.afterAll(async () => {
     // Undo anything a hole let through, so later specs see a clean free user.
-    await admin().db.collection('users').doc(qa1Uid).set({ isPremium: false, role: 'user' }, { merge: true });
-    const subs = await admin().db.collection('subscriptions').where('userId', '==', qa1Uid).get();
+    await admin().db.collection('users').doc(qa0Uid).set({ isPremium: false, role: 'user' }, { merge: true });
+    const subs = await admin().db.collection('subscriptions').where('userId', '==', qa0Uid).get();
     await Promise.all(subs.docs.map((d) => d.ref.delete()));
   });
 
-  test('qa1 cannot set isPremium=true on their own user doc', async ({ browser }) => {
+  test('qa0 cannot set isPremium=true on their own user doc', async ({ browser }) => {
     test.fail(true, 'KNOWN HOLE: users/{uid} allows the owner to update ANY field — fix needs a rules deploy (awaiting Andrew).');
-    await as(browser, 'plus', async (page) => {
+    await as(browser, 'fresh', async (page) => {
       await openPage(page, '/world/console');
-      const r = await firestore(page, 'PATCH', `users/${qa1Uid}?updateMask.fieldPaths=isPremium`, { fields: { isPremium: { booleanValue: true } } });
+      const r = await firestore(page, 'PATCH', `users/${qa0Uid}?updateMask.fieldPaths=isPremium`, { fields: { isPremium: { booleanValue: true } } });
       expect(r.status, 'self-upgrade to Pro was allowed').toBe(403);
     });
   });
 
-  test('qa1 cannot make themselves superadmin', async ({ browser }) => {
+  test('qa0 cannot make themselves superadmin', async ({ browser }) => {
     test.fail(true, 'KNOWN HOLE: same rule — owner can write their own role.');
-    await as(browser, 'plus', async (page) => {
+    await as(browser, 'fresh', async (page) => {
       await openPage(page, '/world/console');
-      const r = await firestore(page, 'PATCH', `users/${qa1Uid}?updateMask.fieldPaths=role`, { fields: { role: { stringValue: 'superadmin' } } });
+      const r = await firestore(page, 'PATCH', `users/${qa0Uid}?updateMask.fieldPaths=role`, { fields: { role: { stringValue: 'superadmin' } } });
       expect(r.status, 'self-promotion to superadmin was allowed').toBe(403);
     });
   });
 
-  test('qa1 cannot create an active subscription for themselves', async ({ browser }) => {
+  test('qa0 cannot create an active subscription for themselves', async ({ browser }) => {
     test.fail(true, 'KNOWN HOLE: subscriptions allow create by the owner with any status.');
-    await as(browser, 'plus', async (page) => {
+    await as(browser, 'fresh', async (page) => {
       await openPage(page, '/world/console');
-      const r = await firestore(page, 'POST', 'subscriptions', { fields: { userId: { stringValue: qa1Uid }, status: { stringValue: 'active' }, planId: { stringValue: 'pro' } } });
+      const r = await firestore(page, 'POST', 'subscriptions', { fields: { userId: { stringValue: qa0Uid }, status: { stringValue: 'active' }, planId: { stringValue: 'pro' } } });
       expect(r.status, 'self-created active subscription was allowed').toBe(403);
     });
   });
 
-  test('qa1 cannot read Pro dashboard content directly', async ({ browser }) => {
+  test('qa0 cannot read Pro dashboard content directly', async ({ browser }) => {
     test.fail(true, 'KNOWN HOLE: pro_* collections are publicly readable (allow read: if true for pro_*).');
-    await as(browser, 'plus', async (page) => {
+    await as(browser, 'fresh', async (page) => {
       await openPage(page, '/world/console');
       const r = await firestore(page, 'GET', 'pro_research');
       expect(r.status, 'non-subscriber read pro_research directly').toBe(403);
@@ -287,14 +291,14 @@ test.describe('Firestore rules — a free user must not grant themselves Pro', (
 
 test.describe('Subscriptions admin tool — grant, expiry, remove', () => {
   test.describe.configure({ mode: 'serial' });
-  let qa1: { uid: string; email: string };
-  test.beforeAll(() => { const p = readPersonas().qa1; qa1 = { uid: p.uid!, email: p.email }; });
+  let qa0: { uid: string; email: string };
+  test.beforeAll(() => { const p = readPersonas().qa0; qa0 = { uid: p.uid!, email: p.email }; });
   test.afterAll(async () => {
-    await admin().db.collection('users').doc(qa1.uid).set({ isPremium: false, proUntil: null, subscriptionStatus: 'cancelled-immediate' }, { merge: true });
+    await admin().db.collection('users').doc(qa0.uid).set({ isPremium: false, proUntil: null, subscriptionStatus: 'cancelled-immediate' }, { merge: true });
   });
 
   test('only superadmins can call the grant API', async ({ browser }) => {
-    for (const role of ['plus', 'pro'] as const) {
+    for (const role of ['fresh', 'plus', 'pro'] as const) {
       await as(browser, role, async (page) => {
         await openPage(page, '/world/console');
         const status = await page.evaluate(async (uid) => {
@@ -305,36 +309,36 @@ test.describe('Subscriptions admin tool — grant, expiry, remove', () => {
           const token = rows.map((r) => r.value?.stsTokenManager?.accessToken).find(Boolean);
           const res = await fetch('/api/admin/subscription', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ uid, action: 'grant', months: 1 }) });
           return res.status;
-        }, qa1.uid);
+        }, qa0.uid);
         expect(status, `${role} could grant Pro`).toBe(403);
       });
     }
   });
 
-  test('qa3 grants qa1 Pro for 1 month → qa1 gets Pro', async ({ browser }) => {
+  test('qa3 grants qa0 Pro for 1 month → qa0 gets Pro', async ({ browser }) => {
     await as(browser, 'admin', async (page) => {
       page.on('dialog', (d) => d.accept());
       await openPage(page, '/admin/subscriptions', { ready: 'text=Subscriptions' });
-      await page.getByPlaceholder('Search by email or name').fill(qa1.email);
-      const row = page.locator(`tr[data-user-email="${qa1.email}"]`);
-      await row.getByLabel(`Duration for ${qa1.email}`).selectOption('1');
+      await page.getByPlaceholder('Search by email or name').fill(qa0.email);
+      const row = page.locator(`tr[data-user-email="${qa0.email}"]`);
+      await row.getByLabel(`Duration for ${qa0.email}`).selectOption('1');
       await row.getByRole('button', { name: 'Grant Pro' }).click();
       await expect(row.getByRole('button', { name: 'Remove Pro' })).toBeVisible({ timeout: 30_000 });
       await expect(row).toContainText('Pro');
     });
-    const d = (await admin().db.collection('users').doc(qa1.uid).get()).data()!;
+    const d = (await admin().db.collection('users').doc(qa0.uid).get()).data()!;
     expect(d.isPremium).toBe(true);
     expect(d.proUntil?.toMillis() - Date.now()).toBeGreaterThan(27 * 86_400_000);
-    await as(browser, 'plus', async (page) => {
+    await as(browser, 'fresh', async (page) => {
       await openPage(page, '/world/pro?tab=flowradar');
       await expect(page.locator('.w-pro-teaser')).toHaveCount(0);
       await expect(page.getByRole('heading', { name: /Flow Radar Pro/ })).toBeVisible();
     });
   });
 
-  test('an expired grant locks qa1 out again (UI + API)', async ({ browser }) => {
-    await admin().db.collection('users').doc(qa1.uid).set({ proUntil: Timestamp.fromMillis(Date.now() - 60_000) }, { merge: true });
-    await as(browser, 'plus', async (page) => {
+  test('an expired grant locks qa0 out again (UI + API)', async ({ browser }) => {
+    await admin().db.collection('users').doc(qa0.uid).set({ proUntil: Timestamp.fromMillis(Date.now() - 60_000) }, { merge: true });
+    await as(browser, 'fresh', async (page) => {
       await openPage(page, '/world/pro?tab=flowradar');
       await expect(page.locator('.w-pro-teaser')).toBeVisible();
       const fr = await apiAsUser<{ delayed: boolean }>(page, '/api/market/flow-radar?view=pro');
@@ -343,17 +347,17 @@ test.describe('Subscriptions admin tool — grant, expiry, remove', () => {
   });
 
   test('qa3 removes Pro → status Free', async ({ browser }) => {
-    await admin().db.collection('users').doc(qa1.uid).set({ proUntil: null }, { merge: true }); // active again, to remove it
+    await admin().db.collection('users').doc(qa0.uid).set({ proUntil: null }, { merge: true }); // active again, to remove it
     await as(browser, 'admin', async (page) => {
       page.on('dialog', (d) => d.accept());
       await openPage(page, '/admin/subscriptions', { ready: 'text=Subscriptions' });
-      await page.getByPlaceholder('Search by email or name').fill(qa1.email);
-      const row = page.locator(`tr[data-user-email="${qa1.email}"]`);
+      await page.getByPlaceholder('Search by email or name').fill(qa0.email);
+      const row = page.locator(`tr[data-user-email="${qa0.email}"]`);
       await row.getByRole('button', { name: 'Remove Pro' }).click();
       await expect(row.getByRole('button', { name: 'Grant Pro' })).toBeVisible({ timeout: 30_000 });
       await expect(row).toContainText('Free');
     });
-    const audit = await admin().db.collection('admin_audit').where('targetUid', '==', qa1.uid).get();
+    const audit = await admin().db.collection('admin_audit').where('targetUid', '==', qa0.uid).get();
     expect(audit.size, 'grant + remove should be audited').toBeGreaterThanOrEqual(2);
   });
 });

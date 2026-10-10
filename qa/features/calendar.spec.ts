@@ -21,7 +21,7 @@ async function dismissPopupIfAny(page: Page) {
 }
 
 test.afterAll(async () => {
-  await deleteQaDocs('pro_calendar');
+  await deleteQaDocs('pro_calendar', 't', [`${QA_PREFIX} Round-trip`, `${QA_PREFIX} Draft must stay hidden`]);
 });
 
 test.describe('Calendar — CoinGlass feeds: OFF by default, admin switches (QA3 ↔ QA1)', () => {
@@ -130,7 +130,7 @@ test.describe('Calendar — admin round trip (QA3 admin authors, QA1 free user v
     await form.locator('select').nth(0).selectOption(opts.impact ?? 'high');
     await form.locator('select').nth(1).selectOption('Project');
     await form.getByPlaceholder(/BTC, ETH/).fill('eth');
-    await form.locator('textarea').fill('Temporary QA event — deleted automatically.');
+    await form.locator('textarea').fill('Temporary round-trip event — deleted automatically.');
   }
 
   async function calendarHas(page: Page, text: string) {

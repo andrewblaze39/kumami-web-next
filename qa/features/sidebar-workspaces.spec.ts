@@ -67,19 +67,19 @@ test.describe('Plus account', () => {
   });
 });
 
-test.describe('Sign-up name', () => {
-  test.use({ storageState: AUTH.plus });
+test.describe('Sign-up name (qa0, fresh account)', () => {
+  test.use({ storageState: AUTH.fresh });
   test('the name typed at sign-up shows in the sidebar, and can be edited in Profile', async ({ page }) => {
     await openPage(page, '/world/console');
-    await expect(page.locator('.w-sidebar-foot')).toContainText('QA1 Free');
+    await expect(page.locator('.w-sidebar-foot')).toContainText('QA0 New');
     await page.goto('/world/profile');
     const input = page.locator('#profile-name');
-    await expect(input).toHaveValue('QA1 Free', { timeout: 30_000 });
-    await input.fill('QA1 Renamed');
+    await expect(input).toHaveValue('QA0 New', { timeout: 30_000 });
+    await input.fill('QA0 Renamed');
     await page.getByRole('button', { name: 'Save', exact: true }).click();
     await page.waitForLoadState('load');
     await openPage(page, '/world/console');
-    await expect(page.locator('.w-sidebar-foot')).toContainText('QA1 Renamed', { timeout: 30_000 });
+    await expect(page.locator('.w-sidebar-foot')).toContainText('QA0 Renamed', { timeout: 30_000 });
   });
 });
 

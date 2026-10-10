@@ -18,7 +18,10 @@ function usePublished(coll: string, map: (id: string, d: Record<string, unknown>
   useEffect(() => {
     const q = query(collection(db, coll), where('status', '==', 'published'));
     const unsub = onSnapshot(q, (snap) => {
-      setRows(snap.docs.slice(0, take * 4).map((d) => map(d.id, d.data())).slice(0, take));
+      // Newest first (single-field query → no composite index; sort on the client).
+      const secs = (d: { get(f: string): unknown }) => (d.get('createdAt') as { seconds?: number } | null)?.seconds ?? 0;
+      const docs = [...snap.docs].sort((x, y) => secs(y) - secs(x));
+      setRows(docs.slice(0, take).map((d) => map(d.id, d.data())));
     }, () => setRows([]));
     return () => unsub();
   }, [coll, take, map]);

@@ -149,7 +149,7 @@ The orchestrating skill is `kumami-feature-workflow`. It knows the stages and ca
 
 ## 8. Environment needed
 
-- `.env.local` (kumami-dev): Firebase public config, `COINGLASS_API_KEY`, `FIREBASE_SERVICE_ACCOUNT_JSON` (without it every `/api/market/*` call returns 401). No QA accounts are stored: each Playwright run signs up fresh personas (qa1 free, qa2 granted Pro by qa3, qa3 superadmin not subscribed) and deletes them afterwards.
+- `.env.local` (kumami-dev): Firebase public config, `COINGLASS_API_KEY`, `FIREBASE_SERVICE_ACCOUNT_JSON` (without it every `/api/market/*` call returns 401). QA personas: fixed qa1 (free), qa2 (Pro, granted by qa3) and qa3 (superadmin, not subscribed), whose credentials are generated into `.env.local` (`QA1_EMAIL`/`QA1_PASSWORD` …) on the first run; plus qa0, a brand-new account signed up every run and deleted after. `[TEST]` content qa3 creates is kept until the next run.
 - Playwright (`@playwright/test`, Chromium) for Stage 5. Setup and accounts: see `.claude/skills/kumami-qa/SKILL.md`.
 - CoinGlass plan: STARTUP. Locked endpoints are listed in the gap report's "Blocked" section.
 

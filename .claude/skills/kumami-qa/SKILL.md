@@ -2,12 +2,14 @@
 name: kumami-qa
 description: >-
   Workflow stage 5 — AI-driven QA of a Kumami feature with Playwright in a real browser,
-  using three personas signed up fresh each run on kumami-dev (qa1 free user, qa2 granted
-  Pro by qa3 on the admin Subscriptions page, qa3 superadmin who is not subscribed), always including the Plus-vs-Pro
+  using four personas on kumami-dev (qa0 brand-new account every run; fixed qa1 free user,
+  qa2 Pro granted by qa3 on the admin Subscriptions page, qa3 superadmin who is not
+  subscribed), always including the Plus-vs-Pro
   access/leak matrix (UI + direct API + Firestore rules). Covers smoke/regression of
   every page, spec conformance (labels, thresholds, colours, tier gating vs Andrew's
   spec), clicking every button/filter/toggle, data sanity (no NaN/$0/undefined, plausible
-  numbers, API payload matches the UI), the admin publish/draft/edit/delete round trip,
+  numbers, API payload matches the UI), the admin-content suite (qa3 authors "[TEST]" items
+  in every Plus/Pro admin page, qa2 verifies them, qa1 stays locked),
   and desktop + mobile screenshots that are actually looked at. Finds bugs, fixes them,
   re-runs, then writes the QA report (docs/qa/) and the manual how-to-test file
   (testing/<area>/<feature>/how-to-test.md). Use after every build before reporting
@@ -22,16 +24,19 @@ Andrew does**, not to produce green ticks. A test that passes on the loading
 splash is worse than no test, so always look at the evidence (screenshots,
 payloads) yourself.
 
-## Personas (fresh every run, kumami-dev only)
+## Personas (kumami-dev only — Andrew, 10 Oct 2026)
 
 | Persona | Created how | Session file | What it proves |
 |---|---|---|---|
-| **qa1**, new free user | real sign-up form | `AUTH.plus` | Basic + Plus only, never any Pro |
-| **qa2**, subscriber | sign-up, then **qa3 grants Pro (1 month) on `/admin/subscriptions`**, the real admin tool | `AUTH.pro` | full Pro, and Plus pages still show the Plus version |
-| **qa3**, superadmin, *not subscribed* | sign-up, then the harness sets `role: superadmin` (stands in for a Role Management change) | `AUTH.admin` | admin pages and the Subscriptions tool work; Pro tabs stay **locked** (admin ≠ Pro) |
+| **qa0**, brand-new user, **fresh every run** | real sign-up form, deleted after the run | `AUTH.fresh` | the new-user path (sign-up name) and **every test that changes account state**: Grant / expiry / Remove Pro, Firestore-rules probes |
+| **qa1**, free user, *fixed* | created once through the sign-up form | `AUTH.plus` | Basic + Plus only, never any Pro |
+| **qa2**, subscriber, *fixed* | created once; **qa3 grants Pro (no end date) on `/admin/subscriptions`** whenever qa2 isn't Pro | `AUTH.pro` | full Pro, and Plus pages still show the Plus version |
+| **qa3**, superadmin, *not subscribed*, *fixed* | created once; the harness sets `role: superadmin` (stands in for a Role Management change) | `AUTH.admin` | admin pages and the Subscriptions tool work; Pro tabs stay **locked** (admin ≠ Pro); authors all `[TEST]` content |
 
-- `qa/global-setup.ts` deletes leftovers, signs all three up through the gate's Sign Up modal, and marks the email verified with the Admin SDK (what clicking the email link does). It then logs in through the Log In modal, saves sessions (`indexedDB: true`), promotes qa3 to superadmin, then has qa3 grant qa2 Pro through the Subscriptions page.
-- `qa/global-teardown.ts` deletes the accounts (auth, `users` doc and subcollections, `subscriptions`, `user_prefs`) and every `[QA]` doc in `pro_*`. `QA_KEEP_ACCOUNTS=1` keeps them for manual inspection.
+- Fixed accounts' credentials live in `.env.local` (`QA1_EMAIL`/`QA1_PASSWORD` … `QA3_*`), generated and appended automatically the first time. Missing accounts are re-created. Every run **re-asserts** their state (qa1 free, qa3 superadmin + not Pro, qa2 Pro with no end date, Pro follows cleared), so a broken earlier run can't leave them dirty. **Never mutate qa1/qa2/qa3 in a test — use qa0.**
+- `qa/global-setup.ts`, in order: deletes last run's throw-away accounts (`qa0-<run>@…`) and **every `[TEST]` item** in the admin-managed collections (+ the Market Analysis test image), prepares qa3 → qa1 → qa2 → qa0 (sign-up through the gate modal when needed; marks the email verified with the Admin SDK — what clicking the email link does), logs each in through the Log In modal and saves sessions (`indexedDB: true`), then has qa3 grant qa2 Pro on the Subscriptions page if needed. `qa/.auth/personas.json` holds the run's emails/uids (no passwords).
+- `qa/global-teardown.ts` deletes **only qa0**. `[TEST]` content is **kept until the next run** so Andrew can look at it (so run `admin-content.spec.ts` last if he should see it). `QA_KEEP_ACCOUNTS=1` keeps qa0 too.
+- **Test content:** every free-text value qa3 types starts with `[TEST]` (tickers like ETH and dropdown values stay as-is). Make items believable — a real-sounding analyst, airdrop, headline, event.
 - `qa/personas.ts` refuses to run unless both the app and the service account are **kumami-dev**. Never point QA at production (`kumami-6df47`).
 - **Scope (Andrew, 10 Oct 2026):** deep-test Plus/Pro work that isn't live on kumami.world yet. Existing live features only get smoke-loaded. QA3 only uses the Pro dashboard admin pages (`/admin/pro-*`). **Ask Andrew before any admin-dashboard change.**
 - **Requirements:** `.env.local` (kumami-dev) with `FIREBASE_SERVICE_ACCOUNT_JSON`, plus `npx playwright install chromium` once. If a dev server is already running on :3000 (often Andrew's), Playwright reuses it. Don't kill it.
@@ -41,10 +46,12 @@ payloads) yourself.
 | File | What |
 |---|---|
 | `playwright.config.ts` | `desktop` (1440×900) and `mobile` (Pixel 7) projects. Reuses a dev server on :3000 or starts `npm run dev`. Runs serially. |
-| `qa/global-setup.ts` | Signs in both accounts and saves sessions to `qa/.auth/*.json` (Firebase auth lives in IndexedDB, so it's saved with `indexedDB: true`). Then warms the data pages (cold dev routes plus an empty market cache time out otherwise). `QA_SKIP_WARMUP=1` skips the warm-up. |
+| `qa/personas.ts` | Persona definitions, kumami-dev guard, `deleteFreshAccounts()`, `deleteTestContent()` (all `[TEST]` docs in `pro_research`, `pro_airdrops`, `pro_calendar`, `pro_news`, `pro_events`, `alphaRoom`, `marketAnalysis`), `TEST_IMAGE`. |
+| `qa/global-setup.ts` | Cleans up the previous run, prepares the four personas and saves sessions to `qa/.auth/*.json` (Firebase auth lives in IndexedDB, so it's saved with `indexedDB: true`). Then warms the data pages (cold dev routes plus an empty market cache time out otherwise). `QA_SKIP_WARMUP=1` skips the warm-up. |
 | `qa/helpers.ts` | `guard(page)` records console errors, page errors and failed `/api` calls, checked with `.assertClean()`. `openPage(page, path, {ready})` waits for the real shell (not the splash), catches redirects to the gate, and waits for skeletons to clear. `expectSaneText(page, allow)` flags NaN, undefined, null, `[object Object]`, Infinity, `$0`, % ≥ 200, "coinglass" and lorem ipsum. `snap()` saves screenshots. `apiAsUser(page, '/api/market/x')` returns the payload exactly as the signed-in user gets it. |
 | `qa/smoke.spec.ts` | Every Plus page (qa1), every Pro tab (qa2) and every Pro admin page (qa3). Justified exceptions go in `ALLOW_TEXT`. |
-| `qa/features/access-matrix.spec.ts` | **Mandatory in every QA pass.** Plus vs Pro leak checks: UI per persona (every Pro tab locked for qa1/qa3 with no `view=pro` calls; open for qa2; Plus pages = Plus version for all), direct API calls with each persona's token (`?view=pro` gets Pro data only for qa2; pinning and wallet lookup 403 for non-subscribers), a QA3 → QA2/QA1 cross-check (published `[QA]` research visible to qa2 only), and Firestore-rules probes via REST. |
+| `qa/features/access-matrix.spec.ts` | **Mandatory in every QA pass.** Plus vs Pro leak checks: UI per persona (every Pro tab locked for qa1/qa3 with no `view=pro` calls; open for qa2; Plus pages = Plus version for all), direct API calls with each persona's token (`?view=pro` gets Pro data only for qa2; pinning and wallet lookup 403 for non-subscribers), a QA3 → QA2/QA1 cross-check (published `[TEST]` research visible to qa2 only), Firestore-rules probes via REST (as qa0), and the Subscriptions tool grant → expiry → remove (on qa0). |
+| `qa/features/admin-content.spec.ts` | **Run whenever admin-managed Plus/Pro content or its tabs change.** qa3 authors believable `[TEST]` items in every admin page — Kumami Research, Airdrops & Whitelist (+ checklist), Real-Time News, Events (live + Q&A, upcoming, past/replay), Calendar team events, Alpha Room, Market Analysis (image upload, `qa/fixtures/qa-test-chart.png`) — with publish, draft, edit and delete of a spare. qa2 checks every field renders in the right place (badges, colours, order, details, Follow → Following & Alerts by name, Q&A ask + single upvote, Daily Digest roll-up); qa1 sees the teaser and no `[TEST]` text. Desktop only. |
 | `qa/features/<feature>.spec.ts` | One per feature, written by you from the plan's QA checklist. |
 
 ```bash
@@ -69,12 +76,13 @@ Cover all of these that apply:
 - **Spec conformance:** fetch the payload with `apiAsUser` and check that what's rendered matches it. Where a rule engine exists, import it (e.g. `import { computeRegime } from '../../src/lib/market/rules/regime'`) and check that its output for the live inputs equals the label and colour on screen. Check tier gating with both accounts: Plus must not see Pro-only sections, and Pro must.
 - **Interaction:** click every button, filter chip, toggle, tab, month arrow, link and popup action. Assert the visible result changes as expected (filtered counts, URL, open/close state), and that nothing throws.
 - **Data sanity:** sums match (e.g. Flow Balance bullish + bearish = sum of events), timestamps are fresh (`updatedAt` within its TTL), no impossible values (negative volume, >100% shares, future "last updated"), and empty and error states are honest.
-- **Admin round trip** (admin-authored content), with the Pro account in `/admin/…`:
-  1. Publish an item titled `[QA] …` and check it appears on the user page.
+- **Admin round trip** (admin-authored content), qa3 in `/admin/…` (extend `admin-content.spec.ts` for new content types):
+  1. Publish an item titled `[TEST] …` and check it appears on the user page for qa2 (and not for qa1 if it's Pro).
   2. Save a draft and check it does **not** appear.
   3. Edit the published item and check the change shows.
   4. Delete it and check it's gone.
-  5. Always clean up in `afterAll` (via the admin UI, or firebase-admin as a fallback, deleting docs whose title starts with `[QA]`).
+  5. Delete a spare item and check it's gone. Keep the main `[TEST]` items (the next run deletes them). Throw-away items made only to test edit/delete can be removed in `afterAll` with `deleteQaDocs(collection, field, prefixes)` from `qa/admin-data.ts`.
+  6. Wait for each save to finish (message **and** form reset — the `submit()` helper) before filling the next item; a stale identical message passes too early.
 - **Visual:** `snap()` the key states at desktop and mobile width.
 
 Use role and text selectors (`getByRole`, `getByText`) over CSS where possible. Never use `waitForTimeout` as an assertion; wait for a concrete state instead.
@@ -118,5 +126,5 @@ Re-run until the suite is clean, or remaining items are listed as known issues. 
 
 ## Safety
 - Only ever kumami-dev. Never point Playwright or the account script at production.
-- Test content always starts with `[QA]` and is deleted afterwards.
+- Test content always starts with `[TEST]`; it stays until the next run's setup deletes it.
 - Never print QA passwords or the service account.

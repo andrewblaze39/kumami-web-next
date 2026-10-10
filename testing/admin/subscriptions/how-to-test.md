@@ -3,7 +3,7 @@
 Superadmins can give a user Pro for 1 month, 3 months, 12 months or with no end date, or remove it. It works on production too. Every change is recorded.
 
 - **Where:** Admin dashboard → **Administration → Subscriptions** (`/admin/subscriptions`)
-- **Automated:** `npx playwright test qa/features/access-matrix.spec.ts --project=desktop -g "Subscriptions admin tool"` (QA report: `docs/qa/2026-10-10-subscriptions-and-fixes.md`)
+- **Automated:** `npx playwright test qa/features/access-matrix.spec.ts --project=desktop -g "Subscriptions admin tool"` — runs on qa0, a brand-new account each run (QA report: `docs/qa/2026-10-10-subscriptions-and-fixes.md`)
 
 ## Prerequisites
 - A **superadmin** account (yours), and a normal test account that isn't subscribed.

@@ -8,10 +8,14 @@
  */
 import { expect, type Page, type TestInfo } from '@playwright/test';
 
-/** plus = qa1 (new free user) · pro = qa2 (granted Pro by qa3) · admin = qa3 (superadmin, not subscribed). See personas.ts. */
-export type Role = 'plus' | 'pro' | 'admin';
+/**
+ * plus = qa1 (fixed free user) · pro = qa2 (fixed, Pro granted by qa3) · admin = qa3 (fixed superadmin, not subscribed)
+ * · fresh = qa0 (brand-new account every run — use it for anything that changes account state). See personas.ts.
+ */
+export type Role = 'fresh' | 'plus' | 'pro' | 'admin';
 
 export const AUTH: Record<Role, string> = {
+  fresh: 'qa/.auth/qa0.json',
   plus: 'qa/.auth/qa1.json',
   pro: 'qa/.auth/qa2.json',
   admin: 'qa/.auth/qa3.json',

@@ -1,13 +1,14 @@
 /**
- * Firestore access for QA cleanup (kumami-dev only). Specs that publish test
- * content through /admin call `deleteQaDocs()` in afterAll so a failed run
- * never leaves "[QA] …" items on the live dev site.
+ * Firestore access for QA cleanup (kumami-dev only). Every item QA creates
+ * through /admin starts with "[TEST]". The admin-content spec KEEPS its items
+ * (deleted at the start of the next run, see personas.deleteTestContent);
+ * throw-away items (e.g. the calendar round trip) are removed with `deleteQaDocs()`.
  */
 import { loadEnvConfig } from '@next/env';
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
-export const QA_PREFIX = '[QA]';
+export const QA_PREFIX = '[TEST]';
 
 function db() {
   loadEnvConfig(process.cwd(), true, { info() {}, error: console.error });
@@ -19,10 +20,10 @@ function db() {
   return getFirestore();
 }
 
-/** Delete every doc in `collection` whose `titleField` starts with "[QA]". Returns the count. */
-export async function deleteQaDocs(collection: string, titleField = 't'): Promise<number> {
+/** Delete docs in `collection` whose `titleField` starts with one of `prefixes`. Returns the count. */
+export async function deleteQaDocs(collection: string, titleField: string, prefixes: string[]): Promise<number> {
   const snap = await db().collection(collection).get();
-  const qa = snap.docs.filter((d) => String(d.get(titleField) ?? '').startsWith(QA_PREFIX));
+  const qa = snap.docs.filter((d) => prefixes.some((p) => String(d.get(titleField) ?? '').startsWith(p)));
   await Promise.all(qa.map((d) => d.ref.delete()));
   return qa.length;
 }

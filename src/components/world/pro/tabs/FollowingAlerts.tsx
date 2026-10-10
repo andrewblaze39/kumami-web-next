@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Bookmark, Shield, Check, X, Zap, RotateCcw } from 'lucide-react';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { useProState } from '../ProState';
 import { useLivePrices, isSupportedSymbol } from '@/lib/pro/useLivePrices';
 import { ProShellHead } from './shared';
@@ -12,9 +14,31 @@ const TRIGGERS = {
   sentiment: 'news sentiment flips',
 } as const;
 
-function labelForKey(key: string) {
+/**
+ * Follow keys are "<kind>:<id>" (e.g. "airdrop:<firestore id>"). Show the item's
+ * name, never the raw id; an airdrop that was deleted or unpublished says so.
+ */
+function labelForKey(key: string, airdropNames: Record<string, string> | null) {
   const [kind, rest] = key.split(':');
+  if (kind === 'airdrop' && rest) {
+    if (!airdropNames) return 'Airdrop';
+    return airdropNames[rest] ? `${airdropNames[rest]} · Airdrop` : 'An airdrop that is no longer listed';
+  }
   return rest ? `${rest} (${kind})` : key;
+}
+
+/** Names of the published airdrops/whitelists, by id (null while loading). */
+function useAirdropNames() {
+  const [names, setNames] = useState<Record<string, string> | null>(null);
+  useEffect(() => {
+    const q = query(collection(db, 'pro_airdrops'), where('status', '==', 'published'));
+    return onSnapshot(
+      q,
+      (snap) => setNames(Object.fromEntries(snap.docs.map((d) => [d.id, String(d.get('name') ?? '')]))),
+      () => setNames({}),
+    );
+  }, []);
+  return names;
 }
 
 function fmtPrice(p: number) {
@@ -81,6 +105,7 @@ export function FollowingAlerts() {
   }, [prices, alerts]);
 
   const followedKeys = Object.keys(following).filter((k) => following[k]);
+  const airdropNames = useAirdropNames();
 
   const buildAlert = () => {
     const th = parseFloat(threshold) || 0;
@@ -203,7 +228,7 @@ export function FollowingAlerts() {
           followedKeys.map((k) => (
             <div className="chart-side-row" key={k}>
               <span className="l" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                <Bookmark size={14} /> {labelForKey(k)}
+                <Bookmark size={14} /> {labelForKey(k, airdropNames)}
               </span>
               <span className="v">
                 <button className="followbtn on" onClick={() => toggleFollow(k)}>
