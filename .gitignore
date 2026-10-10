@@ -49,3 +49,4 @@ qa/.auth/
 qa/artifacts/
 /test-results/
 /playwright-report/
+scripts/.firestore-rules-previous.txt

@@ -9,9 +9,9 @@
  *
  * Layers checked: (1) UI per persona, (2) direct API calls with each persona's
  * real ID token, (3) Firestore security rules via the REST API (same rules the
- * browser SDK hits). Layer-3 holes that need a rules deploy are marked
- * `test.fail()` with a KNOWN-HOLE note: they pass while the hole exists and turn
- * red the moment it's fixed (then remove the fail marker).
+ * browser SDK hits). The four holes QA found were closed by the rules fix
+ * deployed to kumami-dev on 10 Oct 2026 (docs/security/2026-10-10-firestore-rules-pro-leaks.md).
+ * If you ever need to mark a new known hole, use `test.fail()` with a KNOWN-HOLE note.
  */
 import { expect, test, type Browser, type Page } from '@playwright/test';
 import { AUTH, apiAsUser, guard, openPage, type Role } from '../helpers';
@@ -249,7 +249,6 @@ test.describe('Firestore rules — a free user must not grant themselves Pro', (
   });
 
   test('qa0 cannot set isPremium=true on their own user doc', async ({ browser }) => {
-    test.fail(true, 'KNOWN HOLE: users/{uid} allows the owner to update ANY field — fix needs a rules deploy (awaiting Andrew).');
     await as(browser, 'fresh', async (page) => {
       await openPage(page, '/world/console');
       const r = await firestore(page, 'PATCH', `users/${qa0Uid}?updateMask.fieldPaths=isPremium`, { fields: { isPremium: { booleanValue: true } } });
@@ -258,7 +257,6 @@ test.describe('Firestore rules — a free user must not grant themselves Pro', (
   });
 
   test('qa0 cannot make themselves superadmin', async ({ browser }) => {
-    test.fail(true, 'KNOWN HOLE: same rule — owner can write their own role.');
     await as(browser, 'fresh', async (page) => {
       await openPage(page, '/world/console');
       const r = await firestore(page, 'PATCH', `users/${qa0Uid}?updateMask.fieldPaths=role`, { fields: { role: { stringValue: 'superadmin' } } });
@@ -267,7 +265,6 @@ test.describe('Firestore rules — a free user must not grant themselves Pro', (
   });
 
   test('qa0 cannot create an active subscription for themselves', async ({ browser }) => {
-    test.fail(true, 'KNOWN HOLE: subscriptions allow create by the owner with any status.');
     await as(browser, 'fresh', async (page) => {
       await openPage(page, '/world/console');
       const r = await firestore(page, 'POST', 'subscriptions', { fields: { userId: { stringValue: qa0Uid }, status: { stringValue: 'active' }, planId: { stringValue: 'pro' } } });
@@ -276,12 +273,48 @@ test.describe('Firestore rules — a free user must not grant themselves Pro', (
   });
 
   test('qa0 cannot read Pro dashboard content directly', async ({ browser }) => {
-    test.fail(true, 'KNOWN HOLE: pro_* collections are publicly readable (allow read: if true for pro_*).');
     await as(browser, 'fresh', async (page) => {
       await openPage(page, '/world/console');
       const r = await firestore(page, 'GET', 'pro_research');
       expect(r.status, 'non-subscriber read pro_research directly').toBe(403);
     });
+  });
+
+  test('logged-out visitors cannot read Pro content', async ({ request }) => {
+    const r = await request.get('https://firestore.googleapis.com/v1/projects/kumami-dev/databases/(default)/documents/pro_research');
+    expect(r.status(), 'anonymous read of pro_research').toBe(403);
+  });
+
+  test('qa0 cannot give themselves a Pro end date or grant record', async ({ browser }) => {
+    await as(browser, 'fresh', async (page) => {
+      await openPage(page, '/world/console');
+      const r = await firestore(page, 'PATCH', `users/${qa0Uid}?updateMask.fieldPaths=proSource&updateMask.fieldPaths=proGrantedBy`, {
+        fields: { proSource: { stringValue: 'admin' }, proGrantedBy: { stringValue: 'me' } },
+      });
+      expect(r.status).toBe(403);
+    });
+  });
+
+  test('qa0 can still edit their profile name and switch Pro off (unsubscribe path)', async ({ browser }) => {
+    await as(browser, 'fresh', async (page) => {
+      await openPage(page, '/world/console');
+      const name = await firestore(page, 'PATCH', `users/${qa0Uid}?updateMask.fieldPaths=displayName`, { fields: { displayName: { stringValue: 'QA0 New' } } });
+      expect(name.status, 'profile name edit must stay allowed').toBe(200);
+      const off = await firestore(page, 'PATCH', `users/${qa0Uid}?updateMask.fieldPaths=isPremium&updateMask.fieldPaths=subscriptionStatus`, {
+        fields: { isPremium: { booleanValue: false }, subscriptionStatus: { stringValue: 'cancelled-immediate' } },
+      });
+      expect(off.status, 'unsubscribe (Pro off + cancelled) must stay allowed').toBe(200);
+    });
+  });
+
+  test('qa2 (Pro) and qa3 (admin, authors it) can still read Pro content directly', async ({ browser }) => {
+    for (const role of ['pro', 'admin'] as const) {
+      await as(browser, role, async (page) => {
+        await openPage(page, role === 'admin' ? '/admin/pro-research' : '/world/console', role === 'admin' ? { ready: 'form' } : {});
+        const r = await firestore(page, 'GET', 'pro_research');
+        expect(r.status, `${role} read pro_research`).toBe(200);
+      });
+    }
   });
 });
 

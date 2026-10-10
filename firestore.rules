@@ -158,6 +158,21 @@ service cloud.firestore {
       return request.auth != null && user.role == 'newsdrafter';
     }
 
+    // Fields only the server (Admin SDK) may set on users/{uid}.
+    function PRIVILEGED_USER_FIELDS() {
+      return ['proUntil', 'proSource', 'proGrantedBy', 'proGrantedAt', 'subscriptionId',
+              'referralRewards', 'referralCount'];
+    }
+
+    // Active Kumami Pro subscriber: isPremium and, for a time-limited grant
+    // (/admin/subscriptions), the end date `proUntil` hasn't passed. Mirrors src/lib/pro.ts.
+    function isProUser() {
+      let user = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return request.auth != null
+        && user.get('isPremium', false) == true
+        && (user.get('proUntil', null) == null || user.proUntil > request.time);
+    }
+
     // Check if user is a market analysis admin
     function isMarketAnalysisAdmin() {
       let user = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
@@ -177,12 +192,25 @@ service cloud.firestore {
     match /users/{userId} {
       // Users can read their own document, superadmins can read all user documents
       allow read: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
-      // Users can create their own document
-      allow create: if request.auth != null && request.auth.uid == userId;
-      // Users can update their own document, superadmins can update any user's role
-      // Note: referralRewards and referralCount are updated by Cloud Functions with admin privileges
+      // Users can create their own document — always as a plain, unsubscribed user
+      // (QA 10 Oct 2026: a self-created doc could carry role/isPremium).
+      allow create: if request.auth != null && request.auth.uid == userId
+        && request.resource.data.get('role', 'user') == 'user'
+        && request.resource.data.get('isPremium', false) == false
+        && request.resource.data.get('isAdmin', false) == false
+        && !request.resource.data.keys().hasAny(PRIVILEGED_USER_FIELDS());
+      // Owners may edit their profile but never grant themselves privileges:
+      // role/admin/Pro/subscription fields are written server-side only (Admin SDK:
+      // /api/admin/subscription, payment + referral Cloud Functions). The owner may
+      // only switch Pro OFF and mark the subscription cancelled (Profile → Unsubscribe).
+      // Superadmins may change another user's role (Role Management).
       allow update: if request.auth != null && (
-        request.auth.uid == userId ||
+        (request.auth.uid == userId
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'isAdmin'].concat(PRIVILEGED_USER_FIELDS()))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['isPremium'])
+              || request.resource.data.isPremium == false)
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['subscriptionStatus'])
+              || request.resource.data.subscriptionStatus in ['cancelled', 'cancelled-immediate'])) ||
         (isSuperAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role']))
       );
       // Only admins can delete user docs
@@ -232,8 +260,10 @@ service cloud.firestore {
 
     // Subscriptions collection rules
     match /subscriptions/{subscriptionId} {
-      // Users can create and read their own subscriptions
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Users can create (only as 'pending') and read their own subscriptions.
+      // Active subscriptions are created server-side (payment webhook / Admin SDK).
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending';
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
       // Only admins can update/delete subscriptions
       allow update, delete: if isAdmin();
@@ -324,12 +354,13 @@ service cloud.firestore {
 
     // Pro dashboard content collections (pro_research, pro_airdrops,
     // pro_calendar, pro_events, ...). Admin-authored content shown on the Pro
-    // dashboard: public read of the authored docs, writes restricted to admins.
+    // dashboard: readable by active Pro subscribers and admins only (QA 10 Oct 2026:
+    // this used to be public, even logged out), writes restricted to admins.
     // Naming any new Pro collection `pro_*` means NO rules change is needed —
     // this single rule covers it. (Per-user Pro state like follows/alerts lives
     // under users/{uid}/... instead, covered by the users rules below.)
     match /{proCollection}/{docId} {
-      allow read: if proCollection.matches('pro_.*');
+      allow read: if proCollection.matches('pro_.*') && request.auth != null && (isProUser() || isAdmin());
       allow create, update, delete: if proCollection.matches('pro_.*') && isAdmin();
     }
 
@@ -339,19 +370,19 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Live-event audience Q&A. Any signed-in user can ask a question and upvote;
+    // Live-event audience Q&A. Pro subscribers can ask a question and upvote;
     // only admins can remove. Lives under the (admin-authored) pro_events doc.
     match /pro_events/{eventId}/questions/{questionId} {
-      allow read: if true;
-      // Signed-in users may ask; validate the payload (non-empty, capped length,
+      allow read: if request.auth != null && (isProUser() || isAdmin());
+      // Subscribers may ask; validate the payload (non-empty, capped length,
       // starts at one vote) so the field can't be abused.
-      allow create: if request.auth != null
+      allow create: if request.auth != null && isProUser()
                     && request.resource.data.text is string
                     && request.resource.data.text.size() > 0
                     && request.resource.data.text.size() <= 280
                     && request.resource.data.votes == 1;
       // Upvote only: the single allowed change is incrementing votes by exactly 1.
-      allow update: if request.auth != null
+      allow update: if request.auth != null && isProUser()
                     && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votes'])
                     && request.resource.data.votes == resource.data.votes + 1;
       allow delete: if isAdmin();

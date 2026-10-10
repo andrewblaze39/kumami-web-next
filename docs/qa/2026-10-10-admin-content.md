@@ -69,3 +69,12 @@ npx playwright test qa/features/plus-pro-tools.spec.ts qa/features/calendar.spec
 npx playwright test qa/smoke.spec.ts qa/features/sidebar-workspaces.spec.ts qa/features/plus-pro-tools.spec.ts --project=mobile
 npx playwright test qa/features/admin-content.spec.ts --project=desktop   # last, so its [TEST] items stay for review
 ```
+
+## Addendum — Firestore rules fix deployed to kumami-dev (10 Oct 2026, Andrew's go)
+- `firestore.rules` deployed to **kumami-dev** with `npx tsx scripts/deploy-firestore-rules.ts`. **Not on production**, and the deployed dev website uses production Firebase (`kumami-6df47`), so it still has the holes until Andrew deploys to prod. Details: `docs/security/2026-10-10-firestore-rules-pro-leaks.md`.
+- **Access-matrix rules section: ✅ 19/19.** All four holes are now blocked (the `test.fail` markers are removed). New probes check that:
+  - logged-out reads are blocked;
+  - an owner can't write grant fields;
+  - profile-name edits and unsubscribe still work;
+  - Pro users and admins still read Pro content.
+- **Full regression re-run under the new rules:** ✅ UI matrix 58/58, ✅ desktop specs + smoke 46/46, ✅ mobile 38/38 (2 skipped), ✅ admin-content 22/22 (Pro reads, Q&A ask/upvote and admin writes all work). The [TEST] items from this last run are live on kumami-dev.

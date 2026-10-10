@@ -1,8 +1,19 @@
 # Firestore rules: Pro/admin leaks found by QA (10 Oct 2026)
 
-**Status: PROPOSAL, not deployed.** Rules apply per Firebase project, and `firestore.rules` is very likely deployed to production (`kumami-6df47`) too, so deploying needs Andrew's go.
+**Status (10 Oct 2026): ✅ deployed to kumami-dev · ⏳ NOT on production (`kumami-6df47`).**
 
-The access-matrix QA (`qa/features/access-matrix.spec.ts`, section 4) proves each hole with a real free account (qa1) on kumami-dev, through the Firestore REST API, which enforces the same rules as the browser SDK. Those tests are marked `test.fail()` ("known hole"). They turn red once the hole is fixed, as a reminder to remove the marker.
+- `firestore.rules` in the repo now contains the fix. It was deployed to **kumami-dev** with Andrew's go, using `npx tsx scripts/deploy-firestore-rules.ts` (dev-only; `--rollback` restores the previous ruleset).
+- Rules belong to a Firebase *project*, not to an app or branch. **The deployed dev website (`kumami-web-next--kumami-dev…hosted.app`) uses the production project `kumami-6df47`** (its bundle initialises Firebase with `projectId: "kumami-6df47"`; checked 10 Oct). So the dev website — and kumami.world — still have the holes until the rules are deployed to production.
+- **Production deploy (Andrew):** `firebase deploy --only firestore:rules --project kumami-6df47`, after the checks under "What could break" below. Do it before (or with) the next dev → main release.
+
+Additional fixes beyond the original proposal, included in the deploy:
+- Pro reads also respect a time-limited grant's end date (`proUntil`), same as `src/lib/pro.ts`.
+- The owner can't write the server-only grant fields either (`proUntil`, `proSource`, `proGrantedBy`, `proGrantedAt`, `subscriptionId`, referral counters).
+- Event Q&A: reading, asking and upvoting are for Pro subscribers (reading also for admins).
+
+Not changed (needs your decision): `alphaRoom` is readable by any signed-in user and `marketAnalysis` is public. Both are shown as Pro content but may be used by older public pages, so they were left as-is.
+
+The access-matrix QA (`qa/features/access-matrix.spec.ts`, section 4) probes each hole with a real free account (now qa0, a brand-new account each run) on kumami-dev, through the Firestore REST API, which enforces the same rules as the browser SDK. Since the deploy, all four are blocked (403) and the `test.fail()` markers are removed. Extra probes check that logged-out reads are blocked, that profile-name edits and unsubscribe still work, and that Pro users and admins can still read Pro content.
 
 ## The holes
 
