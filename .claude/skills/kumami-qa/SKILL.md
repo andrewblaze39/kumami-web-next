@@ -2,7 +2,9 @@
 name: kumami-qa
 description: >-
   Workflow stage 5 — AI-driven QA of a Kumami feature with Playwright in a real browser,
-  signed in as the QA Plus and QA Pro accounts on kumami-dev. Covers smoke/regression of
+  using three personas signed up fresh each run on kumami-dev (qa1 free user, qa2 who
+  clicks Grant Pro, qa3 admin who is not subscribed), always including the Plus-vs-Pro
+  access/leak matrix (UI + direct API + Firestore rules). Covers smoke/regression of
   every page, spec conformance (labels, thresholds, colours, tier gating vs Andrew's
   spec), clicking every button/filter/toggle, data sanity (no NaN/$0/undefined, plausible
   numbers, API payload matches the UI), the admin publish/draft/edit/delete round trip,
@@ -20,16 +22,19 @@ Andrew does**, not to produce green ticks. A test that passes on the loading
 splash is worse than no test, so always look at the evidence (screenshots,
 payloads) yourself.
 
-## One-time setup (already done on Andrew's machine, Oct 2026; re-check if anything fails)
+## Personas (fresh every run, kumami-dev only)
 
-```bash
-npm install                                   # @playwright/test is a devDependency
-npx playwright install chromium               # browser build must match the installed version
-node .claude/skills/kumami-qa/scripts/setup-qa-accounts.mjs   # kumami-dev only; idempotent
-```
+| Persona | Created how | Session file | What it proves |
+|---|---|---|---|
+| **qa1**, new free user | real sign-up form | `AUTH.plus` | Basic + Plus only, never any Pro |
+| **qa2**, subscriber | sign-up, then **Grant Pro** in Profile → Subscription (the temporary testing button) | `AUTH.pro` | full Pro, and Plus pages still show the Plus version |
+| **qa3**, admin, *not subscribed* | sign-up, then the harness sets `role: admin` (stands in for a superadmin's Role Management change) | `AUTH.admin` | Pro admin pages work; Pro tabs stay **locked** (admin ≠ Pro) |
 
-- **Accounts:** `qa-plus@kumami.test` (role user → Basic + Plus) and `qa-pro@kumami.test` (role admin + isPremium → Pro + `/admin`). Both are email-verified, and their passwords are in `.env.local` as `QA_*`. The script refuses to run against any project except `kumami-dev`.
-- **Env:** `.env.local` must also have `FIREBASE_SERVICE_ACCOUNT_JSON`. Without it every `/api/market/*` call returns 401.
+- `qa/global-setup.ts` deletes leftovers, signs all three up through the gate's Sign Up modal, and marks the email verified with the Admin SDK (what clicking the email link does). It then logs in through the Log In modal, saves sessions (`indexedDB: true`), runs qa2's Grant Pro and promotes qa3.
+- `qa/global-teardown.ts` deletes the accounts (auth, `users` doc and subcollections, `subscriptions`, `user_prefs`) and every `[QA]` doc in `pro_*`. `QA_KEEP_ACCOUNTS=1` keeps them for manual inspection.
+- `qa/personas.ts` refuses to run unless both the app and the service account are **kumami-dev**. Never point QA at production (`kumami-6df47`).
+- **Scope (Andrew, 10 Oct 2026):** deep-test Plus/Pro work that isn't live on kumami.world yet. Existing live features only get smoke-loaded. QA3 only uses the Pro dashboard admin pages (`/admin/pro-*`). **Ask Andrew before any admin-dashboard change.**
+- **Requirements:** `.env.local` (kumami-dev) with `FIREBASE_SERVICE_ACCOUNT_JSON`, plus `npx playwright install chromium` once. If a dev server is already running on :3000 (often Andrew's), Playwright reuses it. Don't kill it.
 
 ## The harness (in the repo)
 
@@ -38,7 +43,8 @@ node .claude/skills/kumami-qa/scripts/setup-qa-accounts.mjs   # kumami-dev only;
 | `playwright.config.ts` | `desktop` (1440×900) and `mobile` (Pixel 7) projects. Reuses a dev server on :3000 or starts `npm run dev`. Runs serially. |
 | `qa/global-setup.ts` | Signs in both accounts and saves sessions to `qa/.auth/*.json` (Firebase auth lives in IndexedDB, so it's saved with `indexedDB: true`). Then warms the data pages (cold dev routes plus an empty market cache time out otherwise). `QA_SKIP_WARMUP=1` skips the warm-up. |
 | `qa/helpers.ts` | `guard(page)` records console errors, page errors and failed `/api` calls, checked with `.assertClean()`. `openPage(page, path, {ready})` waits for the real shell (not the splash), catches redirects to the gate, and waits for skeletons to clear. `expectSaneText(page, allow)` flags NaN, undefined, null, `[object Object]`, Infinity, `$0`, % ≥ 200, "coinglass" and lorem ipsum. `snap()` saves screenshots. `apiAsUser(page, '/api/market/x')` returns the payload exactly as the signed-in user gets it. |
-| `qa/smoke.spec.ts` | Every Plus page (Plus account) and every Pro tab plus admin calendar (Pro account). Justified exceptions go in `ALLOW_TEXT`. |
+| `qa/smoke.spec.ts` | Every Plus page (qa1), every Pro tab (qa2) and every Pro admin page (qa3). Justified exceptions go in `ALLOW_TEXT`. |
+| `qa/features/access-matrix.spec.ts` | **Mandatory in every QA pass.** Plus vs Pro leak checks: UI per persona (every Pro tab locked for qa1/qa3 with no `view=pro` calls; open for qa2; Plus pages = Plus version for all), direct API calls with each persona's token (`?view=pro` gets Pro data only for qa2; pinning and wallet lookup 403 for non-subscribers), a QA3 → QA2/QA1 cross-check (published `[QA]` research visible to qa2 only), and Firestore-rules probes via REST. |
 | `qa/features/<feature>.spec.ts` | One per feature, written by you from the plan's QA checklist. |
 
 ```bash
@@ -56,7 +62,7 @@ Outputs go to `qa/artifacts/` (gitignored): `screens/`, `results/` (failure scre
 Read the plan's **QA checklist** (`docs/plans/…`), the feature's section in Andrew's spec (the planned or as-built text, with its tables of thresholds, labels and colours), and the Rachelle source it came from. Each checklist line becomes at least one assertion. With no plan (QA of an older feature), derive the checklist from the as-built spec section.
 
 ### 2 · Regression first
-Start or reuse the dev server, then run `qa/smoke.spec.ts` on both projects. Triage every failure before going further.
+Start or reuse the dev server, then run `qa/smoke.spec.ts` (both projects) **and `qa/features/access-matrix.spec.ts`** (desktop). It takes more than 10 minutes, so run it in the background and read the log. Triage every failure before going further.
 
 ### 3 · Write `qa/features/<feature>.spec.ts`
 Cover all of these that apply:

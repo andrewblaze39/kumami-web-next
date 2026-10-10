@@ -6,9 +6,10 @@
  *
  * - Runs against the local dev server (kumami-dev Firebase, see .env.local);
  *   reuses one already running on :3000, otherwise starts `npm run dev`.
- * - qa/global-setup.ts signs in the two QA accounts once and stores their
- *   sessions (incl. Firebase's IndexedDB auth) in qa/.auth/ — specs pick a
- *   role with `test.use({ storageState: AUTH.pro })`.
+ * - qa/global-setup.ts signs up three FRESH QA personas through the real
+ *   sign-up form (qa1 free, qa2 + Grant Pro, qa3 admin not subscribed) and
+ *   stores their sessions in qa/.auth/; global-teardown.ts deletes them.
+ *   Specs pick one with `test.use({ storageState: AUTH.pro })`.
  * - Screenshots/traces land in qa/artifacts/ (gitignored).
  */
 import { defineConfig, devices } from '@playwright/test';
@@ -25,6 +26,7 @@ export default defineConfig({
   retries: 0,
   reporter: [['list'], ['html', { outputFolder: 'qa/artifacts/report', open: 'never' }]],
   globalSetup: './qa/global-setup.ts',
+  globalTeardown: './qa/global-teardown.ts',
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: 'retain-on-failure',

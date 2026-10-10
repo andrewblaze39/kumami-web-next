@@ -9,6 +9,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { AUTH, apiAsUser, expectSaneText, guard, openPage, snap } from '../helpers';
 import { deleteQaDocs, QA_PREFIX } from '../admin-data';
+import { admin } from '../personas';
 
 type Ev = { id: string; type: string; title: string; ts: string; impact: string; assets: string[]; source?: string };
 
@@ -23,49 +24,72 @@ test.afterAll(async () => {
   await deleteQaDocs('pro_calendar');
 });
 
-test.describe('Calendar — Plus user', () => {
-  test.use({ storageState: AUTH.plus });
+test.describe('Calendar — CoinGlass feeds: OFF by default, admin switches (QA3 ↔ QA1)', () => {
+  test.describe.configure({ mode: 'serial' });
 
-  test('payload is sane and includes upcoming events', async ({ page }) => {
+  async function setSwitch(browser: import('@playwright/test').Browser, name: string, on: boolean) {
+    const ctx = await browser.newContext({ storageState: AUTH.admin });
+    const page = await ctx.newPage();
+    await openPage(page, '/admin/pro-calendar', { ready: 'text=Automatic feeds' });
+    const sw = page.getByRole('switch', { name });
+    if ((await sw.getAttribute('aria-checked')) !== String(on)) await sw.click();
+    await expect(sw).toHaveAttribute('aria-checked', String(on));
+    await expect(sw).toBeEnabled(); // save confirmed by the server ("Saving…" gone)
+    // …and really stored (closing the tab before the write lands would lose it).
+    const field = name.startsWith('Macro') ? 'macroFeed' : 'unlockFeed';
+    await expect.poll(async () => (await admin().db.collection('pro_settings').doc('calendar').get()).get(field) === true, { timeout: 20_000 }).toBe(on);
+    await expect(page.getByText(new RegExp(`${name.replace(/[()]/g, '.')} — ${on ? 'ON' : 'OFF'}`))).toBeVisible();
+    await ctx.close();
+  }
+
+  test.afterAll(async ({ browser }) => {
+    // Andrew wants both feeds OFF — always leave them OFF.
+    await setSwitch(browser, 'Macro events (CoinGlass)', false).catch(() => {});
+    await setSwitch(browser, 'Token unlocks (CoinGlass)', false).catch(() => {});
+  });
+
+  test('both feeds OFF → no CoinGlass events anywhere in the payload', async ({ browser }) => {
+    await setSwitch(browser, 'Macro events (CoinGlass)', false);
+    await setSwitch(browser, 'Token unlocks (CoinGlass)', false);
+    const ctx = await browser.newContext({ storageState: AUTH.plus });
+    const page = await ctx.newPage();
     await openPage(page, '/world/calendar');
-    const { status, body } = await apiAsUser<{ events: Ev[]; updatedAt: string }>(page, '/api/market/calendar');
+    const { status, body } = await apiAsUser<{ events: Ev[]; feeds?: { macroFeed: boolean; unlockFeed: boolean } }>(page, '/api/market/calendar');
     expect(status).toBe(200);
+    expect(body.feeds).toEqual({ macroFeed: false, unlockFeed: false });
+    expect(body.events.filter((e) => e.source === 'feed'), 'feed events leaked while switched off').toHaveLength(0);
+    await expect(page.getByText('Key dates and events picked by the Kumami team.')).toBeVisible();
+    await ctx.close();
+  });
+
+  test('macro switch ON → QA1 sees macro events (sane payload, filters, month nav)', async ({ browser }, info) => {
+    await setSwitch(browser, 'Macro events (CoinGlass)', true);
+    const ctx = await browser.newContext({ storageState: AUTH.plus });
+    const page = await ctx.newPage();
+    const g = guard(page);
+    await openPage(page, '/world/calendar');
+    const { body } = await apiAsUser<{ events: Ev[]; updatedAt: string }>(page, '/api/market/calendar');
     const ev = body.events;
-    expect(ev.length).toBeGreaterThan(50);
+    expect(ev.filter((e) => e.type === 'macro').length).toBeGreaterThan(50);
+    expect(ev.filter((e) => e.type === 'unlock' && e.source === 'feed'), 'unlocks must stay off').toHaveLength(0);
     expect(new Set(ev.map((e) => e.id)).size, 'duplicate event ids').toBe(ev.length);
     for (const e of ev) {
       expect(Number.isNaN(Date.parse(e.ts)), `bad ts on ${e.id}`).toBe(false);
       expect(['HIGH', 'MED', 'LOW']).toContain(e.impact);
-      expect(['macro', 'unlock', 'protocol']).toContain(e.type);
     }
-    const upcoming = ev.filter((e) => Date.parse(e.ts) > Date.now());
-    expect(upcoming.length, 'no upcoming events — macro feed window broken?').toBeGreaterThan(10);
-    expect(Date.now() - Date.parse(body.updatedAt)).toBeLessThan(5 * 60_000);
-  });
+    expect(ev.filter((e) => Date.parse(e.ts) > Date.now()).length, 'no upcoming macro events').toBeGreaterThan(10);
 
-  test('filters and month navigation work', async ({ page }, info) => {
-    const g = guard(page);
+    await page.reload();
     await openPage(page, '/world/calendar');
     await dismissPopupIfAny(page);
     await expectSaneText(page);
-    await expect(page.locator('.w-cal-nextup')).toBeVisible();
     await expect(chips(page).first()).toBeVisible();
-
-    // Type filter: Token Unlocks → only unlock chips remain.
-    await page.getByRole('button', { name: 'Token Unlocks' }).click();
-    const unlockTitles = await chips(page).evaluateAll((els) => els.map((e) => e.getAttribute('title') ?? ''));
-    for (const t of unlockTitles) expect(t.toLowerCase()).toContain('unlock');
-    await page.getByRole('button', { name: 'All' }).first().click();
-
-    // Impact filter: switch off MED and LOW → only HIGH chips remain.
     await page.getByRole('button', { name: 'MED', exact: true }).click();
     await page.getByRole('button', { name: 'LOW', exact: true }).click();
     const highTitles = await chips(page).evaluateAll((els) => els.map((e) => e.getAttribute('title') ?? ''));
     expect(highTitles.length).toBeGreaterThan(0);
     for (const t of highTitles) expect(t).toMatch(/, HIGH\)/);
-    await snap(page, info, 'calendar-high-only');
-
-    // Month navigation.
+    await snap(page, info, 'calendar-macro-on-high-only');
     const label = page.locator('.w-cal-month-label');
     const start = await label.innerText();
     await page.getByRole('button', { name: 'Next month' }).click();
@@ -73,10 +97,21 @@ test.describe('Calendar — Plus user', () => {
     await page.getByRole('button', { name: 'Previous month' }).click();
     await expect(label).toHaveText(start);
     g.assertClean();
+    await ctx.close();
+  });
+
+  test('macro switch back OFF → events disappear again', async ({ browser }) => {
+    await setSwitch(browser, 'Macro events (CoinGlass)', false);
+    const ctx = await browser.newContext({ storageState: AUTH.plus });
+    const page = await ctx.newPage();
+    await openPage(page, '/world/calendar');
+    const { body } = await apiAsUser<{ events: Ev[] }>(page, '/api/market/calendar');
+    expect(body.events.filter((e) => e.source === 'feed')).toHaveLength(0);
+    await ctx.close();
   });
 });
 
-test.describe('Calendar — admin round trip (Pro/admin authors, Plus user views)', () => {
+test.describe('Calendar — admin round trip (QA3 admin authors, QA1 free user views)', () => {
   test.describe.configure({ mode: 'serial' });
 
   // A HIGH event ~3h from now (UTC) — inside the 24h popup window.
@@ -108,7 +143,7 @@ test.describe('Calendar — admin round trip (Pro/admin authors, Plus user views
   }
 
   test('admin publishes an event and saves a draft', async ({ browser }) => {
-    const ctx = await browser.newContext({ storageState: AUTH.pro });
+    const ctx = await browser.newContext({ storageState: AUTH.admin });
     const page = await ctx.newPage();
     const g = guard(page);
     await openPage(page, '/admin/pro-calendar', { ready: 'text=Scheduled events' });
@@ -143,7 +178,7 @@ test.describe('Calendar — admin round trip (Pro/admin authors, Plus user views
   });
 
   test('admin edit shows up, delete removes it', async ({ browser }) => {
-    const admin = await browser.newContext({ storageState: AUTH.pro });
+    const admin = await browser.newContext({ storageState: AUTH.admin });
     const a = await admin.newPage();
     a.on('dialog', (d) => d.accept()); // "Delete this event?" confirm
     await openPage(a, '/admin/pro-calendar', { ready: 'text=Scheduled events' });

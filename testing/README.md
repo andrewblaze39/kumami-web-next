@@ -19,9 +19,11 @@ verified, following the `feature-test-tutorial` conventions.
 
 ## Automated QA (Playwright)
 
-- `npm run qa:smoke` — every Plus page and Pro tab, desktop. `npm run qa` — everything, desktop + mobile. Setup and accounts: `.claude/skills/kumami-qa/SKILL.md`. QA reports: `docs/qa/`.
+- `npm run qa:smoke` — every Plus page, Pro tab and Pro admin page, desktop. `npm run qa` — everything, desktop + mobile. Each run signs up fresh personas (qa1 free, qa2 Grant Pro, qa3 admin not subscribed) and deletes them after; the access/leak matrix runs every time. Details: `.claude/skills/kumami-qa/SKILL.md`. QA reports: `docs/qa/`.
 
 ## Pro dashboard
+
+- [Plus vs Pro tools + Pro access](pro/plus-vs-pro-tools/how-to-test.md) — Flow Radar Plus/Pro, Watchlist Plus/Pro, Spot Pulse tile/Pro; Pro = subscribed only (admins included); the temporary Grant/Remove Pro buttons. Automated: `qa/features/access-matrix.spec.ts`, `qa/features/plus-pro-tools.spec.ts`.
 
 - [Kumami Research](pro/kumami-research/how-to-test.md) — admin authors KOL calls at `/admin/pro-research`; they render on `/world/pro?tab=research`.
 - [Airdrops & Whitelist](pro/airdrops/how-to-test.md) — admin authors drops/whitelists at `/admin/pro-airdrops`; they render on `/world/pro?tab=airdrops`.
