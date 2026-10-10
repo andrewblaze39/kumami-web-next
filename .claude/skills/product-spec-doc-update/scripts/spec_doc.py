@@ -38,6 +38,9 @@ Runs = Union[str, Sequence[tuple]]
 
 VERSION_PREFIX = "Version "          # the version line under the subtitle starts with this
 RELEASE_HEADING = "Release notes"    # Heading1 that holds the per-version entries
+PLANNED_SUFFIX = " (Planned)"        # Heading2 suffix for a not-yet-built feature
+PLANNED_CHANGES = "Planned changes"  # Heading4 prefix for planned changes to a live feature
+PLANNED_COLOR = "B26A00"             # amber — the status line's "PLANNED —" run
 
 # ---------------------------------------------------------------------------
 # Block builders (return raw XML strings)
@@ -338,6 +341,67 @@ class SpecDoc:
         blocks += [BULLET(b) for b in bullets]
         self.insert_before(k, blocks)
 
+    # -- planned / shipped workflow -----------------------------------------
+    # Convention (docs/DEVELOPMENT_WORKFLOW.md, stage 1 and 6):
+    #   new feature   → Heading2 "N. Name (Planned)" + first paragraph = status line
+    #   change to a live feature → Heading4 "Planned changes (vX.Y)" at the END of
+    #                   that feature's section (live text above stays accurate)
+    #   status line   → starts with "PLANNED — "
+    def _status_line(self, source: str, version: str) -> str:
+        return P([("PLANNED — ", {"b": True, "color": PLANNED_COLOR}),
+                  (f"from {source} · added in v{version} · not live yet.", {"i": True})])
+
+    def add_planned_section(self, tier: str, title: str, blocks: Sequence[str], source: str,
+                            version: str) -> int:
+        """Append a new '<title> (Planned)' Heading2 at the end of a tier
+        (tier = 'Kumami Basic' | 'Kumami Plus' | 'Kumami Pro'). Returns its index."""
+        t = self.find(tier, style="Heading1")
+        end = self.section_end(t)
+        heading = title if title.endswith(PLANNED_SUFFIX) else title + PLANNED_SUFFIX
+        self.insert_before(end, [H(2, heading), self._status_line(source, version), *blocks])
+        return end
+
+    def add_planned_changes(self, section_prefix: str, blocks: Sequence[str], source: str,
+                            version: str) -> int:
+        """Append a 'Planned changes (vX.Y)' Heading4 at the end of an existing
+        feature section (found by its Heading2 prefix, e.g. '5. Calendar')."""
+        s = self.find(section_prefix, style="Heading2")
+        end = self.section_end(s)
+        self.insert_before(end, [H(4, f"{PLANNED_CHANGES} (v{version})"),
+                                 self._status_line(source, version), *blocks])
+        return end
+
+    def list_planned(self) -> list[tuple[int, str]]:
+        """Every planned item still open: (index, heading text)."""
+        out = []
+        for k in range(len(self.blocks)):
+            lvl = self.heading_level(k)
+            t = self.text(k)
+            if lvl == 2 and t.endswith(PLANNED_SUFFIX):
+                out.append((k, t))
+            elif lvl is not None and t.startswith(PLANNED_CHANGES):
+                out.append((k, t))
+        return out
+
+    def ship_planned(self, heading_i: int) -> None:
+        """Clear a planned flag after the feature ships.
+        - '(Planned)' Heading2: removes the suffix and the PLANNED status line
+          (rewrite the body to describe the as-built feature separately).
+        - 'Planned changes' Heading4: deletes the whole sub-section (fold the
+          as-built behaviour into the live description separately)."""
+        t = self.text(heading_i)
+        if t.startswith(PLANNED_CHANGES):
+            self.delete(heading_i, self.section_end(heading_i))
+            return
+        if not t.endswith(PLANNED_SUFFIX):
+            raise ValueError(f"block {heading_i} is not a planned heading: {t!r}")
+        self.replace_text(heading_i, t[: -len(PLANNED_SUFFIX)])
+        end = self.section_end(heading_i)
+        for k in range(heading_i + 1, end):
+            if self.text(k).startswith("PLANNED — "):
+                self.delete(k)
+                break
+
     # -- output ------------------------------------------------------------
     def save(self, path: str | None = None) -> str:
         path = path or self.path
@@ -408,5 +472,9 @@ if __name__ == "__main__":
         sys.exit(1 if p else 0)
     elif len(sys.argv) >= 3 and sys.argv[1] == "version":
         print(SpecDoc(sys.argv[2]).get_version())
+    elif len(sys.argv) >= 3 and sys.argv[1] == "planned":
+        sys.stdout.reconfigure(encoding="utf-8")
+        items = SpecDoc(sys.argv[2]).list_planned()
+        print("\n".join(f"{i}|{t}" for i, t in items) if items else "no planned items")
     else:
-        print("usage: spec_doc.py outline <docx> [start] [end] | check <docx> | version <docx>")
+        print("usage: spec_doc.py outline <docx> [start] [end] | check <docx> | version <docx> | planned <docx>")

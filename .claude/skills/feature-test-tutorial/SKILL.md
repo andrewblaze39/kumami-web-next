@@ -1,15 +1,14 @@
 ---
 name: feature-test-tutorial
 description: >-
-  After building or changing any user-facing or internal feature in this repo,
-  write a concrete, copy-pasteable manual test tutorial so the user can verify it
-  themselves. ALWAYS produce one of these when you finish a feature slice, wire up
-  a new admin tool, add a Pro dashboard tab, or otherwise ship something the user
-  will want to check — even if they didn't explicitly ask "how do I test this".
-  Especially important for internal/admin-authored tools, where testing means
-  adding content in the dashboard and confirming it shows up correctly on the
-  user-facing surface. Trigger whenever a feature is "done" and about to be handed
-  back to the user for review.
+  Conventions for the manual, copy-pasteable test tutorial saved at
+  testing/<area>/<feature>/how-to-test.md (+ the testing/README.md index). In the
+  development workflow this is produced by the kumami-qa skill at stage 5, based on what
+  QA actually verified — so normally run kumami-qa, which applies these rules. Use this
+  skill directly only when the user asks just for "how do I test X" without a QA pass,
+  or to update an existing how-to-test file. Especially important for admin-authored
+  tools, where testing means adding content in the dashboard and confirming it shows up
+  on the user-facing surface.
 ---
 
 # Feature Test Tutorial
@@ -58,8 +57,10 @@ Write it as numbered steps a non-engineer could follow. Cover these, in order:
 1. **Prerequisites** — what must be true first. Be specific to *this* feature:
    - Which account/role to sign in as (e.g. admin/superadmin to author; premium to
      view Pro content — note when one account satisfies both).
-   - Which environment/project it hits (this repo's app points at **prod
-     `kumami-6df47`** via `.env.local`; call out if data will be written to prod).
+   - Which environment/project it hits. Local `.env.local` points at **`kumami-dev`**
+     (since Sep 2026); production is `kumami-6df47` (main branch, Andrew deploys).
+     Say which one the steps write to. QA accounts for kumami-dev: `qa-plus@kumami.test`
+     (Plus) and `qa-pro@kumami.test` (Pro + admin), passwords in `.env.local` (`QA_*`).
    - Any deploy that must have happened — e.g. **Firestore rules deployed**
      (`firebase deploy --only firestore:rules --project <project>`). A new
      collection without deployed rules fails with "Missing or insufficient

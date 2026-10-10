@@ -1,126 +1,110 @@
 ---
 name: product-spec-to-feature
-description: Use when the product manager (Rachelle) adds or updates a spec in `docs/Rachelle Product Specs/`, or the user references a "spec sheet" / "product spec" / a named feature spec (e.g. "the Spot Pulse sheet") and wants it analysed and built. Reads the Word spec + any UI mockup she links (a claude.ai/code/artifact URL), verifies CoinGlass endpoint feasibility on the live key, writes a development strategy, then implements it following this repo's market-platform patterns.
+description: >-
+  Workflow stage 2 (and 3) — turn a "(Planned)" section or "Planned changes"
+  sub-section in Andrew's spec (docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx)
+  into a written build plan in docs/plans/, after probing CoinGlass feasibility on the
+  live key, then implement it following this repo's market-platform patterns. Use when
+  the user says "plan the planned X section", "write the plan for X", "build docs/plans/…",
+  or names a spec feature to build. If the requirement is still only in Rachelle's doc
+  (not yet in Andrew's spec as Planned), do stage 1 first with product-spec-doc-update.
 ---
 
-# Product spec → feature
+# Planned spec → plan → feature
 
-The PM (currently **Rachelle**) drops product specs as Word docs in
-`docs/Rachelle Product Specs/`. Each doc is a stack of "sheets" (each is a
-`Title`-styled section, e.g. **Spot Pulse**, **Revisi Logic Plus**, **Pro**).
-Specs often link a **UI mockup** she built as a `claude.ai/code/artifact/{uuid}` URL.
+Part of the pipeline in `docs/DEVELOPMENT_WORKFLOW.md` (orchestrated by
+`kumami-feature-workflow`). **Input is Andrew's spec, not Rachelle's.**
+Rachelle's `Kumami Website (N).docx` is translated into Andrew's spec first (stage
+1, `product-spec-doc-update` PLANNED mode). This skill plans and builds from
+that translated section, because it already carries Andrew's decisions.
 
-Your job: turn a named sheet into a shipped feature. Do the steps in order — do
-not skip the feasibility probe.
+## 1 · Read the planned section
 
-## 1 · Read the spec sheet
+```bash
+python -I .claude/skills/product-spec-doc-update/scripts/spec_doc.py planned "docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx"
+python -I .claude/skills/product-spec-doc-update/scripts/spec_doc.py outline "docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx" <start> <end>
+```
 
-- The latest doc is the highest-numbered file, e.g. `Kumami Website (5).docx`.
-  Confirm with `ls -t "docs/Rachelle Product Specs/"`.
-- The user usually names the sheet ("the spot pulse sheet"). Extract that
-  section — **paragraphs *and* tables in document order** (verdict matrices,
-  colour maps, thresholds live in tables). The docs are large (embedded images);
-  extract text only:
+Read the whole planned section, including its tables, which hold the thresholds and verdict matrices (`SpecDoc.table_rows(i)`). The status line names the Rachelle source (e.g. `Kumami Website (6) §7`). Open that part of her doc too, for detail the translation may have summarised. Paragraphs and tables in order:
 
 ```python
-from docx import Document
-from docx.text.paragraph import Paragraph
-from docx.table import Table
-d = Document(".../Kumami Website (N).docx")
-cap = False
-for child in d.element.body:
-    tag = child.tag.split('}')[-1]
-    if tag == 'p':
-        p = Paragraph(child, d); t = p.text.strip(); st = p.style.name
-        if st == 'Title' and t == 'SHEET NAME': cap = True
-        elif st == 'Title' and cap: break          # next sheet → stop
-        if cap and t: print(('## ' if st.startswith('Heading') else '') + t)
-    elif tag == 'tbl' and cap:
-        tbl = Table(child, d)
-        for r in tbl.rows: print(" | ".join(c.text.strip() for c in r.cells))
+import sys; sys.stdout.reconfigure(encoding="utf-8")
+sys.path.insert(0, r".claude/skills/product-spec-doc-update/scripts")
+from spec_doc import SpecDoc
+d = SpecDoc(r"docs/Rachelle Product Specs/Kumami Website (6).docx")
+s = d.find("7. CALENDAR", style="Heading1")
+for k in range(s, d.section_end(s)):
+    if d.style(k) == "TABLE":
+        for r in d.table_rows(k): print("ROW |", " | ".join(r))
+    elif d.text(k).strip(): print(f"{d.style(k)}|{d.text(k)}")
 ```
 
-## 2 · Read her UI mockup
+If the planned section is missing or contradicts Rachelle's doc, stop and ask. Don't silently pick one.
 
-If the sheet links a `claude.ai/code/artifact/{uuid}` URL, read it with the
-**WebFetch** tool (those URLs are fetchable via the claude.ai login — `curl`
-gets the SPA shell and fails). Ask WebFetch for layout, tile contents, exact hex
-colours, spacing, and interactions. If it returns "incomplete boot response",
-retry once, then fall back to the hex/layout details in the spec itself and
-match the app's design system (`world.css`, turquoise `--accent`). Ask the user
-to re-share only if neither yields enough.
+### Mockups
+Rachelle links mockups as `claude.ai/artifact/…` or `claude.ai/code/artifact/…`. Try the Artifact tool's `read` action with a prompt asking for layout, labels, colours and interactions. In Oct 2026 her main mockup returned only a loading shell. If that happens, fall back to the spec text and the app's design system (`world.css`, turquoise `--accent`), and say in the plan that the mockup couldn't be read.
 
-## 3 · Verify feasibility BEFORE building (critical)
+## 2 · Check feasibility before planning (critical)
 
-Specs assume a CoinGlass "Startup plan"; **this key is on a lower tier** — some
-endpoints 401 "Upgrade plan". Probe every endpoint the sheet lists against the
-live key before committing to a plan. Pattern (reads `COINGLASS_API_KEY` from
-`.env.local`, never prints it):
+The key is on CoinGlass **STARTUP**. Some endpoints answer HTTP 200 with `{"code":"401","msg":"Upgrade plan"}`. Probe **every** endpoint the section needs. Never assume, because the plan and the endpoints change:
 
-```js
-const O='https://open-api-v4.coinglass.com';
-for (const [label, path, params] of TESTS) {
-  const u = new URL(O+path); for (const [k,v] of Object.entries(params)) u.searchParams.set(k,v);
-  const b = await (await fetch(u, {headers:{'CG-API-KEY':KEY}})).json();
-  console.log(String(b.code)==='0' ? 'OK '+label : 'XX '+label+' '+b.msg);
-}
+```bash
+K=$(grep '^COINGLASS_API_KEY=' .env.local | cut -d= -f2-)      # never print the key
+curl -s -H "CG-API-KEY: $K" "https://open-api-v4.coinglass.com/api/user/account/subscription"
+curl -s -H "CG-API-KEY: $K" "https://open-api-v4.coinglass.com<endpoint>?<params>" | head -c 300
 ```
 
-Known-locked on the current key (do not design around them): `futures/coins-markets`,
-`spot/coins-markets`, `liquidation/aggregated-heatmap/model1`, `liquidation/map`,
-`orderbook/large-limit-order`. Known-good: the aggregated-CVD, funding, OI,
-netflow, `pairs-markets`, `hyperliquid/whale-alert`, ETF, article/calendar/unlock
-endpoints (see `src/lib/market/live/cg-endpoints.ts`).
+As of 9 Oct 2026:
+- **Locked:** `spot/coins-markets`, `futures/coins-markets`, the liquidation heatmaps and `orderbook/large-limit-order`.
+- **Open:** the aggregated CVD, funding, OI, netflow, `pairs-markets`, `exchange/chain/tx/list`, `hyperliquid/whale-alert` and `whale-position`, `orderbook/aggregated-ask-bids-history`, ETF, article, calendar and unlock endpoints.
+- **Gotchas:** `calendar/economic-data` needs `start_time`/`end_time` to return future events. `coin/unlock-list` only returns today's unlocks.
 
-Split the sheet into **buildable now** vs **needs a plan upgrade**, and tell the
-user which parts are blocked (usually the Pro/dynamic tiers and anything needing
-per-asset volume via `*/coins-markets`).
+## 3 · Write the plan → `docs/plans/YYYY-MM-DD-<feature>.md`
 
-## 4 · Write the development strategy
+Use this template (keep it short and concrete):
 
-State, before coding: what replaces/where it goes, the data pipeline
-(fetchers → rule engine → contract → provider → route → UI), the phasing
-(follow the spec's own "Development Priority Order"; Plus/free tier first, Pro
-later), and every blocked/deferred item. Surface conflicts with existing work
-(e.g. the On-Chain "heatmap slot" already holds another panel) and get a yes
-before overwriting.
+```markdown
+# Plan — <Feature> (spec v<doc version>, planned section "<heading>")
+Source: Andrew's spec v1.4 "<heading>" ← Rachelle Kumami Website (6) §7
+## Goal (2–3 lines, plain language)
+## Feasibility
+| Need | Endpoint / source | Probe result |
+## Buildable now vs blocked
+## Design (data → rule engine → contract → builder → route → UI; admin if any)
+## Steps (ordered, each small enough to commit)
+## Files to touch
+## Tests to add (unit tests for every rule/threshold)
+## QA checklist (what kumami-qa must verify — derived from the spec, one line per rule/button/state)
+## Risks / open questions
+## Out of scope (deferred, with reason)
+```
 
-## 5 · Implement following the repo's patterns
+The **QA checklist** is required. Stage 5 (`kumami-qa`) executes it, so write each line as a checkable fact: "HIGH macro event within 24h on BTC → attention popup lists it", not "popup works".
 
-The market platform is already structured — mirror it, don't reinvent:
+**🚦 Gate 2.** Show Andrew the plan summary and wait for a go, unless he said to skip gates or the change is trivial.
 
-- **Fetchers** → add to `src/lib/market/live/cg-endpoints.ts` (typed, `cgCached`,
-  a sensible TTL matching the spec's cadence).
-- **Rule engine** → `src/lib/market/rules/<name>.ts`, a **pure** function that
-  turns raw numbers into a verdict/label/colour per the spec's matrix. All
-  thresholds live here, never in the UI. Add a unit test in `rules/__tests__`.
-- **Contract** → add the payload type to `src/lib/market/contracts.ts`.
-- **Builder** → `src/lib/market/live/<name>.ts`, fetch → feed the engine →
-  assemble the contract. Guard each part with `.catch` so one bad endpoint
-  degrades gracefully.
-- **Provider + route** → add a method to `MarketDataProvider`/`liveProvider` and
-  a `src/app/api/market/<name>/route.ts` using `getCachedFresh` and a
-  `market:v2:<name>` key. Enforce the tier's refresh cadence.
-- **UI** → a client component under `src/components/world/`, styled with
-  `world.css` `w-*` classes and tokens; consume via `useMarketEndpoint`.
+## 4 · Build (stage 3)
 
-**Non-negotiables in this codebase:**
-- Never render mock/placeholder/stale data. Show real data or an honest
-  `—` / "no data" / loading / error state. `getProvider()` throws (→ route 5xx)
-  when there is no key; keep it that way.
-- The LLM "sentence" layer has no Anthropic key yet — ship the hardcoded
-  template fallback and leave a `TODO(ai)`.
-- Match the exact verdict colours from the spec; map any colour outside the
-  6-value `Verdict['color']` union to the nearest token.
+- **Branch:** small fixes go directly on `dev`. Multi-commit features use `git switch -c feat/<feature> dev` and get merged back into `dev` after QA. **Never touch `main`.**
+- **Mirror the market-platform patterns:**
+  - **Fetchers** → `src/lib/market/live/cg-endpoints.ts`: typed, `cgCached`, with a TTL that matches the spec's cadence. The cache lives in Firestore (`market_cache`) and is shared, so if you change an endpoint's params, **version its cache key** (e.g. `cg:econcal:v2`) or stale data will be served.
+  - **Rule engine** → `src/lib/market/rules/<name>.ts`: a pure function that holds all the thresholds, with tests in `rules/__tests__`.
+  - **Contract** → `src/lib/market/contracts.ts`.
+  - **Builder** → `src/lib/market/live/<name>.ts`: fetch, feed the engine, assemble. `.catch` each source so one failure degrades only that part.
+  - **Provider + route** → `MarketDataProvider`/`liveProvider` + `src/app/api/market/<name>/route.ts`. Use `authenticate()`, and add a route cache only if nothing admin-authored flows through it.
+  - **UI** → client component under `src/components/world/`, using `world.css` `w-*` classes, consumed with `useMarketEndpoint`.
+  - **Admin-authored content** → `src/components/admin/Publish*.tsx` writing to a `pro_*` collection (already covered by the wildcard Firestore rule; drafts via `status`), plus a nav item in `AdminLayout.tsx`.
+- **Non-negotiables:**
+  - Never render mock, placeholder or stale data. Show real data or an honest `—` / "No data" / loading / error state.
+  - Never show the provider name ("CoinGlass") in the UI.
+  - The LLM layer has no key wired yet. Ship the template fallback and add a `TODO(ai)`.
+  - Use the spec's exact verdict colours, mapped to the nearest `Verdict['color']` token.
+  - Local `/api/market/*` needs `FIREBASE_SERVICE_ACCOUNT_JSON` in `.env.local`. Without it every route returns 401.
 
-## 6 · Verify + hand off
+## 5 · Check, then hand off to QA
 
-`npx tsc --noEmit` (ignore stale `.next/types` errors), `npx eslint` the changed
-files, then drive the page in the browser (Playwright) to confirm it renders
-with live data. Commit on `dev` (never `main`), push only when asked, and finish
-with the **feature-test-tutorial** skill so the user can verify it themselves.
+Run `npx vitest run`, `npx tsc --noEmit`, `npx eslint <changed files>` (compare errors with `git stash` to separate pre-existing ones from new ones) and `npm run build`. When they pass, continue with **`kumami-qa`** (stage 5) using the plan's QA checklist. Then do `product-spec-doc-update` SHIP mode and `rachelle-gap-analysis` (stage 6), then push `dev` (stage 7). Don't report "done" before QA.
 
 ## Keep memory current
 
-If the PM changes, the spec folder moves, or a feature decision supersedes
-earlier work, update `MEMORY.md` and the relevant memory file.
+If the PM changes, the spec folder moves, the CoinGlass plan changes, or a decision supersedes earlier work, update the memory files.

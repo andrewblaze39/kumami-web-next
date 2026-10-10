@@ -1,39 +1,57 @@
-# How to test — Pro › Calendar
+# How to test — Calendar (shared by Plus and Pro)
 
-Admin-authored dated events. Add events in the dashboard, confirm they land on
-the right day of the calendar grid and in the Upcoming list, with drafts hidden.
+One calendar for everyone at `/world/calendar`. It mixes three sources: macro
+releases and token unlocks (automatic feed) and events your team adds in the
+admin panel. This test checks that team events show up, drafts stay hidden,
+edits and deletes come through, and the high-impact popup fires.
 
-- **Admin:** `/admin/pro-calendar` · **Surface:** `/world/pro?tab=calendar`
-- **Collection:** `pro_calendar` (covered by `pro_*` wildcard — no rules deploy)
+- **Admin:** `/admin/pro-calendar` (Content → Pro Dashboard → Calendar)
+- **User page:** `/world/calendar`. Old `/world/pro?tab=calendar` links redirect here.
+- **Data:** Firestore `pro_calendar` (published items only), plus the CoinGlass feed.
+- **Automated version:** `npx playwright test qa/features/calendar.spec.ts --project=desktop` (QA report: `docs/qa/2026-10-10-calendar.md`).
 
 ## Prerequisites
-- Signed in as **admin/superadmin**. App points at **prod `kumami-6df47`**.
-- `npm run dev` → http://localhost:3000 (or live site).
+- `npm run dev` → http://localhost:3000. `.env.local` points at **kumami-dev**, so everything you add goes to the dev database.
+- **Author:** sign in as `qa-pro@kumami.test` (admin + Pro) or your own admin account.
+- **Viewer:** sign in as `qa-plus@kumami.test` (Plus) in a second browser or an incognito window. Passwords are in `.env.local` (`QA_PLUS_PASSWORD`, `QA_PRO_PASSWORD`).
 
-## Step 1 — Add events at `/admin/pro-calendar`
-Use real dates near today so they show on the current month.
+## Step 1 — Look at the calendar as a Plus user
+Open `/world/calendar`.
+- ✅ A **Next up** card at the top shows the nearest upcoming event.
+- ✅ The month grid shows the current month with today highlighted. Days hold up to 3 events, then "+N more".
+- ✅ Upcoming days (later this month) have events. If they're empty, the macro feed is broken.
+- ✅ Click **Token Unlocks**: only unlock events remain. Click **All** to reset.
+- ✅ Switch off **MED** and **LOW**: only HIGH events remain (hover an event and its tooltip ends in "HIGH").
+- ✅ **›** and **‹** move between months.
 
-| Title | Date | Time | Impact | Category | Button |
-|---|---|---|---|---|---|
-| US CPI (MoM) | (today's date) | 8:30 AM UTC | High impact | Macro | **Publish** |
-| ARB token unlock | (today + ~4 days) | — | Medium | On-chain | **Publish** |
-| FOMC Rate Decision | (today + ~10 days) | — | High impact | Macro | **Save Draft** |
+## Step 2 — Add events as admin (`/admin/pro-calendar`)
+Use today's or tomorrow's date. Times are **UTC** (leave blank for an all-day event). For the popup test, set the first event about 2–3 hours from now in UTC.
 
-## Step 2 — Verify on `/world/pro?tab=calendar`
-- ✅ CPI appears as a chip on today's cell; ARB unlock on its day (~4 days out).
-- ✅ Both show in the **Upcoming** list, sorted by date; clicking one fills the
-  **Selected event** detail (impact, category, date, description).
-- ✅ **Draft hidden:** FOMC Rate Decision does not appear.
-- ✅ Month arrows move between months; today's number is highlighted.
+| Title | Date | Time (UTC) | Impact | Category | Affected assets | Button |
+|---|---|---|---|---|---|---|
+| [QA] ETH upgrade go-live | today | now + 2h | High impact | Project | ETH | **Publish** |
+| [QA] Kumami AMA | tomorrow | (blank) | Medium | Other | (blank) | **Publish** |
+| [QA] Draft — should not show | tomorrow | 10:00 | Low | Other | (blank) | **Save Draft** |
 
-## Step 3 — Edit & delete (admin)
-- Edit CPI's time → **Update & Publish** → tab updates (realtime).
-- Delete the FOMC draft → gone from the admin list.
+- ✅ Each one appears in **Scheduled events** below the form, with its status (published or draft), "UTC" or "all day", and its assets.
+
+## Step 3 — Check as the Plus user (reload `/world/calendar`)
+- ✅ A **"High-impact event soon"** popup shows *[QA] ETH upgrade go-live*, "Affected: ETH". Click **Dismiss**; reloading must not show it again.
+- ✅ On today's cell, *★ [QA] ETH upgrade go-live* is listed **first**: team events are marked ★ and float above feed events. Hover it: "(Project · Kumami, HIGH)".
+- ✅ Tomorrow shows *★ [QA] Kumami AMA* with **All day**.
+- ✅ *[QA] Draft — should not show* is **not** anywhere on the calendar.
+- ✅ **Type filter:** "Protocol & other" shows only the team events (Project and Other categories).
+- ✅ Open `/world/console` (use a fresh incognito window if you dismissed the popup): the **"Needs your attention today"** popup lists the ETH event, and the **Calendar** preview panel shows ★ events at the top of their day.
+
+## Step 4 — Edit and delete (admin)
+- Click **Edit** on *[QA] ETH upgrade go-live*, change the title to *… (edited)*, then **Update & Publish**. Reload the user calendar: the new title shows.
+- Click **Delete** on each `[QA]` event and confirm. Reload: they're gone.
 
 ## Pass criteria
-events land on correct days ✅ · upcoming sorted ✅ · detail renders ✅ · draft
-hidden ✅ · edit/delete work ✅ · no console permission errors ✅
+✅ Feed events present (including upcoming) · ✅ filters and month arrows work · ✅ published team events show with ★ and sort first · ✅ drafts hidden · ✅ edit and delete come through on reload · ✅ the popup shows the HIGH team event on Calendar and Console · ✅ no red errors in the browser console.
 
-## If it fails
-Empty grid after publishing → check you're admin/signed in and look for
-`Missing or insufficient permissions` (the `pro_*` rule is already deployed).
+## If something's wrong
+- **Every market page says it couldn't load / 401:** `.env.local` is missing `FIREBASE_SERVICE_ACCOUNT_JSON`.
+- **Nothing upcoming in the grid:** the macro feed window isn't being applied. Check the `cg:econcal:v2` call in `src/lib/market/live/cg-endpoints.ts`.
+- **A team event doesn't show:** it's a draft, the date is in another month (use the arrows), or the title/date is empty (those are skipped).
+- **Unlocks only appear on today:** expected. Our CoinGlass plan only returns today's unlocks.

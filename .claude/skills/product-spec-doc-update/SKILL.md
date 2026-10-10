@@ -1,6 +1,17 @@
 ---
 name: product-spec-doc-update
-description: Keep Andrew's "as-built" product spec (docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx) in sync with the live code, with a version number + date and a Release notes entry for every change. ALWAYS run this after building, fixing or removing anything user-facing or admin-facing in Basic/Plus/Pro (a feature slice, a bug fix that changes what users see, a nav change, a new admin field), before handing the work back or pushing — even if the user didn't ask. Also use when the user says "update the spec doc", "update the product doc", "bump the doc version", or asks what changed between doc versions.
+description: >-
+  Maintain Andrew's product spec (docs/Rachelle Product
+  Specs/Kumami_World_Product_Spec_andrew.docx) — the single source of truth for what
+  Kumami does AND what is planned — with a version number, date and Release notes entry
+  for every change. Two modes. PLANNED mode (workflow stage 1): translate a requirement
+  from Rachelle's spec into a new section flagged "(Planned)" or a "Planned changes"
+  sub-section, before any planning or code. SHIP mode (stage 6): after a feature is
+  built and QA'd, remove the (Planned) flag, describe what was actually built, bump the
+  version and add release notes. ALWAYS run ship mode after building, fixing or removing
+  anything user- or admin-facing, before pushing — even if not asked. Also use for "add
+  this to my spec as planned", "update the spec doc", "bump the doc version", or "what's
+  planned / what changed between versions".
 ---
 
 # Product spec doc update (as-built doc)
@@ -12,9 +23,41 @@ There are two kinds of product doc in `docs/Rachelle Product Specs/`:
 | `Kumami Website (N).docx` (highest N = latest) | Rachelle's **requirements** — what she wants built | Rachelle only. Never edit. |
 | `Kumami_World_Product_Spec_andrew.docx` | The **as-built** spec — what the website actually does today | This skill |
 
-The as-built doc describes reality, not intent. If the code doesn't do it, the
-doc doesn't claim it — gaps go under "Known gaps". Comparing it against
-Rachelle's doc is the separate `rachelle-gap-analysis` skill.
+The doc describes reality, plus clearly flagged plans. Live sections only
+claim what the code does; gaps go under "Known gaps". Anything not built yet
+lives under a `(Planned)` heading or a `Planned changes` sub-section, so a
+reader can always tell the two apart. Comparing it against Rachelle's doc is
+the separate `rachelle-gap-analysis` skill. The full pipeline is in
+`docs/DEVELOPMENT_WORKFLOW.md` (orchestrated by `kumami-feature-workflow`).
+
+## Two modes
+
+### PLANNED mode (workflow stage 1: translate Rachelle → Andrew's spec)
+
+1. Read the requirement in Rachelle's latest `Kumami Website (N).docx` (extract it
+   as in `rachelle-gap-analysis` step 1) and check the current code for what
+   already exists.
+2. Write it in Andrew's format (What it is / Where it is / How the user uses it /
+   How we build it). Use plain language, include the thresholds and tables
+   Rachelle specifies, and record Andrew's decisions where they differ from her
+   (and say so).
+3. Place it:
+   - **New feature** → `d.add_planned_section("Kumami Plus", "9. Feature name", blocks, source="Rachelle's Kumami Website (6) §9", version="1.4")`.
+     This adds a Heading2 `9. Feature name (Planned)` with an amber `PLANNED — from … · added in v1.4 · not live yet.` status line at the end of the tier.
+   - **Change to a live feature** → `d.add_planned_changes("5. Calendar", blocks, source=…, version="1.4")`.
+     This adds a Heading4 `Planned changes (v1.4)` at the end of that feature's section. **Do not touch the live description above it.**
+4. Minor version bump. Release note: `Planned: <feature> (from Rachelle v6 §9) — <one line>`.
+5. Stop at **Gate 1**. Show Andrew the planned text (paste it in chat) and wait for a go, unless he said to skip gates.
+
+### SHIP mode (workflow stage 6: after build + QA)
+
+1. `python -I .claude/skills/product-spec-doc-update/scripts/spec_doc.py planned "<doc>"` lists every open planned item.
+2. For each item that shipped: `d.ship_planned(i)`.
+   - For a `(Planned)` section, this removes the flag and the status line. Then rewrite the body to describe **what was built** (it often differs from the plan), and move deferred parts to "Known gaps".
+   - For `Planned changes`, this deletes the sub-section. Fold the as-built behaviour into the live description and Known gaps.
+3. Planned items that did **not** ship stay flagged. Say why in the release notes.
+4. Minor version bump. Release note: `Shipped: <feature> — planned flag removed. <what's live, what's deferred>`.
+5. Then run `rachelle-gap-analysis` so closed items flip to ✅.
 
 ## Document conventions (keep them)
 
@@ -27,13 +70,13 @@ Rachelle's doc is the separate `rachelle-gap-analysis` skill.
 
 ## Versioning
 
-- **Minor** bump (1.3 → 1.4) when the product changed (feature added/removed/reworked).
+- **Minor** bump (1.3 → 1.4) when something is added as planned, when a planned item ships, or when the product changed (feature added/removed/reworked).
 - **Patch** bump (1.4 → 1.4.1) when only the doc was corrected to match unchanged code.
 - One version per build/PR, not per file. If several commits land together, one entry covers them.
 - Release-note entries are history — never rewrite or delete old ones. Corrections go in the new entry ("Corrections to v1.3 text: …").
 - Every entry ends with a **"Not re-audited in this version"** bullet when you didn't check the whole doc. Say which sections you didn't verify.
 
-## Workflow
+## Editing mechanics (both modes)
 
 ### 1 · Work out what changed
 
@@ -96,7 +139,7 @@ python -I .claude/skills/product-spec-doc-update/scripts/spec_doc.py outline "<d
 
 Also check that every `pStyle` you used exists in `word/styles.xml` (the house styles are Title, Heading1–5, ListBullet). If Word or LibreOffice is available, open it and update the TOC. Neither is installed on Andrew's machine as of Oct 2026.
 
-### 6 · Commit with the code
+### 6 · Commit with the code (on `dev` — never `main`)
 
 Commit the doc in the same push as the code it describes, or immediately after it: `docs(spec): v1.4 — <summary>`. In your reply, tell the user the new version number and give a 3–6 bullet summary of the release notes. If a screenshot is now stale, say which ones need re-capturing.
 

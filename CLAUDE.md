@@ -4,6 +4,16 @@
 
 Crypto/Web3 education and news platform. Live at https://kumami.world. Accent color: turquoise `#00c2c7`.
 
+## Development Workflow (follow this for every feature)
+
+Full process: **`docs/DEVELOPMENT_WORKFLOW.md`** — orchestrated by the `kumami-feature-workflow` skill.
+
+Rachelle's spec → translate into `Kumami_World_Product_Spec_andrew.docx` flagged **(Planned)** (version bump) → plan in `docs/plans/` → build → vitest/tsc/lint/build → **`kumami-qa`** (Playwright QA + `testing/**/how-to-test.md`) → spec doc: remove (Planned), version bump + release notes → refresh gap report → push `dev` → report to Andrew.
+
+**Git rules — non-negotiable:**
+- Work on `dev` (small fixes) or `feat/<name>` branched from `dev`, merged back into `dev`. Push `dev`.
+- **Never** commit to, merge into, rebase onto, or push `main`, and never open/merge a PR into `main`. Releasing `dev` → `main` is Andrew's call only.
+
 ## World-First Architecture
 
 The entire product is a single-page-app-style shell ("Kumami World"):

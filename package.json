@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "seed:courses": "npx tsx scripts/seed-courses.ts"
+    "seed:courses": "npx tsx scripts/seed-courses.ts",
+    "qa": "playwright test",
+    "qa:smoke": "playwright test qa/smoke.spec.ts --project=desktop"
   },
   "dependencies": {
     "@firebase/analytics": "^0.10.21",
@@ -40,6 +42,7 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

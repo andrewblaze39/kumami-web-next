@@ -43,3 +43,9 @@ prod.json
 
 # python (skill helper scripts)
 __pycache__/
+
+# Playwright QA (kumami-qa skill)
+qa/.auth/
+qa/artifacts/
+/test-results/
+/playwright-report/
