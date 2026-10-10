@@ -103,6 +103,9 @@ Re-run until the suite is clean, or remaining items are listed as known issues. 
 ## Lessons already learned (Oct 2026)
 - "No skeletons" passes on the auth splash. `openPage` waits for `#w-sidebar` and checks the final URL. Keep it that way, and verify by looking at a screenshot the first time you write a new spec.
 - The first test after a server start can time out on a cold route and cache. That's why `global-setup` warms up. Before calling slowness a product bug, re-check with a warm server (time the `/api/market/*` call).
+- On Windows, the dev server Playwright starts (`webServer`) can keep running after the run ends. Before `npm run build`, check port 3000 (`Get-NetTCPConnection -LocalPort 3000`) and stop the leftover `next ... start-server.js` process you started; `next build` and `next dev` both write `.next`.
+- First-visit overlays (the guided tour, high-impact popups) block clicks for fresh accounts. `openPage` dismisses them. A test that asserts on a popup must target it by name (`getByRole('dialog', { name: '…' })`), because the tour can be open at the same time.
+- On mobile, the workspace toggle is icon-only and the sidebar is a drawer. Skip text-label navigation tests there (`test.skip(isMobile, …)`) and cover them on desktop.
 - The shared market cache lives in Firestore. Data you see may be up to one TTL old.
 - Real bugs caught by the first runs: duplicate React keys from repeated macro events (calendar), and "Spot buying $0M" on Spot Pulse cards (sub-$1M amounts).
 

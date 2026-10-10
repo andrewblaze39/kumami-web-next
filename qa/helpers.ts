@@ -81,6 +81,24 @@ export async function openPage(page: Page, path: string, opts: { ready?: string 
   const got = new URL(page.url()).pathname;
   expect(got, `navigated to ${path} but ended on ${got} (signed out / redirected?)`).toBe(want);
   await expect(page.locator('[aria-busy="true"]')).toHaveCount(0, { timeout: 45_000 });
+  await dismissOverlays(page);
+}
+
+/**
+ * Close first-visit product tours ("Welcome to your dashboard" → Skip) and the
+ * high-impact event popups (Dismiss), which legitimately cover the page for a
+ * fresh account and block clicks. Specs that TEST those overlays should assert
+ * on them before calling openPage again (or use page.goto directly).
+ */
+export async function dismissOverlays(page: Page) {
+  for (let i = 0; i < 3; i++) {
+    const skip = page.getByRole('button', { name: /^skip$/i });
+    const dismiss = page.getByRole('dialog').getByRole('button', { name: /^dismiss$/i });
+    if (await skip.isVisible().catch(() => false)) await skip.click();
+    else if (await dismiss.first().isVisible().catch(() => false)) await dismiss.first().click();
+    else return;
+    await page.waitForTimeout(300); // let the overlay animate out before re-checking
+  }
 }
 
 /** Placeholder / broken-value patterns that must never reach users. */

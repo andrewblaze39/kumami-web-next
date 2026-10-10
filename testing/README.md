@@ -9,6 +9,10 @@ These are written and kept up to date by the `kumami-qa` skill (workflow stage 5
 see `docs/DEVELOPMENT_WORKFLOW.md`), based on what the automated QA pass actually
 verified, following the `feature-test-tutorial` conventions.
 
+## Shell / navigation
+
+- [Sidebar: one tier per workspace](shell/sidebar-workspaces/how-to-test.md) — Basic/Plus/Pro sidebars show only their own tier; the workspace follows the page. Automated: `qa/features/sidebar-workspaces.spec.ts`.
+
 ## Plus
 
 - [Calendar](plus/calendar/how-to-test.md) — shared Plus + Pro calendar at `/world/calendar`: feed events plus team events authored at `/admin/pro-calendar` (drafts hidden, ★ team events, high-impact popup). Automated: `qa/features/calendar.spec.ts`.

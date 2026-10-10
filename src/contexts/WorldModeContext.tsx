@@ -6,7 +6,6 @@ import React, {
   useState,
   useEffect,
   useCallback,
-  useRef,
 } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { doc, setDoc } from 'firebase/firestore';
@@ -37,7 +36,11 @@ export function useWorldMode() {
 // (/world/courses/[phaseId]/…). The bare /world/courses and /world/dashboard
 // pages now redirect to /world/education subtabs.
 const BEGINNER_ROUTES = ['/world/news', '/world/courses', '/world/education', '/world/ailabs', '/world/games'];
-const ADVANCED_ROUTES = ['/world/console', '/world/onchain', '/world/watchlist'];
+const ADVANCED_ROUTES = [
+  '/world/console', '/world/onchain', '/world/flow-radar', '/world/fear-greed',
+  '/world/calendar', '/world/watchlist', '/world/settings',
+  '/world/intel', '/world/spot-pulse', // retired — redirect into Plus pages
+];
 const PRO_ROUTES = ['/world/pro'];
 // Shared routes: visible in every mode — visiting them never changes the mode.
 const SHARED_ROUTES = ['/world/home', '/world/about', '/world/blogs', '/world/profile'];
@@ -48,13 +51,14 @@ function matchesRoute(pathname: string, route: string): boolean {
   return pathname === route || pathname.startsWith(route + '/');
 }
 
+/**
+ * Which workspace a page belongs to. Since 10 Oct 2026 each workspace's
+ * sidebar shows ONLY its own tier, so the workspace follows the page: opening
+ * a Plus page switches to Plus (up or down), opening /world/pro switches to Pro.
+ * Shared routes and unknown routes return null = keep the current workspace.
+ */
 function detectModeFromPath(pathname: string): WorldMode | null {
-  // Shared routes never force a mode — keep whatever mode is current.
   if (SHARED_ROUTES.some(r => matchesRoute(pathname, r))) return null;
-  // Higher tiers include lower-tier routes (Pro sees everything, Advanced sees
-  // Beginner routes too), so only force a mode change if the route belongs to a
-  // HIGHER tier than the current one. Lower-tier routes are accessible without
-  // switching mode.  On first load (no stored mode) we still detect from path.
   if (PRO_ROUTES.some(r => matchesRoute(pathname, r))) return 'pro';
   if (ADVANCED_ROUTES.some(r => matchesRoute(pathname, r))) return 'advanced';
   if (BEGINNER_ROUTES.some(r => matchesRoute(pathname, r))) return 'beginner';
@@ -90,20 +94,18 @@ export function WorldModeProvider({ children }: { children: React.ReactNode }) {
 
   const [kumaOpen, setKumaOpen] = useState(false);
 
-  // On mount: auto-correct mode based on current deep-link path (do NOT redirect).
-  // Only correct UPWARD — a Pro user visiting /world/news should stay Pro, but a
-  // Beginner visiting /world/console should be bumped to Advanced.
-  const correctedRef = useRef(false);
-  const TIER: Record<WorldMode, number> = { beginner: 0, advanced: 1, pro: 2 };
+  // The workspace follows the page (both directions, on every navigation —
+  // deep links, in-app links like Daily Digest → Calendar, redirects), so the
+  // tier-only sidebar always contains the page you're on. Never redirects.
   useEffect(() => {
-    if (correctedRef.current) return;
-    correctedRef.current = true;
     const detected = detectModeFromPath(pathname);
-    if (detected && TIER[detected] > TIER[mode]) {
-      setModeState(detected);
+    if (!detected) return;
+    setModeState((current) => {
+      if (current === detected) return current;
       localStorage.setItem('kumami_world_mode', detected);
-    }
-  }, [pathname, mode]);
+      return detected;
+    });
+  }, [pathname]);
 
   // Persist to Firestore fire-and-forget
   const persistToFirestore = useCallback(
@@ -121,35 +123,13 @@ export function WorldModeProvider({ children }: { children: React.ReactNode }) {
     (newMode: WorldMode) => {
       if (newMode === mode) return;
 
-      const TIER_NUM: Record<WorldMode, number> = { beginner: 0, advanced: 1, pro: 2 };
-
-      // ---------- Continuity logic ----------
-      // Higher tiers include lower-tier pages. If the current page is visible in
-      // the new mode (i.e. switching to a higher tier, or staying on a shared
-      // route), stay on the same page instead of redirecting.
+      // Each workspace only lists its own tier, so switching workspace goes to
+      // the new workspace's home page — unless the current page is shared
+      // (Home, About, Blogs, Profile) or unknown, where we stay put. Staying
+      // on, say, a Plus page after switching to Pro would immediately flip the
+      // workspace back (it follows the page — see the effect above).
       const detected = detectModeFromPath(pathname);
-      const currentPageTier = detected ? TIER_NUM[detected] : -1;
-      const stayOnPage = currentPageTier >= 0 && currentPageTier <= TIER_NUM[newMode];
-      // Shared routes (detected === null, tier -1): always stay.
-      const isShared = SHARED_ROUTES.some(r => matchesRoute(pathname, r));
-
-      let destination: string;
-      if (stayOnPage || isShared) {
-        // Current page is accessible in the new mode — stay put.
-        destination = pathname;
-      }
-      // Switching DOWN from a higher tier to lower: go to new mode's default
-      // because the current page isn't available in the lower tier.
-      else if (newMode === 'beginner' && pathname.startsWith('/world/news')) {
-        destination = '/world/news';
-      }
-      // news → console continuity when going beginner → advanced
-      else if (mode === 'beginner' && pathname.startsWith('/world/news') && newMode === 'advanced') {
-        destination = '/world/console';
-      }
-      else {
-        destination = defaultPageForMode(newMode);
-      }
+      const destination = detected === null || detected === newMode ? pathname : defaultPageForMode(newMode);
 
       setModeState(newMode);
       localStorage.setItem('kumami_world_mode', newMode);

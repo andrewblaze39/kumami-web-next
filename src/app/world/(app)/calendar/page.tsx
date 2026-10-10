@@ -1,9 +1,10 @@
 'use client';
 
 /**
- * /world/calendar — the ONE Calendar, shared by Plus and Pro (Pro's sidebar
- * shows it via the included Plus group; old /world/pro?tab=calendar links
- * redirect here).
+ * /world/calendar — the ONE Calendar, shared by Plus and Pro. It lives in the
+ * Plus workspace (each workspace's sidebar shows only its own tier); Pro users
+ * reach it via the Plus workspace or old /world/pro?tab=calendar links, which
+ * redirect here and switch the workspace to Plus.
  *
  * Data (see lib/market/live/calendarPage.ts): macro prints + token unlocks
  * from the market-data feed, merged with events the Kumami team adds by hand

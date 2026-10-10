@@ -105,16 +105,15 @@ function toSectionCRows(assets: WatchlistApiResponse['sectionC']): WatchRow[] {
 /* ------------------------------------------------------------------ */
 
 export default function WatchlistPage() {
-  const { mode, setMode } = useWorldMode();
+  const { setMode } = useWorldMode();
   const { userData, currentUser } = useAuth();
   // Pro users (or admins) can pin their own tokens; everyone gets the auto
-  // list. Gated on the CURRENT view mode too, not just account tier: an
-  // admin/Pro account previewing the Plus experience via the mode toggle
-  // should see the plain fixed watchlist a real Plus user sees, not have
-  // Pro sections bleed through just because their account can access them.
-  const hasProAccess =
+  // list. Gated on the ACCOUNT, like Flow Radar: since 10 Oct 2026 each
+  // workspace's sidebar shows only its own tier, so Pro users reach this Plus
+  // page through the Plus workspace — gating on the workspace too would hide
+  // their Pro sections (pins, Also Worth Watching) with no way to see them.
+  const isPremium =
     userData?.isPremium === true || userData?.role === 'admin' || userData?.role === 'superadmin';
-  const isPremium = hasProAccess && mode === 'pro';
   const market = useMarketEndpoint<WatchlistApiResponse>('/api/market/watchlist');
   const bw = market.data ? toRows(market.data.assets) : [];
   const pinnedRows = market.data ? toRows(market.data.curatedAssets) : [];

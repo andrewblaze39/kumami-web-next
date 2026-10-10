@@ -127,7 +127,7 @@ test.describe('Calendar — admin round trip (Pro/admin authors, Plus user views
     const page = await ctx.newPage();
     // The HIGH event is within 24h and involves ETH → the D-1 popup must show it.
     await page.goto('/world/calendar');
-    await expect(page.getByRole('dialog')).toContainText(title, { timeout: 60_000 });
+    await expect(page.getByRole('dialog', { name: 'High-impact event tomorrow' })).toContainText(title, { timeout: 60_000 });
     await snap(page, info, 'calendar-d1-popup');
     expect(await calendarHas(page, title)).toBe(1);
     const chip = chips(page).filter({ hasText: title });
@@ -136,8 +136,9 @@ test.describe('Calendar — admin round trip (Pro/admin authors, Plus user views
     expect(await calendarHas(page, draftTitle)).toBe(0);
 
     // Console's "Needs your attention today" popup lists it too.
+    // (On a first visit the guided tour opens at the same time — target the popup by name.)
     await page.goto('/world/console');
-    await expect(page.getByRole('dialog')).toContainText(title, { timeout: 60_000 });
+    await expect(page.getByRole('dialog', { name: 'Needs your attention today' })).toContainText(title, { timeout: 60_000 });
     await ctx.close();
   });
 

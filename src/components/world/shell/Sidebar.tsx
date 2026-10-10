@@ -190,10 +190,12 @@ const ADV_NAV: NavGroup[] = [
 // "AI Tools" sections. Smart Money Tracker, Coin/Token Tracker, and the
 // Pro-tier Fear & Greed slot were retired (per the latest mockup) — all
 // three were ComingSoon placeholders with zero real content.
-// NOTE: no Watchlist, Flow Radar, Calendar or Settings items here — those are Plus
-// tools Pro users already see via the included Plus nav, so they aren't
-// duplicated here. (Calendar is one shared page for Plus and Pro — admin
-// events from /admin/pro-calendar are merged into it.)
+// NOTE: no Watchlist, Flow Radar, Calendar or Settings items here — those are
+// Plus tools. Since 10 Oct 2026 each workspace shows only its own tier, so Pro
+// users open them by switching to the Plus workspace; the Pro-only depth on
+// those pages (Flow Radar Pro, Watchlist Pro) follows the ACCOUNT, not the
+// workspace, so it's still there. (Calendar is one shared page for Plus and
+// Pro — admin events from /admin/pro-calendar are merged into it.)
 const PRO_NAV: NavGroup[] = [
   {
     grp: 'pro-top',
@@ -460,10 +462,11 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
     };
   }, [menuOpen]);
 
-  // Build inclusive nav: higher tiers see their own tabs + all lower-tier tabs.
-  // Pro = PRO + ADV + BEGINNER, Advanced = ADV + BEGINNER, Beginner = BEGINNER only.
+  // Each workspace shows ONLY its own tier (Andrew, 10 Oct 2026 — keeps the
+  // sidebar uncluttered): Basic = BEGINNER_NAV, Plus = ADV_NAV, Pro = PRO_NAV
+  // (via ProNavSection below). Lower-tier pages are reached by switching
+  // workspace with the Basic / Plus / Pro toggle. Home stays in every mode.
   const primaryNav = mode === 'beginner' ? BEGINNER_NAV : mode === 'advanced' ? ADV_NAV : null;
-  const includedNav: NavGroup[] | null = mode === 'advanced' ? BEGINNER_NAV : mode === 'pro' ? [...ADV_NAV, ...BEGINNER_NAV] : null;
 
   // Premium predicate — same as WorldProContent's gate.
   const isPremium =
@@ -565,16 +568,6 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
           )
         )}
 
-        {/* Included lower-tier nav groups (fully active — lower tiers are
-            already accessible from Advanced/Pro mode) */}
-        {includedNav && includedNav.length > 0 && (
-          <>
-            <div className="w-nav-divider" />
-            <Suspense fallback={null}>
-              <NavGroupList groups={includedNav} onClose={onClose} />
-            </Suspense>
-          </>
-        )}
       </nav>
 
       {/* ---- Footer: profile block — dropdown with My Profile + Log out ---- */}
