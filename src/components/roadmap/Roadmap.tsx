@@ -14,6 +14,7 @@ import {
   createId,
   dateUtil,
   roadmapStore,
+  withAdditions,
 } from './data';
 import type { RoadmapCategory, RoadmapItem, RoadmapState } from './types';
 import { DeadlinePill, EditableText, MintBtn } from './atoms';
@@ -532,8 +533,8 @@ const DOT_BG: CSSProperties = {
 export default function Roadmap() {
   // Lazy init — read from localStorage on first render, fall back to seed
   const [state, setState] = useState<RoadmapState>(() => {
-    if (typeof window === 'undefined') return JSON.parse(JSON.stringify(ROADMAP_SEED));
-    return roadmapStore.load() ?? JSON.parse(JSON.stringify(ROADMAP_SEED));
+    if (typeof window === 'undefined') return withAdditions(JSON.parse(JSON.stringify(ROADMAP_SEED)));
+    return roadmapStore.load() ?? withAdditions(JSON.parse(JSON.stringify(ROADMAP_SEED)));
   });
 
   // Persist every edit
@@ -583,7 +584,7 @@ export default function Roadmap() {
   const resetToSeed = () => {
     if (!confirm('Reset everything to the original seed? Your edits will be lost.')) return;
     roadmapStore.reset();
-    setState(JSON.parse(JSON.stringify(ROADMAP_SEED)));
+    setState(withAdditions(JSON.parse(JSON.stringify(ROADMAP_SEED))));
   };
 
   // ── Stats ───────────────────────────────────────────────────────────────

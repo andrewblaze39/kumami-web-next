@@ -1,9 +1,9 @@
 {
-  "report_version": "1.3",
-  "date": "2026-10-10",
+  "report_version": "1.4",
+  "date": "2026-10-11",
   "rachelle_doc": "Kumami Website (6).docx",
-  "code_commit": "dev (admin-content QA + Following/Digest fixes)",
-  "asbuilt_version": "1.9",
+  "code_commit": "dev (rules on kumami-dev, coin logos, roadmap)",
+  "asbuilt_version": "1.12",
   "summary": [
     "Plus is in good shape: every tool Rachelle listed exists and runs on live data, and the six “Tier 1 — fix immediately” bugs from her spec are all fixed. The gaps are mostly small rule details (a few thresholds and scoring weights differ from her numbers), three missing extras on Flow Radar, the AI-written sentences (no AI layer is connected yet), and two places where we followed her later mockup instead of the written spec (Spot Pulse and Intelligence no longer have their own tabs).",
     "Pro is about half built against her four Pro briefs. The visible structure is there — Flow Balance panel, cross-signal outlines, the three-section Watchlist, the wallet lookup page — but the “smart” layers are not: the per-asset significance engine, the six ◆ early-signal tags, saved lists, wallet rows, signal history, the full alert system, and most of the Crypto Address Tracker's analysis (PnL, win rate, AI read, behaviour flags, linked wallets). Since 10 Oct, Flow Radar Pro, Watchlist Pro and Spot Pulse Pro are separate Pro tools, Watchlist Pro uses Rachelle's 7-day rule, and Spot Pulse Pro has its 10 tiles.",
@@ -11,8 +11,8 @@
   ],
   "priorities": [
     {
-      "title": "Deploy the Firestore rules fix (security)",
-      "why": "Right now any signed-in user can make themselves Pro or even superadmin from the browser console, and read Pro content without paying. The fix is written and tested on dev; it needs your go to deploy (it likely affects production too).",
+      "title": "Deploy the Firestore rules fix to production (security)",
+      "why": "Done and tested on the dev database (kumami-dev) on 10 Oct. Production — which kumami.world and the deployed dev website use — still lets a signed-in user make themselves Pro or superadmin and read Pro content without paying, until Andrew deploys the rules there.",
       "effort": "S"
     },
     {
@@ -775,6 +775,14 @@
         "Daily Digest: newest-first fixed (still partial — no Watchlist / smart-money lines).",
         "Following & Alerts: followed airdrops show by name (still partial — volume/sentiment alerts not live).",
         "No status changes; refreshed against Andrew’s spec v1.9."
+      ]
+    },
+    {
+      "version": "1.4",
+      "date": "2026-10-11",
+      "bullets": [
+        "Priority 1 updated: the Firestore rules fix is live on kumami-dev; production deploy still pending.",
+        "Refreshed against Andrew’s spec v1.12 (coin logos; Kuma AI knowledge refresh planned)."
       ]
     }
   ]

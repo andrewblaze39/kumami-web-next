@@ -93,6 +93,36 @@ export const ROADMAP_SEED: RoadmapState = {
   ],
 };
 
+// ── Additions after launch ────────────────────────────────────────────────
+// Items added to the roadmap after browsers already saved their own copy.
+// load() merges each one in once (tracked in state.seededIds), so it appears
+// for everyone but stays deleted if an admin removes it.
+export const ROADMAP_ADDITIONS: { categoryId: string; categoryName: string; item: RoadmapItem }[] = [
+  {
+    categoryId: 'kuma-ai-knowledge',
+    categoryName: 'Kuma AI · Knowledge',
+    item: {
+      id: 'kk-1',
+      text: 'Refresh Kuma AI’s company-knowledge PDF in n8n from the current product spec (tiers, Plus/Pro tools, Pro content, how to get Pro) so answers are smarter — later, after the Plus/Pro work',
+      deadline: null,
+      done: false,
+    },
+  },
+];
+
+export function withAdditions(state: RoadmapState): RoadmapState {
+  const seeded = new Set(state.seededIds ?? []);
+  const pending = ROADMAP_ADDITIONS.filter((a) => !seeded.has(a.item.id));
+  if (!pending.length) return state;
+  const categories = state.categories.map((c) => ({ ...c, items: [...c.items] }));
+  for (const { categoryId, categoryName, item } of pending) {
+    let cat = categories.find((c) => c.id === categoryId);
+    if (!cat) { cat = { id: categoryId, name: categoryName, items: [] }; categories.push(cat); }
+    if (!cat.items.some((i) => i.id === item.id)) cat.items.push({ ...item });
+  }
+  return { ...state, categories, seededIds: [...seeded, ...pending.map((a) => a.item.id)] };
+}
+
 // ── Persistence (localStorage; swap to Firestore later) ───────────────────
 const STORAGE_KEY = 'kumami-roadmap-v1';
 
@@ -101,7 +131,7 @@ export const roadmapStore = {
     if (typeof window === 'undefined') return null;
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      return raw ? (JSON.parse(raw) as RoadmapState) : null;
+      return raw ? withAdditions(JSON.parse(raw) as RoadmapState) : null;
     } catch {
       return null;
     }

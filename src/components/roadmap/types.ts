@@ -22,6 +22,8 @@ export interface RoadmapState {
   version: number;
   updatedAt: string;
   categories: RoadmapCategory[];
+  /** Ids of ROADMAP_ADDITIONS already merged into this saved state (so a deleted item stays deleted). */
+  seededIds?: string[];
 }
 
 export type BucketColor = 'red' | 'amber' | 'mint' | 'dim' | 'neutral';
