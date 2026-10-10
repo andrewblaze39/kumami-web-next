@@ -7,7 +7,8 @@
  * the project turquoise via var(--accent).
  */
 
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
+import { COIN_LOGO_FILES } from '@/lib/coin-logos.generated';
 
 /* ---- Stroke icon set (24×24, stroke=currentColor, ported from reference) ---- */
 const ICON_PATHS: Record<string, React.ReactNode> = {
@@ -124,53 +125,46 @@ export function coinC(sym: string): string {
   return COIN_C[sym] ?? 'var(--accent)';
 }
 
-/** Crypto logo URL — uses CoinGecko's static asset CDN. Returns null for non-crypto assets. */
-const COIN_LOGO: Record<string, string> = {
-  BTC: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',
-  ETH: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png',
-  SOL: 'https://assets.coingecko.com/coins/images/4128/small/solana.png',
-  BNB: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png',
-  XRP: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png',
-  DOGE: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png',
-  AVAX: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png',
-  LINK: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png',
-  SUI: 'https://assets.coingecko.com/coins/images/26375/small/sui_asset.jpeg',
-  HYPE: 'https://assets.coingecko.com/coins/images/40942/small/HYPE.png',
-  ARB: 'https://assets.coingecko.com/coins/images/16547/small/photo_2023-03-29_21.47.00.jpeg',
-};
+/**
+ * Coin logo URL — self-hosted in public/coins/ for the top ~300 coins by market
+ * cap (refresh with `npx tsx scripts/fetch-coin-logos.ts`). Wrapped/bridged
+ * tickers fall back to their underlying coin's logo. Returns null when we have
+ * no logo (non-crypto assets, very small caps) → the coloured letter is shown.
+ */
+const LOGO_ALIAS: Record<string, string> = { WBTC: 'BTC', WETH: 'ETH', STETH: 'ETH', WSOL: 'SOL', WBNB: 'BNB', BTCB: 'BTC', XBT: 'BTC' };
 
 export function coinLogo(sym: string): string | null {
-  return COIN_LOGO[sym] ?? null;
+  const s = sym.toUpperCase();
+  const file = COIN_LOGO_FILES[s] ?? COIN_LOGO_FILES[LOGO_ALIAS[s] ?? ''];
+  return file ? `/coins/${file}` : null;
 }
 
 /**
- * CoinBadge — renders either a real crypto logo or the fallback colored circle.
- * Use this everywhere instead of the raw <span className="w-coin"> pattern.
+ * CoinBadge — the coin's real logo, or the coloured letter circle when we don't
+ * have one (or the image fails to load). Use this everywhere instead of a raw
+ * <span className="w-coin">. Without `size`, the surrounding CSS (.w-coin rules
+ * for that context) sets the dimensions.
  */
-export function CoinBadge({ sym, size = 17 }: { sym: string; size?: number }) {
+export function CoinBadge({ sym, size, className = 'w-coin' }: { sym: string; size?: number; className?: string }) {
   const logo = coinLogo(sym);
-  if (logo) {
+  const [failed, setFailed] = useState(false);
+  const dims: CSSProperties = size ? { width: size, height: size } : {};
+  if (logo && !failed) {
     return (
+      // eslint-disable-next-line @next/next/no-img-element -- tiny static icons; next/image adds nothing here
       <img
         src={logo}
-        alt={sym}
-        width={size}
-        height={size}
-        style={{
-          width: size,
-          height: size,
-          borderRadius: '50%',
-          objectFit: 'cover',
-          flexShrink: 0,
-        }}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        className={className}
+        onError={() => setFailed(true)}
+        style={{ ...dims, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, background: 'transparent', padding: 0 }}
       />
     );
   }
   return (
-    <span
-      className="w-coin"
-      style={{ background: coinC(sym), width: size, height: size }}
-    >
+    <span className={className} style={{ background: coinC(sym), ...dims }}>
       {sym[0]}
     </span>
   );

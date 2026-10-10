@@ -78,3 +78,8 @@ npx playwright test qa/features/admin-content.spec.ts --project=desktop   # last
   - profile-name edits and unsubscribe still work;
   - Pro users and admins still read Pro content.
 - **Full regression re-run under the new rules:** ✅ UI matrix 58/58, ✅ desktop specs + smoke 46/46, ✅ mobile 38/38 (2 skipped), ✅ admin-content 22/22 (Pro reads, Q&A ask/upvote and admin writes all work). The [TEST] items from this last run are live on kumami-dev.
+
+## Addendum — coin logos (11 Oct 2026)
+- Logos for the top 300 coins (295 unique tickers, 1.4 MB) are self-hosted in `public/coins/`, mapped in `src/lib/coin-logos.generated.ts`, and refreshed with `npx tsx scripts/fetch-coin-logos.ts`. `CoinBadge` falls back to the coloured letter if an image fails or a coin isn't in the set.
+- New `qa/features/coin-logos.spec.ts` checks Console, Watchlist Plus, On-Chain, Flow Radar Plus and Watchlist Pro, desktop + mobile: ✅ 10/10. Logos load, and no letter shows for a coin we have a logo for. Screenshots reviewed.
+- Regression: ✅ smoke + plus-pro-tools 31/31, ✅ admin-content 22/22 (run last, so [TEST] items are live on kumami-dev again).

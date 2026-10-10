@@ -11,7 +11,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { WIcon, coinC } from '@/components/world/panels/console-ui';
+import { WIcon, CoinBadge } from '@/components/world/panels/console-ui';
 import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
 import { formatPrice, formatChange, verdictColorClass } from '@/components/world/panels/format';
 import { useRouter } from 'next/navigation';
@@ -242,9 +242,7 @@ export default function WatchlistView({ variant }: { variant: ToolVariant }) {
         {bw.map(w => (
           <div key={w.sym} className="w-wl-trow">
             <div className="w-wl-asset">
-              <span className="w-coin" style={{ background: coinC(w.sym) }}>
-                {w.sym[0]}
-              </span>
+              <CoinBadge sym={w.sym} />
               <span>
                 <b>{w.sym}</b>
                 <span>{w.name}</span>
@@ -337,7 +335,7 @@ export default function WatchlistView({ variant }: { variant: ToolVariant }) {
             pinnedRows.map((w) => (
               <div key={w.sym} className="w-wl-trow">
                 <div className="w-wl-asset">
-                  <span className="w-coin" style={{ background: coinC(w.sym) }}>{w.sym[0]}</span>
+                  <CoinBadge sym={w.sym} />
                   <span><b>{w.sym}</b><span>{w.name}</span></span>
                   {/* Phones hide the Status column (and its Remove button) — this one shows there instead. */}
                   <button
@@ -393,7 +391,7 @@ export default function WatchlistView({ variant }: { variant: ToolVariant }) {
           {sectionCRows.map((w) => (
             <div key={w.sym} className="w-wl-trow">
               <div className="w-wl-asset">
-                <span className="w-coin" style={{ background: coinC(w.sym) }}>{w.sym[0]}</span>
+                <CoinBadge sym={w.sym} />
                 <span><b>◆ {w.sym}</b><span>{w.name}</span></span>
               </div>
               <div>

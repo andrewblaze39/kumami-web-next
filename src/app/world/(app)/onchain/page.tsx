@@ -12,7 +12,7 @@
  */
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { WIcon, coinC, type ConsoleIconName } from '@/components/world/panels/console-ui';
+import { WIcon, CoinBadge, type ConsoleIconName } from '@/components/world/panels/console-ui';
 import {
   OcDual,
   OcBars,
@@ -108,12 +108,8 @@ function OcWI({ wi }: { wi: Tag }) {
   );
 }
 
-function Coin({ sym, bg }: { sym: string; bg?: string }) {
-  return (
-    <span className="w-coin" style={{ background: bg ?? coinC(sym) }}>
-      {sym[0]}
-    </span>
-  );
+function Coin({ sym }: { sym: string }) {
+  return <CoinBadge sym={sym} />;
 }
 
 /** Chart slot: renders the chart only when real data exists, else an honest "No data yet". */
