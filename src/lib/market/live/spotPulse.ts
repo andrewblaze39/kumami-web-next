@@ -110,7 +110,16 @@ async function buildAsset(asset: string, row: 1 | 2, tf: SpotPulseTimeframe): Pr
   return { tile, res, spotCvdChange, priceChange4h };
 }
 
-const M = (v: number) => `$${Math.abs(v / 1e6).toFixed(0)}M`;
+/** Scale-aware $ amount for card text. A flat "$XM" rendered sub-$500K CVD
+ *  moves as "$0M" (caught by Playwright QA on On-Chain Insights). */
+const M = (v: number) => {
+  const a = Math.abs(v);
+  if (a >= 1e9) return `$${(a / 1e9).toFixed(1)}B`;
+  if (a >= 1e7) return `$${(a / 1e6).toFixed(0)}M`;
+  if (a >= 1e6) return `$${(a / 1e6).toFixed(1)}M`;
+  if (a >= 1e3) return `$${(a / 1e3).toFixed(0)}K`;
+  return `$${a.toFixed(0)}`;
+};
 
 /** Divergence alert card text per verdict (§5 Card Text Templates). */
 function alertFor(b: Built, tf: SpotPulseTimeframe): SpotPulseAlert | null {

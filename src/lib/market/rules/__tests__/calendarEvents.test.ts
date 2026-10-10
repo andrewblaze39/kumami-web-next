@@ -127,4 +127,13 @@ describe('mergeCalendarEvents', () => {
     const out = mergeCalendarEvents([mk('b', '2026-10-12T00:00:00Z')], [mk('a', '2026-10-11T00:00:00Z')], [mk('c', '2026-10-13T00:00:00Z')]);
     expect(out.map((e) => e.id)).toEqual(['a', 'b', 'c']);
   });
+
+  it('drops duplicate ids (the macro feed can repeat a release)', () => {
+    const row = {
+      calendar_name: 'Industrial profits', country_code: 'CHN', data_effect: '', forecast_value: '',
+      previous_value: '', publish_timestamp: Date.UTC(2026, 9, 27, 1, 30), importance_level: 1,
+    };
+    const out = mergeCalendarEvents([macroToEvent(row), macroToEvent(row)]);
+    expect(out).toHaveLength(1);
+  });
 });

@@ -188,7 +188,18 @@ export function isAttentionEligible(e: CalendarEvent): boolean {
   return e.assets.some((a) => (PLUS_ROSTER as readonly string[]).includes(a));
 }
 
-/** Chronological merge of every source. */
+/**
+ * Chronological merge of every source, de-duplicated by id. The macro feed can
+ * list the same release twice (same name, country and timestamp) — found by
+ * Playwright QA as a React duplicate-key error on /world/calendar.
+ */
 export function mergeCalendarEvents(...lists: CalendarEvent[][]): CalendarEvent[] {
-  return lists.flat().sort((a, b) => Date.parse(a.ts) - Date.parse(b.ts));
+  const seen = new Set<string>();
+  const out: CalendarEvent[] = [];
+  for (const e of lists.flat()) {
+    if (seen.has(e.id)) continue;
+    seen.add(e.id);
+    out.push(e);
+  }
+  return out.sort((a, b) => Date.parse(a.ts) - Date.parse(b.ts));
 }
