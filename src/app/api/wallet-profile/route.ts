@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
+import { resolveTier } from '@/lib/market/gating';
 import { getWalletSummary, sdkForChain } from '@/lib/alchemy';
 import {
   TokenBalanceType, AssetTransfersCategory, SortingOrder,
@@ -78,10 +79,15 @@ type PricedHolding = { symbol: string; amount: number; valueUsd: number | null }
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('Authorization') ?? '';
   const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  let uid: string;
   try {
-    await adminAuth().verifyIdToken(idToken);
+    uid = (await adminAuth().verifyIdToken(idToken)).uid;
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  // Crypto Address Tracker is a Pro tool — subscribed accounts only.
+  if ((await resolveTier(uid)) !== 'pro') {
+    return NextResponse.json({ error: 'pro_required' }, { status: 403 });
   }
 
   const address = req.nextUrl.searchParams.get('address');

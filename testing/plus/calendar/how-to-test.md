@@ -8,12 +8,21 @@ edits and deletes come through, and the high-impact popup fires.
 - **Admin:** `/admin/pro-calendar` (Content → Pro Dashboard → Calendar)
 - **User page:** `/world/calendar`. Old `/world/pro?tab=calendar` links redirect here.
 - **Data:** Firestore `pro_calendar` (published items only), plus the CoinGlass feed.
-- **Automated version:** `npx playwright test qa/features/calendar.spec.ts --project=desktop` (QA report: `docs/qa/2026-10-10-calendar.md`).
+- **Automated version:** `npx playwright test qa/features/calendar.spec.ts --project=desktop` (QA reports: `docs/qa/2026-10-10-calendar.md`, `docs/qa/2026-10-10-plus-pro-tool-split.md`).
 
 ## Prerequisites
 - `npm run dev` → http://localhost:3000. `.env.local` points at **kumami-dev**, so everything you add goes to the dev database.
-- **Author:** sign in as `qa-pro@kumami.test` (admin + Pro) or your own admin account.
-- **Viewer:** sign in as `qa-plus@kumami.test` (Plus) in a second browser or an incognito window. Passwords are in `.env.local` (`QA_PLUS_PASSWORD`, `QA_PRO_PASSWORD`).
+- **Author:** sign in with an admin account (yours).
+- **Viewer:** a normal, non-admin account in a second browser or an incognito window.
+
+## Step 0 — Automatic feeds are OFF by default (since 10 Oct 2026)
+1. As admin, open `/admin/pro-calendar`. ✅ At the top, **Automatic feeds** shows two switches, **Macro events (CoinGlass) — OFF** and **Token unlocks (CoinGlass) — OFF**, plus who changed them last.
+2. As the Plus user, open `/world/calendar`. ✅ The subtitle says "Key dates and events picked by the Kumami team." and only team events (★) appear.
+3. Turn **Macro events** ON (it shows "Saving…" briefly, then ON). Reload the user calendar: ✅ macro releases appear across the month.
+4. Turn it back **OFF**. ✅ They disappear again, also from the Console Calendar preview and the popups.
+5. **Leave both OFF** (Andrew's decision for now).
+
+The steps below assume the Macro feed is ON (step 3) when they mention feed events.
 
 ## Step 1 — Look at the calendar as a Plus user
 Open `/world/calendar`.

@@ -26,17 +26,21 @@ const ALLOW_TEXT: Record<string, RegExp[]> = {
   'pro:marketcap': [/\d+(?:\.\d+)?%/],
   // The QA Pro account holds no assets: "$0 · +$0 last 24h" is the honest empty state.
   'pro:portfolio': [/\$0/],
+  // KNOWN ISSUE (reported 10 Oct 2026): Exchange Netflow on the 24H range reads "$0 out · Neutral"
+  // because CoinGlass exchange balances update once a day — the 24H window compares a value with
+  // itself. Rachelle's spec says daily cadence / 7D default. Remove once the panel handles it.
+  'plus:/world/onchain': [/\$0/],
   // KNOWN DATA ISSUE (kumami-dev): Alpha Room has "Lorem Ipsum" test messages.
   // Delete them at /admin/alpha-room, then remove this allowance.
   'pro:alpha': [/lorem ipsum/i],
 };
 
 const PRO_TABS = [
-  'digest', 'followhub', 'realtimenews', 'alpha', 'research', 'market',
+  'digest', 'followhub', 'flowradar', 'watchlist', 'realtimenews', 'alpha', 'research', 'market',
   'spotpulse', 'scanner', 'marketcap', 'airdrops', 'portfolio', 'addresstracker', 'kumaai', 'events',
 ];
 
-test.describe('Plus pages (QA Plus account)', () => {
+test.describe('Plus pages (QA1 free account)', () => {
   test.use({ storageState: AUTH.plus });
   for (const path of PLUS_PAGES) {
     test(`loads cleanly: ${path}`, async ({ page }, info) => {
@@ -49,7 +53,7 @@ test.describe('Plus pages (QA Plus account)', () => {
   }
 });
 
-test.describe('Pro tabs (QA Pro account)', () => {
+test.describe('Pro tabs (QA2 Pro account)', () => {
   test.use({ storageState: AUTH.pro });
   for (const tab of PRO_TABS) {
     test(`loads cleanly: /world/pro?tab=${tab}`, async ({ page }, info) => {
@@ -61,10 +65,16 @@ test.describe('Pro tabs (QA Pro account)', () => {
     });
   }
 
-  test('admin calendar page loads', async ({ page }, info) => {
-    const g = guard(page);
-    await openPage(page, '/admin/pro-calendar', { ready: 'text=Scheduled events' });
-    await snap(page, info, 'admin_pro-calendar');
-    g.assertClean();
-  });
+});
+
+test.describe('Pro admin pages (QA3 admin account)', () => {
+  test.use({ storageState: AUTH.admin });
+  for (const p of ['pro-research', 'pro-airdrops', 'pro-calendar', 'pro-news', 'pro-events']) {
+    test(`admin page loads: /admin/${p}`, async ({ page }, info) => {
+      const g = guard(page);
+      await openPage(page, `/admin/${p}`, { ready: 'form' });
+      await snap(page, info, `admin_${p}`);
+      g.assertClean();
+    });
+  }
 });

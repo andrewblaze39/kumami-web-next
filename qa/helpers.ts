@@ -8,23 +8,13 @@
  */
 import { expect, type Page, type TestInfo } from '@playwright/test';
 
-export type Role = 'plus' | 'pro';
+/** plus = qa1 (new free user) · pro = qa2 (Grant Pro) · admin = qa3 (admin, not subscribed). See personas.ts. */
+export type Role = 'plus' | 'pro' | 'admin';
 
 export const AUTH: Record<Role, string> = {
-  plus: 'qa/.auth/plus.json',
-  pro: 'qa/.auth/pro.json',
-};
-
-/** Credentials are read lazily — .env.local is loaded by global-setup / the config. */
-export const ROLES: Record<Role, { readonly email: string | undefined; readonly password: string | undefined }> = {
-  plus: {
-    get email() { return process.env.QA_PLUS_EMAIL; },
-    get password() { return process.env.QA_PLUS_PASSWORD; },
-  },
-  pro: {
-    get email() { return process.env.QA_PRO_EMAIL; },
-    get password() { return process.env.QA_PRO_PASSWORD; },
-  },
+  plus: 'qa/.auth/qa1.json',
+  pro: 'qa/.auth/qa2.json',
+  admin: 'qa/.auth/qa3.json',
 };
 
 /** Console noise that is not a product bug (dev-server / third-party chatter). */
@@ -53,7 +43,9 @@ export function guard(page: Page) {
   });
   page.on('requestfailed', (r) => {
     const u = r.url();
-    if (u.includes('/api/')) issues.push({ kind: 'requestfailed', detail: `${r.failure()?.errorText} ${u}` });
+    const err = r.failure()?.errorText ?? '';
+    // ERR_ABORTED = the app cancelled its own request (e.g. switching timeframe) — not a failure.
+    if (u.includes('/api/') && !/ERR_ABORTED|NS_BINDING_ABORTED/.test(err)) issues.push({ kind: 'requestfailed', detail: `${err} ${u}` });
   });
   return {
     issues,
@@ -91,6 +83,8 @@ export async function openPage(page: Page, path: string, opts: { ready?: string 
  * on them before calling openPage again (or use page.goto directly).
  */
 export async function dismissOverlays(page: Page) {
+  // First-visit tours auto-open ~700ms after load — give them time to appear.
+  await page.waitForTimeout(1200);
   for (let i = 0; i < 3; i++) {
     const skip = page.getByRole('button', { name: /^skip$/i });
     const dismiss = page.getByRole('dialog').getByRole('button', { name: /^dismiss$/i });
@@ -109,7 +103,7 @@ const BAD_TEXT: [RegExp, string][] = [
   [/\[object Object\]/, '[object Object]'],
   [/\bInfinity\b/, 'Infinity'],
   [/\$0(?:\.0+)?(?![.\d])/, '$0 placeholder'],
-  [/\b(?:[1-9]\d{3,}|[2-9]\d{2})(?:\.\d+)?%/, 'percentage ≥ 200%'],
+  [/(?<![\d.])(?:[1-9]\d{3,}|[2-9]\d{2})(?:\.\d+)?%/, 'percentage ≥ 200%'],
   [/coinglass/i, 'provider name shown to users'],
   [/lorem ipsum/i, 'lorem ipsum'],
 ];

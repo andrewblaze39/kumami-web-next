@@ -44,15 +44,36 @@ async function adminEvents(): Promise<CalendarEvent[]> {
   }
 }
 
+/**
+ * Admin switches for the automatic CoinGlass feeds (Andrew, 10 Oct 2026 —
+ * both OFF for now). Firestore `pro_settings/calendar` = { macroFeed, unlockFeed };
+ * a missing doc or field means OFF. Toggled at the top of /admin/pro-calendar.
+ * A switched-off feed disappears everywhere this payload is used (Calendar
+ * page, Console preview, D-1 and "Needs your attention" popups).
+ */
+export type CalendarFeedSettings = { macroFeed: boolean; unlockFeed: boolean };
+
+async function feedSettings(): Promise<CalendarFeedSettings> {
+  try {
+    const { adminDb } = await import('@/lib/firebase-admin');
+    const d = (await adminDb().collection('pro_settings').doc('calendar').get()).data() ?? {};
+    return { macroFeed: d.macroFeed === true, unlockFeed: d.unlockFeed === true };
+  } catch (err) {
+    console.error('[calendar] feed settings unavailable — treating feeds as OFF:', err);
+    return { macroFeed: false, unlockFeed: false };
+  }
+}
+
 export async function makeCalendarPayloadLive(): Promise<CalendarPayload> {
+  const settings = await feedSettings();
   const [calendar, unlocks, team] = await Promise.all([
-    economicCalendar().catch(() => []),
-    coinUnlocks().catch(() => []),
+    settings.macroFeed ? economicCalendar().catch(() => []) : Promise.resolve([]),
+    settings.unlockFeed ? coinUnlocks().catch(() => []) : Promise.resolve([]),
     adminEvents(),
   ]);
 
   const macro = calendar.map(macroToEvent);
   const unlock = unlocks.map(unlockToEvent).filter((e): e is CalendarEvent => e !== null);
 
-  return { events: mergeCalendarEvents(macro, unlock, team), updatedAt: new Date().toISOString() };
+  return { events: mergeCalendarEvents(macro, unlock, team), updatedAt: new Date().toISOString(), feeds: settings };
 }

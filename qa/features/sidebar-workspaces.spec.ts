@@ -11,9 +11,9 @@ const sidebar = (page: Page) => page.locator('#w-sidebar');
 const badge = (page: Page) => page.locator('.w-mode-badge');
 const navLink = (page: Page, name: string) => sidebar(page).getByRole('link', { name, exact: true });
 
-const PLUS_ITEMS = ['Console', 'On-Chain Insights', 'Flow Radar', 'Fear & Greed', 'Calendar', 'Watchlist', 'Settings'];
+const PLUS_ITEMS = ['Console', 'On-Chain Insights', 'Flow Radar Plus', 'Fear & Greed', 'Calendar', 'Watchlist Plus', 'Settings'];
 const BASIC_ITEMS = ['News Portal', 'My Journey', 'My Courses', 'Cryptopedia', 'AI Labs', 'Games'];
-const PRO_ITEMS = ['Daily Digest', 'Following & Alerts'];
+const PRO_ITEMS = ['Daily Digest', 'Following & Alerts', 'Flow Radar Pro', 'Watchlist Pro', 'Spot Pulse Pro'];
 
 async function expectOnly(page: Page, shown: string[], hidden: string[]) {
   for (const n of shown) await expect(navLink(page, n), `"${n}" should be in the sidebar`).toBeVisible();
@@ -87,11 +87,11 @@ test.describe('Pro account', () => {
     await expect(navLink(page, 'Calendar')).toBeVisible();
   });
 
-  test('Pro account keeps Watchlist Pro sections in the Plus workspace', async ({ page }, info) => {
+  test('Pro account on the PLUS Watchlist sees the Plus version (spec v1.6)', async ({ page }, info) => {
     await openPage(page, '/world/watchlist');
     await expect(badge(page)).toHaveText('PLUS');
-    await expect(page.getByText('Your Watchlist', { exact: false }).first()).toBeVisible();
-    await expect(page.getByText(/Custom watchlists are a/)).toHaveCount(0); // the Plus upsell must not show
-    await snap(page, info, 'watchlist-pro-in-plus');
+    await expect(page.getByRole('heading', { name: /Watchlist Plus/ })).toBeVisible();
+    await expect(page.getByText('Also Worth Watching')).toHaveCount(0);
+    await snap(page, info, 'watchlist-plus-for-pro-account');
   });
 });

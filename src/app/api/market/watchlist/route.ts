@@ -39,11 +39,12 @@ import { NextResponse } from 'next/server';
 import { authenticate } from '@/lib/market/api-helpers';
 import { getProvider } from '@/lib/market/provider';
 import { getCachedFresh } from '@/lib/market/cache';
-import { watchlistSlots, pinCap } from '@/lib/market/gating';
+import { watchlistSlots, pinCap, effectiveTier, parseView } from '@/lib/market/gating';
+import { pickExtraCoins } from '@/lib/market/consistentCoins';
 import type { WatchlistApiResponse } from '@/lib/market/contracts';
 import { buildAsset, type SignalInputs } from '@/lib/market/live/watchlist';
 import {
-  computeWhaleEventCounts, computeWhaleEventUsd, computeSmartMoneyCounts, computeSectionC,
+  computeWhaleEventCounts, computeWhaleEventUsd, computeSmartMoneyCounts,
 } from '@/lib/market/rules/watchlistSectionC';
 import {
   getCuratedSymbols,
@@ -75,7 +76,9 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T | null> {
 export async function GET(request: Request) {
   const auth = await authenticate(request);
   if (auth instanceof NextResponse) return auth;
-  const { uid, tier } = auth;
+  const { uid } = auth;
+  // Watchlist Plus (?view=plus — every account) vs Watchlist Pro (?view=pro AND a Pro account).
+  const tier = effectiveTier(parseView(request.url), auth.tier);
   const isPro = tier === 'pro';
 
   // Full tier-agnostic payload cached 300s per uid — base rows for Section A.
@@ -95,6 +98,8 @@ export async function GET(request: Request) {
 
   let curatedAssets: WatchlistApiResponse['curatedAssets'] = [];
   let sectionC: WatchlistApiResponse['sectionC'] = [];
+  let sectionCMode: WatchlistApiResponse['sectionCMode'];
+  let historyDays: number | undefined;
 
   // Signal column inputs (Kumami Plus — shared across tiers, not Pro-exclusive):
   // whale flow + smart money both come from the shared Flow Radar event
@@ -145,25 +150,23 @@ export async function GET(request: Request) {
       await Promise.all(curatedSymbols.map((sym) => buildAsset(sym, signalInputsFor(sym)).catch(() => null)))
     ).filter((a): a is WatchlistApiResponse['curatedAssets'][number] => a !== null);
 
+    // Section C (Andrew's spec v1.6 ← Rachelle: "5 fixed + 5 consistent spikes"):
+    // the coins most consistently present in Flow Radar over the last 7 days.
+    // Until 7 days of history exist, fall back to the 24h whale-flow scoring.
     const exclude = new Set([...sectionAAssets.map((a) => a.asset), ...curatedSymbols]);
-    const scored = computeSectionC(events24h, exclude, now);
+    const extras = await pickExtraCoins(events, exclude, now);
+    historyDays = extras.historyDays;
+    sectionCMode = extras.mode;
+    const scored = extras.coins;
     sectionC = (
       await Promise.all(scored.map(async (s) => {
         const row = await buildAsset(s.asset, signalInputsFor(s.asset)).catch(() => null);
         return row ? { ...row, reasons: s.reasons } : null;
       }))
     ).filter((r): r is WatchlistApiResponse['sectionC'][number] => r !== null);
-  } else {
-    // Free/Plus: build curated rows directly (not a lookup against the
-    // auto-radar's fixed 5-symbol list) — the pin allowlist (ALLOWED_SYMBOLS
-    // in userWatchlist.ts) isn't identical to that list, so a lookup silently
-    // dropped pinned symbols like ARB/APT that aren't in the auto-radar set.
-    // Plus's own pin cap is 0 (§8.1 — no customization on Plus), so this list
-    // is empty in practice today; kept for admins/any future cap change.
-    curatedAssets = (
-      await Promise.all(curatedSymbols.map((sym) => buildAsset(sym, signalInputsFor(sym)).catch(() => null)))
-    ).filter((a): a is WatchlistApiResponse['curatedAssets'][number] => a !== null);
   }
+  // Watchlist Plus: the 5 fixed coins only — no custom coins, no Section C
+  // (Andrew's spec v1.6), even for Pro accounts viewing the Plus page.
 
   const body: WatchlistApiResponse = {
     slots: serialiseSlots(slots),
@@ -172,6 +175,7 @@ export async function GET(request: Request) {
     curatedAssets,
     sectionC,
     pinCap: isPro ? pinCap(tier) : null,
+    ...(isPro ? { sectionCMode, historyDays } : {}),
   };
 
   return NextResponse.json(body);

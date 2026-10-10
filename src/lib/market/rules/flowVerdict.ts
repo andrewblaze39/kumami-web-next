@@ -17,10 +17,10 @@
 
 import type { FlowEvent, Verdict } from '../contracts';
 
-const BULLISH_DIRECTIONS = new Set<FlowEvent['direction']>([
+export const BULLISH_DIRECTIONS = new Set<FlowEvent['direction']>([
   'Outflow', 'Buy Pressure', 'Support Wall', 'Accumulation', 'Smart Money',
 ]);
-const BEARISH_DIRECTIONS = new Set<FlowEvent['direction']>([
+export const BEARISH_DIRECTIONS = new Set<FlowEvent['direction']>([
   'Inflow', 'Sell Pressure', 'Resistance Wall',
 ]);
 

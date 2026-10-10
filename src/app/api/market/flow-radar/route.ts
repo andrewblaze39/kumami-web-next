@@ -3,9 +3,13 @@
  *
  * Returns the full FlowRadarPayload for the standalone /world/flow-radar tab.
  *
- * Tiering (Kumami Pro §4.1a "Pro Tier Setup — replaces Plus restrictions"):
- *   free/plus — fixed 5-asset roster (BTC/ETH/SOL/BNB/HYPE), the 4 real event
- *     types, HIGH+MED severity only, plus the existing time delay.
+ * Two versions (Andrew's spec v1.6): the page sends ?view=plus|pro.
+ *   Flow Radar Plus (?view=plus, every account — Pro accounts get the Plus
+ *     version on the Plus page) — fixed 5-asset roster (BTC/ETH/SOL/BNB/HYPE),
+ *     the 4 real event types, HIGH+MED only, served from the feed SNAPSHOT
+ *     taken 15 min ago (lib/market/flowSnapshots.ts). A time filter can't do
+ *     this: liquidation/netflow events are stamped with fetch time.
+ *   Flow Radar Pro (?view=pro AND a Pro account) — see below.
  *   pro       — no asset-roster restriction (full tracked universe already
  *     flowing through the same bulk CoinGlass endpoints — see flow.ts's
  *     raised per-type caps), all 3 severities including LOW, no delay, and
@@ -29,7 +33,9 @@ import { NextResponse } from 'next/server';
 import { authenticate } from '@/lib/market/api-helpers';
 import { getProvider } from '@/lib/market/provider';
 import { getCachedFresh } from '@/lib/market/cache';
-import { applyDelay } from '@/lib/market/gating';
+import { effectiveTier, getDelayMinutes, parseView } from '@/lib/market/gating';
+import { readDelayedFlow, saveFlowSnapshot } from '@/lib/market/flowSnapshots';
+import { recordFlowDay } from '@/lib/market/flowHistory';
 import { computeFlowVerdict } from '@/lib/market/rules/flowVerdict';
 import { computeFlowCrossSignal, type FlowCrossSignalContext } from '@/lib/market/rules/flowCrossSignal';
 import { computeWhaleEventCounts } from '@/lib/market/rules/watchlistSectionC';
@@ -53,9 +59,6 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T | null> {
   ]);
 }
 
-const DELAY_MINUTES = Number(process.env.FREE_TIER_DELAY_MINUTES ?? 30);
-const delayMinutes = Number.isFinite(DELAY_MINUTES) && DELAY_MINUTES > 0 ? DELAY_MINUTES : 30;
-
 const PLUS_ASSETS = ['BTC', 'ETH', 'SOL', 'BNB', 'HYPE'];
 // The 4 event types the builder actually emits (Kumami Plus §4.1). Fixed a
 // prior bug here: this list said 'exchange_flow', a type the builder never
@@ -66,16 +69,22 @@ const REAL_EVENT_TYPES = ['whale_transfer', 'netflow_flip', 'liq_spike', 'smart_
 export async function GET(request: Request) {
   const auth = await authenticate(request);
   if (auth instanceof NextResponse) return auth;
-  const { tier } = auth;
+  const tier = effectiveTier(parseView(request.url), auth.tier);
 
-  // Cache the full (wide) event list; apply delay + roster/severity/type filtering post-retrieval
+  // Cache the full (wide) event list; roster/severity/type filtering post-retrieval.
   const allEvents = await getCachedFresh('market:v2:flow-radar', 60, () => getProvider().flowRadar('pro'));
+  // Side effects for the Plus delay + 7-day consistency history (throttled, never throw).
+  void saveFlowSnapshot(allEvents);
+  void recordFlowDay(allEvents);
 
-  const delayed = tier === 'free';
   const isPro = tier === 'pro';
+  const delayed = !isPro;
+  const delayMinutes = getDelayMinutes();
+  // Plus: the snapshot from ≥15 min ago. null = no snapshot old enough yet (cold start).
+  const delayedFeed = delayed ? await readDelayedFlow(delayMinutes) : null;
+  const base = isPro ? allEvents : (delayedFeed?.events ?? []);
 
-  let events: FlowEvent[] = applyDelay(allEvents, tier)
-    .filter((e) => REAL_EVENT_TYPES.includes(e.type));
+  let events: FlowEvent[] = base.filter((e) => REAL_EVENT_TYPES.includes(e.type));
 
   if (!isPro) {
     events = events.filter((e) => PLUS_ASSETS.includes(e.asset) && (e.severity === 'HIGH' || e.severity === 'MED'));
@@ -139,6 +148,6 @@ export async function GET(request: Request) {
   return NextResponse.json({
     ...payload,
     delayed,
-    ...(delayed ? { delayMinutes } : {}),
+    ...(delayed ? { delayMinutes, delayedAsOf: delayedFeed ? new Date(delayedFeed.asOf).toISOString() : null } : {}),
   });
 }

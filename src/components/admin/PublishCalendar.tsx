@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import {
-  collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, orderBy, query, serverTimestamp,
+  collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, orderBy, query, serverTimestamp, setDoc,
+  type Timestamp,
 } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminPageTour, { proAdminTourSteps } from './AdminPageTour';
@@ -51,8 +52,52 @@ interface CalDoc {
 
 const EMPTY = { t: '', date: '', time: '', imp: 'med' as Imp, cat: 'Macro', d: '', assets: '' };
 
+/** pro_settings/calendar — automatic CoinGlass feeds on the Calendar (both OFF by default). */
+type FeedSettings = { macroFeed?: boolean; unlockFeed?: boolean; updatedBy?: string; updatedAt?: Timestamp };
+
+function FeedSwitch({ label, help, on, busy, onChange }: { label: string; help: string; on: boolean; busy: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer select-none">
+      <button
+        type="button"
+        role="switch"
+        aria-checked={on}
+        aria-label={label}
+        disabled={busy}
+        onClick={() => onChange(!on)}
+        className={`mt-0.5 relative inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors ${on ? 'bg-blue-600' : 'bg-gray-300'} disabled:opacity-50`}
+      >
+        <span className={`inline-block h-5 w-5 mt-0.5 rounded-full bg-white shadow transition-transform ${on ? 'translate-x-5' : 'translate-x-0.5'}`} />
+      </button>
+      <span>
+        <span className="block text-sm font-semibold text-gray-900">{label} — {busy ? 'Saving…' : on ? 'ON' : 'OFF'}</span>
+        <span className="block text-xs text-gray-600">{help}</span>
+      </span>
+    </label>
+  );
+}
+
 export default function PublishCalendar() {
   const { currentUser } = useAuth();
+  const [feeds, setFeeds] = useState<FeedSettings>({});
+  const [feedBusy, setFeedBusy] = useState(false);
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'pro_settings', 'calendar'), (snap) => setFeeds((snap.data() as FeedSettings) ?? {}));
+    return () => unsub();
+  }, []);
+
+  const setFeed = async (key: 'macroFeed' | 'unlockFeed', value: boolean) => {
+    if (!currentUser) return;
+    setFeedBusy(true);
+    try {
+      await setDoc(doc(db, 'pro_settings', 'calendar'), {
+        [key]: value, updatedBy: currentUser.email ?? currentUser.uid, updatedAt: serverTimestamp(),
+      }, { merge: true });
+    } catch (err: unknown) {
+      setMessage('Error: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    } finally { setFeedBusy(false); }
+  };
   const [form, setForm] = useState(EMPTY);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [items, setItems] = useState<CalDoc[]>([]);
@@ -117,6 +162,30 @@ export default function PublishCalendar() {
         Events you publish here appear on the Calendar for every Plus and Pro user, alongside the automatic macro
         and token-unlock feed. Drafts stay hidden. High-impact events trigger a reminder popup 24h before.
       </p>
+
+      <section data-tour="admin-feeds" className="mb-8">
+        <h3 className="text-sm font-semibold text-gray-900 mb-2">Automatic feeds</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <FeedSwitch
+            label="Macro events (CoinGlass)"
+            help="CPI, FOMC, jobs data and other economic releases, added automatically."
+            on={feeds.macroFeed === true}
+            busy={feedBusy}
+            onChange={(v) => setFeed('macroFeed', v)}
+          />
+          <FeedSwitch
+            label="Token unlocks (CoinGlass)"
+            help="Token unlocks happening today, added automatically."
+            on={feeds.unlockFeed === true}
+            busy={feedBusy}
+            onChange={(v) => setFeed('unlockFeed', v)}
+          />
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          While a feed is OFF, its events disappear everywhere (Calendar page, Console preview, high-impact popups).
+          {feeds.updatedBy ? ` Last changed by ${feeds.updatedBy}${feeds.updatedAt ? ` · ${feeds.updatedAt.toDate().toLocaleString()}` : ''}.` : ' Both are OFF by default.'}
+        </p>
+      </section>
 
       <form onSubmit={(e) => { e.preventDefault(); save('published'); }} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
         <div className="md:col-span-2">
