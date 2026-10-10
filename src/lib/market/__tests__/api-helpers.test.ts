@@ -126,7 +126,7 @@ function makeEvent(id: string, ageMs: number): FlowEvent {
 }
 
 describe('gating composition — flow radar applyDelay', () => {
-  const DELAY_MS = 30 * 60 * 1000; // 30 minutes in ms
+  const DELAY_MS = 15 * 60 * 1000; // 15 minutes in ms (default since 10 Oct 2026)
 
   it('free tier: filters out events newer than delay window', () => {
     const now = Date.now();
@@ -144,7 +144,7 @@ describe('gating composition — flow radar applyDelay', () => {
     const events: FlowEvent[] = [
       makeEvent('a', 1 * 60 * 1000),
       makeEvent('b', 10 * 60 * 1000),
-      makeEvent('c', 29 * 60 * 1000),
+      makeEvent('c', 14 * 60 * 1000),
     ];
     const result = applyDelay(events, 'free', now);
     expect(result).toHaveLength(0);

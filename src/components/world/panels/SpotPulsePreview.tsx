@@ -25,7 +25,7 @@ function MiniTile({ t }: { t: SpotPulseTile }) {
 }
 
 export default function SpotPulsePreview() {
-  const market = useMarketEndpoint<SpotPulsePayload>('/api/market/spot-pulse?tf=4H');
+  const market = useMarketEndpoint<SpotPulsePayload>('/api/market/spot-pulse?tf=4H&view=plus');
   const data = market.data;
   const loading = market.status === 'loading' && !data;
 
@@ -44,9 +44,9 @@ export default function SpotPulsePreview() {
           </span>{' '}
           <span className="w-sub">· real money vs leverage</span>
         </span>
-        <span className="w-delay-note">
-          <WIcon name="clock" /> 15m delay
-        </span>
+        <Link href="/world/pro?tab=spotpulse" className="w-delay-note">
+          Unlock Spot Pulse Pro →
+        </Link>
       </div>
 
       <div className="w-apanel-b">

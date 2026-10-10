@@ -14,6 +14,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useMarketEndpoint } from './useMarketEndpoint';
 import { WIcon } from './console-ui';
 import type { SpotPulsePayload, SpotPulseTile } from '@/lib/market/contracts';
@@ -61,9 +62,23 @@ function Tile({ t, tf, onSelect }: { t: SpotPulseTile; tf: TF; onSelect?: (a: st
   );
 }
 
-export default function SpotPulse({ onSelectAsset }: { onSelectAsset?: (asset: string) => void }) {
+/**
+ * variant="plus" (default) — the Spot Pulse tile on On-Chain Insights: 5 anchors.
+ * variant="pro" — Spot Pulse Pro, the full tool (/world/pro?tab=spotpulse):
+ * anchors + Watchlist Pro's 5 extra coins, 10-tile verdict, 15s refresh.
+ * Neither is delayed (Andrew's spec v1.6).
+ */
+export default function SpotPulse({
+  onSelectAsset,
+  variant = 'plus',
+}: {
+  onSelectAsset?: (asset: string) => void;
+  variant?: 'plus' | 'pro';
+}) {
   const [tf, setTf] = useState<TF>('4H');
-  const market = useMarketEndpoint<SpotPulsePayload>(`/api/market/spot-pulse?tf=${tf}`);
+  const market = useMarketEndpoint<SpotPulsePayload & { extraMode?: 'consistent' | 'building'; historyDays?: number }>(
+    `/api/market/spot-pulse?tf=${tf}&view=${variant}`,
+  );
   const data = market.data;
   const loading = market.status === 'loading' && !data;
 
@@ -79,7 +94,7 @@ export default function SpotPulse({ onSelectAsset }: { onSelectAsset?: (asset: s
     <div className="w-oc-panel">
       <div className="w-oc-ph">
         <span className="w-oc-ttl">
-          <WIcon name="spark" /> Spot Pulse{' '}
+          <WIcon name="spark" /> {variant === 'pro' ? 'Spot Pulse Pro' : 'Spot Pulse'}{' '}
           <span
             className="w-oc-q"
             tabIndex={0}
@@ -163,9 +178,19 @@ export default function SpotPulse({ onSelectAsset }: { onSelectAsset?: (asset: s
               </span>
             )}
             <span>· {data.footer.divergenceCount} divergence signal{data.footer.divergenceCount === 1 ? '' : 's'}</span>
-            <span className="w-delay-note" style={{ marginLeft: 'auto' }}>
-              <WIcon name="clock" /> {data.timeframe} window · 15-min delayed
-            </span>
+            {variant === 'pro' ? (
+              <span className="w-delay-note" style={{ marginLeft: 'auto' }}>
+                <WIcon name="clock" /> {data.timeframe} window · live ·{' '}
+                {data.extraMode === 'consistent'
+                  ? 'row 2 = most consistent in Flow Radar (7 days)'
+                  : `row 2 = last 24h flow (7-day history ${data.historyDays ?? 0}/7)`}
+              </span>
+            ) : (
+              <span className="w-delay-note" style={{ marginLeft: 'auto' }}>
+                <WIcon name="clock" /> {data.timeframe} window ·{' '}
+                <Link href="/world/pro?tab=spotpulse">Unlock Spot Pulse Pro →</Link>
+              </span>
+            )}
           </div>
         )}
       </div>

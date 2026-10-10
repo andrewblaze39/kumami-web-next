@@ -93,6 +93,46 @@ function formatFirestoreDate(
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
+/* ⚠️ TEMPORARY TESTING BUTTONS — REMOVE BEFORE MERGING TO MAIN (Andrew, 10 Oct 2026).
+ * "Grant Pro" / "Remove Pro" simulate a completed / cancelled subscription via
+ * /api/dev/test-subscription. Hidden (and the endpoint refuses) in production. */
+function TestSubscriptionButtons({ isPremium }: { isPremium: boolean }) {
+  const { currentUser } = useAuth()
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  if (process.env.NEXT_PUBLIC_ENV === 'production') return null
+  const run = async (action: 'grant' | 'remove') => {
+    if (!currentUser) return
+    setBusy(true)
+    setError(null)
+    try {
+      const token = await currentUser.getIdToken()
+      const res = await fetch('/api/dev/test-subscription', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      })
+      if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? res.statusText)
+      window.location.reload()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed')
+      setBusy(false)
+    }
+  }
+  return (
+    <div className="mt-6 rounded border border-dashed border-amber-400/60 p-4" data-testid="test-subscription">
+      <p className="mb-3 text-xs text-amber-300">Testing only — simulates a subscription. Not shown in production.</p>
+      <div className="flex flex-wrap gap-3">
+        <button type="button" disabled={busy || isPremium} onClick={() => run('grant')}
+          className="rounded bg-amber-500 px-4 py-2 text-sm font-semibold text-black disabled:opacity-40">Grant Pro</button>
+        <button type="button" disabled={busy || !isPremium} onClick={() => run('remove')}
+          className="rounded border border-amber-400 px-4 py-2 text-sm font-semibold text-amber-300 disabled:opacity-40">Remove Pro</button>
+      </div>
+      {error && <p className="mt-2 text-xs text-red-400">Error: {error}</p>}
+    </div>
+  )
+}
+
 export default function ProfileContent() {
   const { currentUser } = useAuth()
   const [userData, setUserData] = useState<ProfileUserData | null>(null)
@@ -486,6 +526,7 @@ export default function ProfileContent() {
                 </Link>
               </>
             )}
+            <TestSubscriptionButtons isPremium={userData?.isPremium === true} />
           </div>
         )}
 

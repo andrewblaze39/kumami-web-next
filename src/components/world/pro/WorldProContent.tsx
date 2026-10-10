@@ -9,9 +9,10 @@
  * shell/Sidebar.tsx PRO_NAV). Tabs fall into three groups:
  *   - Group A (built here from the reference design, fixture-driven): digest,
  *     followhub, airdrops, realtimenews, research, events.
- *   - spotpulse: renders the same live Spot Pulse panel as Plus (On-Chain
- *     Insights / Console preview) — one Spot Pulse for both tiers for now;
- *     the API already gives Pro the faster 15s refresh.
+ *   - flowradar / watchlist / spotpulse: the PRO versions of the market tools
+ *     (Flow Radar Pro, Watchlist Pro, Spot Pulse Pro) — complete and
+ *     real-time; the Plus pages render the cut-down Plus versions of the same
+ *     components (Andrew's spec v1.6).
  *   - calendar: redirects to the single shared Calendar at /world/calendar
  *     (live feed + admin-authored pro_calendar events merged server-side), so
  *     Plus and Pro never show two different calendars. Kept as a tab key only
@@ -42,6 +43,8 @@ import { Airdrops } from './tabs/Airdrops';
 import { RealTimeNews } from './tabs/RealTimeNews';
 import { KumamiResearch } from './tabs/KumamiResearch';
 import SpotPulse from '@/components/world/panels/SpotPulse';
+import FlowRadarView from '@/components/world/tools/FlowRadarView';
+import WatchlistView from '@/components/world/tools/WatchlistView';
 import { Events } from './tabs/Events';
 import { PortfolioTab } from '@/components/ProDashboard';
 import { CryptoAddressTracker } from './tabs/CryptoAddressTracker';
@@ -52,7 +55,7 @@ import MarketCapTool from '@/components/MarketCapTool';
 import './pro.css';
 
 const TAB_KEYS = [
-  'digest', 'followhub', 'spotpulse',
+  'digest', 'followhub', 'flowradar', 'watchlist', 'spotpulse',
   'scanner', 'airdrops', 'portfolio', 'addresstracker', 'marketcap', 'realtimenews', 'alpha',
   'research', 'calendar', 'events', 'market', 'kumaai',
 ] as const;
@@ -89,11 +92,15 @@ function TabContent({ active }: { active: TabKey }) {
     case 'events':
       return <Events />;
 
-    // Same live Spot Pulse panel as Plus (On-Chain Insights / Console).
+    // Pro versions of the market tools (Andrew's spec v1.6): complete + real-time.
+    case 'flowradar':
+      return <FlowRadarView variant="pro" />;
+    case 'watchlist':
+      return <WatchlistView variant="pro" />;
     case 'spotpulse':
       return (
         <div data-tour="pro-page-head">
-          <SpotPulse />
+          <SpotPulse variant="pro" />
         </div>
       );
     // Group B — data source being wired.
@@ -158,10 +165,18 @@ const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
     { selector: '[data-tour="fa-builder"]', title: 'Build an alert', body: 'Pick a ticker, choose a trigger (price / volume / sentiment) and a threshold, then click Add.' },
     { title: 'Alerts fire live', body: 'A price alert arms at the current price and flips to TRIGGERED the moment it moves past your threshold — powered by the live price feed. Use the ↻ button to re-arm at the new price.' },
   ],
+  flowradar: [
+    { title: 'Flow Radar Pro', body: 'Every large whale transfer, exchange flow, liquidation spike and smart-money position across every coin — in real time. Flow Radar Plus shows only the 5 major coins, 15 minutes late.' },
+    { title: 'Extra in Pro', body: 'LOW-severity events, the 24h Flow Balance panel (bullish vs bearish dollars), multi-coin filters, and coloured outlines when another Kumami tool confirms an event.' },
+  ],
+  watchlist: [
+    { title: 'Watchlist Pro', body: 'The 5 market anchors, plus up to 15 coins of your own, plus 5 coins that keep showing up in Flow Radar — each with live signal and status tags.' },
+    { title: 'Also Worth Watching', body: 'The coins most consistently present in Flow Radar over the last 7 days. While 7 days of history are still being collected, it uses the last 24 hours of whale flow.' },
+  ],
   spotpulse: [
-    { selector: HEAD, title: 'Spot Pulse', body: 'See where actual buying and selling is happening. Compare spot and futures activity to tell whether a move is backed by real demand or speculation.' },
+    { selector: HEAD, title: 'Spot Pulse Pro', body: "See where actual buying and selling is happening — the 5 anchors plus Watchlist Pro's 5 extra coins, in real time. Compare spot and futures activity to tell whether a move is backed by real demand or speculation." },
     { title: 'Reading the tiles', body: 'Each tile compares spot buying, futures leverage and price for one coin and gives a verdict (e.g. REAL BUYING, SPECULATIVE, DISTRIBUTION). The banner sums up the whole market, and alert cards flag the biggest divergences.' },
-    { title: 'Same engine as Plus', body: 'This is the same Spot Pulse as On-Chain Insights, refreshed faster for Pro. A second row of trending coins will be added once the data-provider plan includes per-coin spot volume.' },
+    { title: 'Row 2', body: "The second row is Watchlist Pro's extra coins — the ones Flow Radar keeps flagging. Plus users only see the 5 anchors, as a tile on On-Chain Insights." },
   ],
   scanner: comingSoonTour('Security Scanner', "Check a token's contract before you trade. Get a quick safety check to spot risks like honeypots and potential rugs.", 'security-data provider'),
   airdrops: [
@@ -240,10 +255,8 @@ function WorldProInner() {
 export default function WorldProContent() {
   const { userData, loading } = useAuth();
 
-  const isPremium =
-    userData?.isPremium === true ||
-    userData?.role === 'admin' ||
-    userData?.role === 'superadmin';
+  // Pro = subscribed (isPremium) only — admin roles don't unlock Pro (Andrew, 10 Oct 2026).
+  const isPremium = userData?.isPremium === true;
 
   if (loading) {
     return <div className="w-courses-loading">Loading…</div>;

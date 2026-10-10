@@ -147,13 +147,17 @@ function alertFor(b: Built, tf: SpotPulseTimeframe): SpotPulseAlert | null {
 export async function makeSpotPulseLive(
   tier: 'plus' | 'pro',
   tf: SpotPulseTimeframe = '4H',
+  extraAssets: string[] = [],
 ): Promise<SpotPulsePayload> {
-  // Pro Row-2 (dynamic trending) needs /api/spot/coins-markets which is tier-locked,
-  // so both tiers currently render the 5 fixed anchors. Row-2 fills in on a plan upgrade.
+  // Row 1 = the 5 fixed anchors. Spot Pulse Pro adds Row 2 = Watchlist Pro's
+  // extra coins (Andrew's spec v1.6 ← Rachelle: "Spot Pulse takes the tokens
+  // that enter the watchlist") — no need for the tier-locked spot/coins-markets.
+  const row2 = tier === 'pro' ? extraAssets.filter((a) => !ANCHORS.includes(a)).slice(0, 5) : [];
   const [built, spotNet] = await Promise.all([
-    Promise.all(ANCHORS.map((a) => buildAsset(a, 1, tf).catch(() => null))).then((xs) =>
-      xs.filter((b): b is Built => b !== null),
-    ),
+    Promise.all([
+      ...ANCHORS.map((a) => buildAsset(a, 1, tf).catch(() => null)),
+      ...row2.map((a) => buildAsset(a, 2, tf).catch(() => null)),
+    ]).then((xs) => xs.filter((b): b is Built => b !== null)),
     // §6 spot netflow — 1h exchange netflow per symbol (only window CoinGlass exposes).
     // Degrades to null (hidden) if the spot endpoint isn't on the current plan.
     netflowList('spot').catch(() => [] as Awaited<ReturnType<typeof netflowList>>),
@@ -169,7 +173,8 @@ export async function makeSpotPulseLive(
 
   const tiles = built.map((b) => b.tile);
   const verdicts = tiles.map((t) => t.verdict as SpotVerdict);
-  const marketVerdict = computeMarketVerdict(verdicts, tier);
+  // 10-tile thresholds only when the Pro grid is actually ~10 tiles.
+  const marketVerdict = computeMarketVerdict(verdicts, tier === 'pro' && tiles.length >= 8 ? 'pro' : 'plus');
 
   // Alert cards: top 3 by divergence score (§5).
   const scored = built

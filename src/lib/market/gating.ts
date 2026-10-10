@@ -3,7 +3,7 @@
  *
  * All thresholds are read from environment variables at call time (never
  * hardcoded in client-visible bundles). Defaults:
- *   FREE_TIER_DELAY_MINUTES   = 30
+ *   FREE_TIER_DELAY_MINUTES   = 15  (Flow Radar Plus; Andrew 10 Oct 2026, was 30)
  *   FREE_HEATMAP_ASSET_CAP    = 5
  *   FREE_WATCHLIST_SLOTS      = 5
  *
@@ -54,8 +54,13 @@ function makeFirestoreDeps(): GatingDeps {
 // ---------------------------------------------------------------------------
 
 function getDelayMs(): number {
-  const min = Number(process.env.FREE_TIER_DELAY_MINUTES ?? 30);
-  return (Number.isFinite(min) && min > 0 ? min : 30) * 60 * 1000;
+  return getDelayMinutes() * 60 * 1000;
+}
+
+/** Flow Radar Plus delay in minutes (FREE_TIER_DELAY_MINUTES, default 15). */
+export function getDelayMinutes(): number {
+  const min = Number(process.env.FREE_TIER_DELAY_MINUTES ?? 15);
+  return Number.isFinite(min) && min > 0 ? min : 15;
 }
 
 function getHeatmapCap(): number {
@@ -73,17 +78,16 @@ function getFreeWatchlistSlots(): number {
 // ---------------------------------------------------------------------------
 
 /**
- * Resolve the tier for a user.
- *   - pro if `isPremium === true`
- *   - pro if `role` is 'admin' or 'superadmin'
- *   - free otherwise (including missing document)
+ * Resolve the tier for a user — Pro means SUBSCRIBED, nothing else
+ * (Andrew, 10 Oct 2026): pro only if `isPremium === true`. Admin/superadmin
+ * roles do NOT grant Pro (they control /admin access only); an admin who
+ * wants to test Pro turns isPremium on for their own account.
  */
 export async function resolveTier(uid: string, deps: GatingDeps = makeFirestoreDeps()): Promise<Tier> {
   const doc = await deps.getUser(uid);
   if (!doc) return 'free';
 
   if (doc.isPremium === true) return 'pro';
-  if (doc.role === 'admin' || doc.role === 'superadmin') return 'pro';
 
   return 'free';
 }
@@ -101,6 +105,37 @@ export function applyDelay(events: FlowEvent[], tier: Tier, now: number = Date.n
   if (tier === 'pro') return events;
   const delayMs = getDelayMs();
   return events.filter((e) => now - new Date(e.ts).getTime() >= delayMs);
+}
+
+/** Which version of a tool the page asked for (?view=plus|pro). */
+export type ToolView = 'plus' | 'pro';
+
+/** Parse ?view= — anything other than 'pro' is the Plus view. */
+export function parseView(url: string): ToolView {
+  return new URL(url).searchParams.get('view') === 'pro' ? 'pro' : 'plus';
+}
+
+/**
+ * The tier a request is served at (Andrew's spec v1.6): Plus pages always get
+ * the cut-down Plus version — even for Pro accounts — and the Pro version
+ * requires BOTH the Pro view and a Pro account (enforced server-side, so a
+ * non-Pro account can't get Pro data by adding ?view=pro).
+ */
+export function effectiveTier(view: ToolView, accountTier: Tier): Tier {
+  return view === 'pro' && accountTier === 'pro' ? 'pro' : 'free';
+}
+
+/**
+ * Pick the snapshot to serve a delayed (Plus) feed: the newest snapshot bucket
+ * at least `delayMs` old, but not older than `delayMs + maxExtraMs` (stale
+ * beyond that is worse than an honest "warming up" state). Returns null when
+ * none qualifies. Pure — the Firestore read lives in flowSnapshots.ts.
+ */
+export function pickSnapshot(buckets: number[], now: number, delayMs: number, maxExtraMs = 10 * 60_000): number | null {
+  const newest = now - delayMs;
+  const oldest = newest - maxExtraMs;
+  const ok = buckets.filter((b) => b <= newest && b >= oldest);
+  return ok.length ? Math.max(...ok) : null;
 }
 
 /**

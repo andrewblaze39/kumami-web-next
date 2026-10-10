@@ -45,14 +45,14 @@ describe('resolveTier', () => {
     expect(tier).toBe('pro');
   });
 
-  it('returns "pro" when role is admin', async () => {
+  it('returns "free" when role is admin but not subscribed (admin ≠ Pro)', async () => {
     const tier = await resolveTier('uid-2', depsWithDoc({ role: 'admin' }));
-    expect(tier).toBe('pro');
+    expect(tier).toBe('free');
   });
 
-  it('returns "pro" when role is superadmin', async () => {
+  it('returns "free" when role is superadmin but not subscribed (admin ≠ Pro)', async () => {
     const tier = await resolveTier('uid-3', depsWithDoc({ role: 'superadmin' }));
-    expect(tier).toBe('pro');
+    expect(tier).toBe('free');
   });
 
   it('returns "free" when user doc has no premium or elevated role', async () => {
@@ -72,12 +72,12 @@ describe('resolveTier', () => {
 });
 
 // ---------------------------------------------------------------------------
-// applyDelay  — FREE_TIER_DELAY_MINUTES default = 30
+// applyDelay  — FREE_TIER_DELAY_MINUTES default = 15 (Andrew, 10 Oct 2026)
 // ---------------------------------------------------------------------------
 
 describe('applyDelay', () => {
   const nowMs = new Date('2024-01-01T12:00:00.000Z').getTime();
-  const delayMs = 30 * 60 * 1000; // 30 min
+  const delayMs = 15 * 60 * 1000; // 15 min
 
   it('pro: returns all events including very recent ones', () => {
     const recent = makeEvent(new Date(nowMs - 60_000).toISOString()); // 1 min old
@@ -85,20 +85,20 @@ describe('applyDelay', () => {
     expect(result).toHaveLength(1);
   });
 
-  it('free: filters out events newer than 30 minutes', () => {
-    const recent = makeEvent(new Date(nowMs - 29 * 60 * 1000).toISOString()); // 29 min old
+  it('free: filters out events newer than 15 minutes', () => {
+    const recent = makeEvent(new Date(nowMs - 14 * 60 * 1000).toISOString()); // 14 min old
     const result = applyDelay([recent], 'free', nowMs);
     expect(result).toHaveLength(0);
   });
 
-  it('free: keeps events exactly 30 minutes old (boundary — kept)', () => {
+  it('free: keeps events exactly 15 minutes old (boundary — kept)', () => {
     const exactly30 = makeEvent(new Date(nowMs - delayMs).toISOString());
     const result = applyDelay([exactly30], 'free', nowMs);
     expect(result).toHaveLength(1);
   });
 
-  it('free: keeps events older than 30 minutes', () => {
-    const old = makeEvent(new Date(nowMs - 31 * 60 * 1000).toISOString());
+  it('free: keeps events older than 15 minutes', () => {
+    const old = makeEvent(new Date(nowMs - 16 * 60 * 1000).toISOString());
     const result = applyDelay([old], 'free', nowMs);
     expect(result).toHaveLength(1);
   });
@@ -153,5 +153,36 @@ describe('watchlistSlots', () => {
 
   it('pro: unlimited slots (Infinity)', () => {
     expect(watchlistSlots('pro')).toBe(Infinity);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Plus/Pro tool split (Andrew's spec v1.6)
+// ---------------------------------------------------------------------------
+import { effectiveTier, parseView, pickSnapshot } from '../gating';
+
+describe('parseView / effectiveTier', () => {
+  it('only ?view=pro is the Pro view', () => {
+    expect(parseView('http://x/api/market/flow-radar?view=pro')).toBe('pro');
+    expect(parseView('http://x/api/market/flow-radar?view=plus')).toBe('plus');
+    expect(parseView('http://x/api/market/flow-radar')).toBe('plus');
+  });
+  it('Plus pages are Plus for every account; Pro needs the Pro view AND a Pro account', () => {
+    expect(effectiveTier('plus', 'pro')).toBe('free');
+    expect(effectiveTier('pro', 'free')).toBe('free');
+    expect(effectiveTier('pro', 'pro')).toBe('pro');
+  });
+});
+
+describe('pickSnapshot', () => {
+  const now = 1_000 * 60_000;
+  const delay = 15 * 60_000;
+  it('takes the newest snapshot at least 15 min old', () => {
+    expect(pickSnapshot([now - 16 * 60_000, now - 20 * 60_000, now - 5 * 60_000], now, delay)).toBe(now - 16 * 60_000);
+  });
+  it('rejects snapshots older than delay + 10 min, and returns null when none qualify', () => {
+    expect(pickSnapshot([now - 30 * 60_000], now, delay)).toBeNull();
+    expect(pickSnapshot([now - 1 * 60_000], now, delay)).toBeNull();
+    expect(pickSnapshot([], now, delay)).toBeNull();
   });
 });

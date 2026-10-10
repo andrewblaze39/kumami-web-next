@@ -173,10 +173,10 @@ const ADV_NAV: NavGroup[] = [
     items: [
       { k: 'console', label: 'Console', href: '/world/console', icon: Icons.home },
       { k: 'onchain', label: 'On-Chain Insights', href: '/world/onchain', icon: Icons.layers },
-      { k: 'flow-radar', label: 'Flow Radar', href: '/world/flow-radar', icon: Icons.bolt },
+      { k: 'flow-radar', label: 'Flow Radar Plus', href: '/world/flow-radar', icon: Icons.bolt },
       { k: 'fear-greed', label: 'Fear & Greed', href: '/world/fear-greed', icon: Icons.spark },
       { k: 'calendar', label: 'Calendar', href: '/world/calendar', icon: Icons.clock },
-      { k: 'watchlist', label: 'Watchlist', href: '/world/watchlist', icon: Icons.bookmark },
+      { k: 'watchlist', label: 'Watchlist Plus', href: '/world/watchlist', icon: Icons.bookmark },
       { k: 'settings', label: 'Settings', href: '/world/settings', icon: Icons.gear },
     ],
   },
@@ -219,7 +219,9 @@ const PRO_NAV: NavGroup[] = [
     grp: 'Tools',
     collapsible: true,
     items: [
-      { k: 'spotpulse', label: 'Spot Pulse', href: '/world/pro?tab=spotpulse', icon: Icons.layers },
+      { k: 'flowradar', label: 'Flow Radar Pro', href: '/world/pro?tab=flowradar', icon: Icons.bolt },
+      { k: 'watchlist', label: 'Watchlist Pro', href: '/world/pro?tab=watchlist', icon: Icons.bookmark },
+      { k: 'spotpulse', label: 'Spot Pulse Pro', href: '/world/pro?tab=spotpulse', icon: Icons.layers },
       { k: 'scanner', label: 'Security Scanner', href: '/world/pro?tab=scanner', icon: Icons.shield },
       { k: 'marketcap', label: 'Market Cap Comparison', href: '/world/pro?tab=marketcap', icon: Icons.layers },
       { k: 'airdrops', label: 'Airdrops & Whitelist', href: '/world/pro?tab=airdrops', icon: Icons.spark },
@@ -346,16 +348,19 @@ function NavGroupList({
 
 // PRO nav items — all link to /world/pro (locked)
 const PRO_NAV_ITEMS = [
+  // Locked teaser for non-subscribers — mirrors the real Pro sidebar (PRO_NAV).
+  { label: 'Daily Digest', icon: Icons.doc },
+  { label: 'Following & Alerts', icon: Icons.bookmark },
+  { label: 'Flow Radar Pro', icon: Icons.bolt },
+  { label: 'Watchlist Pro', icon: Icons.bookmark },
+  { label: 'Spot Pulse Pro', icon: Icons.layers },
+  { label: 'Real-Time News', icon: Icons.news },
   { label: 'Alpha Room', icon: Icons.bolt },
-  { label: 'Airdrop Radar', icon: Icons.spark },
-  { label: 'AI Portfolio Manager', icon: Icons.trophy },
-  { label: 'Smart Money Tracker', icon: Icons.users },
-  { label: 'Coin / Token Tracker', icon: Icons.layers },
-  { label: 'Market Analysis', icon: Icons.doc },
-  { label: 'Q&A with Core Teams', icon: Icons.spark },
-  { label: 'Major-Move Alerts', icon: Icons.shield },
-  { label: 'Whitelist & Events', icon: Icons.trophy },
-  { label: 'Flow Radar', icon: Icons.bolt },
+  { label: 'Kumami Research', icon: Icons.doc },
+  { label: 'Airdrops & Whitelist', icon: Icons.spark },
+  { label: 'AI Portfolio', icon: Icons.trophy },
+  { label: 'Crypto Address Tracker', icon: Icons.users },
+  { label: 'Events & Announcements', icon: Icons.bell },
 ];
 
 /**
@@ -468,11 +473,8 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
   // workspace with the Basic / Plus / Pro toggle. Home stays in every mode.
   const primaryNav = mode === 'beginner' ? BEGINNER_NAV : mode === 'advanced' ? ADV_NAV : null;
 
-  // Premium predicate — same as WorldProContent's gate.
-  const isPremium =
-    userData?.isPremium === true ||
-    userData?.role === 'admin' ||
-    userData?.role === 'superadmin';
+  // Premium predicate — same as WorldProContent's gate: subscribed only.
+  const isPremium = userData?.isPremium === true;
 
   const isActive = (href: string) => pathname.startsWith(href);
 

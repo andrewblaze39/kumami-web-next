@@ -209,7 +209,9 @@ export default function CalendarPage() {
               <WIcon name="clock" /> Economic &amp; Events Calendar
             </h1>
             <p className="w-oc-sub">
-              Macro releases and on-chain events that matter to your positions.
+              {data?.feeds && !data.feeds.macroFeed && !data.feeds.unlockFeed
+                ? 'Key dates and events picked by the Kumami team.'
+                : 'Macro releases and on-chain events that matter to your positions.'}
             </p>
           </div>
         </div>

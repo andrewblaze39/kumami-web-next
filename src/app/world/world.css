@@ -5536,6 +5536,26 @@
     display: none;
   }
 }
+/* Watchlist Pro: remove-pin control for phones (desktop uses the Status-column button). */
+.world-root .w-wl-remove-mobile {
+  display: none;
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--border-2);
+  background: transparent;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.world-root .w-wl-remove-mobile:disabled { opacity: 0.4; }
+@media (max-width: 760px) {
+  .world-root .w-wl-remove-mobile { display: inline-flex; } /* must come after the base rule */
+}
 
 /* ---- Responsive ---- */
 @media (max-width: 700px) {

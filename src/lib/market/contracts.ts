@@ -146,6 +146,8 @@ export type CalendarEvent = {
 export type CalendarPayload = {
   events: CalendarEvent[];
   updatedAt: string;
+  /** Which automatic CoinGlass feeds are switched on (admin, /admin/pro-calendar). Both OFF by default. */
+  feeds?: { macroFeed: boolean; unlockFeed: boolean };
 };
 
 /** Full payload for the standalone /world/flow-radar page (Plus tier: fixed 5-asset roster, HIGH+MED only). */
@@ -322,4 +324,8 @@ export type WatchlistApiResponse = {
   sectionC: (WatchlistPayload['assets'][number] & { reasons: string[] })[];
   /** Pro-only pin cap (Kumami Pro §2.7) — 15. Not applicable on free (can't pin). */
   pinCap: number | null;
+  /** How Section C was chosen: 7-day Flow Radar consistency, or the 24h fallback while history builds. */
+  sectionCMode?: 'consistent' | 'building';
+  /** Days of Flow Radar history available (0–7). */
+  historyDays?: number;
 };

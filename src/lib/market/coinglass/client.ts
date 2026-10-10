@@ -60,6 +60,7 @@ function release(): void {
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const RATE_LIMIT_RETRIES = 3;
 
 /**
  * Fetch a CoinGlass v4 endpoint and return its `data` payload.
@@ -78,15 +79,18 @@ export async function cgFetch<T>(path: string, params?: CgParams): Promise<T> {
 
   await acquire();
   try {
-    for (let attempt = 0; attempt < 2; attempt++) {
+    // Up to 3 retries on rate-limit (1.5s → 3s → 6s). A cold cache (e.g. the
+    // first Spot Pulse 7D load = ~15–30 uncached calls at once) used to drop
+    // coins entirely after a single retry (found by Playwright QA, 10 Oct 2026).
+    for (let attempt = 0; attempt <= RATE_LIMIT_RETRIES; attempt++) {
       const res = await fetch(url.toString(), {
         headers: { 'CG-API-KEY': key, accept: 'application/json' },
         cache: 'no-store', // we manage freshness via our own TTL cache
       });
 
       if (res.status === 429) {
-        if (attempt === 0) {
-          await sleep(1500);
+        if (attempt < RATE_LIMIT_RETRIES) {
+          await sleep(1500 * 2 ** attempt);
           continue;
         }
         throw new Error(`CoinGlass ${path} → HTTP 429 (rate limited)`);
@@ -100,8 +104,8 @@ export async function cgFetch<T>(path: string, params?: CgParams): Promise<T> {
       // Rate-limit can also arrive inside the envelope with a non-zero code.
       if (body.code !== undefined && String(body.code) !== '0') {
         const codeStr = String(body.code);
-        if (codeStr === '429' && attempt === 0) {
-          await sleep(1500);
+        if (codeStr === '429' && attempt < RATE_LIMIT_RETRIES) {
+          await sleep(1500 * 2 ** attempt);
           continue;
         }
         throw new Error(`CoinGlass ${path} → error ${body.code}: ${body.msg ?? 'unknown'}`);
