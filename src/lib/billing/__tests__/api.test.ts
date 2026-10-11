@@ -14,6 +14,8 @@ describe('subscriptionSummary', () => {
     const u = { isPremium: true, proUntil: new Date(NOW + 20 * DAY), proSource: 'stripe', plan: 'monthly', subscriptionStatus: 'active', stripeSubscriptionId: 's' };
     expect(subscriptionSummary(u, NOW)).toMatchObject({ isPro: true, canCancel: true, canResume: false, canUpdateCard: true });
     expect(subscriptionSummary({ ...u, subscriptionStatus: 'canceling', cancelAtPeriodEnd: true }, NOW)).toMatchObject({ canCancel: false, canResume: true });
+    // shown date = real period end (proUntil minus the 3-day grace)
+    expect(subscriptionSummary(u, NOW).periodEnd).toBe(new Date(NOW + 17 * DAY).toISOString());
   });
   it('crypto ending within 7 days → reminder; 10 days → none', () => {
     const u = { isPremium: true, proSource: 'crypto', plan: 'yearly', subscriptionStatus: 'active' };

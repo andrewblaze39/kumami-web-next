@@ -158,10 +158,21 @@ service cloud.firestore {
       return request.auth != null && user.role == 'newsdrafter';
     }
 
-    // Fields only the server (Admin SDK) may set on users/{uid}.
+    // Fields only the server (Admin SDK) may set on users/{uid}: Pro, billing,
+    // referral and chat-room state (/api/v1 routes + webhooks; spec v1.13 Pro §21–23).
     function PRIVILEGED_USER_FIELDS() {
-      return ['proUntil', 'proSource', 'proGrantedBy', 'proGrantedAt', 'subscriptionId',
-              'referralRewards', 'referralCount'];
+      return ['proUntil', 'proSource', 'proGrantedBy', 'proGrantedAt', 'proRemovedBy', 'proRemovedAt',
+              'subscriptionId', 'subscriptionStatus', 'plan', 'cancelAtPeriodEnd', 'firstPaidAt',
+              'stripeCustomerId', 'stripeSubscriptionId',
+              'referralCode', 'referralCount', 'referralRewards', 'referralBalanceCents', 'referredBy',
+              'activeChatRoomId'];
+    }
+
+    // The only users/{uid} fields the owner may change from the app (allowlist —
+    // everything else, incl. role/isAdmin/isPremium and all billing fields, is server-only).
+    function OWNER_EDITABLE_USER_FIELDS() {
+      return ['displayName', 'photoURL', 'email', 'createdAt', 'updatedAt',
+              'cryptoPortfolio', 'lastPortfolioScan'];
     }
 
     // Active Kumami Pro subscriber: isPremium and, for a time-limited grant
@@ -199,18 +210,14 @@ service cloud.firestore {
         && request.resource.data.get('isPremium', false) == false
         && request.resource.data.get('isAdmin', false) == false
         && !request.resource.data.keys().hasAny(PRIVILEGED_USER_FIELDS());
-      // Owners may edit their profile but never grant themselves privileges:
-      // role/admin/Pro/subscription fields are written server-side only (Admin SDK:
-      // /api/admin/subscription, payment + referral Cloud Functions). The owner may
-      // only switch Pro OFF and mark the subscription cancelled (Profile → Unsubscribe).
+      // Owners may edit only their profile fields (allowlist). Pro, billing and
+      // referral fields are written server-side only (Admin SDK: /api/v1 routes,
+      // payment webhooks, /api/admin/subscription). Cancelling goes through
+      // POST /api/v1/subscription/cancel, which cancels in Stripe (v1.13).
       // Superadmins may change another user's role (Role Management).
       allow update: if request.auth != null && (
         (request.auth.uid == userId
-          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'isAdmin'].concat(PRIVILEGED_USER_FIELDS()))
-          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['isPremium'])
-              || request.resource.data.isPremium == false)
-          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['subscriptionStatus'])
-              || request.resource.data.subscriptionStatus in ['cancelled', 'cancelled-immediate'])) ||
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(OWNER_EDITABLE_USER_FIELDS())) ||
         (isSuperAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role']))
       );
       // Only admins can delete user docs
@@ -222,50 +229,47 @@ service cloud.firestore {
       }
     }
 
-    // Referral codes collection - publicly readable but restricted write
+    // Referral codes — server-only (created by GET /api/v1/referral/me, checked by
+    // GET /api/v1/referral/validate). No client reads: owners would leak.
     match /referralCodes/{code} {
-      // Anyone can read referral codes (for validation)
-      allow read: if true;
-      // Only the owner can update their referral code
-      allow update: if request.auth != null &&
-                  resource.data.userId == request.auth.uid;
-      // Only the system or admin can create new codes
-      allow create: if isAdmin() || (request.auth != null &&
-                  request.resource.data.userId == request.auth.uid);
-      // Only admin can delete codes
-      allow delete: if isAdmin();
+      allow read, write: if false;
     }
 
-    // Referrals collection - tracks referral relationships
+    // Legacy CRA referral records (no longer written). Read-only for the two parties.
     match /referrals/{referralId} {
-      // Users can read their own referrals (as referrer or referred)
       allow read: if request.auth != null &&
                 (resource.data.referrerId == request.auth.uid ||
                  resource.data.refereeId == request.auth.uid);
-
-      // Users can only create referrals where:
-      // 1. They are the referee (the person being referred)
-      // 2. The status is set to "pending" (only Cloud Functions can set to "completed")
-      // 3. Required fields are present
-      allow create: if request.auth != null &&
-                   request.resource.data.refereeId == request.auth.uid &&
-                   request.resource.data.status == "pending" &&
-                   request.resource.data.referrerId != request.auth.uid &&
-                   request.resource.data.code is string &&
-                   request.resource.data.planId is string;
-
-      // Only admin can update or delete referrals
-      allow update, delete: if isAdmin();
+      allow write: if false;
     }
+
+    // Referral rewards (one per new user) + the balance ledger — server-only writes;
+    // each party may read their own (spec v1.13 Pro §22).
+    match /referral_rewards/{refereeUid} {
+      allow read: if request.auth != null &&
+                (resource.data.referrerId == request.auth.uid || resource.data.refereeId == request.auth.uid);
+      allow write: if false;
+    }
+    match /referral_ledger/{entryId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    // Payments, checkout orders — server-only writes; owner reads (spec v1.13 Pro §21).
+    match /payments/{paymentId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+    match /checkout_orders/{orderId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+    // webhook_events: no rule → default deny (server-only).
 
     // Subscriptions collection rules
     match /subscriptions/{subscriptionId} {
-      // Users can create (only as 'pending') and read their own subscriptions.
-      // Active subscriptions are created server-side (payment webhook / Admin SDK).
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid
-        && request.resource.data.status == 'pending';
+      // Written server-side only (payment webhooks, /api/admin/subscription); owner reads.
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      // Only admins can update/delete subscriptions
       allow update, delete: if isAdmin();
     }
 
@@ -323,10 +327,9 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin() || isSuperAdmin();
     }
 
-    // Allow authenticated users to create but not read pending crypto payments
+    // Legacy crypto orders (replaced by checkout_orders in v1.13) — closed.
     match /pendingCryptoPayments/{document} {
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow read: if false;  // No client-side reading allowed
+      allow read, write: if false;
     }
 
     // Reels collection for Instagram/embeddable content

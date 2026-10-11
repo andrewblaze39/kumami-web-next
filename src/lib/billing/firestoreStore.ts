@@ -1,5 +1,6 @@
 import 'server-only';
 import { adminDb } from '@/lib/firebase-admin';
+import { toMillis } from '@/lib/pro';
 import { BufferedTx, type Doc, type Store } from './store';
 
 /** Production Store: Firestore via the Admin SDK (bypasses security rules). */
@@ -29,8 +30,12 @@ export function firestoreStore(): Store {
       return q.empty ? null : { id: q.docs[0].id, data: q.docs[0].data() as Doc };
     },
     async list(collection, field, value, orderBy, limit) {
-      const q = await db.collection(collection).where(field, '==', value).orderBy(orderBy, 'desc').limit(limit).get();
-      return q.docs.map((d) => ({ id: d.id, data: d.data() as Doc }));
+      // Sorted in memory (per-user sets are small) so no composite index is needed.
+      const q = await db.collection(collection).where(field, '==', value).limit(1000).get();
+      return q.docs
+        .map((d) => ({ id: d.id, data: d.data() as Doc }))
+        .sort((a, b) => (toMillis(b.data[orderBy] as Date) ?? 0) - (toMillis(a.data[orderBy] as Date) ?? 0))
+        .slice(0, limit);
     },
   };
 }

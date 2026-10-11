@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import ProfileContent from '@/components/ProfileContent';
 
 export const metadata: Metadata = {
@@ -14,7 +15,9 @@ export const metadata: Metadata = {
 export default function WorldProfilePage() {
   return (
     <div className="w-legacy-embed w-legacy-fullbleed w-embed-profile">
-      <ProfileContent />
+      <Suspense fallback={null}>
+        <ProfileContent />
+      </Suspense>
     </div>
   );
 }
