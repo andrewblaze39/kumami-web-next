@@ -14,6 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
+import { v1 } from '@/lib/billing/clientApi';
 
 export interface KumaChatMessage {
   role: 'user' | 'assistant';
@@ -119,21 +120,11 @@ export function useKumaChat(): UseKumaChatReturn {
     setMessages((prev) => [...prev, { role: 'user', content: text }]);
     setSending(true);
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat`, {
+    // /api/v1/kuma/chat — user id comes from the ID token (spec v1.13 Pro §17).
+    v1('/kuma/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: text,
-        metadata: {
-          source: 'kumami-world-dock',
-          userId: uid,
-          chatRoomId: KUMA_ROOM_ID,
-        },
-      }),
+      body: { message: text, chatRoomId: KUMA_ROOM_ID, source: 'kumami-world-dock' },
     })
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to send message');
-      })
       .catch((err) => {
         console.error('[useKumaChat] send error:', err);
         setMessages((prev) => [

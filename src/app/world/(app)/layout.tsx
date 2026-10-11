@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import WorldProtected from '@/components/world/shell/WorldProtected';
+import RenewBanner from '@/components/world/billing/RenewBanner';
 import { WorldModeProvider, useWorldMode } from '@/contexts/WorldModeContext';
 import Sidebar from '@/components/world/shell/Sidebar';
 import Topbar from '@/components/world/shell/Topbar';
@@ -54,6 +55,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
           a 150ms crossfade whenever the route changes (news ↔ intel etc.).
         */}
         <div className={`w-content w-content-fade${fading ? ' w-content-fading' : ''}`}>
+          <RenewBanner />
           {children}
         </div>
       </div>

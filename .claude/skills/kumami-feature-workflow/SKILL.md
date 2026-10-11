@@ -38,7 +38,7 @@ Use the task list to track stages for anything bigger than a one-file fix.
 3. **Build** → `product-spec-to-feature` §4. Use `feat/<feature>` from `dev` for multi-commit work, or `dev` directly for small fixes. Add unit tests for every rule.
 4. **Check:** `npx vitest run`, `npx tsc --noEmit`, `npx eslint <changed>` (pre-existing errors only), `npm run build`.
 5. **QA** → `kumami-qa`. Run smoke plus `qa/features/<feature>.spec.ts` from the plan's checklist, do the exploratory screenshot review, fix and re-run. Output: `docs/qa/…` and `testing/…/how-to-test.md`.
-6. **Ship the docs** → `product-spec-doc-update` SHIP mode (`ship_planned`, rewrite to as-built, minor bump, "Shipped:" note), then `rachelle-gap-analysis` (flip closed rows, bump the report version).
+6. **Ship the docs** → `product-spec-doc-update` SHIP mode (`ship_planned`, rewrite to as-built, minor bump, "Shipped:" note), then `api-db-docs` if any API route, webhook, collection, field or rule changed (`docs/API.md`, `docs/DATABASE.md`, mobile handover), then `rachelle-gap-analysis` (flip closed rows, bump the report version).
 7. **Push and report.** Merge `feat/*` into `dev` with `--no-ff`, push `dev`, delete the feature branch. Report to Andrew:
    - what was built (plain language)
    - QA result (checks passed, bugs found and fixed, known issues)

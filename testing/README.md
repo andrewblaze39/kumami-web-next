@@ -13,6 +13,10 @@ verified, following the `feature-test-tutorial` conventions.
 
 - [Subscriptions — grant / remove Pro](admin/subscriptions/how-to-test.md) — superadmin-only `/admin/subscriptions`: 1/3/12 months or no end date, remove, automatic expiry. Automated: `access-matrix.spec.ts` › Subscriptions admin tool.
 
+## Payments
+
+- [Subscriptions, payments & referrals](payments/subscriptions-and-referrals/how-to-test.md) — `/world/subscribe` (Monthly $19.99 / Yearly $199.99, card via Stripe or crypto via NOWPayments), Profile → Subscription (cancel / resume / update card) and → Referrals ($1 / $10 to both people, once per new user; refunds reverse). Automated: `qa/features/payments-referrals.spec.ts`.
+
 ## Shell / navigation
 
 - [Sidebar: one tier per workspace](shell/sidebar-workspaces/how-to-test.md) — Basic/Plus/Pro sidebars show only their own tier; the workspace follows the page. Automated: `qa/features/sidebar-workspaces.spec.ts`.

@@ -295,7 +295,9 @@ test.describe('Firestore rules — a free user must not grant themselves Pro', (
     });
   });
 
-  test('qa0 can still edit their profile name and switch Pro off (unsubscribe path)', async ({ browser }) => {
+  // v1.13: cancelling goes through POST /api/v1/subscription/cancel (which cancels in Stripe);
+  // the old browser-side "Unsubscribe" write is blocked — it never stopped Stripe billing.
+  test('qa0 can still edit their profile name, but cannot write subscription status from the browser', async ({ browser }) => {
     await as(browser, 'fresh', async (page) => {
       await openPage(page, '/world/console');
       const name = await firestore(page, 'PATCH', `users/${qa0Uid}?updateMask.fieldPaths=displayName`, { fields: { displayName: { stringValue: 'QA0 New' } } });
@@ -303,7 +305,7 @@ test.describe('Firestore rules — a free user must not grant themselves Pro', (
       const off = await firestore(page, 'PATCH', `users/${qa0Uid}?updateMask.fieldPaths=isPremium&updateMask.fieldPaths=subscriptionStatus`, {
         fields: { isPremium: { booleanValue: false }, subscriptionStatus: { stringValue: 'cancelled-immediate' } },
       });
-      expect(off.status, 'unsubscribe (Pro off + cancelled) must stay allowed').toBe(200);
+      expect(off.status, 'subscription status is server-only since v1.13').toBe(403);
     });
   });
 

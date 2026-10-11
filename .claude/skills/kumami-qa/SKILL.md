@@ -53,6 +53,7 @@ payloads) yourself.
 | `qa/features/access-matrix.spec.ts` | **Mandatory in every QA pass.** Plus vs Pro leak checks: UI per persona (every Pro tab locked for qa1/qa3 with no `view=pro` calls; open for qa2; Plus pages = Plus version for all), direct API calls with each persona's token (`?view=pro` gets Pro data only for qa2; pinning and wallet lookup 403 for non-subscribers), a QA3 → QA2/QA1 cross-check (published `[TEST]` research visible to qa2 only), Firestore-rules probes via REST (as qa0), and the Subscriptions tool grant → expiry → remove (on qa0). |
 | `qa/features/admin-content.spec.ts` | **Run whenever admin-managed Plus/Pro content or its tabs change.** qa3 authors believable `[TEST]` items in every admin page — Kumami Research, Airdrops & Whitelist (+ checklist), Real-Time News, Events (live + Q&A, upcoming, past/replay), Calendar team events, Alpha Room, Market Analysis (image upload, `qa/fixtures/qa-test-chart.png`) — with publish, draft, edit and delete of a spare. qa2 checks every field renders in the right place (badges, colours, order, details, Follow → Following & Alerts by name, Q&A ask + single upvote, Daily Digest roll-up); qa1 sees the teaser and no `[TEST]` text. Desktop only. |
 | `qa/features/coin-logos.spec.ts` | Coin badges show real logos (self-hosted `public/coins/`), no letter placeholders for known coins; desktop + mobile. |
+| `qa/features/payments-referrals.spec.ts` | **Run whenever payments, referrals, `/api/v1`, Kuma chat or `firestore.rules` change.** Creates a throw-away referrer **qa4** (Admin SDK, `qa4-<run>@kumami.test`) and uses qa0 as the payer: referral code creation and validation, Subscribe page, crypto payments through the real webhook with **signed IPNs** (paid, replay, partial, mismatch, stacking, refund + referral reversal, ledger = balance), Profile Subscription/Referrals UI, renew banner, Firestore-rules probes on every billing field, 401s on every `/api/v1` route, the Kuma callback token, and Kuma chat (token user, not body user). Stripe browser tests run only when `STRIPE_*` test keys exist. Run desktop and mobile as **separate** invocations (it changes qa0's state). |
 | `qa/features/<feature>.spec.ts` | One per feature, written by you from the plan's QA checklist. |
 
 ```bash
@@ -115,6 +116,14 @@ Re-run until the suite is clean, or remaining items are listed as known issues. 
 2. **Manual test** → `testing/<area>/<feature>/how-to-test.md`, written or updated in place, following the conventions in the `feature-test-tutorial` skill. Base it on what you actually verified (same URLs, same sample data). Then update the `testing/README.md` index.
 3. Commit the specs, the report and the how-to-test file with the feature: `test(qa): <feature> — <result>`.
 
+## Payments QA (spec v1.13 Pro §21–22)
+- **Money tests always use qa0 (payer) and qa4 (referrer).** Never use the fixed accounts. `deleteAccount()` also removes a user's `payments`, `checkout_orders`, `referral_ledger`, `referral_rewards`, `referralCodes` and related `webhook_events` (`deleteBillingDocs`).
+- **Crypto:** `.env.local` needs `NOWPAYMENTS_IPN_SECRET` (a local QA value until the real sandbox one is added). The spec signs IPNs exactly as NOWPayments does: HMAC-SHA512 over the key-sorted JSON. With `NOWPAYMENTS_API_KEY` (sandbox) also set, `/checkout/crypto` creates real sandbox invoices.
+- **Stripe:** needs `STRIPE_SECRET_KEY` (sk_test_…), `STRIPE_PRICE_MONTHLY/YEARLY` and `STRIPE_WEBHOOK_SECRET`. Run `stripe listen --forward-to localhost:3000/api/v1/webhooks/stripe` and put the `whsec_` it prints in `.env.local`. Use test cards `4242 4242 4242 4242` (success) and `4000 0000 0000 0341` (attaches, then fails on renewal). Test renewal and failed renewal with **Stripe test clocks**; refund through the Stripe API in test mode; `stripe events resend <id>` for replay.
+- **Always assert the invariants:** `users.referralBalanceCents == Σ referral_ledger.amountCents` for both people, one `referral_rewards/{payer}` per payer, and a replayed webhook changes nothing.
+- **Rules probes:** PATCH every billing/referral field on qa0's own doc → 403; `displayName` → 200. Creating `payments`, `referral_ledger` or `referralCodes` → 403. Reading own payment/order → 200; another user's ledger row or any `referralCodes` doc → 403.
+- **Never** run payment tests against production keys or `kumami-6df47`.
+
 ## Lessons already learned (Oct 2026)
 - "No skeletons" passes on the auth splash. `openPage` waits for `#w-sidebar` and checks the final URL. Keep it that way, and verify by looking at a screenshot the first time you write a new spec.
 - The first test after a server start can time out on a cold route and cache. That's why `global-setup` warms up. Before calling slowness a product bug, re-check with a warm server (time the `/api/market/*` call).
@@ -123,6 +132,7 @@ Re-run until the suite is clean, or remaining items are listed as known issues. 
 - On mobile, the workspace toggle is icon-only and the sidebar is a drawer. Skip text-label navigation tests there (`test.skip(isMobile, …)`) and cover them on desktop.
 - The shared market cache lives in Firestore. Data you see may be up to one TTL old.
 - One big Playwright run can exhaust memory on Andrew's machine (Claude Code then stops it). Run suites in chunks (see the QA report's re-run commands).
+- The first mobile run straight after a desktop run once landed qa0 on the gate (session flake); re-running passed. Re-run once before calling it a product bug.
 - Real bugs caught by the first runs: duplicate React keys from repeated macro events (calendar), and "Spot buying $0M" on Spot Pulse cards (sub-$1M amounts).
 
 ## Safety

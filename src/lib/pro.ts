@@ -8,11 +8,12 @@
  * userData.isPremium with this helper). Pure; safe on client and server.
  */
 
-type TimestampLike = { toMillis(): number } | { seconds: number } | number | string | null | undefined;
+type TimestampLike = { toMillis(): number } | { seconds: number } | Date | number | string | null | undefined;
 
 export function toMillis(v: TimestampLike): number | null {
   if (v === null || v === undefined) return null;
   if (typeof v === 'number') return v;
+  if (v instanceof Date) return Number.isNaN(v.getTime()) ? null : v.getTime();
   if (typeof v === 'string') {
     const t = Date.parse(v);
     return Number.isNaN(t) ? null : t;
