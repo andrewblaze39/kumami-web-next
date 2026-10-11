@@ -31,7 +31,7 @@ Use `git diff --stat origin/dev...HEAD` (or the session's commits) and your own 
 - **Neither:** skip to step 4 and write a one-line digest only if it was meaningful.
 
 ### 2. Update the Kumami Map notes (`Work/Kumami/Map/`)
-Read `Work/Kumami/Map/Kumami Map.md` first. It has the exact note format. In short:
+Read `Work/Kumami/Map/Kumami Map.md` first. It has the exact note format. Saved notes reach the live PKM site within seconds through the vault sync watcher. In short:
 - One note per object in `Products/`, `Systems/`, `Data/` or `External/`.
   - Frontmatter: `map: kumami`, a stable `id`, `type`, `stratum`, optional `order`, `status` (`build | planned | retiring`), `status-note` and `review`, plus `sources`.
   - Then `# Title`, a one-paragraph summary, `## Details` bullets (`- **Label:** text`), `## Connections` (`- verb phrase [[Target note]]` with an optional `(write)` or `(deploy)`), `## Private` and `## Sources`.
@@ -44,6 +44,13 @@ Read `Work/Kumami/Map/Kumami Map.md` first. It has the exact note format. In sho
 - No secrets, API keys, emails, user data, percentages, owners or metrics.
 - Security weaknesses go in the note's `## Private` section. The public `review` says only something like "Security follow-up open (details in the vault)".
 - Full detail, including hosts and webhooks, belongs in `Work/Kumami/Kumami Data Map.md`. Keep it updated when data flows change.
+
+### 2b. Update the Timeline (`Work/Kumami/Map/Timeline.md`)
+This note drives the PKM's Kumami Timeline tab. It's a public-safe copy of `Kumami Roadmap`, with lanes `## Done`, `## In progress` and `## Planned`. Each item is one line: `- YYYY-MM-DD · Title · [[Map note]]` (the date is optional, and links must point to Map notes).
+- When work starts, add or move its item to **In progress**.
+- When it ships or a decision lands, move it to **Done** with today's date.
+- When new work is agreed, add it to **Planned**.
+- Keep the wording public-safe: no project IDs, branch names, hosts, people or money.
 
 ### 3. Update durable Kumami notes (`Work/Kumami/`)
 Edit the note that owns the fact, and don't create duplicates:
