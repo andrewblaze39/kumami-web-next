@@ -17,7 +17,9 @@
  */
 import { NextResponse } from 'next/server';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import Stripe from 'stripe';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { stripe } from '@/lib/billing/stripeClient';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -85,6 +87,19 @@ export async function POST(request: Request) {
       createdAt: FieldValue.serverTimestamp(),
     });
   } else {
+    // A paying card subscriber: stop Stripe billing too (Andrew, 11 Oct 2026) —
+    // otherwise "Remove Pro" would leave them being charged every month.
+    const subId = target.get('stripeSubscriptionId');
+    if (typeof subId === 'string' && subId && ['active', 'past_due', 'canceling'].includes(String(target.get('subscriptionStatus')))) {
+      try {
+        await stripe().subscriptions.cancel(subId);
+      } catch (e) {
+        if (!(e instanceof Stripe.errors.StripeInvalidRequestError)) {
+          console.error('[admin/subscription] Stripe cancel failed', e);
+          return NextResponse.json({ error: 'stripe_cancel_failed' }, { status: 502 });
+        }
+      }
+    }
     await userRef.set({
       isPremium: false,
       subscriptionStatus: 'cancelled-immediate',
