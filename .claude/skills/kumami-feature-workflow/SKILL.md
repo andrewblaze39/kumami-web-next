@@ -39,12 +39,14 @@ Use the task list to track stages for anything bigger than a one-file fix.
 4. **Check:** `npx vitest run`, `npx tsc --noEmit`, `npx eslint <changed>` (pre-existing errors only), `npm run build`.
 5. **QA** → `kumami-qa`. Run smoke plus `qa/features/<feature>.spec.ts` from the plan's checklist, do the exploratory screenshot review, fix and re-run. Output: `docs/qa/…` and `testing/…/how-to-test.md`.
 6. **Ship the docs** → `product-spec-doc-update` SHIP mode (`ship_planned`, rewrite to as-built, minor bump, "Shipped:" note), then `rachelle-gap-analysis` (flip closed rows, bump the report version).
+7a. **Sync the second brain** → `vault-sync`. Update the Kumami Map notes and durable Kumami notes in Andrew's Obsidian vault, add the daily digest, and check that the map builds.
 7. **Push and report.** Merge `feat/*` into `dev` with `--no-ff`, push `dev`, delete the feature branch. Report to Andrew:
    - what was built (plain language)
    - QA result (checks passed, bugs found and fixed, known issues)
    - the how-to-test path
    - the new spec-doc version and its release note
    - the gap-report change
+   - the vault notes updated (from `vault-sync`)
    - anything that needs his decision
 
 Gates can be skipped only when Andrew says so ("skip the gates", "just do it"), or for trivial fixes. When skipping, still show the planned text and plan summary in the final report.
@@ -64,6 +66,7 @@ Gates can be skipped only when Andrew says so ("skip the gates", "just do it"), 
 - [ ] `how-to-test.md` written or updated, and indexed in `testing/README.md`
 - [ ] Andrew's spec: `(Planned)` removed for shipped items, version bumped, release notes added
 - [ ] Gap report refreshed
+- [ ] `vault-sync` run: Map notes, durable notes and daily digest updated; map check passes
 - [ ] On `dev` and pushed; `main` untouched
 
 ## Environment quick facts

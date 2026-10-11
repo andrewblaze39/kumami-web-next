@@ -8,7 +8,9 @@ Crypto/Web3 education and news platform. Live at https://kumami.world. Accent co
 
 Full process: **`docs/DEVELOPMENT_WORKFLOW.md`** — orchestrated by the `kumami-feature-workflow` skill.
 
-Rachelle's spec → translate into `Kumami_World_Product_Spec_andrew.docx` flagged **(Planned)** (version bump) → plan in `docs/plans/` → build → vitest/tsc/lint/build → **`kumami-qa`** (Playwright QA + `testing/**/how-to-test.md`) → spec doc: remove (Planned), version bump + release notes → refresh gap report → push `dev` → report to Andrew.
+Rachelle's spec → translate into `Kumami_World_Product_Spec_andrew.docx` flagged **(Planned)** (version bump) → plan in `docs/plans/` → build → vitest/tsc/lint/build → **`kumami-qa`** (Playwright QA + `testing/**/how-to-test.md`) → spec doc: remove (Planned), version bump + release notes → refresh gap report → **`vault-sync`** → push `dev` → report to Andrew.
+
+**Second brain — always:** after *any* development change in this repo (not only full features), run the **`vault-sync`** skill. It updates the Kumami Map notes in Andrew's Obsidian vault (`Work/Kumami/Map/`, which drive the PKM app's Kumami Map), the durable Kumami notes, and today's daily digest.
 
 **Git rules — non-negotiable:**
 - Work on `dev` (small fixes) or `feat/<name>` branched from `dev`, merged back into `dev`. Push `dev`.
