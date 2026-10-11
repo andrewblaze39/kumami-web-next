@@ -108,6 +108,26 @@ export const ROADMAP_ADDITIONS: { categoryId: string; categoryName: string; item
       done: false,
     },
   },
+  {
+    categoryId: 'payments-referrals',
+    categoryName: 'Payments & Referrals',
+    item: {
+      id: 'pr-1',
+      text: 'Email reminders before crypto Pro expires (plus payment receipts) — needs an email sender; in-app reminder only for now (spec v1.13 Pro §21)',
+      deadline: null,
+      done: false,
+    },
+  },
+  {
+    categoryId: 'payments-referrals',
+    categoryName: 'Payments & Referrals',
+    item: {
+      id: 'pr-2',
+      text: 'Referral balance withdrawal — design the payout method, minimum amount and review; balance is tracked only for now (spec v1.13 Pro §22)',
+      deadline: null,
+      done: false,
+    },
+  },
 ];
 
 export function withAdditions(state: RoadmapState): RoadmapState {
