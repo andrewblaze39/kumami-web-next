@@ -8021,7 +8021,11 @@
 .world-root .w-bill-plans { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .world-root .w-bill-plan { position: relative; text-align: left; background: var(--panel); border: 1.5px solid var(--border-2); border-radius: var(--radius); padding: 22px; cursor: pointer; color: var(--ink); font: inherit; transition: 0.15s; }
 .world-root .w-bill-plan:hover { border-color: var(--muted-2); }
-.world-root .w-bill-plan[aria-pressed='true'] { border-color: var(--accent); background: rgba(0, 194, 199, 0.07); }
+.world-root .w-bill-plan { border-color: var(--border); }
+.world-root .w-bill-plan[aria-pressed='true'] { border-color: var(--accent); background: rgba(0, 194, 199, 0.08); box-shadow: 0 0 0 1px var(--accent), 0 10px 30px -18px rgba(0, 194, 199, 0.7); }
+.world-root .w-bill-pick { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; color: var(--muted-2); margin-top: 14px; }
+.world-root .w-bill-plan[aria-pressed='true'] .w-bill-pick { color: var(--accent-strong); }
+.world-root .w-bill-input::placeholder { text-transform: none; letter-spacing: 0; }
 .world-root .w-bill-plan .w-bill-price { font-size: 30px; font-weight: 800; color: var(--accent-strong); margin: 8px 0 2px; }
 .world-root .w-bill-plan .w-bill-per { font-size: 14px; font-weight: 600; color: var(--muted); }
 .world-root .w-bill-plan ul { margin: 12px 0 0; padding: 0; list-style: none; color: var(--muted); font-size: 13.5px; display: grid; gap: 6px; }
@@ -8055,9 +8059,10 @@
 .world-root .w-bill-ledger li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--muted); }
 .world-root .w-bill-ledger li b.pos { color: var(--bull); }
 .world-root .w-bill-ledger li b.neg { color: var(--bear); }
-.world-root .w-renew-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 0 14px; padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(240, 205, 126, 0.45); background: rgba(240, 205, 126, 0.08); color: var(--ink); font-size: 14px; }
+.world-root .w-renew-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; width: calc(100% - 48px); max-width: var(--maxw); margin: 16px auto 0; box-sizing: border-box; padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(240, 205, 126, 0.45); background: rgba(240, 205, 126, 0.08); color: var(--ink); font-size: 14px; }
 .world-root .w-renew-banner button.w-renew-x { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 18px; line-height: 1; padding: 2px 6px; }
 @media (max-width: 760px) {
+  .world-root .w-renew-banner { width: calc(100% - 32px); }
   .world-root .w-bill-plans, .world-root .w-bill-pay { grid-template-columns: 1fr; }
   .world-root .w-bill h1 { font-size: 23px; }
   .world-root .w-bill-row { flex-direction: column; gap: 2px; }

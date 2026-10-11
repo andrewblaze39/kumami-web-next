@@ -88,7 +88,10 @@ export default function SubscriptionPanel() {
       )}
       <div className="w-bill-rows">
         <div className="w-bill-row"><span>Status</span><span data-testid="sub-status">{statusText}</span></div>
-        <div className="w-bill-row"><span>Plan</span><span>{s.plan ? PLANS[s.plan].name : s.source === 'admin' ? 'Pro (granted)' : 'Pro'}</span></div>
+        <div className="w-bill-row"><span>Plan</span><span>{
+          s.source === 'crypto' ? `Prepaid${s.plan ? ` (last: ${PLANS[s.plan].name})` : ''}`
+          : s.plan ? PLANS[s.plan].name : s.source === 'admin' ? 'Pro (granted)' : 'Pro'
+        }</span></div>
         <div className="w-bill-row"><span>Paid with</span><span>{s.source ? SOURCE_LABEL[s.source] : '—'}</span></div>
         <div className="w-bill-row">
           <span>{s.source === 'stripe' && !s.cancelAtPeriodEnd && s.status !== 'past_due' ? 'Renews on' : 'Pro until'}</span>

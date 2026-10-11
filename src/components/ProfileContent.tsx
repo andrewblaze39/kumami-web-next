@@ -202,7 +202,7 @@ export default function ProfileContent() {
   /* ---------------------------------------------------------------- */
 
   return (
-    <div className="mx-auto my-8 max-w-[1000px] rounded-xl bg-[#1a1a1a] p-4 text-white sm:p-8">
+    <div className="mx-auto my-8 w-full max-w-[1000px] rounded-xl bg-[#1a1a1a] p-4 text-white sm:p-8">
       {/* ---------- Header ---------- */}
       <div className="mb-8 border-b border-[#333] pb-6 text-center">
         <h1 className="mb-4 text-2xl font-bold">My Account</h1>

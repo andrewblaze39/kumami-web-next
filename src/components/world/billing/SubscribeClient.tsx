@@ -110,6 +110,7 @@ export default function SubscribeClient() {
                   <li>Card: renews every {id === 'monthly' ? 'month' : 'year'} — cancel anytime</li>
                   <li>Crypto: one payment = {p.days} days of Pro</li>
                 </ul>
+                <div className="w-bill-pick">{plan === id ? '✓ Selected' : 'Select'}</div>
               </button>
             );
           })}
@@ -121,7 +122,7 @@ export default function SubscribeClient() {
             <input
               className="w-bill-input"
               aria-label="Referral code"
-              placeholder="e.g. KQ7MZ3PA"
+              placeholder="Enter a friend’s code"
               value={code}
               maxLength={12}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
