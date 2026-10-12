@@ -56,7 +56,7 @@
 
 ## Known issues / gaps (not fixed)
 - **Stripe end to end is not yet run.** Add the test keys and run `stripe listen` (see the how-to-test file). The Stripe browser tests then switch on automatically.
-- **NOWPayments sandbox invoice** creation isn't exercised: no sandbox key. The webhook path is fully tested with signed notifications.
+- **Real NOWPayments sandbox** not run yet (no sandbox key). The full browser round trip runs against a local stand-in (see the addendum below); the one thing only the real sandbox proves is that NOWPayments' own signature and body match ours byte for byte.
 - **Kuma reply round trip** can't be checked locally (n8n can't reach localhost); the callback is tested directly.
 - The reply callback token appears in request logs (it's in the URL). It's limited to one user and chat room for 15 minutes.
 - Two simultaneous card checkouts by the same user could, in theory, create two Stripe subscriptions; Stripe Checkout pages also stay open for 24 hours. A follow-up could expire sessions after 30 minutes.
@@ -66,6 +66,16 @@
 - Profile → Subscription now explains each state in plain words (Active / Cancelled — ends at period end / Payment failed — retrying).
 - The sidebar's "Basic" under the user name is the workspace mode, not the plan. A Pro user in the Basic workspace still sees "Basic" there, which could confuse people (pre-existing; not changed).
 
+## Addendum 12 Oct 2026 — crypto checkout in the browser
+`qa/features/payments-crypto-checkout.spec.ts` with the local NOWPayments stand-in `qa/mocks/nowpayments-mock.mjs` (sandbox-shaped `POST /v1/invoice`, hosted page, the real IPN sequence waiting → confirming → confirmed → sending → finished, signed with the IPN secret). **7/7 desktop, 7/7 mobile.**
+- Pay with crypto creates the invoice with the right price, currency, fee setting, IPN and success URLs; the order stores the referral code and invoice id; Cancel returns to "Checkout cancelled — you weren't charged".
+- Paying only part → "only part of the amount", no Pro, no credit. Wrong amount → "doesn't match", order `review`.
+- Full Monthly payment with a friend's code: every IPN step answered 200, only `finished` granted Pro; success page "You're Pro! … until" +30 days; $1 to both people; "Open Kumami Pro" unlocked.
+- Yearly on top stacks exactly 365 days, card stays blocked, no second referral credit; Profile shows the new date.
+- Refund of the Yearly payment takes back exactly 365 days and leaves the Monthly referral credit.
+- When the time runs out Pro locks and card checkout opens again.
+- No bugs found. Small UX note: the "only part / doesn't match" message has no "Back to plans" link.
+
 ## How to re-run
 ```bash
 npm run dev                                                    # keep running
@@ -73,5 +83,7 @@ npx playwright test qa/features/payments-referrals.spec.ts --project=desktop
 npx playwright test qa/features/payments-referrals.spec.ts --project=mobile   # separate run (changes qa0)
 npx playwright test qa/features/access-matrix.spec.ts qa/smoke.spec.ts --project=desktop
 npx vitest run src/lib/billing
+# crypto browser round trip (mock NOWPayments) — see the header of the spec
+npx playwright test qa/features/payments-crypto-checkout.spec.ts --project=desktop
 ```
 Manual: `testing/payments/subscriptions-and-referrals/how-to-test.md`.

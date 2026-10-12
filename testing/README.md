@@ -15,7 +15,7 @@ verified, following the `feature-test-tutorial` conventions.
 
 ## Payments
 
-- [Subscriptions, payments & referrals](payments/subscriptions-and-referrals/how-to-test.md) — `/world/subscribe` (Monthly $19.99 / Yearly $199.99, card via Stripe or crypto via NOWPayments), Profile → Subscription (cancel / resume / update card) and → Referrals ($1 / $10 to both people, once per new user; refunds reverse). Automated: `qa/features/payments-referrals.spec.ts`.
+- [Subscriptions, payments & referrals](payments/subscriptions-and-referrals/how-to-test.md) — `/world/subscribe` (Monthly $19.99 / Yearly $199.99, card via Stripe or crypto via NOWPayments), Profile → Subscription (cancel / resume / update card) and → Referrals ($1 / $10 to both people, once per new user; refunds reverse). Automated: `qa/features/payments-referrals.spec.ts` + `qa/features/payments-crypto-checkout.spec.ts` (crypto round trip, mock NOWPayments).
 
 ## Shell / navigation
 

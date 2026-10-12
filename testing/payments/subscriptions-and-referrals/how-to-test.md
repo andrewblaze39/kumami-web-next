@@ -46,7 +46,14 @@ Use account **B** (not Pro), with account **A**'s code.
 ## 4 · Crypto payment
 **With a sandbox key:** Subscribe → Yearly → **Pay with crypto**. ✅ The NOWPayments invoice page. Complete it in the sandbox. ✅ Pro until today + 365 days, and A + B each get +$10.00.
 
-**Without a key (what QA does):** send a signed IPN to the webhook.
+**Without a key — full browser round trip against a local NOWPayments stand-in** (`qa/mocks/nowpayments-mock.mjs`, automated in `qa/features/payments-crypto-checkout.spec.ts`):
+1. Git Bash, repo folder: `export NOWPAYMENTS_IPN_SECRET=<value from .env.local>; node qa/mocks/nowpayments-mock.mjs` (port 4010).
+2. Restart the dev server pointed at it: `NOWPAYMENTS_API_KEY=mock-np-key NOWPAYMENTS_API_BASE=http://localhost:4010/v1 npm run dev`.
+3. Subscribe → **Pay with crypto**. ✅ A "Mock NOWPayments invoice" page with the right plan and price. Its links: **Pay** (sends waiting → confirming → confirmed → sending → finished, then back to the success page: ✅ "You're Pro!"), **Pay only part** (✅ "only part of the amount", no Pro), **Pay wrong amount** (✅ "doesn't match", order `review`), **Cancel** (✅ "Checkout cancelled — you weren't charged").
+4. `http://localhost:4010/log` shows every IPN sent and the webhook's answer.
+5. Stop both and restart `npm run dev` normally afterwards.
+
+**Without a key — single IPN by hand:** send a signed IPN to the webhook.
 1. In Firestore, create `checkout_orders/test1`: `{userId: <B uid>, provider: 'crypto', plan: 'yearly', amountCents: 19999, referralCode: '<A code>', status: 'pending'}`.
 2. Sign and send it (Git Bash, from the repo folder, with the dev server running):
    ```bash
