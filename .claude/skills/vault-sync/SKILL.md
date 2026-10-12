@@ -46,7 +46,7 @@ Read `Work/Kumami/Map/Kumami Map.md` first. It has the exact note format. Saved 
 - Full detail, including hosts and webhooks, belongs in `Work/Kumami/Kumami Data Map.md`. Keep it updated when data flows change.
 
 ### 2b. Update the Timeline (`Work/Kumami/Map/Timeline.md`)
-This note drives the PKM's Kumami Timeline tab. It's a public-safe copy of `Kumami Roadmap`, with lanes `## Done`, `## In progress` and `## Planned`. Each item is one line: `- YYYY-MM-DD · Title · [[Map note]]` (the date is optional, and links must point to Map notes).
+This note drives the PKM's Kumami Timeline tab. It's a public-safe copy of `Kumami Roadmap`, with lanes `## Done`, `## In progress` and `## Planned`. Each item is one line: `- YYYY-MM-DD · kind · Title · [[Map note]]`. The date is optional; dated items appear on the PKM's time river. The kind is also optional: `milestone` (the default), `release`, `decision` or `due`. Links must point to Map notes.
 - When work starts, add or move its item to **In progress**.
 - When it ships or a decision lands, move it to **Done** with today's date.
 - When new work is agreed, add it to **Planned**.
