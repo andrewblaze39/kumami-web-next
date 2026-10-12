@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { v1 } from '@/lib/billing/clientApi';
 import { db } from '@/lib/firebase';
 import {
   collection,
@@ -799,20 +800,11 @@ function ChatPanel({ room, userId }: { room: ChatRoom; userId: string }) {
     setIsTyping(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat`, {
+      // /api/v1/kuma/chat — user id comes from the ID token (spec v1.13 Pro §17).
+      await v1('/kuma/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: messageText,
-          metadata: {
-            source: 'kumami-pro-dashboard',
-            userId,
-            chatRoomId: room.id,
-          },
-        }),
+        body: { message: messageText, chatRoomId: room.id, source: 'kumami-pro-dashboard' },
       });
-
-      if (!response.ok) throw new Error('Failed to send message');
     } catch (error) {
       console.error('Send error:', error);
       setMessages((prev) => prev.filter((m) => m.id !== tempId));

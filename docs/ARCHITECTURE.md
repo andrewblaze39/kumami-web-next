@@ -1,6 +1,6 @@
 # Kumami Platform Architecture
 
-> Last updated: 2026-07-10
+> Last updated: 2026-10-11 (payments, referrals and Kuma chat moved to `/api/v1`; see `docs/API.md` and `docs/DATABASE.md`)
 
 Complete system architecture for the Kumami platform — a crypto/Web3 education, news, and market intelligence product.
 
@@ -14,7 +14,8 @@ Complete system architecture for the Kumami platform — a crypto/Web3 education
                             +-----------+-----------+
                             |                       |
                     Firebase App Hosting      Firebase Functions (gen2)
-                    (Next.js SSR/SSG)         (Cloud Run containers)
+                    (Next.js SSR/SSG +        (being RETIRED — replaced
+                     /api/v1 routes)           by /api/v1, §4b)
                             |                       |
                     +-------+-------+       +-------+-------+
                     |               |       |               |
@@ -141,28 +142,25 @@ These run on Firebase App Hosting's managed Cloud Run. Located in `src/app/api/`
 | `/api/intents` | POST | Tracker bot wallet intents | Bearer | Writes to Firestore |
 | `/api/tracker/bootstrap` | POST | Bootstrap tracker bot | Bearer | Creates initial bot state |
 | `/api/webhooks/alchemy` | POST | Alchemy webhook receiver | HMAC | Validates signature, dispatches to Firestore |
-| `/api/subscribe-checkout` | POST | Subscription checkout | None | Proxies to Firebase Functions |
-| `/api/create-crypto-payment` | POST | Crypto payment | None | Proxies to Firebase Functions |
+| `/api/v1/*` | — | **Versioned API for web + Flutter**: plans, checkout (Stripe / NOWPayments), subscription manage, referrals, payment webhooks, Kuma chat, news push | Bearer / signature | Full contract: `docs/API.md` |
+| `/api/admin/subscription` | POST | Superadmin Pro grant/remove (remove also cancels Stripe) | Bearer (superadmin) | Backs `/admin/subscriptions` |
 | `/api/coingecko/search` | GET | Coin search | None | Proxies to CoinGecko API |
 | `/api/coingecko/markets` | GET | Market data | None | Proxies to CoinGecko API, cached 300s |
 
-### 4b. Firebase Functions (gen2 on Cloud Run) — separate repo/deploy
+### 4b. Firebase Functions (gen2 on Cloud Run) — RETIRING (Oct 2026)
 
-These run on a separate Cloud Run service (the "API server"), deployed independently from the Next.js app.
+The old Express `api` function (deployed from the CRA repo `kumami-web/functions/`) plus `prerender` and `notifyOnNewsPublish`. Everything they did now lives in this repo:
 
-| Endpoint | Purpose | Called from |
-|----------|---------|------------|
-| `/api/chat` | Kuma AI chat — receives user message, writes assistant reply to Firestore | `useKumaChat.ts`, `KumaAIChatTab.tsx` |
-| `/api/subscribe-checkout` | Stripe checkout session creation | Proxied via Next.js `/api/subscribe-checkout` |
-| `/api/create-crypto-payment` | Crypto payment processing | Proxied via Next.js `/api/create-crypto-payment` |
+| Old | Replaced by |
+|---|---|
+| `/api/subscribe-checkout`, `/api/stripe/webhook` | `/api/v1/checkout/stripe`, `/api/v1/webhooks/stripe` |
+| `/api/create-crypto-payment`, `/api/nowpayments-webhook` | `/api/v1/checkout/crypto`, `/api/v1/webhooks/nowpayments` |
+| referral processing | `/api/v1/referral/*` + webhook transaction |
+| `/api/chat`, `/api/save-chat` | `/api/v1/kuma/chat`, `/api/v1/kuma/callback` |
+| `/api/chat-history`, `/crypto/listings`, `prerender` | dropped (unused / CRA-only) |
+| `notifyOnNewsPublish` (never fired — checked a non-existent `published` field) | `/api/v1/admin/news/{id}/notify` |
 
-**URLs:**
-- Production: `https://api-yg5t6jc2da-uc.a.run.app`
-- Development: `https://api-h4o777ecua-uc.a.run.app`
-
-Set via `NEXT_PUBLIC_API_URL` env var.
-
-> **Backlog:** Migrate all Firebase Functions endpoints to Next.js API routes so the entire backend lives in one repo. See `docs/PLAN_Migrate_Chatbot_To_Next_Routes.md` for the chat migration plan.
+**Switch-off (Andrew):** after QA on kumami-dev, delete the functions — `firebase functions:delete api prerender notifyOnNewsPublish --project kumami-dev` (then `kumami-6df47` at release) — and point the Stripe / NOWPayments dashboards at the new webhook URLs. `NEXT_PUBLIC_API_URL` is no longer used.
 
 ### 4c. n8n Workflows (Hostinger VPS)
 
@@ -171,7 +169,7 @@ n8n is deployed on a Hostinger VPS at `https://n8n.srv1258054.hstgr.cloud`.
 | Workflow | Webhook URL | Purpose | Connected to |
 |----------|-------------|---------|-------------|
 | Portfolio Risk Scanner | `/webhook/portfolio-scan` | Receives portfolio holdings, runs AI risk analysis, returns scored assessment with dimensions, asset notes, and action items | Called from Next.js `/api/portfolio-scan` |
-| Kuma AI Chat | (triggered internally by Firebase Functions `/api/chat`) | AI chat processing — the Firebase Function receives the message, may route to n8n for RAG/context enrichment, then writes the reply to Firestore | Supabase (pgvector for RAG), Gemini API |
+| Kuma AI Chat | `/webhook/5e6bb706-…` (called by `/api/v1/kuma/chat`) | Receives `{message, chatroomId, userId, callbackUrl}`, runs the agent, POSTs the reply to `callbackUrl` (`/api/v1/kuma/callback?token=…`, a per-room signed token) | Supabase (pgvector for RAG), Gemini API |
 
 **n8n infrastructure:**
 - Hosted on Hostinger VPS (`srv1258054`)
@@ -185,7 +183,8 @@ n8n is deployed on a Hostinger VPS at `https://n8n.srv1258054.hstgr.cloud`.
 |---------|---------|---------|
 | CoinGecko | Coin search + market data | Free API (no key needed, rate-limited) |
 | Alchemy | Wallet balances, token metadata, webhook notifications (ETH/Base/ARB) | `ALCHEMY_API_KEY_ETH`, `_BASE`, `_ARB` |
-| Stripe | Subscription payments | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` |
+| Stripe | Card subscriptions (Checkout, Billing Portal, webhooks) | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY` |
+| NOWPayments | Crypto (prepaid) payments — invoices + IPN | `NOWPAYMENTS_API_KEY`, `NOWPAYMENTS_IPN_SECRET`, `NOWPAYMENTS_API_BASE` |
 | CoinGlass | Market intelligence data (planned) | `COINGLASS_API_KEY` (not yet configured) |
 | News API | News aggregation (configured, not actively used) | `NEXT_PUBLIC_NEWS_API_KEY` |
 
@@ -195,18 +194,22 @@ n8n is deployed on a Hostinger VPS at `https://n8n.srv1258054.hstgr.cloud`.
 
 Same Firestore instance shared between web and mobile apps. Each Firebase project (prod/dev) has its own Firestore.
 
+> **Full field-by-field reference, incl. who writes each field: `docs/DATABASE.md`.** The tables below are a summary.
+
 ### Collections
 
 #### User data
 
 | Collection | Purpose | Key fields |
 |-----------|---------|------------|
-| `users` | User profiles | `uid`, `role` (superadmin/admin/user), `isPremium`, `subscriptionId`, `displayName`, `email`, `photoURL` |
+| `users` | User profiles | `role`, `isPremium` + `proUntil` (Pro), `proSource`, `plan`, `subscriptionStatus`, Stripe ids, `referralCode`, `referralBalanceCents`, `displayName`, `email` — billing/referral fields server-only |
 | `users/{uid}/chatrooms` | Kuma AI chat rooms | `id`, `name`, `icon`, `type` (system/user), `isDefault`, `canDelete`, `lastMessage`, `lastMessageAt`, `createdAt` |
 | `users/{uid}/chatrooms/{id}/messages` | Chat messages | `role` (bot/user), `message`/`content`, `buttons` (array: label, intentId, args), `buttonsUsed`, `timestamp` |
 | `users/{uid}/watchlist` | Tracked wallets/addresses | `address`, `label`, `chains` (array), `minUsd`, `muteUntil` |
 | `user_prefs/{uid}` | UI preferences | `mode` (beginner/advanced/pro) |
-| `subscriptions` | Subscription records | `userId`, `status` (active), `startDate`, `createdAt` |
+| `subscriptions` | Subscription mirror (Stripe / crypto / admin grant) | `userId`, `provider`, `plan`, `status`, `currentPeriodEnd` |
+| `checkout_orders`, `payments`, `webhook_events` | Checkout orders, successful charges, webhook idempotency log | see `docs/DATABASE.md` §2 |
+| `referralCodes`, `referral_rewards`, `referral_ledger` | Referral codes, one reward per new user, balance ledger | see `docs/DATABASE.md` §3 |
 
 #### Content (admin-managed, draft/published pattern)
 
@@ -268,7 +271,7 @@ A Flutter mobile app is developed by a colleague and shares the same Firebase ba
 ### Shared resources
 - Firebase Auth (same user accounts across web and mobile)
 - Firestore (same collections and documents)
-- Firebase Functions / Cloud Run endpoints
+- The `/api/v1` endpoints (`docs/API.md`; handover `docs/MOBILE_HANDOVER_Payments_Referrals.md`)
 - n8n workflows (same webhook URLs)
 
 ---
@@ -290,9 +293,19 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=
 # --- Environment indicator ---
 NEXT_PUBLIC_ENV=                          # "production" or "development"
 
-# --- Firebase Functions backend URL (project-specific) ---
-NEXT_PUBLIC_API_URL=                      # https://api-yg5t6jc2da-uc.a.run.app (prod)
-                                          # https://api-h4o777ecua-uc.a.run.app (dev)
+# --- Payments (spec v1.13 Pro §21) ---
+STRIPE_SECRET_KEY=                        # sk_test_… (dev) / sk_live_… (prod)
+STRIPE_WEBHOOK_SECRET=                    # whsec_… for <APP_BASE_URL>/api/v1/webhooks/stripe
+STRIPE_PRICE_MONTHLY=                     # price_… ($19.99 / month)
+STRIPE_PRICE_YEARLY=                      # price_… ($199.99 / year)
+NOWPAYMENTS_API_KEY=
+NOWPAYMENTS_IPN_SECRET=
+NOWPAYMENTS_API_BASE=                     # https://api-sandbox.nowpayments.io/v1 (dev) · https://api.nowpayments.io/v1 (prod)
+APP_BASE_URL=                             # https://kumami.world — redirect + callback URLs
+
+# --- Kuma AI chat (spec v1.13 Pro §17) ---
+KUMA_CALLBACK_SECRET=                     # random 32+ bytes — signs the n8n reply callback
+N8N_CHAT_WEBHOOK_URL=                     # defaults to the Kuma AI Agent webhook
 
 # --- Firebase Admin (server-side, for token verification) ---
 FIREBASE_SERVICE_ACCOUNT_JSON=            # Full JSON service account (project-specific)
@@ -316,7 +329,6 @@ GEMINI_API_KEY=                           # Google Gemini
 SUPABASE_URL=                             # Supabase instance
 SUPABASE_ANON_KEY=                        # Supabase anon key
 # COINGLASS_API_KEY=                      # Planned — not yet configured
-# STRIPE_SECRET_KEY=                      # Planned — payment processing
 ```
 
 ### Where env vars are set
@@ -396,7 +408,7 @@ Flutter Mobile App (separate repo, same Firebase backend)
 
 1. **Firebase App Hosting over Vercel** — Chose Firebase App Hosting to keep the entire stack (auth, db, storage, hosting, functions) in one Firebase project. Simplifies env management and billing.
 
-2. **Hybrid backend (Next.js routes + Firebase Functions)** — Historical: Firebase Functions were built first (CRA era). New endpoints are Next.js API routes. Migration to all-Next.js is on the backlog.
+2. **One backend: Next.js routes** — Firebase Functions were built first (CRA era); in Oct 2026 everything moved to `/api/v1` routes in this repo (payments, referrals, Kuma chat, news push) so web and mobile share one documented API. The Functions are switched off after QA.
 
 3. **n8n for AI workflows** — Provides a visual workflow builder for AI pipelines (RAG, portfolio analysis) without needing to redeploy code. Hosted on Hostinger VPS for cost efficiency.
 

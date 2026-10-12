@@ -6,6 +6,7 @@ import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from 'fi
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDate, truncateContent } from './utils';
+import { notifyNewsPublished } from '@/lib/news/notifyPublished';
 
 interface Draft {
   id: string;
@@ -41,7 +42,7 @@ export default function NewsDrafts() {
   };
 
   const handlePublish = async (id: string) => {
-    try { setLoading(true); await updateDoc(doc(db, 'news', id), { status: 'published' }); setMessage('Draft published successfully!'); setDrafts((p) => p.filter((d) => d.id !== id)); } catch { setMessage('Error publishing draft'); } finally { setLoading(false); }
+    try { setLoading(true); await updateDoc(doc(db, 'news', id), { status: 'published' }); notifyNewsPublished(id); setMessage('Draft published successfully!'); setDrafts((p) => p.filter((d) => d.id !== id)); } catch { setMessage('Error publishing draft'); } finally { setLoading(false); }
   };
 
   const handleDelete = async (id: string) => {

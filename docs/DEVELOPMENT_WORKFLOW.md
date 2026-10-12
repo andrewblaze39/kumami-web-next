@@ -29,6 +29,7 @@ Every feature passes through the same stages. Each stage has an owner, an output
 | `docs/plans/YYYY-MM-DD-<feature>.md` | The build plan for one feature | Claude, via skill `product-spec-to-feature` |
 | `testing/<area>/<feature>/how-to-test.md` | Click-by-click manual test steps for Andrew | Claude, via skill `kumami-qa` |
 | `docs/qa/YYYY-MM-DD-<feature>.md` | The QA report: what was tested, bugs found and fixed, screenshots | Claude, via skill `kumami-qa` |
+| `docs/API.md` + `docs/DATABASE.md` | Every `/api/v1` endpoint and every Firestore collection/field — which endpoint writes which field. The contract for the Flutter app | Claude, via skill `api-db-docs` |
 
 **Andrew's spec doc is the single source of truth for what we build.** Rachelle's doc is the input. We translate it into Andrew's doc first, then we build from Andrew's doc. That way, every decision Andrew makes ("one calendar for Plus and Pro", "Spot Pulse in Pro = the Plus panel for now") is written down before code is written.
 
@@ -81,7 +82,7 @@ Every feature passes through the same stages. Each stage has an owner, an output
 
 ### Stage 6 — Ship the docs
 - **Skill:** `product-spec-doc-update` (ship mode) and then `rachelle-gap-analysis`.
-- **Do:** in Andrew's spec, remove the `(Planned)` flag and its status line, rewrite the section to describe what was actually built (including anything deferred, under "Known gaps"), bump the version (e.g. 1.4 → 1.5), and add the release note `Shipped: <feature> — planned flag removed`. Then refresh the gap report so the closed items flip to ✅.
+- **Do:** in Andrew's spec, remove the `(Planned)` flag and its status line, rewrite the section to describe what was actually built (including anything deferred, under "Known gaps"), bump the version (e.g. 1.4 → 1.5), and add the release note `Shipped: <feature> — planned flag removed`. If any API route, webhook, Firestore collection, field or rule changed, update `docs/API.md` and `docs/DATABASE.md` (skill `api-db-docs`) and the mobile handover note. Then refresh the gap report so the closed items flip to ✅.
 
 ### Stage 7 — Push to `dev` and report
 - Merge `feat/<feature>` into `dev` (`--no-ff`), push `dev`, delete the feature branch.

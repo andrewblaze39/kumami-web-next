@@ -62,6 +62,13 @@ export function useAuth() {
   return context;
 }
 
+/** Fire-and-forget: GET /api/v1/referral/me creates the user's referral code if missing. */
+function ensureReferralCodeInBackground() {
+  void import("@/lib/billing/clientApi")
+    .then(({ v1 }) => v1("/referral/me"))
+    .catch(() => undefined); // retried on the next sign-in / when Referrals is opened
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -96,6 +103,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const freshDoc = await getDoc(userDocRef);
     if (freshDoc.exists()) {
       const data = freshDoc.data() as UserData;
+      // Every account gets a referral code, made server-side (spec v1.13 Pro §22).
+      if (!(data as { referralCode?: unknown }).referralCode) ensureReferralCodeInBackground();
       // Pro may have an end date (superadmin grants with a duration) — expired = not Pro.
       setUserData({ ...data, isPremium: isProActive(data as Parameters<typeof isProActive>[0]) });
       setIsAdmin(hasAdminRole(data));
@@ -123,6 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       createdAt: serverTimestamp(),
     }, { merge: true });
     await sendEmailVerification(result.user);
+    ensureReferralCodeInBackground();
     return result;
   }
 

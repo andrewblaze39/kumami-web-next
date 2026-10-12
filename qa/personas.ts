@@ -90,7 +90,45 @@ export async function deleteAccount(uid: string) {
   await Promise.all(subs.docs.map((d) => d.ref.delete()));
   const audit = await db.collection('admin_audit').where('targetUid', '==', uid).get();
   await Promise.all(audit.docs.map((d) => d.ref.delete()));
+  await deleteBillingDocs(uid);
   await auth.deleteUser(uid).catch(() => {});
+}
+
+/** Billing + referral records of one QA account (spec v1.13 Pro §21–22 collections). */
+export async function deleteBillingDocs(uid: string) {
+  const { db } = admin();
+  const orders = await db.collection('checkout_orders').where('userId', '==', uid).get();
+  const orderIds = orders.docs.map((d) => d.id);
+  const byUser = await Promise.all(['payments', 'checkout_orders', 'referral_ledger', 'referralCodes'].map((c) =>
+    db.collection(c).where('userId', '==', uid).get()));
+  const rewards = await Promise.all([
+    db.collection('referral_rewards').where('referrerId', '==', uid).get(),
+    db.collection('referral_rewards').where('refereeId', '==', uid).get(),
+  ]);
+  const events = orderIds.length
+    ? (await Promise.all(chunk(orderIds, 30).map((ids) => db.collection('webhook_events').where('orderId', 'in', ids).get()))).flatMap((q) => q.docs)
+    : [];
+  const docs = [...byUser.flatMap((q) => q.docs), ...rewards.flatMap((q) => q.docs), ...events];
+  await Promise.all(docs.map((d) => d.ref.delete()));
+}
+
+function chunk<T>(a: T[], n: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < a.length; i += n) out.push(a.slice(i, i + n));
+  return out;
+}
+
+/** A real Firebase ID token for a QA account (custom token → Identity Toolkit), for API calls outside a browser. */
+export async function idTokenFor(uid: string): Promise<string> {
+  const { auth } = admin();
+  const custom = await auth.createCustomToken(uid);
+  const key = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+  const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${key}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: custom, returnSecureToken: true }),
+  });
+  const j = (await res.json()) as { idToken?: string };
+  if (!j.idToken) throw new Error(`Could not mint an ID token for ${uid} (${res.status})`);
+  return j.idToken;
 }
 
 /**

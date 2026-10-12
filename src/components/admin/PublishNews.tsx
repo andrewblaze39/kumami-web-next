@@ -7,6 +7,7 @@ import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatSelection as fmtSel, getFormattedPreviewHtml } from './utils';
 import { applyNewsOverlay } from './applyNewsOverlay';
+import { notifyNewsPublished } from '@/lib/news/notifyPublished';
 
 const CATEGORIES = ['Tech', 'News', 'Market', 'Games', 'Wallet', 'Funding', 'Crypto', 'Memes', 'NFT'];
 
@@ -85,7 +86,7 @@ export default function PublishNews() {
       if (imageFile) imageUrl = await uploadImage(imageFile);
       else if (status === 'published') throw new Error('Please select an image');
 
-      await addDoc(collection(db, 'news'), {
+      const ref = await addDoc(collection(db, 'news'), {
         title: title || 'Untitled Draft',
         content,
         summary,
@@ -100,6 +101,7 @@ export default function PublishNews() {
         status,
         ...(kumamiInsight.trim() ? { kumamiInsight: kumamiInsight.trim() } : {}),
       });
+      if (status === 'published') notifyNewsPublished(ref.id); // push to the mobile app (v1.13)
       setMessage(status === 'published' ? 'News published successfully!' : 'Draft saved successfully!');
       resetForm();
     } catch (err: unknown) {

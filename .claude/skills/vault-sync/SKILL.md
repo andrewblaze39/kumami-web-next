@@ -31,7 +31,7 @@ Use `git diff --stat origin/dev...HEAD` (or the session's commits) and your own 
 - **Neither:** skip to step 4 and write a one-line digest only if it was meaningful.
 
 ### 2. Update the Kumami Map notes (`Work/Kumami/Map/`)
-Read `Work/Kumami/Map/Kumami Map.md` first. It has the exact note format. In short:
+Read `Work/Kumami/Map/Kumami Map.md` first. It has the exact note format. Saved notes reach the live PKM site when you publish in step 5 (otherwise within about 15 minutes, if Andrew has turned on the scheduled publish). In short:
 - One note per object in `Products/`, `Systems/`, `Data/` or `External/`.
   - Frontmatter: `map: kumami`, a stable `id`, `type`, `stratum`, optional `order`, `status` (`build | planned | retiring`), `status-note` and `review`, plus `sources`.
   - Then `# Title`, a one-paragraph summary, `## Details` bullets (`- **Label:** text`), `## Connections` (`- verb phrase [[Target note]]` with an optional `(write)` or `(deploy)`), `## Private` and `## Sources`.
@@ -44,6 +44,13 @@ Read `Work/Kumami/Map/Kumami Map.md` first. It has the exact note format. In sho
 - No secrets, API keys, emails, user data, percentages, owners or metrics.
 - Security weaknesses go in the note's `## Private` section. The public `review` says only something like "Security follow-up open (details in the vault)".
 - Full detail, including hosts and webhooks, belongs in `Work/Kumami/Kumami Data Map.md`. Keep it updated when data flows change.
+
+### 2b. Update the Timeline (`Work/Kumami/Map/Timeline.md`)
+This note drives the PKM's Kumami Timeline tab. It's a public-safe copy of `Kumami Roadmap`, with lanes `## Done`, `## In progress` and `## Planned`. Each item is one line: `- YYYY-MM-DD · kind · Title · [[Map note]]`. The date is optional; dated items appear on the PKM's time river. The kind is also optional: `milestone` (the default), `release`, `decision` or `due`. Links must point to Map notes.
+- When work starts, add or move its item to **In progress**.
+- When it ships or a decision lands, move it to **Done** with today's date.
+- When new work is agreed, add it to **Planned**.
+- Keep the wording public-safe: no project IDs, branch names, hosts, people or money.
 
 ### 3. Update durable Kumami notes (`Work/Kumami/`)
 Edit the note that owns the fact, and don't create duplicates:
@@ -79,16 +86,18 @@ Append to `Daily/YYYY-MM-DD.md` (create it if missing; date in WIB, UTC+7) using
 - [[Kumami World]] · [[<notes you touched>]]
 ```
 
-### 5. Check the map still builds
+### 5. Check and publish the map
 Use the PKM's dedicated sync checkout. It always tracks `main`; don't use the main PKM checkout, which other agents switch between branches:
 
 ```bash
 git -C "C:/Users/Andrew/CascadeProjects/pkm-sync" pull --ff-only -q
 node "C:/Users/Andrew/CascadeProjects/pkm-sync/app/scripts/build-kumami-map.mjs" --check
+node "C:/Users/Andrew/CascadeProjects/pkm-sync/app/scripts/build-kumami-map.mjs" --publish --if-changed
 ```
 
 - If it lists problems (a broken `[[link]]`, an unregistered source, a URL or hostname, a missing field), fix the notes and re-run until it passes.
-- Don't edit or commit anything in the PKM repo from here. Publishing the map to the live PKM site is handled on the PKM side.
+- Publish only after the check passes (the publisher refuses a map with problems anyway). It uses the logged-in Supabase CLI and uploads only when the map changed. If publishing fails, for example because the CLI is not logged in, say so in your report and carry on; the notes are saved either way.
+- Don't edit or commit anything in the PKM repo from here.
 
 ### 6. Report
 Tell Andrew in one line which vault notes changed (for example "Vault: updated Map/Flow Radar, Kumami Data Map; digest added").

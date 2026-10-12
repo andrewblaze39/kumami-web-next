@@ -35,8 +35,10 @@ export const ROADMAP_ADDITIONS: { categoryId: string; categoryName: string; item
   { categoryId: 'site-polish', categoryName: 'Website polish · launch checklist', item: { id: 'sp-8', text: 'Privacy policy page — draft from what the app collects, Andrew/lawyer to review', deadline: null, done: false } },
   { categoryId: 'site-polish', categoryName: 'Website polish · launch checklist', item: { id: 'sp-9', text: 'Cookie consent banner — analytics off until accepted', deadline: null, done: false } },
   { categoryId: 'site-polish', categoryName: 'Website polish · launch checklist', item: { id: 'sp-10', text: 'Real contact email + business address in the footer / About', deadline: null, done: false } },
-  { categoryId: 'site-polish', categoryName: 'Website polish · launch checklist', item: { id: 'sp-11', text: 'Decide which pages are public for Google (news, research, blogs, education articles) — today every /world page needs a login', deadline: null, done: false } },
+  { categoryId: 'site-polish', categoryName: 'Website polish · launch checklist', item: { id: 'sp-11', text: 'Registration wall for articles: Google can index news, research, blog and education articles while people must log in to read (PM wants everything login-gated)', deadline: null, done: false } },
   { categoryId: 'pro-airdrops', categoryName: 'Pro · Airdrops & Whitelist', item: { id: 'al-1', text: 'Airdrop & whitelist cards: optional logo upload in the admin form (coloured letter stays as fallback)', deadline: null, done: false } },
+  { categoryId: 'payments-referrals', categoryName: 'Payments & Referrals', item: { id: 'pr-1', text: 'Email reminders before crypto Pro expires (plus payment receipts) — needs an email sender; in-app reminder only for now (spec v1.13 Pro §21)', deadline: null, done: false } },
+  { categoryId: 'payments-referrals', categoryName: 'Payments & Referrals', item: { id: 'pr-2', text: 'Referral balance withdrawal — design the payout method, minimum amount and review; balance is tracked only for now (spec v1.13 Pro §22)', deadline: null, done: false } },
 ];
 
 // Items Andrew scrapped (11 Oct 2026). Removed from saved roadmaps too, and their
