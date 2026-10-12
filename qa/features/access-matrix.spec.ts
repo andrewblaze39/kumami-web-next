@@ -307,6 +307,18 @@ test.describe('Firestore rules — a free user must not grant themselves Pro', (
     });
   });
 
+  test('Alpha Room and Market Analysis are Pro-only: free users blocked, Pro and admin allowed', async ({ browser }) => {
+    for (const [role, want] of [['plus', 403], ['pro', 200], ['admin', 200]] as const) {
+      await as(browser, role, async (page) => {
+        await openPage(page, role === 'admin' ? '/admin/alpha-room' : '/world/console', role === 'admin' ? { ready: 'input[placeholder="Message #alpha"]' } : {});
+        for (const c of ['alphaRoom', 'marketAnalysis']) {
+          const r = await firestore(page, 'GET', `${c}?pageSize=1`);
+          expect(r.status, `${role} reading ${c}`).toBe(want);
+        }
+      });
+    }
+  });
+
   test('qa2 (Pro) and qa3 (admin, authors it) can still read Pro content directly', async ({ browser }) => {
     for (const role of ['pro', 'admin'] as const) {
       await as(browser, role, async (page) => {

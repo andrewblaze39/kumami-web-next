@@ -90,7 +90,9 @@ service cloud.firestore {
     }
 
     match /marketAnalysis/{document} {
-      allow read: if true;  // Allow public read access
+      // Pro content (Andrew, 11 Oct 2026): active Pro subscribers, plus the roles that author it.
+      allow read: if request.auth != null
+        && (isProUser() || isAdmin() || isNewsResearchAdmin() || isMarketAnalysisAdmin());
 
       // Allow create for admins, newsresearchadmins, and marketanalysisadmins
       allow create: if isAdmin() || isNewsResearchAdmin() || isMarketAnalysisAdmin();
@@ -181,8 +183,8 @@ service cloud.firestore {
 
     // Alpha Room messages
     match /alphaRoom/{messageId} {
-      // Allow read for all authenticated users
-      allow read: if request.auth != null;
+      // Pro content (Andrew, 11 Oct 2026): active Pro subscribers and admins only.
+      allow read: if request.auth != null && (isProUser() || isAdmin());
 
       // Allow create, update, delete for admins and superadmins
       allow create, update, delete: if isAdmin() || isSuperAdmin();

@@ -14,83 +14,9 @@ import type {
 // ── Seed ──────────────────────────────────────────────────────────────────
 // Replace these dates with real targets as plans firm up.
 export const ROADMAP_SEED: RoadmapState = {
-  version: 1,
-  updatedAt: '2026-05-18',
-  categories: [
-    {
-      id: 'news-portal',
-      name: 'News Portal',
-      items: [
-        { id: 'np-1', text: 'Education kebawah di remove', deadline: '2026-05-19', done: false },
-      ],
-    },
-    {
-      id: 'education-portal',
-      name: 'Education Portal',
-      items: [
-        {
-          id: 'ep-1',
-          text: 'Make the education article more slim to be easily readable — follow Investopedia design',
-          deadline: '2026-05-24',
-          done: false,
-        },
-      ],
-    },
-    {
-      id: 'portfolio-manager',
-      name: 'Pro · Portfolio Manager',
-      items: [
-        {
-          id: 'pm-1',
-          text: 'Add Kuma AI analysis box — 2-column grid: holdings left, Kuma AI box right',
-          deadline: '2026-05-31',
-          done: false,
-        },
-        {
-          id: 'pm-2',
-          text: 'Kuma AI chat bubble can read & analyze user portfolio + market movement → bite-sized feedback',
-          deadline: '2026-06-15',
-          done: false,
-        },
-      ],
-    },
-    {
-      id: 'alpha-room',
-      name: 'Pro · Alpha Room',
-      items: [],
-    },
-    {
-      id: 'market-analysis',
-      name: 'Pro · Market Analysis',
-      items: [
-        { id: 'ma-1', text: 'Market analysis new design revamp', deadline: '2026-05-24', done: false },
-      ],
-    },
-    {
-      id: 'kuma-chatroom',
-      name: 'Pro · Kuma AI Chatroom',
-      items: [
-        {
-          id: 'kc-1',
-          text: 'Kuma AI chatroom becomes the homepage of Kumami Pro — welcome + built-in buttons to other tabs / discover features',
-          deadline: '2026-05-31',
-          done: false,
-        },
-        {
-          id: 'kc-2',
-          text: 'Kuma AI chatroom revamp to look like Claude or Elfa AI',
-          deadline: '2026-05-24',
-          done: false,
-        },
-        {
-          id: 'kc-3',
-          text: 'Address tracker — finalize which Alchemy API functions to bring into the tracker',
-          deadline: '2026-05-31',
-          done: false,
-        },
-      ],
-    },
-  ],
+  version: 2,
+  updatedAt: '2026-10-11',
+  categories: [],
 };
 
 // ── Additions after launch ────────────────────────────────────────────────
@@ -98,19 +24,34 @@ export const ROADMAP_SEED: RoadmapState = {
 // load() merges each one in once (tracked in state.seededIds), so it appears
 // for everyone but stays deleted if an admin removes it.
 export const ROADMAP_ADDITIONS: { categoryId: string; categoryName: string; item: RoadmapItem }[] = [
-  {
-    categoryId: 'kuma-ai-knowledge',
-    categoryName: 'Kuma AI · Knowledge',
-    item: {
-      id: 'kk-1',
-      text: 'Refresh Kuma AI’s company-knowledge PDF in n8n from the current product spec (tiers, Plus/Pro tools, Pro content, how to get Pro) so answers are smarter — later, after the Plus/Pro work',
-      deadline: null,
-      done: false,
-    },
-  },
+  { categoryId: 'kuma-ai-knowledge', categoryName: 'Kuma AI · Knowledge', item: { id: 'kk-1', text: 'Refresh Kuma AI’s company-knowledge PDF in n8n from the current product spec (tiers, Plus/Pro tools, Pro content, how to get Pro) so answers are smarter — later, after the Plus/Pro work', deadline: null, done: false } },
+  { categoryId: 'site-polish', categoryName: 'Website polish · launch checklist', item: { id: 'sp-1', text: 'Share image (Open Graph) for every link preview — the referenced og-default.png was missing', deadline: null, done: false } },
+  { categoryId: 'site-polish', categoryName: 'Website polish · launch checklist', item: { id: 'sp-2', text: 'robots.txt + sitemap.xml', deadline: null, done: false } },
+  { categoryId: 'site-polish', categoryName: 'Website polish · launch checklist', item: { id: 'sp-3', text: 'Custom branded 404 page', deadline: null, done: false } },
+  { categoryId: 'site-polish', categoryName: 'Website polish · launch checklist', item: { id: 'sp-4', text: 'Meta title + description on every page', deadline: null, done: false } },
+  { categoryId: 'site-polish', categoryName: 'Website polish · launch checklist', item: { id: 'sp-5', text: 'Alt text on every image', deadline: null, done: false } },
+  { categoryId: 'site-polish', categoryName: 'Website polish · launch checklist', item: { id: 'sp-6', text: 'Web app manifest (installable icon set)', deadline: null, done: false } },
+  { categoryId: 'site-polish', categoryName: 'Website polish · launch checklist', item: { id: 'sp-7', text: 'Public Terms page (legal pages must not need a login)', deadline: null, done: false } },
+  { categoryId: 'site-polish', categoryName: 'Website polish · launch checklist', item: { id: 'sp-8', text: 'Privacy policy page — draft from what the app collects, Andrew/lawyer to review', deadline: null, done: false } },
+  { categoryId: 'site-polish', categoryName: 'Website polish · launch checklist', item: { id: 'sp-9', text: 'Cookie consent banner — analytics off until accepted', deadline: null, done: false } },
+  { categoryId: 'site-polish', categoryName: 'Website polish · launch checklist', item: { id: 'sp-10', text: 'Real contact email + business address in the footer / About', deadline: null, done: false } },
+  { categoryId: 'site-polish', categoryName: 'Website polish · launch checklist', item: { id: 'sp-11', text: 'Decide which pages are public for Google (news, research, blogs, education articles) — today every /world page needs a login', deadline: null, done: false } },
+  { categoryId: 'pro-airdrops', categoryName: 'Pro · Airdrops & Whitelist', item: { id: 'al-1', text: 'Airdrop & whitelist cards: optional logo upload in the admin form (coloured letter stays as fallback)', deadline: null, done: false } },
 ];
 
-export function withAdditions(state: RoadmapState): RoadmapState {
+// Items Andrew scrapped (11 Oct 2026). Removed from saved roadmaps too, and their
+// categories disappear once empty.
+export const ROADMAP_RETIRED_IDS = ['np-1', 'ep-1', 'pm-1', 'pm-2', 'ma-1', 'kc-1', 'kc-2', 'kc-3'];
+const RETIRED_CATEGORY_IDS = ['news-portal', 'education-portal', 'portfolio-manager', 'alpha-room', 'market-analysis', 'kuma-chatroom'];
+
+export function withAdditions(input: RoadmapState): RoadmapState {
+  const retired = new Set(ROADMAP_RETIRED_IDS);
+  const state: RoadmapState = {
+    ...input,
+    categories: input.categories
+      .map((c) => ({ ...c, items: c.items.filter((i) => !retired.has(i.id)) }))
+      .filter((c) => !(RETIRED_CATEGORY_IDS.includes(c.id) && c.items.length === 0)),
+  };
   const seeded = new Set(state.seededIds ?? []);
   const pending = ROADMAP_ADDITIONS.filter((a) => !seeded.has(a.item.id));
   if (!pending.length) return state;

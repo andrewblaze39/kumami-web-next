@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Settings } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Settings — Kumami World',
+  description: 'Your Kumami World settings.',
+};
 
 // Matches --accent (matches the branded "Coming soon" pattern used on /world/subscribe).
 const ACCENT = '#00c2c7';
