@@ -89,6 +89,8 @@ export async function openPage(page: Page, path: string, opts: { ready?: string 
 export async function dismissOverlays(page: Page) {
   // First-visit tours auto-open ~700ms after load — give them time to appear.
   await page.waitForTimeout(1200);
+  const rejectCookies = page.getByRole('region', { name: 'Cookie choices' }).getByRole('button', { name: 'Reject analytics' });
+  if (await rejectCookies.isVisible().catch(() => false)) await rejectCookies.click();
   for (let i = 0; i < 3; i++) {
     const skip = page.getByRole('button', { name: /^skip$/i });
     const dismiss = page.getByRole('dialog').getByRole('button', { name: /^dismiss$/i });

@@ -16,9 +16,17 @@ import fs from 'node:fs';
 import { AUTH } from './helpers';
 import { isProActive } from '../src/lib/pro';
 import { admin, deleteFreshAccounts, deleteTestContent, fixedPersonas, freshPersona, PERSONAS_FILE, type Persona } from './personas';
+import { CONSENT_STORAGE_KEY } from '../src/lib/consent';
+
+/** The cookie banner sits over the bottom of the page until answered — answer it (analytics off). */
+async function rejectCookieBanner(page: Page) {
+  await page.getByRole('region', { name: 'Cookie choices' }).getByRole('button', { name: 'Reject analytics' })
+    .click({ timeout: 10_000 }).catch(() => {});
+}
 
 async function signUp(page: Page, p: Persona) {
   await page.goto('/');
+  await rejectCookieBanner(page);
   await page.getByRole('button', { name: /sign up/i }).first().click();
   const form = page.locator('form').filter({ has: page.locator('#su-name') });
   await form.locator('#su-name').fill(p.name);
@@ -40,6 +48,7 @@ async function signUp(page: Page, p: Persona) {
 
 async function logIn(page: Page, p: Persona) {
   await page.goto('/');
+  await rejectCookieBanner(page);
   await page.getByRole('button', { name: /^log in$/i }).first().click();
   const form = page.locator('form').filter({ has: page.locator('input[type="password"]') }).last();
   await form.locator('input[type="email"]').fill(p.email);
@@ -102,6 +111,8 @@ async function preparePersona(browser: Browser, baseURL: string, p: Persona) {
     // Pro follows point at last run's [TEST] airdrops (deleted above) — start empty.
     await db.collection('users').doc(p.uid!).collection('pro').doc('state').update({ following: {} }).catch(() => {});
   }
+  // Answer the cookie banner once (analytics off) so it doesn't cover the mobile tab bar in every spec.
+  await page.evaluate((key) => localStorage.setItem(key, JSON.stringify({ analytics: false, version: 1, decidedAt: new Date().toISOString() })), CONSENT_STORAGE_KEY);
   await ctx.storageState({ path: ROLE_FILE[p.key], indexedDB: true });
   await ctx.close();
 }

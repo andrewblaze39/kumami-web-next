@@ -20,6 +20,7 @@ verified, following the `feature-test-tutorial` conventions.
 ## Shell / navigation
 
 - [Website polish](shell/site-polish/how-to-test.md) — share image, robots.txt, sitemap, branded 404, public Terms, page titles, manifest, roadmap cleanup, Alpha Room / Market Analysis Pro-only rules. Automated: `qa/features/site-polish.spec.ts`.
+- [Legal pages, cookie banner & disclaimers](shell/legal-compliance/how-to-test.md) — public `/privacy`, cookie banner (Analytics only after Accept), sign-up / Subscribe "you agree" lines, Terms/Privacy links, not-financial-advice footer on every `/world` page. Automated: `qa/features/legal-compliance.spec.ts`.
 - [Sidebar: one tier per workspace](shell/sidebar-workspaces/how-to-test.md) — Basic/Plus/Pro sidebars show only their own tier; the workspace follows the page. Automated: `qa/features/sidebar-workspaces.spec.ts`.
 
 ## Plus
