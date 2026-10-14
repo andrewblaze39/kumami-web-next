@@ -312,7 +312,6 @@
   line-height: 1.55;
   color: var(--muted-2);
 }
-.world-root .w-shell-legal p { margin: 0 0 6px; }
 .world-root .w-shell-legal nav { display: flex; flex-wrap: wrap; gap: 14px; }
 .world-root .w-shell-legal a,
 .world-root .w-shell-legal .k-cookie-link { color: var(--muted); text-decoration: none; }
@@ -387,16 +386,6 @@
   width: 100%;
   margin-top: 8px;
 }
-
-.world-root .w-auth-legal {
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--muted-2);
-  text-align: center;
-  margin: 14px 0 0;
-}
-.world-root .w-auth-legal a { color: var(--muted); text-decoration: underline; }
-.world-root .w-auth-legal a:hover { color: var(--accent); }
 
 .world-root .w-auth-alt {
   text-align: center;

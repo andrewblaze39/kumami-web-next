@@ -1,16 +1,17 @@
 import type { Metadata } from 'next';
 import Footer from '@/components/Footer';
-import TermsContent from '@/components/legal/TermsContent';
+import TermsContent from '@/components/TermsContent';
 
 export const metadata: Metadata = {
   title: 'Terms of Service — Kumami World',
-  description: 'The rules for using Kumami World: Pro subscriptions, refunds, referrals, AI features and more.',
+  description: 'Terms of Service and conditions for using Kumami World platform.',
   openGraph: {
     title: 'Terms of Service — Kumami World',
-    description: 'The rules for using Kumami World: Pro subscriptions, refunds, referrals, AI features and more.',
+    description: 'Terms of Service and conditions for using Kumami World platform.',
     url: 'https://kumami.world/terms',
   },
   alternates: { canonical: 'https://kumami.world/terms' },
+  robots: { index: false, follow: true },
 };
 
 /**

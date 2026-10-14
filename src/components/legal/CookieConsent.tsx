@@ -1,13 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { CONSENT_OPEN_EVENT, readConsent, saveConsent } from '@/lib/consent';
 import './legal.css';
 
 /**
  * Cookie banner, mounted once in the root layout so it covers the gate, the
- * shell and the public legal pages. Shows until the visitor picks Accept or
+ * shell and the public Terms page. Shows until the visitor picks Accept or
  * Reject; "Cookie settings" links reopen it. Analytics stays off until Accept.
  */
 export default function CookieConsent() {
@@ -34,7 +33,7 @@ export default function CookieConsent() {
       <p className="k-consent-text">
         We use cookies that are needed to keep you signed in. With your OK we also use
         analytics cookies (Google Analytics) to see which pages are used, so we can improve
-        Kumami. No advertising cookies. See our <Link href="/privacy#cookies">Privacy Policy</Link>.
+        Kumami. No advertising cookies.
       </p>
       <div className="k-consent-actions">
         <button type="button" className="k-consent-btn" onClick={() => choose(false)}>

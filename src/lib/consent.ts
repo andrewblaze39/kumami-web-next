@@ -4,8 +4,8 @@
  * Beginner/Advanced/Pro mode and redirect bookkeeping are strictly necessary
  * and never asked about.
  *
- * The choice is kept in localStorage. Bump CONSENT_VERSION when the Privacy
- * Policy changes what analytics collects, so everyone is asked again.
+ * The choice is kept in localStorage. Bump CONSENT_VERSION when what analytics
+ * collects changes, so everyone is asked again.
  */
 
 export const CONSENT_STORAGE_KEY = 'kumami_cookie_consent';

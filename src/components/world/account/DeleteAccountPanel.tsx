@@ -82,15 +82,14 @@ export default function DeleteAccountPanel() {
               <li>your referral code and your sign-in</li>
             </ul>
             <p className="text-gray-400">
-              We keep payment and invoice records (without your name or email) for as long as tax law requires.
-              See the <a href="/privacy#retention" className="text-[#00c2c7] underline">privacy policy</a>.
+              We keep payment and invoice records (without your name or email).
             </p>
           </div>
 
           {(pro || balance > 0) && (
             <ul className="space-y-1 rounded border border-amber-700/60 bg-amber-950/30 p-3 text-amber-300" data-testid="delete-warnings">
-              {pro && source === 'stripe' && <li>Your card subscription is cancelled now. There is no refund for the rest of this period.</li>}
-              {pro && source !== 'stripe' && <li>Your remaining Pro time is lost. There is no refund.</li>}
+              {pro && source === 'stripe' && <li>Your card subscription is cancelled now and your Pro access ends.</li>}
+              {pro && source !== 'stripe' && <li>Your remaining Pro time is lost.</li>}
               {balance > 0 && <li>Your referral balance (${(balance / 100).toFixed(2)}) is lost.</li>}
             </ul>
           )}

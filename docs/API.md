@@ -258,4 +258,4 @@ NOWPayments setup: create an IPN secret in the dashboard and set the payout wall
 - Handle the `kumami://subscribe?ref=CODE` deep link: open the subscribe screen with the code pre-filled and validate it with `GET /referral/validate`.
 - Apple and Google store rules for selling digital subscriptions inside an app are the mobile team's call.
 - Handover note: `docs/MOBILE_HANDOVER_Payments_Referrals.md`.
-- **Account deletion (store requirement):** add a "Delete my account" screen that warns (card subscription cancelled now with no refund, Pro time and referral balance lost), has the user type DELETE, re-authenticates, then calls `DELETE /me` and signs out. Same rules as the website (spec v1.16 Basic §8).
+- **Account deletion (store requirement):** add a "Delete my account" screen that warns (card subscription cancelled now, Pro time and referral balance lost), has the user type DELETE, re-authenticates, then calls `DELETE /me` and signs out. Same rules as the website (spec v1.16 Basic §8).

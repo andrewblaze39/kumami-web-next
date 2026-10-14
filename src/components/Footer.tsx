@@ -111,11 +111,6 @@ const Footer = () => {
                   </a>
                 </li>
                 <li>
-                  <a href="/privacy" className="text-gray-300 hover:text-[#96EDD6] transition no-underline">
-                    Privacy
-                  </a>
-                </li>
-                <li>
                   <CookieSettingsLink className="text-gray-300 hover:text-[#96EDD6] transition" />
                 </li>
               </ul>

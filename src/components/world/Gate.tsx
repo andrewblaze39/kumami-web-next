@@ -113,7 +113,6 @@ export default function Gate() {
           © 2026 Kumami World · Web3, for everyone.
           <span className="w-gate-legal">
             <Link href="/terms">Terms</Link>
-            <Link href="/privacy">Privacy</Link>
             <CookieSettingsLink />
           </span>
         </p>

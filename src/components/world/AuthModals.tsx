@@ -219,13 +219,6 @@ export function SignUpModal({ onClose, onSwitchToLogin }: SignUpModalProps) {
               Continue with Google
             </button>
 
-            <p className="w-auth-legal">
-              By signing up you agree to our{' '}
-              <a href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a> and{' '}
-              <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>. You must be 18 or older.
-              Kumami is for education only, not financial advice.
-            </p>
-
             <p className="w-auth-alt">
               Already have an account?{' '}
               {/* M1: button for keyboard accessibility */}
