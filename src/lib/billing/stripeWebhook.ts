@@ -123,7 +123,9 @@ async function recordInvoicePaid(
   const payPath = `payments/${paymentId}`;
   if (await tx.get(payPath)) return 'payment_already_recorded';
 
-  const user = (await tx.get(`users/${p.uid}`)) ?? {};
+  // The payment is recorded even if the account was deleted (tax records); the user doc is never recreated.
+  const userDoc = await tx.get(`users/${p.uid}`);
+  const user = userDoc ?? {};
   const orderId = p.sub.metadata.orderId || null;
   const order = orderId ? await tx.get(`checkout_orders/${orderId}`) : null;
   const plan = deps.planForPrice(p.sub.priceId) ?? (isPlanId(p.sub.metadata.plan) ? p.sub.metadata.plan : null);
@@ -144,7 +146,7 @@ async function recordInvoicePaid(
     referralResult: referral.applied ? 'credited' : referral.reason,
     createdAt: p.now,
   });
-  if (isFirstPayment) tx.set(`users/${p.uid}`, { firstPaidAt: p.now }, { merge: true });
+  if (isFirstPayment && userDoc) tx.set(`users/${p.uid}`, { firstPaidAt: p.now }, { merge: true });
   if (order && order.status !== 'paid') {
     tx.set(`checkout_orders/${orderId}`, { status: 'paid', paidAt: p.now, paymentId, providerRef: p.sub.snapshot.id }, { merge: true });
   }

@@ -175,6 +175,25 @@ describe('Stripe webhook', () => {
     assertLedger(store);
   });
 
+  it('after the payer deleted their account: payment still recorded, user doc never recreated', async () => {
+    store.docs.delete('users/payer');
+    const r = await handleStripeEvent(invoicePaid('evt_1', 'in_1'), deps());
+    expect(r.status).toBe('applied');
+    expect(store.doc('payments/stripe_in_1')).toMatchObject({ userId: 'payer', status: 'paid', referralResult: 'payer_missing' });
+    expect(store.doc('users/payer')).toBeNull();
+    expect(store.doc('users/ref')?.referralBalanceCents).toBe(0);
+  });
+
+  it('refund after the referrer deleted their account: reversal recorded, referrer doc never recreated', async () => {
+    await handleStripeEvent(invoicePaid('evt_1', 'in_1'), deps());
+    store.docs.delete('users/ref');
+    const r = await handleStripeEvent(ev('evt_r', 'charge.refunded', { payment_intent: 'pi_in_1', amount: 1999, amount_refunded: 1999 }), deps());
+    expect(r.detail).toBe('refunded+referral_reversed');
+    expect(store.doc('users/ref')).toBeNull();
+    expect(store.doc('users/payer')?.referralBalanceCents).toBe(0);
+    assertLedger(store);
+  });
+
   it('unknown user / unrelated events are ignored but recorded', async () => {
     sub.metadata = {};
     sub.customerId = 'cus_unknown';

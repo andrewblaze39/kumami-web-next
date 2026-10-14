@@ -12,7 +12,7 @@ export class ApiError extends Error {
   }
 }
 
-export async function v1<T>(path: string, init: { method?: 'GET' | 'POST'; body?: unknown; auth?: boolean } = {}): Promise<T> {
+export async function v1<T>(path: string, init: { method?: 'GET' | 'POST' | 'DELETE'; body?: unknown; auth?: boolean } = {}): Promise<T> {
   const call = async (fresh: boolean) => {
     const headers: Record<string, string> = {};
     if (init.body !== undefined) headers['Content-Type'] = 'application/json';

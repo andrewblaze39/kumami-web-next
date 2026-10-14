@@ -23,7 +23,10 @@ export const POST = handler('kuma/callback', async (req: Request) => {
   const aiResponse = typeof body.aiResponse === 'string' ? body.aiResponse : body.aiResponse != null ? JSON.stringify(body.aiResponse) : '';
   if (!aiResponse.trim()) return fail('empty_response', 400);
 
-  const room = adminDb().collection('users').doc(userId).collection('chatrooms').doc(chatRoomId);
+  const userRef = adminDb().collection('users').doc(userId);
+  // A reply that lands after the account was deleted must not recreate its chat data.
+  if (!(await userRef.get()).exists) return fail('user_not_found', 404);
+  const room = userRef.collection('chatrooms').doc(chatRoomId);
   const msg = await room.collection('messages').add({ role: 'assistant', message: aiResponse.slice(0, 20_000), timestamp: FieldValue.serverTimestamp() });
   await room.set({ updatedAt: FieldValue.serverTimestamp() }, { merge: true });
   return ok({ success: true, messageId: msg.id, chatRoomId });

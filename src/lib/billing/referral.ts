@@ -14,7 +14,7 @@ import type { Tx } from './store';
 
 export type RewardOutcome =
   | { applied: true; rewardId: string; referrerId: string; cents: number }
-  | { applied: false; reason: 'no_code' | 'unknown_code' | 'own_code' | 'already_rewarded' | 'not_first_payment' | 'referrer_missing' };
+  | { applied: false; reason: 'no_code' | 'unknown_code' | 'own_code' | 'already_rewarded' | 'not_first_payment' | 'referrer_missing' | 'payer_missing' };
 
 export async function applyReferralReward(
   tx: Tx,
@@ -34,7 +34,8 @@ export async function applyReferralReward(
 
   const referrer = await tx.get(`users/${referrerId}`);
   if (!referrer) return { applied: false, reason: 'referrer_missing' };
-  const payer = (await tx.get(`users/${p.payerUid}`)) ?? {};
+  const payer = await tx.get(`users/${p.payerUid}`);
+  if (!payer) return { applied: false, reason: 'payer_missing' };
 
   const cents = PLANS[p.plan].referralRewardCents;
   const rewardId = p.payerUid;
@@ -74,8 +75,8 @@ export async function reverseReferralReward(
   const cents = num(reward.rewardCentsEach);
   const referrerId = String(reward.referrerId);
   const rewardId = p.payerUid;
-  const referrer = (await tx.get(`users/${referrerId}`)) ?? {};
-  const payer = (await tx.get(`users/${p.payerUid}`)) ?? {};
+  const referrer = await tx.get(`users/${referrerId}`);
+  const payer = await tx.get(`users/${p.payerUid}`);
 
   tx.set(rewardPath, { status: 'reversed', reversedAt: p.now, reversalReason: p.reason }, { merge: true });
   tx.set(`referral_ledger/${rewardId}_referrer_reversal`, {
@@ -84,11 +85,14 @@ export async function reverseReferralReward(
   tx.set(`referral_ledger/${rewardId}_referee_reversal`, {
     userId: p.payerUid, amountCents: -cents, type: 'reversal', rewardId, otherUserId: referrerId, reason: p.reason, createdAt: p.now,
   });
-  tx.set(`users/${referrerId}`, {
-    referralBalanceCents: num(referrer.referralBalanceCents) - cents,
-    referralCount: Math.max(0, num(referrer.referralCount) - 1),
-  }, { merge: true });
-  tx.set(`users/${p.payerUid}`, { referralBalanceCents: num(payer.referralBalanceCents) - cents }, { merge: true });
+  // A party who deleted their account keeps no balance — never recreate their doc.
+  if (referrer) {
+    tx.set(`users/${referrerId}`, {
+      referralBalanceCents: num(referrer.referralBalanceCents) - cents,
+      referralCount: Math.max(0, num(referrer.referralCount) - 1),
+    }, { merge: true });
+  }
+  if (payer) tx.set(`users/${p.payerUid}`, { referralBalanceCents: num(payer.referralBalanceCents) - cents }, { merge: true });
   return true;
 }
 
