@@ -1,6 +1,6 @@
 # Kumami — Firestore Database Reference
 
-_Last updated: 11 Oct 2026 · Andrew's spec v1.13 · branch `dev`_
+_Last updated: 14 Oct 2026 · Andrew's spec v1.16 · branch `dev`_
 _Companion docs: [`docs/API.md`](API.md) (which endpoint writes what) · [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) · `firestore.rules`_
 
 One Firestore database per Firebase project: **`kumami-dev`** (local dev and QA) and **`kumami-6df47`** (production).
@@ -61,6 +61,14 @@ The website and the Flutter app share it.
 
 ### `user_prefs/{uid}`
 Written by the owner. Fields: `mode` (`beginner`·`advanced`·`pro`) and `kumaWidth`.
+
+### Account deletion (spec v1.16 Basic §8)
+`DELETE /api/v1/me` (`src/lib/account/`) removes everything personal and keeps the money records:
+| Deleted | Kept (uid only, tax/accounting) |
+|---|---|
+| `users/{uid}` + all subcollections, `user_prefs/{uid}`, `watchlists/{uid}`, `alerts` (by `userId`), `referralCodes` (by `userId`), the Auth user | `payments`, `checkout_orders`, `subscriptions`, `webhook_events`, `referral_rewards`, `referral_ledger`, `admin_audit` |
+
+**Never recreate a deleted user.** Server writers must not merge into a `users/{uid}` that no longer exists: the Stripe webhook still records a late payment but skips the user fields; a referral reward is skipped (`payer_missing`); a reversal still writes the ledger rows but no balance on a missing user; the Kuma callback returns 404. As a result, the "balance == Σ ledger" invariant holds only for users that still exist.
 
 ---
 

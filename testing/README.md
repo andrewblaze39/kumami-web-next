@@ -9,6 +9,10 @@ These are written and kept up to date by the `kumami-qa` skill (workflow stage 5
 see `docs/DEVELOPMENT_WORKFLOW.md`), based on what the automated QA pass actually
 verified, following the `feature-test-tutorial` conventions.
 
+## Account
+
+- [Delete my account](account/account-deletion/how-to-test.md) — Profile → Delete my account: type DELETE + sign in again; data deleted at once, payment records kept, warnings for Pro / referral balance, staff refused; `DELETE /api/v1/me`. Automated: `qa/features/account-deletion.spec.ts`.
+
 ## Admin
 
 - [Subscriptions — grant / remove Pro](admin/subscriptions/how-to-test.md) — superadmin-only `/admin/subscriptions`: 1/3/12 months or no end date, remove, automatic expiry. Automated: `access-matrix.spec.ts` › Subscriptions admin tool.

@@ -1,6 +1,6 @@
 # Kumami — API Reference (`/api/v1`)
 
-_Last updated: 11 Oct 2026 · Andrew's spec v1.13 (Pro §17, §21–23) · branch `dev`_
+_Last updated: 14 Oct 2026 · Andrew's spec v1.16 (Basic §8; Pro §17, §21–23) · branch `dev`_
 _Companion: [`docs/DATABASE.md`](DATABASE.md) (every collection and field) · [`docs/ARCHITECTURE.md`](ARCHITECTURE.md)_
 
 Everything server-side lives in this Next.js app on **Firebase App Hosting** (Cloud Run). The **website and the Flutter app call the same endpoints.** The old Firebase Functions service (`api-yg5t6jc2da-uc.a.run.app` / `api-h4o777ecua-uc.a.run.app`) is being retired; see §8.
@@ -51,6 +51,17 @@ Writes nothing. Source: `src/lib/billing/plans.ts`.
 | `showRenewReminder` | Crypto Pro ending within 7 days: show "extend" |
 
 Reads `users/{uid}`. Writes nothing.
+
+### `DELETE /me` — user (fresh sign-in)
+Permanently deletes the caller's account (spec v1.16 Basic §8 — GDPR/CCPA, app-store requirement). No body. → `200 { "deleted": true, "stripeCanceled": false }`
+- **Fresh sign-in required:** the ID token's `auth_time` must be within the last **5 minutes**. Re-authenticate first (password: `reauthenticateWithCredential`; Google/Apple: re-auth with the provider), then `getIdToken(true)`. Otherwise `reauth_required` 401 — show the sign-in again, don't just refresh the token.
+- The token is checked with `checkRevoked`.
+- **Staff are refused:** any `role` other than `user` (or legacy `isAdmin: true`) → `staff_account` 403. A superadmin must remove the role first.
+- Order: cancel a live Stripe subscription **immediately, without a refund** (`stripeCanceled: true`) → revoke all sessions → delete data → delete the Firebase Auth user. If Stripe can't be cancelled, nothing is deleted (retry). Crypto Pro time and any referral balance are lost; the app should warn the user first.
+- **Deletes:** `users/{uid}` and every subcollection (`education_progress`, `pro`, `watchlist`, `chatrooms` + `messages`), `user_prefs/{uid}`, `watchlists/{uid}`, `alerts` where `userId == uid`, `referralCodes` where `userId == uid`, and the Auth user.
+- **Keeps** (uid only, for tax/accounting): `payments`, `checkout_orders`, `subscriptions`, `webhook_events`, `referral_rewards`, `referral_ledger`, `admin_audit`.
+- After `200`, sign out locally. The old tokens are revoked.
+- Errors: `unauthorized` 401 · `reauth_required` 401 · `staff_account` 403 · `rate_limited` 429 (5 per minute) · `billing_not_configured` 503 (live card subscription but no Stripe key on that server).
 
 ---
 
@@ -194,7 +205,7 @@ Request: `{ "message": "…", "chatRoomId": "kuma_dock" (optional), "source": "k
 - Errors: `empty_message` 400 · `message_too_long` 400 (over 4000 characters) · `rate_limited` 429 (20 per minute) · `assistant_unavailable` 502 · `chat_not_configured` 503.
 
 ### `POST /kuma/callback?token=…` — n8n only
-n8n posts `{ userId, chatRoomId, aiResponse }` to the `callbackUrl` it was given. `token` is an HMAC (`KUMA_CALLBACK_SECRET`) scoped to that **one user and chat room**, valid for 15 minutes; anything else gets 401. This needed no n8n change: the workflow already calls back `body.callbackUrl`.
+n8n posts `{ userId, chatRoomId, aiResponse }` to the `callbackUrl` it was given. `token` is an HMAC (`KUMA_CALLBACK_SECRET`) scoped to that **one user and chat room**, valid for 15 minutes; anything else gets 401. This needed no n8n change: the workflow already calls back `body.callbackUrl`. If the user deleted their account in the meantime → `user_not_found` 404 and nothing is written.
 
 ---
 
@@ -247,3 +258,4 @@ NOWPayments setup: create an IPN secret in the dashboard and set the payout wall
 - Handle the `kumami://subscribe?ref=CODE` deep link: open the subscribe screen with the code pre-filled and validate it with `GET /referral/validate`.
 - Apple and Google store rules for selling digital subscriptions inside an app are the mobile team's call.
 - Handover note: `docs/MOBILE_HANDOVER_Payments_Referrals.md`.
+- **Account deletion (store requirement):** add a "Delete my account" screen that warns (card subscription cancelled now with no refund, Pro time and referral balance lost), has the user type DELETE, re-authenticates, then calls `DELETE /me` and signs out. Same rules as the website (spec v1.16 Basic §8).
