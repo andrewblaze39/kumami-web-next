@@ -2,7 +2,8 @@
  * QA — legal / compliance pass (to-do d5870b2d, 14 Oct 2026).
  * Cookie banner (analytics only after Accept), public Privacy Policy, legal links
  * on the gate, sign-up, footer, shell and Subscribe page, and the shell-wide
- * "not financial advice" footer.
+ * "not financial advice" footer. Terms of Service rewrite (to-do 35775685): 18+,
+ * refunds, referral rules, sanctions, AI output, copyright contact, in code.
  *
  * Analytics only runs in a production build, so the "no Google Analytics before
  * Accept" check is only meaningful against `next start` (QA_PORT=…).
@@ -99,8 +100,53 @@ test.describe('Privacy Policy (public)', () => {
     await snap(page, info, 'legal-privacy-public');
   });
 
-  test('sitemap lists /privacy', async ({ request }) => {
-    expect(await (await request.get('/sitemap.xml')).text()).toContain('<loc>https://kumami.world/privacy</loc>');
+  test('sitemap lists /privacy and /terms', async ({ request }) => {
+    const xml = await (await request.get('/sitemap.xml')).text();
+    expect(xml).toContain('<loc>https://kumami.world/privacy</loc>');
+    expect(xml).toContain('<loc>https://kumami.world/terms</loc>');
+  });
+});
+
+test.describe('Terms of Service (public)', () => {
+  test('readable without an account, with the 14 Oct 2026 decisions', async ({ page }, info) => {
+    const res = await page.goto('/terms');
+    expect(res?.status()).toBe(200);
+    expect(new URL(page.url()).pathname).toBe('/terms');
+    await expect(page).toHaveTitle('Terms of Service — Kumami World');
+    const terms = page.locator('.k-legal');
+    await expect(terms.getByRole('heading', { level: 1, name: 'Terms of Service' })).toBeVisible();
+    await expect(terms).toContainText('Last updated: 14 October 2026');
+    for (const h of ['Who can use Kumami', 'Not financial advice', 'Kuma and other AI features', 'auto-renewal', 'Refunds',
+      'Sanctions', 'Referral program', 'Acceptable use', 'Copyright complaints', 'Suspension', 'liability', 'Governing law', 'Contact']) {
+      await expect(terms.getByRole('heading', { level: 2, name: new RegExp(h) }), h).toBeVisible();
+    }
+    await expect(terms).toContainText('at least 18 years old');
+    await expect(terms).not.toContainText('17 years');
+    await expect(terms).toContainText("Once a paid period has started we don't give refunds");
+    // Prices and referral amounts come from src/lib/billing/plans.ts.
+    await expect(terms).toContainText('$19.99 for 30 days');
+    await expect(terms).toContainText('$199.99 for 365 days');
+    await expect(terms).toContainText('$1.00 for a Monthly payment or $10.00 for a Yearly one');
+    await expect(terms).toContainText('30 or 365 days of Pro');
+    // Words must not run together around the {values} (a JSX whitespace bug once hid these spaces).
+    await expect(terms).not.toContainText(/\d(days|for)|[\]a-z]\(&?"?Kumami/);
+    await expect(terms).toContainText('answers can be wrong');
+    await expect(terms).toContainText('comprehensive sanctions');
+    await expect(terms).not.toContainText(/undefined|NaN|\[object Object\]/);
+    await expect(terms.getByRole('link', { name: 'Privacy Policy' }).first()).toHaveAttribute('href', '/privacy');
+    await expect(page.locator('footer').getByRole('link', { name: 'Terms' })).toHaveAttribute('href', '/terms');
+    await banner(page).getByRole('button', { name: 'Reject analytics' }).click();
+    await snap(page, info, 'legal-terms-public');
+    await terms.getByRole('heading', { name: /Refunds/ }).scrollIntoViewIfNeeded();
+    await snap(page, info, 'legal-terms-refunds');
+  });
+
+  test('Terms and Privacy show the same company details', async ({ page }) => {
+    await page.goto('/privacy');
+    const privacyContact = await page.locator('.k-legal #contact + p').innerText();
+    await page.goto('/terms');
+    const termsContact = await page.locator('.k-legal #contact + p').innerText();
+    expect(termsContact.split(' — ')[0]).toBe(privacyContact.split(' — ')[0]);
   });
 });
 
@@ -126,10 +172,20 @@ test.describe('In the shell (qa1, free)', () => {
     await snap(page, info, 'legal-privacy-shell');
   });
 
+  test('/world/terms renders the same Terms in the shell', async ({ page }, info) => {
+    await openPage(page, '/world/terms');
+    await expect(page.getByRole('heading', { level: 1, name: 'Terms of Service' })).toBeVisible();
+    await expect(page.locator('.k-legal')).toContainText('at least 18 years old');
+    await expect(page.locator('.k-legal').getByRole('link', { name: 'Privacy Policy' }).first()).toHaveAttribute('href', '/privacy');
+    await snap(page, info, 'legal-terms-shell');
+  });
+
   test('Subscribe page says paying means agreeing to the Terms and Privacy Policy', async ({ page }) => {
     await openPage(page, '/world/subscribe');
     const note = page.locator('.w-bill-note');
     await expect(note).toContainText('By paying you agree to our');
+    await expect(note).toContainText('non-refundable once a period has started');
+    await expect(note.getByRole('link', { name: 'Refunds' })).toHaveAttribute('href', '/world/terms#refunds');
     await expect(note.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute('href', '/world/terms');
     await expect(note.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute('href', '/world/privacy');
   });

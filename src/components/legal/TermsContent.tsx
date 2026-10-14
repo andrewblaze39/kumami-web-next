@@ -24,7 +24,7 @@ export default function TermsContent() {
       <p className="k-legal-updated">Last updated: {TERMS_LAST_UPDATED}</p>
 
       <p>
-        These Terms are an agreement between you and {LEGAL_ENTITY.name}, {LEGAL_ENTITY.country} (&quot;Kumami&quot;,
+        These Terms are an agreement between you and {LEGAL_ENTITY.name}, {LEGAL_ENTITY.country}{' '}(&quot;Kumami&quot;,
         &quot;we&quot;, &quot;us&quot;), which runs Kumami World on kumami.world and in the Kumami apps (the
         &quot;Service&quot;). By creating an account or using the Service you agree to these Terms and to our{' '}
         <Link href="/privacy">Privacy Policy</Link>. If you don&apos;t agree, please don&apos;t use the Service.
@@ -77,7 +77,7 @@ export default function TermsContent() {
         </li>
         <li>
           <strong>Crypto payments don&apos;t renew.</strong> Crypto payments are handled by NOWPayments. Each payment
-          is a one-time payment for {monthly.days} or {yearly.days} days of Pro, added to any Pro time you already have.
+          is a one-time payment for {monthly.days} or {yearly.days}{' '}days of Pro, added to any Pro time you already have.
           Pro starts once the full amount is confirmed. A payment that is short, or sent in a way the payment page
           didn&apos;t ask for, may not activate Pro; contact us and we will help, but network fees and exchange-rate
           changes are your responsibility.
