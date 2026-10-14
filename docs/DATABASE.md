@@ -165,7 +165,8 @@ The owner can read their own rows.
 | `pro_news`, `pro_research`, `pro_airdrops`, `pro_events`, `pro_calendar` | `/admin/pro-*` | Pro tabs, the shared Calendar | See Andrew's spec Pro §7, §10, §13–15. Pro-only reads (rules: `pro_*` wildcard) |
 | `pro_events/{id}/questions` | Pro users (ask, upvote) | Events | `text`, `votes`, `userId` |
 | `pro_settings/calendar` | `/admin/pro-calendar` | `/api/market/calendar` | Feed switches |
-| `app_config/about_us`, `app_config/terms_and_conditions` | `/admin` | About, Terms | Page content |
+| `app_config/about_us` | `/admin` | About | Page content |
+| `app_config/terms_and_conditions` | — (retired 2026-10-14) | nobody | Old Terms markdown. The Terms now live in code (`src/components/legal/TermsContent.tsx`); the doc is left in place, unread. |
 
 ---
 

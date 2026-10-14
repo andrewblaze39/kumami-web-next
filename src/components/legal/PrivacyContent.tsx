@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { CookieSettingsLink } from './CookieConsent';
+import { LEGAL_ENTITY } from './entity';
 import './legal.css';
 
 /**
@@ -8,17 +9,9 @@ import './legal.css';
  * every change is reviewed and versioned. When it changes: update
  * PRIVACY_LAST_UPDATED, and bump CONSENT_VERSION in src/lib/consent.ts if the
  * analytics section changes.
- *
- * TODO(Andrew): fill in LEGAL_ENTITY before releasing to main — see
- * docs/legal/2026-10-14-compliance-audit.md.
+ * Company name and contact live in ./entity (shared with the Terms).
  */
 export const PRIVACY_LAST_UPDATED = '14 October 2026';
-
-export const LEGAL_ENTITY = {
-  name: '[Company legal name]',
-  country: '[Country of registration]',
-  email: '[privacy contact email]',
-};
 
 const PROCESSORS: { name: string; purpose: string; data: string }[] = [
   { name: 'Google Firebase (Google LLC)', purpose: 'Accounts, sign-in, database, file storage, hosting', data: 'Everything listed in section 2' },
