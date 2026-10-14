@@ -50,7 +50,7 @@ export default function PrivacyContent() {
         <li>We collect what we need to run your account, your learning progress, your Pro subscription and the tools you use.</li>
         <li>We do <strong>not</strong> sell your personal data and we do not use advertising cookies.</li>
         <li>Analytics cookies are off unless you accept them.</li>
-        <li>You can ask us to see, correct, export or delete your data at any time.</li>
+        <li>You can delete your account yourself in Profile, and ask us to see, correct or export your data at any time.</li>
       </ul>
 
       <h2 id="data">2. What we collect</h2>
@@ -131,7 +131,7 @@ export default function PrivacyContent() {
 
       <h2 id="retention">8. How long we keep it</h2>
       <ul>
-        <li>Account, progress and tool data: for as long as you have an account. When you ask us to delete your account, we delete it within 30 days.</li>
+        <li>Account, progress and tool data: for as long as you have an account. When you delete your account in Profile, it is deleted straight away; if you ask us by email, we delete it within 30 days.</li>
         <li>Payment and invoice records: as long as tax and accounting law requires (usually up to 7 years), even after your account is deleted.</li>
         <li>Server and security logs: kept for a limited time and then deleted.</li>
         <li>Analytics data: kept by Google Analytics for at most 14 months.</li>
@@ -145,7 +145,7 @@ export default function PrivacyContent() {
       <ul>
         <li>access the personal data we hold about you and get a copy of it (portability);</li>
         <li>correct data that is wrong — you can change your name in your Profile;</li>
-        <li>have your data deleted;</li>
+        <li>have your data deleted — you can do this yourself in Profile → Delete my account;</li>
         <li>object to or restrict how we use it;</li>
         <li>withdraw consent (for example to analytics cookies) at any time;</li>
         <li>not be treated differently for using these rights;</li>

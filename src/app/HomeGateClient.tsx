@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import { useAuth } from '@/contexts/AuthContext';
 import Gate from '@/components/world/Gate';
@@ -46,6 +46,9 @@ export default function HomeGateClient() {
   return (
     <div className={`world-root ${jakarta.variable}`}>
       <Gate />
+      <Suspense fallback={null}>
+        <DeletedNotice />
+      </Suspense>
       {/* Redirect in flight — cover the gate with the branded loader */}
       {currentUser && (
         <div className="w-loading" aria-label="Loading…">
@@ -53,6 +56,19 @@ export default function HomeGateClient() {
           <img src="/logo-kumami-white.png" alt="Kumami" className="w-loading-logo" />
         </div>
       )}
+    </div>
+  );
+}
+
+/** Shown after Profile → Delete my account, which lands on /?accountDeleted=1. */
+function DeletedNotice() {
+  const deleted = useSearchParams().get('accountDeleted') === '1';
+  const [dismissed, setDismissed] = useState(false);
+  if (!deleted || dismissed) return null;
+  return (
+    <div className="w-deleted-notice" role="status">
+      Your Kumami account has been deleted.
+      <button type="button" onClick={() => setDismissed(true)} aria-label="Dismiss">×</button>
     </div>
   );
 }

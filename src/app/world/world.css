@@ -1565,6 +1565,15 @@
 }
 
 /* ---- Branded loading state (gate redirect + WorldProtected) ---- */
+.world-root .w-deleted-notice {
+  position: fixed; left: 50%; top: 16px; transform: translateX(-50%); z-index: 60;
+  display: flex; align-items: center; gap: 12px; max-width: calc(100vw - 32px);
+  padding: 10px 14px; border-radius: var(--radius); border: 1px solid var(--border);
+  background: var(--panel); color: var(--ink); box-shadow: var(--shadow); font-size: 14px;
+}
+.world-root .w-deleted-notice button {
+  background: none; border: 0; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer;
+}
 .world-root .w-loading {
   position: fixed;
   inset: 0;

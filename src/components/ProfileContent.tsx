@@ -11,6 +11,7 @@ import { isProActive } from '@/lib/pro'
 import { Loader } from 'lucide-react'
 import SubscriptionPanel from '@/components/world/billing/SubscriptionPanel'
 import ReferralPanel from '@/components/world/billing/ReferralPanel'
+import DeleteAccountPanel from '@/components/world/account/DeleteAccountPanel'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -262,6 +263,7 @@ export default function ProfileContent() {
       <div className="min-h-[300px]">
         {/* ===== PROFILE TAB ===== */}
         {activeTab === 'profile' && (
+          <>
           <div className="rounded-lg bg-[#222] p-6 shadow-md">
             <h3 className="mb-6 text-lg font-semibold text-white">
               Account Information
@@ -290,6 +292,8 @@ export default function ProfileContent() {
               </button>
             )}
           </div>
+          <DeleteAccountPanel />
+          </>
         )}
 
         {/* ===== SUBSCRIPTION TAB ===== */}
