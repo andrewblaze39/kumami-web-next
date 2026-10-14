@@ -12,8 +12,8 @@ Run it against kumami-dev only: locally (`npm run dev`, http://localhost:3000) o
 ## 2 · The panel
 
 1. Go to `/world/profile`. ✅ Under **Account Information** there is a red **Delete my account** panel: "Permanently delete your Kumami account and your data. This cannot be undone."
-2. Click **Delete my account**. ✅ It lists what is deleted (profile, name and email; course progress, Kuma chats, watchlists, wallet tracker, Pro tool settings; referral code and sign-in) and says payment and invoice records are kept. The **privacy policy** link opens `/privacy#retention`.
-3. If you granted Pro: ✅ an amber box says "Your remaining Pro time is lost. There is no refund." (A card subscriber sees "Your card subscription is cancelled now…" instead. A referral balance above $0 adds "Your referral balance ($x.xx) is lost.")
+2. Click **Delete my account**. ✅ It lists what is deleted (profile, name and email; course progress, Kuma chats, watchlists, wallet tracker, Pro tool settings; referral code and sign-in) and says payment and invoice records (without your name or email) are kept. There is no privacy-policy link.
+3. If you granted Pro: ✅ an amber box says "Your remaining Pro time is lost." (A card subscriber sees "Your card subscription is cancelled now…" instead. A referral balance above $0 adds "Your referral balance ($x.xx) is lost.")
 4. ✅ **Permanently delete my account** is greyed out. Type `delete` (lower case) and a password: ✅ still greyed out. Change it to `DELETE`: ✅ the button turns on.
 5. Click **Cancel**. ✅ The panel closes and the fields are cleared.
 
