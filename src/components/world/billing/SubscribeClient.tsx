@@ -152,6 +152,8 @@ export default function SubscribeClient() {
           Card payments are handled by Stripe and renew automatically until you cancel in Profile → Subscription.
           Crypto payments are handled by NOWPayments: a one-time payment for {PLANS[plan].days} days that does not renew —
           Pro switches on once the payment is confirmed on-chain (usually a few minutes). Prices in USD.
+          By paying you agree to our <Link href="/world/terms">Terms of Service</Link> and{' '}
+          <Link href="/world/privacy">Privacy Policy</Link>.
         </p>
       </div>
     </div>

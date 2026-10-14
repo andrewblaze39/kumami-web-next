@@ -9,6 +9,7 @@ import Sidebar from '@/components/world/shell/Sidebar';
 import Topbar from '@/components/world/shell/Topbar';
 import MobileTabBar from '@/components/world/shell/MobileTabBar';
 import KumaDock from '@/components/world/kuma/KumaDock';
+import ShellLegalFooter from '@/components/legal/ShellLegalFooter';
 
 // Inner layout that has access to WorldModeContext
 function AppShellInner({ children }: { children: React.ReactNode }) {
@@ -57,6 +58,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
         <div className={`w-content w-content-fade${fading ? ' w-content-fading' : ''}`}>
           <RenewBanner />
           {children}
+          <ShellLegalFooter />
         </div>
       </div>
 

@@ -1,0 +1,131 @@
+/* Cookie banner + legal pages. Lives outside .world-root (root layout), so it
+   carries its own colours, matching the World tokens. */
+
+.k-consent {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 10000;
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  padding: 16px 18px;
+  background: #101014;
+  color: #f1f7f4;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  box-shadow: 0 18px 50px -20px rgba(0, 0, 0, 0.7);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.k-consent-text {
+  flex: 1 1 320px;
+  margin: 0;
+  color: #c9d6d0;
+}
+.k-consent-text a {
+  color: #00c2c7;
+  text-decoration: underline;
+}
+.k-consent-actions {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+.k-consent-btn {
+  font: inherit;
+  font-weight: 700;
+  font-size: 13.5px;
+  padding: 9px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  background: transparent;
+  color: #f1f7f4;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+.k-consent-btn:hover { border-color: #00c2c7; }
+.k-consent-btn-primary {
+  background: #00c2c7;
+  color: #00272a;
+  border-color: #00c2c7;
+}
+.k-consent-btn-primary:hover { background: #40e0d0; }
+.k-consent-btn:focus-visible { outline: 2px solid #aafafc; outline-offset: 2px; }
+@media (max-width: 520px) {
+  .k-consent-actions { width: 100%; }
+  .k-consent-btn { flex: 1; }
+}
+
+.k-cookie-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.k-cookie-link:hover { text-decoration: underline; }
+
+/* ── Legal page body (Privacy) ── */
+.k-legal {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 48px 20px 64px;
+  color: #d4dfda;
+  font-size: 15.5px;
+  line-height: 1.7;
+}
+.k-legal h1 {
+  color: #40e0d0;
+  font-size: 34px;
+  font-weight: 800;
+  text-align: center;
+  margin: 0 0 6px;
+}
+.k-legal .k-legal-updated {
+  text-align: center;
+  color: #8ea69c;
+  font-size: 13.5px;
+  margin: 0 0 32px;
+}
+.k-legal h2 {
+  color: #f1f7f4;
+  font-size: 20px;
+  font-weight: 800;
+  margin: 36px 0 10px;
+  scroll-margin-top: 80px;
+}
+.k-legal p { margin: 0 0 12px; }
+.k-legal ul { margin: 0 0 14px; padding-left: 22px; list-style: disc; }
+.k-legal li { margin: 0 0 6px; }
+.k-legal a { color: #00c2c7; text-decoration: underline; }
+.k-legal strong { color: #f1f7f4; }
+.k-legal table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0 16px;
+  font-size: 14px;
+}
+.k-legal th,
+.k-legal td {
+  text-align: left;
+  vertical-align: top;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.k-legal th { color: #f1f7f4; font-weight: 700; }
+.k-legal-table-wrap { overflow-x: auto; }
+.k-legal .k-legal-note {
+  border: 1px solid rgba(240, 205, 126, 0.4);
+  background: rgba(240, 205, 126, 0.08);
+  color: #f0cd7e;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.k-legal .k-cookie-link { color: #00c2c7; text-decoration: underline; }

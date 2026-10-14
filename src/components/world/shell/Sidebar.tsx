@@ -395,6 +395,8 @@ const COMPANY_LINKS = [
   { label: 'About Kumami', href: '/world/about', icon: Icons.building },
   { label: 'Our Partners', href: '/world/partners', icon: Icons.users },
   { label: 'Blogs', href: '/world/blogs', icon: Icons.pen },
+  { label: 'Terms of Service', href: '/world/terms', icon: Icons.info },
+  { label: 'Privacy Policy', href: '/world/privacy', icon: Icons.shield },
 ];
 
 interface SidebarProps {

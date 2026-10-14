@@ -5,6 +5,7 @@ import '../styles/cryptoticker.css'
 import { Lato } from 'next/font/google'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
+import CookieConsent from '@/components/legal/CookieConsent'
 
 const lato = Lato({ subsets: ['latin'], weight: ['300', '400', '700', '900'] })
 
@@ -54,6 +55,7 @@ export default function RootLayout({
             {children}
           </NotificationProvider>
         </AuthProvider>
+        <CookieConsent />
       </body>
     </html>
   )

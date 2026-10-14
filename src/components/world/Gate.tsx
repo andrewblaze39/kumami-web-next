@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { CookieSettingsLink } from '@/components/legal/CookieConsent';
 import { useAuth } from '@/contexts/AuthContext';
 import { SignUpModal, LogInModal } from './AuthModals';
 
@@ -109,6 +111,11 @@ export default function Gate() {
         {/* Footer */}
         <p className="w-gate-foot">
           © 2026 Kumami World · Web3, for everyone.
+          <span className="w-gate-legal">
+            <Link href="/terms">Terms</Link>
+            <Link href="/privacy">Privacy</Link>
+            <CookieSettingsLink />
+          </span>
         </p>
       </div>
 

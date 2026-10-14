@@ -3,9 +3,18 @@ import { getAuth } from "firebase/auth";
 import {
   getAnalytics,
   isSupported as analyticsSupported,
+  setAnalyticsCollectionEnabled,
+  type Analytics,
 } from "firebase/analytics";
 import { initializeFirestore, persistentLocalCache } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import {
+  CONSENT_CHANGED_EVENT,
+  analyticsAllowed,
+  analyticsCookieNames,
+  readConsent,
+  type ConsentChoice,
+} from "./consent";
 
 // Detect environment
 const env = process.env.NODE_ENV; // 'development' | 'production'
@@ -34,11 +43,39 @@ const db = typeof window !== 'undefined'
   : initializeFirestore(app, {});
 const storage = getStorage(app);
 
-// Analytics (only if supported and not in dev)
-(async () => {
-  if (env === "production" && typeof window !== 'undefined' && (await analyticsSupported())) {
-    getAnalytics(app);
+// Analytics — production only, and only after the visitor accepts cookies
+// (src/lib/consent.ts). Nothing loads before a choice is made.
+let analytics: Analytics | null = null;
+
+function clearAnalyticsCookies() {
+  const host = window.location.hostname;
+  const domains = ["", host, `.${host.replace(/^www\./, "")}`];
+  for (const name of analyticsCookieNames(document.cookie)) {
+    for (const d of domains) {
+      document.cookie = `${name}=; Max-Age=0; path=/${d ? `; domain=${d}` : ""}`;
+    }
   }
-})();
+}
+
+async function applyAnalyticsConsent(allowed: boolean) {
+  if (env !== "production" || typeof window === "undefined") return;
+  if (allowed) {
+    if (!analytics) {
+      if (!(await analyticsSupported())) return;
+      analytics = getAnalytics(app);
+    }
+    setAnalyticsCollectionEnabled(analytics, true);
+  } else {
+    if (analytics) setAnalyticsCollectionEnabled(analytics, false);
+    clearAnalyticsCookies();
+  }
+}
+
+if (typeof window !== "undefined") {
+  void applyAnalyticsConsent(analyticsAllowed(readConsent()));
+  window.addEventListener(CONSENT_CHANGED_EVENT, (e) => {
+    void applyAnalyticsConsent((e as CustomEvent<ConsentChoice>).detail.analytics);
+  });
+}
 
 export { auth, db, storage };

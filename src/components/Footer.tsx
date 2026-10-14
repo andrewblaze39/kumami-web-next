@@ -1,3 +1,5 @@
+import { CookieSettingsLink } from '@/components/legal/CookieConsent';
+
 const Footer = () => {
   return (
     <footer className="bg-[#0a0a0f] text-white py-9">
@@ -107,6 +109,14 @@ const Footer = () => {
                   <a href="/terms" className="text-gray-300 hover:text-[#96EDD6] transition no-underline">
                     Terms
                   </a>
+                </li>
+                <li>
+                  <a href="/privacy" className="text-gray-300 hover:text-[#96EDD6] transition no-underline">
+                    Privacy
+                  </a>
+                </li>
+                <li>
+                  <CookieSettingsLink className="text-gray-300 hover:text-[#96EDD6] transition" />
                 </li>
               </ul>
             </div>
