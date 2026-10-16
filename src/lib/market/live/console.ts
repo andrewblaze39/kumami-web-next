@@ -11,7 +11,7 @@
  */
 
 import type { ConsolePayload, Verdict } from '../contracts';
-import { computeRegime, classifyFearGreed } from '../rules/regime';
+import { computeRegime, classifyFearGreed, scoreEtfFlow, scoreOiVsPrice } from '../rules/regime';
 import {
   fearGreed, etfFlow, globalLongShort, liqCoinList, liqAggHistory,
   fundingOiWeight, oiAggHistory, pairsMarkets,
@@ -63,17 +63,20 @@ async function assetRegime(asset: string, etfScore: -1 | 0 | 1, fg: number) {
   // null (not 0) when the price fetch failed — a fetch failure must never render as "$0".
   const price = primary?.current_price ?? null;
   const change24h = primary?.price_change_percent_24h ?? null;
-  const fundingPct = latestClose(funding) * 100;
+  // The OI-weighted funding feed is already in percent (0.0066 = 0.0066%, matching
+  // Binance's 0.000065 fraction); multiplying by 100 made normal funding look overheated.
+  const fundingPct = latestClose(funding);
   const oiDir: Dir = classifyDir(ohlcToSeries(oi, 24));
   const priceDir: Dir = change24h === null ? 'flat' : change24h > 0.5 ? 'up' : change24h < -0.5 ? 'down' : 'flat';
-  const oiVsPriceScore: -1 | 0 | 1 =
-    oiDir === 'up' && priceDir === 'up' ? 1 : oiDir === 'up' && priceDir === 'flat' ? -1 : 0;
+  const oiVsPriceScore = scoreOiVsPrice(oiDir, priceDir);
 
   const r = computeRegime({
     fearGreed: fg,
     etfFlowScore: etfScore,
     fundingRate: fundingPct,
     oiVsPriceScore,
+    // HYPE has fewer reliable signals (Plus §1.3)
+    maxConfidence: asset === 'HYPE' ? 0.7 : 1,
   });
   const conf = r.confidence;
 
@@ -126,9 +129,9 @@ export async function makeConsolePayloadLive(): Promise<ConsolePayload> {
   const etf7d = last7.reduce((a, b) => a + (b.flow_usd || 0), 0);
   const etfPrev = prev7.reduce((a, b) => a + (b.flow_usd || 0), 0);
   const etfPctVsPrev = etfPrev !== 0 ? ((etf7d - etfPrev) / Math.abs(etfPrev)) * 100 : 0;
-  const btcEtfScore: -1 | 0 | 1 = etf7d > 0 ? 1 : etf7d < 0 ? -1 : 0;
+  const btcEtfScore = scoreEtfFlow(etf7d);
   const ethEtf7d = ethEtf ? ethEtf.slice(-7).reduce((a, b) => a + (b.flow_usd || 0), 0) : 0;
-  const ethEtfScore: -1 | 0 | 1 = ethEtf7d > 0 ? 1 : ethEtf7d < 0 ? -1 : 0;
+  const ethEtfScore = scoreEtfFlow(ethEtf7d);
 
   // On-chain bias — null when the long/short fetch failed, not a fake 50/50 split.
   const glsLatest = glsBtc?.length ? glsBtc[glsBtc.length - 1] : null;
