@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kumami development flow</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap">
+<style>
+  /* One landscape A4 page. Source of docs/workflow/kumami-development-flow.pdf (render: scripts note in DEVELOPMENT_WORKFLOW.md). */
+  @page { size: A4 landscape; margin: 0; }
+  :root {
+    --ink: #0f1a1c; --ink-2: #4a5759; --ink-3: #7b8789; --line: #d9e2e3; --bg: #ffffff; --soft: #f3f7f7;
+    --teal: #00a3a8; --teal-soft: #e3f6f6; --teal-line: #9fdcdd;
+    --rose: #c2417a; --rose-soft: #fbe9f1; --rose-line: #efb3cd;
+    --amber: #a86400; --amber-soft: #fdf1df;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Inter Tight', system-ui, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page { width: 297mm; height: 210mm; padding: 11mm 13mm 9mm; display: flex; flex-direction: column; gap: 5.5mm; overflow: hidden; }
+  header { display: flex; align-items: flex-end; justify-content: space-between; gap: 10mm; }
+  h1 { margin: 0; font-size: 25px; font-weight: 800; letter-spacing: -0.02em; }
+  h1 span { color: var(--teal); }
+  .sub { margin-top: 3px; font-size: 12.5px; color: var(--ink-2); }
+  .meta { font: 500 10px 'JetBrains Mono', monospace; color: var(--ink-3); text-align: right; line-height: 1.6; }
+  .who { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 4px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; padding: 3px 9px; border-radius: 999px; font: 600 10.5px 'Inter Tight', sans-serif; }
+  .pill i { width: 7px; height: 7px; border-radius: 50%; }
+  .p-andrew { background: var(--teal-soft); color: #007176; } .p-andrew i { background: var(--teal); }
+  .p-rachelle { background: var(--rose-soft); color: #93295a; } .p-rachelle i { background: var(--rose); }
+  .p-ceo { background: var(--soft); color: var(--ink-2); } .p-ceo i { background: var(--ink-3); }
+
+  /* the loop */
+  .loop { display: grid; grid-template-columns: 1fr 34px 1fr 34px 1.55fr 34px 1fr; align-items: stretch; }
+  .card { border-radius: 12px; padding: 11px 13px 12px; border: 1.5px solid; display: flex; flex-direction: column; gap: 6px; }
+  .card.andrew { background: var(--teal-soft); border-color: var(--teal-line); }
+  .card.rachelle { background: var(--rose-soft); border-color: var(--rose-line); }
+  .card.dev { background: var(--bg); border-color: var(--teal-line); border-style: dashed; }
+  .step { font: 700 10px 'JetBrains Mono', monospace; letter-spacing: .08em; text-transform: uppercase; }
+  .andrew .step, .dev .step { color: #007176; } .rachelle .step { color: #93295a; }
+  .card h2 { margin: 0; font-size: 15.5px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
+  .ver { display: inline-block; font: 700 11px 'JetBrains Mono', monospace; padding: 2px 7px; border-radius: 6px; background: #fff; border: 1px solid var(--line); margin-right: 4px; }
+  .card p { margin: 0; font-size: 11.3px; line-height: 1.45; color: var(--ink-2); }
+  .card ul { margin: 0; padding-left: 15px; font-size: 11.1px; line-height: 1.45; color: var(--ink-2); }
+  .card li { margin: 1px 0; }
+  .tag { display: inline-block; font: 700 10px 'JetBrains Mono', monospace; color: var(--amber); background: var(--amber-soft); border: 1px solid #f1cf97; padding: 1px 6px; border-radius: 5px; white-space: nowrap; }
+  .arrow { display: flex; align-items: center; justify-content: center; }
+  .arrow svg { width: 26px; height: 26px; }
+  .devsteps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 10px; margin-top: 2px; }
+  .ds { display: flex; gap: 6px; align-items: baseline; font-size: 10.9px; color: var(--ink-2); line-height: 1.35; }
+  .ds b { font: 700 9.5px 'JetBrains Mono', monospace; color: var(--teal); min-width: 13px; }
+
+  .back { position: relative; height: 22px; margin: -2px 0 0; }
+  .back svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .back span { position: absolute; left: 50%; top: 5px; transform: translateX(-50%); background: var(--bg); padding: 0 8px; font: 600 10.5px 'Inter Tight', sans-serif; color: var(--ink-3); }
+
+  /* lower half */
+  .lower { display: grid; grid-template-columns: 1.15fr 1fr 0.9fr; gap: 5mm; flex: 1; min-height: 0; }
+  .box { border: 1px solid var(--line); border-radius: 12px; padding: 11px 13px; display: flex; flex-direction: column; gap: 7px; }
+  .box h3 { margin: 0; font-size: 12.5px; font-weight: 700; letter-spacing: -0.005em; }
+  .kicker { font: 700 9.5px 'JetBrains Mono', monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+  .ex { display: flex; flex-direction: column; gap: 6px; }
+  .exrow { display: grid; grid-template-columns: 52px 1fr; gap: 9px; align-items: start; font-size: 11px; line-height: 1.42; color: var(--ink-2); }
+  .exrow .ver { margin: 0; text-align: center; }
+  .exrow.r .ver { border-color: var(--rose-line); color: #93295a; }
+  .exrow.a .ver { border-color: var(--teal-line); color: #007176; }
+  .quote { font-style: italic; color: var(--ink); }
+  .rules { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .rules li { display: grid; grid-template-columns: 16px 1fr; gap: 6px; font-size: 11px; line-height: 1.42; color: var(--ink-2); }
+  .rules li::before { content: ''; width: 7px; height: 7px; margin-top: 5px; border-radius: 2px; background: var(--teal); }
+  .rules b { color: var(--ink); font-weight: 600; }
+  .roles { display: flex; flex-direction: column; gap: 7px; }
+  .role { font-size: 11px; line-height: 1.42; color: var(--ink-2); }
+  .role .pill { margin-bottom: 3px; }
+  footer { display: flex; justify-content: space-between; font: 500 9.5px 'JetBrains Mono', monospace; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 5px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div>
+      <h1>How we develop <span>Kumami</span></h1>
+      <div class="sub">One product spec, passed back and forth. Every change is written down before it’s built, and every build is written down after.</div>
+    </div>
+    <div>
+      <div class="who"><span class="pill p-andrew"><i></i>Andrew · development</span><span class="pill p-rachelle"><i></i>Rachelle · product</span><span class="pill p-ceo"><i></i>CEO · kept informed</span></div>
+      <div class="meta">Workflow v2 · 18 Oct 2026</div>
+    </div>
+  </header>
+
+  <section class="loop" aria-label="The loop">
+    <div class="card andrew">
+      <div class="step">1 · Andrew shares</div>
+      <h2><span class="ver">v1.14</span> Build version</h2>
+      <p>Describes exactly what the website does <b>today</b>. Shared as its own Google Doc.</p>
+    </div>
+    <div class="arrow" aria-hidden="true"><svg viewBox="0 0 26 26"><path d="M3 13h17m-6-6 6 6-6 6" fill="none" stroke="#7b8789" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="card rachelle">
+      <div class="step">2 · Rachelle tests &amp; requests</div>
+      <h2><span class="ver">v1.15</span> Request version</h2>
+      <ul>
+        <li>Tests the website against v1.14</li>
+        <li>Copies it to v1.15 and edits what should change</li>
+        <li>Marks each changed section <span class="tag">(To be developed)</span></li>
+        <li>Lists every change in the <b>Release notes</b>, per product</li>
+      </ul>
+    </div>
+    <div class="arrow" aria-hidden="true"><svg viewBox="0 0 26 26"><path d="M3 13h17m-6-6 6 6-6 6" fill="none" stroke="#7b8789" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="card dev">
+      <div class="step">3 · Andrew develops</div>
+      <h2>Each change, the same steps</h2>
+      <div class="devsteps">
+        <div class="ds"><b>a</b>Put on the Kumami roadmap</div>
+        <div class="ds"><b>b</b>Clarify questions answered</div>
+        <div class="ds"><b>c</b>Design options; one picked</div>
+        <div class="ds"><b>d</b>Plan, then build</div>
+        <div class="ds"><b>e</b>Automated tests</div>
+        <div class="ds"><b>f</b>Tested in a real browser</div>
+        <div class="ds"><b>g</b>Andrew checks it</div>
+        <div class="ds"><b>h</b>Spec text updated</div>
+      </div>
+    </div>
+    <div class="arrow" aria-hidden="true"><svg viewBox="0 0 26 26"><path d="M3 13h17m-6-6 6 6-6 6" fill="none" stroke="#7b8789" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="card andrew">
+      <div class="step">4 · Andrew shares</div>
+      <h2><span class="ver">v1.20</span> New build version</h2>
+      <p>The website as built now. Changes that were built lose their label; anything not built yet keeps <span class="tag">(To be developed)</span> with a reason.</p>
+    </div>
+  </section>
+
+  <div class="back" aria-hidden="true">
+    <svg viewBox="0 0 1000 22" preserveAspectRatio="none"><path d="M935 0 V12 H65 V0" fill="none" stroke="#9fdcdd" stroke-width="2" stroke-dasharray="5 4" vector-effect="non-scaling-stroke"/><path d="M58 7 L65 0 L72 7" fill="none" stroke="#9fdcdd" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>
+    <span>repeat: Rachelle tests v1.20, and so on</span>
+  </div>
+
+  <section class="lower">
+    <div class="box">
+      <div class="kicker">Example</div>
+      <h3>Rachelle wants the Plus delay longer</h3>
+      <div class="ex">
+        <div class="exrow r"><span class="ver">v1.15</span><span>In <b>Plus · Flow Radar</b> she changes “delayed 15 minutes” to “delayed 30 minutes”, marks the section <span class="tag">(To be developed)</span>, and adds to the Release notes: <span class="quote">“Plus · Flow Radar: delay 15 → 30 min.”</span></span></div>
+        <div class="exrow a"><span class="ver">dev</span><span>Andrew builds it, it’s tested in the browser, and he checks it on the dev site.</span></div>
+        <div class="exrow a"><span class="ver">v1.20</span><span>The section now says 30 minutes, without the label. Release notes: <span class="quote">“Built from v1.15: Plus · Flow Radar delay is now 30 min.”</span></span></div>
+      </div>
+    </div>
+    <div class="box">
+      <div class="kicker">Rules</div>
+      <ul class="rules">
+        <li><span><b>One file per version</b> in the shared Drive folder. A version is never edited after it’s shared; fixes go into the next one.</span></li>
+        <li><span><b>The next version takes the next free number.</b> Build versions can skip numbers when there were internal builds in between (v1.15 → v1.20).</span></li>
+        <li><span><b>Build versions describe only what is live.</b> Anything not built is marked <span class="tag">(To be developed)</span>.</span></li>
+        <li><span><b>Release notes are the change log:</b> one line per change, grouped by product (Basic, Plus, Pro, Payments…).</span></li>
+      </ul>
+    </div>
+    <div class="box">
+      <div class="kicker">Who does what</div>
+      <div class="roles">
+        <div class="role"><span class="pill p-rachelle"><i></i>Rachelle</span><br>Tests each build version; writes the request version with labels and release notes.</div>
+        <div class="role"><span class="pill p-andrew"><i></i>Andrew</span><br>Develops the requests, checks every change, shares the next build version, and decides when it goes live on kumami.world.</div>
+        <div class="role"><span class="pill p-ceo"><i></i>CEO</span><br>Gets each build version: always the current picture of the product.</div>
+      </div>
+    </div>
+  </section>
+
+  <footer><span>Kumami · development flow</span><span>Going live on kumami.world is a separate step, decided by Andrew</span></footer>
+</div>
+</body>
+</html>

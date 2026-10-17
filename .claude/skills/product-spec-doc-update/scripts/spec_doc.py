@@ -41,6 +41,8 @@ RELEASE_HEADING = "Release notes"    # Heading1 that holds the per-version entri
 PLANNED_SUFFIX = " (Planned)"        # Heading2 suffix for a not-yet-built feature
 PLANNED_CHANGES = "Planned changes"  # Heading4 prefix for planned changes to a live feature
 PLANNED_COLOR = "B26A00"             # amber — the status line's "PLANNED —" run
+# Rachelle's label in a request version (workflow v2, 18 Oct 2026): any heading level
+TBD_SUFFIX = " (To be developed)"
 
 # ---------------------------------------------------------------------------
 # Block builders (return raw XML strings)
@@ -379,17 +381,25 @@ class SpecDoc:
             t = self.text(k)
             if lvl == 2 and t.endswith(PLANNED_SUFFIX):
                 out.append((k, t))
+            elif lvl is not None and t.rstrip().endswith(TBD_SUFFIX):
+                out.append((k, t))
             elif lvl is not None and t.startswith(PLANNED_CHANGES):
                 out.append((k, t))
         return out
 
     def ship_planned(self, heading_i: int) -> None:
         """Clear a planned flag after the feature ships.
+        - '(To be developed)' heading (any level): removes the label.
         - '(Planned)' Heading2: removes the suffix and the PLANNED status line
           (rewrite the body to describe the as-built feature separately).
         - 'Planned changes' Heading4: deletes the whole sub-section (fold the
           as-built behaviour into the live description separately)."""
         t = self.text(heading_i)
+        if t.rstrip().endswith(TBD_SUFFIX):
+            # Rachelle's "(To be developed)": the label goes; the body is
+            # rewritten to describe what was built (separately)
+            self.replace_text(heading_i, t.rstrip()[: -len(TBD_SUFFIX)])
+            return
         if t.startswith(PLANNED_CHANGES):
             self.delete(heading_i, self.section_end(heading_i))
             return

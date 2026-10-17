@@ -1,63 +1,77 @@
 ---
 name: product-spec-doc-update
 description: >-
-  Maintain Andrew's product spec (docs/Rachelle Product
-  Specs/Kumami_World_Product_Spec_andrew.docx) — the single source of truth for what
-  Kumami does AND what is planned — with a version number, date and Release notes entry
-  for every change. Two modes. PLANNED mode (workflow stage 1): translate a requirement
-  from Rachelle's spec into a new section flagged "(Planned)" or a "Planned changes"
-  sub-section, before any planning or code. SHIP mode (stage 6): after a feature is
-  built and QA'd, remove the (Planned) flag, describe what was actually built, bump the
-  version and add release notes. ALWAYS run ship mode after building, fixing or removing
-  anything user- or admin-facing, before pushing — even if not asked. Also use for "add
-  this to my spec as planned", "update the spec doc", "bump the doc version", or "what's
-  planned / what changed between versions".
+  Maintain the Kumami product spec — one document, versioned back and forth with
+  Rachelle (workflow v2, 18 Oct 2026): BUILD versions (Andrew) describe the website as
+  built; REQUEST versions (Rachelle) are a copy with changed sections labelled
+  "(To be developed)" and every change listed per product in the Release notes. Each
+  version is its own Google Doc "Kumami Product Spec vX.Y"; the working copy is
+  docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx. Three modes:
+  INTAKE (Rachelle shared a request version: download, list the To-be-developed items,
+  put them on the FounderOS roadmap), UPDATE (after anything user- or admin-facing is
+  built, fixed or removed: rewrite the section as built, drop its label, add a Release
+  notes line — ALWAYS before pushing, even if not asked), PUBLISH (prepare the next
+  build version). Also use for "Rachelle shared v1.15", "update the spec", "prepare the
+  next build version", "what changed between versions".
 ---
 
-# Product spec doc update (as-built doc)
+# Product spec doc (one document, versioned with Rachelle)
 
-There are two kinds of product doc in `docs/Rachelle Product Specs/`:
+The full process is `docs/DEVELOPMENT_WORKFLOW.md` (orchestrated by
+`kumami-feature-workflow`). In short:
 
-| File | What it is | Who edits it |
+| Version kind | Who | What it says |
 |---|---|---|
-| `Kumami Website (N).docx` (highest N = latest) | Rachelle's **requirements** — what she wants built | Rachelle only. Never edit. |
-| `Kumami_World_Product_Spec_andrew.docx` | The **as-built** spec — what the website actually does today | This skill |
+| **Build version** (v1.14, v1.20, …) | Andrew (this skill prepares it) | Exactly what the website does today. Items not built yet keep `(To be developed)` plus a short reason. |
+| **Request version** (v1.15, …) | Rachelle | The previous build version plus her changes: each changed section's heading ends with `(To be developed)`, and every change is one Release-notes line grouped by product ("Plus · Flow Radar: delay 15 → 30 min"). |
 
-The doc describes reality, plus clearly flagged plans. Live sections only
-claim what the code does; gaps go under "Known gaps". Anything not built yet
-lives under a `(Planned)` heading or a `Planned changes` sub-section, so a
-reader can always tell the two apart. Comparing it against Rachelle's doc is
-the separate `rachelle-gap-analysis` skill. The full pipeline is in
-`docs/DEVELOPMENT_WORKFLOW.md` (orchestrated by `kumami-feature-workflow`).
+Each version is its **own Google Doc** "Kumami Product Spec vX.Y" in the shared
+Drive folder, never edited after it is shared; the next one takes the next free
+number. Our working copy is `docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx`.
+Downloaded request versions live in `docs/Rachelle Product Specs/versions/`.
 
-## Two modes
+Retired 18 Oct 2026: Rachelle's separate `Kumami Website (N).docx` docs and the
+gap report (`rachelle-gap-analysis`). Don't refresh the gap report any more.
 
-### PLANNED mode (workflow stage 1: translate Rachelle → Andrew's spec)
+## Three modes
 
-1. Read the requirement in Rachelle's latest `Kumami Website (N).docx` (extract it
-   as in `rachelle-gap-analysis` step 1) and check the current code for what
-   already exists.
-2. Write it in Andrew's format (What it is / Where it is / How the user uses it /
-   How we build it). Use plain language, include the thresholds and tables
-   Rachelle specifies, and record Andrew's decisions where they differ from her
-   (and say so).
-3. Place it:
-   - **New feature** → `d.add_planned_section("Kumami Plus", "9. Feature name", blocks, source="Rachelle's Kumami Website (6) §9", version="1.4")`.
-     This adds a Heading2 `9. Feature name (Planned)` with an amber `PLANNED — from … · added in v1.4 · not live yet.` status line at the end of the tier.
-   - **Change to a live feature** → `d.add_planned_changes("5. Calendar", blocks, source=…, version="1.4")`.
-     This adds a Heading4 `Planned changes (v1.4)` at the end of that feature's section. **Do not touch the live description above it.**
-4. Minor version bump. Release note: `Planned: <feature> (from Rachelle v6 §9) — <one line>`.
-5. Stop at **Gate 1**. Show Andrew the planned text (paste it in chat) and wait for a go, unless he said to skip gates.
+### INTAKE (Rachelle shared a request version)
 
-### SHIP mode (workflow stage 6: after build + QA)
+1. Download it (Google Drive connector: `download_file_content` as .docx, or ask
+   Andrew to export it) to `docs/Rachelle Product Specs/versions/Kumami Product Spec vX.Y (Rachelle).docx`.
+2. `python -I .claude/skills/product-spec-doc-update/scripts/spec_doc.py planned "<that file>"`
+   lists every `(To be developed)` heading. Read each section and her Release notes;
+   compare with the working copy and the code: what changes, where, how big.
+3. One FounderOS roadmap item per change (`node <founder-os>/scripts/kumami.mjs add "<short title>
+<detail, citing vX.Y and the section>" --area plus|pro|access-codes|payments|cashback|mobile-api|other --stage todo`).
+   Unclear requests: `--stage waiting`, with the question for Rachelle in the detail.
+4. Copy her `(To be developed)` sections into the working copy (keep the label) so it
+   holds the requested text until it is built. Don't bump the version.
+5. Tell Andrew the list (per product, one line each) and ask what to build first.
 
-1. `python -I .claude/skills/product-spec-doc-update/scripts/spec_doc.py planned "<doc>"` lists every open planned item.
-2. For each item that shipped: `d.ship_planned(i)`.
-   - For a `(Planned)` section, this removes the flag and the status line. Then rewrite the body to describe **what was built** (it often differs from the plan), and move deferred parts to "Known gaps".
-   - For `Planned changes`, this deletes the sub-section. Fold the as-built behaviour into the live description and Known gaps.
-3. Planned items that did **not** ship stay flagged. Say why in the release notes.
-4. Minor version bump. Release note: `Shipped: <feature> — planned flag removed. <what's live, what's deferred>`.
-5. Then run `rachelle-gap-analysis` so closed items flip to ✅.
+### UPDATE (after building, fixing or removing anything user- or admin-facing)
+
+1. For each item that shipped: find its heading (`planned` lists them) and
+   `d.ship_planned(i)` removes the `(To be developed)` label. Rewrite the body to
+   describe **what was built** (it often differs from the request), deferred parts
+   under "Known gaps".
+2. Changes not from Rachelle (fixes, Andrew's own work) are written into their
+   section the same way.
+3. Add a line to the **upcoming build version's** Release-notes entry (create the
+   entry `vX.Y (in progress)` if missing; X.Y = next free number):
+   "Built from v1.15: Plus · Flow Radar delay is now 30 min", or "Also changed: …".
+4. No version bump per change; the version is set when the build version is published.
+5. Move the roadmap item to Testing / Done as the workflow says.
+
+### PUBLISH (prepare the next build version)
+
+1. Check every section still matches the code (see Editing mechanics, steps 1–2).
+2. Items not built keep `(To be developed)` and get a one-line reason.
+3. `d.set_version(...)` with the next free number; turn the `(in progress)` entry into
+   the final Release-notes entry: "Built from vX.Y", "Also changed", "Not built yet".
+4. Save, check (step 5 below), commit on `dev`, and give Andrew the .docx to publish as a
+   new Google Doc "Kumami Product Spec vX.Y" (or upload it with the Google Drive
+   connector when he says so). Never overwrite an older version.
 
 ## Document conventions (keep them)
 
@@ -70,13 +84,12 @@ the separate `rachelle-gap-analysis` skill. The full pipeline is in
 
 ## Versioning
 
-- **Minor** bump (1.3 → 1.4) when something is added as planned, when a planned item ships, or when the product changed (feature added/removed/reworked).
-- **Patch** bump (1.4 → 1.4.1) when only the doc was corrected to match unchanged code.
-- One version per build/PR, not per file. If several commits land together, one entry covers them.
+- One version per **shared file**: a build version when Andrew publishes one, a request version when Rachelle shares one. The next file always takes the next free number (internal builds v1.15–v1.19 mean the next build version after Rachelle's v1.15 is v1.20).
+- Between published versions, changes collect in the `vX.Y (in progress)` Release-notes entry.
 - Release-note entries are history — never rewrite or delete old ones. Corrections go in the new entry ("Corrections to v1.3 text: …").
 - Every entry ends with a **"Not re-audited in this version"** bullet when you didn't check the whole doc. Say which sections you didn't verify.
 
-## Editing mechanics (both modes)
+## Editing mechanics (all modes)
 
 ### 1 · Work out what changed
 
@@ -145,7 +158,7 @@ Commit the doc in the same push as the code it describes, or immediately after i
 
 ## Don'ts
 
-- Don't touch Rachelle's `Kumami Website (N).docx` files.
-- Don't describe planned work as live. Don't drop a known gap just because it's awkward.
+- Don't edit a version after it was shared, and never edit Rachelle's request versions: corrections go into the next version.
+- Don't describe `(To be developed)` work as live. Don't drop a known gap just because it's awkward.
 - Don't pretty-print or reformat `document.xml`. The helper only rewrites the blocks you edit.
 - Don't put the CoinGlass name in customer-facing copy. This doc is internal, so naming providers here is fine.

@@ -8,7 +8,9 @@ Crypto/Web3 education and news platform. Live at https://kumami.world. Accent co
 
 Full process: **`docs/DEVELOPMENT_WORKFLOW.md`** — orchestrated by the `kumami-feature-workflow` skill.
 
-Rachelle's spec → translate into `Kumami_World_Product_Spec_andrew.docx` flagged **(Planned)** (version bump) → plan in `docs/plans/` → build → vitest/tsc/lint/build → **`kumami-qa`** (Playwright QA + `testing/**/how-to-test.md`) → spec doc: remove (Planned), version bump + release notes → refresh gap report → **`vault-sync`** → push `dev` → report to Andrew.
+**One product spec, versioned back and forth (v2, 18 Oct 2026):** Andrew shares a *build version* (the website as built, e.g. v1.14) → Rachelle tests the site and shares a *request version* (v1.15: changed sections marked **(To be developed)**, every change listed per product in Release notes) → we build → Andrew shares the next build version (next free number, e.g. v1.20). One Google Doc per version; the working copy is `Kumami_World_Product_Spec_andrew.docx`. Rachelle's old `Kumami Website (N).docx` and the gap report are retired.
+
+Per change: intake onto the FounderOS Kumami roadmap → clarify → design first (screens; Telegram Pick) → plan in `docs/plans/` → build → vitest/tsc/lint/build → **`kumami-qa`** (Playwright QA + `testing/**/how-to-test.md`) → spec working copy: rewrite as built, drop (To be developed), Release-notes line → **`vault-sync`** → push `dev` → report to Andrew. One-page flow for the team: `docs/workflow/kumami-development-flow.pdf`.
 
 **Second brain — always:** after *any* development change in this repo (not only full features), run the **`vault-sync`** skill. It updates the Kumami Map notes in Andrew's Obsidian vault (`Work/Kumami/Map/`, which drive the PKM app's Kumami Map), the durable Kumami notes, and today's daily digest.
 

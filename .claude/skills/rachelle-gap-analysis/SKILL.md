@@ -1,9 +1,11 @@
 ---
 name: rachelle-gap-analysis
-description: Compare what Rachelle (the PM) asks for in her latest product spec (docs/Rachelle Product Specs/Kumami Website (N).docx) against what the website actually does, and write/refresh the plain-language gap report (Kumami_Gap_Report.docx, generated from Kumami_Gap_Report.data.json). Use when the user asks "what's missing vs Rachelle's doc", "where are the gaps", "compare against the spec/PRD", "what does Rachelle still expect", when Rachelle drops a new spec version, or after a build that closes or changes spec items (re-run so the report stays current). Not for editing the as-built spec — that's product-spec-doc-update.
+description: RETIRED on 18 Oct 2026 (workflow v2) — do not use for new work. Rachelle's requests now live inside the product spec as "(To be developed)" sections (see product-spec-doc-update INTAKE mode), so the separate gap report is no longer refreshed. Only use this skill if Andrew explicitly asks to regenerate the old gap report.
 ---
 
-# Rachelle gap analysis
+# Rachelle gap analysis (RETIRED)
+
+> **Retired 18 Oct 2026.** Workflow v2 has one product spec versioned back and forth with Rachelle: her request versions mark changes `(To be developed)` and list them in the Release notes. Use `product-spec-doc-update` (INTAKE mode) instead. The old gap report files stay in the repo as history.
 
 Three documents, three jobs:
 

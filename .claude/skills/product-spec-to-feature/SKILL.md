@@ -1,22 +1,21 @@
 ---
 name: product-spec-to-feature
 description: >-
-  Workflow stage 2 (and 3) — turn a "(Planned)" section or "Planned changes"
-  sub-section in Andrew's spec (docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx)
-  into a written build plan in docs/plans/, after probing CoinGlass feasibility on the
-  live key, then implement it following this repo's market-platform patterns. Use when
-  the user says "plan the planned X section", "write the plan for X", "build docs/plans/…",
-  or names a spec feature to build. If the requirement is still only in Rachelle's doc
-  (not yet in Andrew's spec as Planned), do stage 1 first with product-spec-doc-update.
+  Workflow steps 4–5 — turn a "(To be developed)" section from Rachelle's request
+  version of the product spec (or a change Andrew describes) into a written build plan
+  in docs/plans/, after probing CoinGlass feasibility on the live key, then implement it
+  following this repo's market-platform patterns. Use when the user says "plan X",
+  "write the plan for X", "build docs/plans/…", or names a spec item to build. Older
+  "(Planned)" sections in the working copy are read the same way.
 ---
 
 # Planned spec → plan → feature
 
 Part of the pipeline in `docs/DEVELOPMENT_WORKFLOW.md` (orchestrated by
-`kumami-feature-workflow`). **Input is Andrew's spec, not Rachelle's.**
-Rachelle's `Kumami Website (N).docx` is translated into Andrew's spec first (stage
-1, `product-spec-doc-update` PLANNED mode). This skill plans and builds from
-that translated section, because it already carries Andrew's decisions.
+`kumami-feature-workflow`). **Input:** a `(To be developed)` section, copied from
+Rachelle's request version into the working copy at intake (`product-spec-doc-update`
+INTAKE mode), plus Andrew's answers from the clarify step. Rachelle's old
+`Kumami Website (N).docx` docs are retired (18 Oct 2026).
 
 ## 1 · Read the planned section
 
