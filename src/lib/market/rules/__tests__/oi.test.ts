@@ -48,11 +48,11 @@ describe('computeOi — 6-cell OI × price matrix', () => {
   });
 });
 
-describe('computeOi — OI flat fallback (unlisted in doc matrix)', () => {
-  it('OI flat + any price direction → Stable OI (grey)', () => {
+describe('computeOi — OI flat (Rachelle v1.15 Plus §2.7)', () => {
+  it('OI flat + price up → Trend Without Leverage (grey-green)', () => {
     const r = computeOi({ oiDirection: 'flat', priceDirection: 'up' });
-    expect(r.verdict.label).toBe('Stable OI');
-    expect(r.verdict.color).toBe('grey');
+    expect(r.verdict.label).toBe('Trend Without Leverage');
+    expect(r.verdict.color).toBe('grey-green');
   });
 
   it('OI flat + price flat → Stable OI', () => {
@@ -60,9 +60,10 @@ describe('computeOi — OI flat fallback (unlisted in doc matrix)', () => {
     expect(r.verdict.label).toBe('Stable OI');
   });
 
-  it('OI flat + price down → Stable OI', () => {
+  it('OI flat + price down → Decline Without Panic (grey)', () => {
     const r = computeOi({ oiDirection: 'flat', priceDirection: 'down' });
-    expect(r.verdict.label).toBe('Stable OI');
+    expect(r.verdict.label).toBe('Decline Without Panic');
+    expect(r.verdict.color).toBe('grey');
   });
 });
 

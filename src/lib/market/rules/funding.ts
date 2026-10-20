@@ -3,20 +3,16 @@
  *
  * Sources: doc lines 416–449 (detailed), 186–196 (summary).
  *
- * Bands on 3-cycle average (all values as decimals, e.g. 0.15 = 0.15%):
+ * Bands on 3-cycle average, in percent (0.15 = 0.15%) — Rachelle v1.15 Plus §2.1,
+ * continuous so every rate lands in exactly one band:
  *   > +0.15%             → "Overheated Long"   (red)
- *   +0.06% to +0.15%     → "Crowded Long"      (amber)
- *   0% to +0.05%         → "Neutral"           (grey)  [+0.01 to +0.05 per detailed doc]
- *   -0.05% to -0.01%     → "Mild Short Bias"   (grey)  [named in detailed doc lines 428–431]
- *   -0.1% to -0.06%      → "Crowded Short"     (amber)
- *   < -0.1%              → "Extreme Short"     (green)
+ *   +0.05% to +0.15%     → "Crowded Long"      (amber)
+ *   −0.05% to +0.05%     → "Neutral"           (grey)
+ *   −0.10% to −0.05%     → "Crowded Short"     (amber)
+ *   < −0.10%             → "Extreme Short"     (green)
  *
- * Boundary decisions:
- *   - Exactly +0.15% is "Crowded Long" (top of amber band; > 0.15 triggers Overheated).
- *   - Exactly -0.1% is "Crowded Short" (bottom of amber band; < -0.1 triggers Extreme Short).
- *   - 0% is treated as "Neutral" (matches the spirit of "±0.05% neutral zone").
- *   - Gap [+0.051, +0.059] treated as Neutral (≤ 0.05 upper bound for Neutral).
- *     Gap [-0.051, -0.059] treated as Mild Short Bias (≥ -0.05 lower bound for that band).
+ * Boundaries: ±0.05% exactly belongs to the crowded band ("Crowded Long starts at
+ * +0.05%"); +0.15% exactly is Crowded Long; −0.10% exactly is Crowded Short.
  *
  * Modifiers:
  *   - "Persistently" prefix: extreme band (Overheated Long or Extreme Short) held 3+
@@ -46,12 +42,11 @@ export type FundingResult = {
 type Band = { label: string; color: Verdict['color']; isExtreme: boolean };
 
 function baseBand(avg: number): Band {
-  if (avg > 0.15)  return { label: 'Overheated Long', color: 'red',   isExtreme: true };
-  if (avg >= 0.06) return { label: 'Crowded Long',    color: 'amber', isExtreme: false };
-  if (avg >= 0)    return { label: 'Neutral',         color: 'grey',  isExtreme: false };
-  if (avg >= -0.05) return { label: 'Mild Short Bias', color: 'grey', isExtreme: false };
-  if (avg >= -0.1) return { label: 'Crowded Short',   color: 'amber', isExtreme: false };
-  return              { label: 'Extreme Short',   color: 'green', isExtreme: true };
+  if (avg > 0.15)   return { label: 'Overheated Long', color: 'red',   isExtreme: true };
+  if (avg >= 0.05)  return { label: 'Crowded Long',    color: 'amber', isExtreme: false };
+  if (avg > -0.05)  return { label: 'Neutral',         color: 'grey',  isExtreme: false };
+  if (avg >= -0.1)  return { label: 'Crowded Short',   color: 'amber', isExtreme: false };
+  return               { label: 'Extreme Short',   color: 'green', isExtreme: true };
 }
 
 function isExtreme(rate: number): boolean {

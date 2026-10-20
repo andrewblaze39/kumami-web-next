@@ -5,7 +5,8 @@
  * watchlistTags engine for action tags + regime. Liquidation-cluster proximity
  * is tier-locked (heatmap), so priceToLiqPct is passed as Infinity (no tag).
  *
- * Call budget is kept to 3 endpoints/asset (pairs + funding + gls), all cached.
+ * Call budget: 4 endpoints/asset (pairs + funding + gls + OI history), all cached;
+ * the OI history is the same 1h feed the Console already reads for its chips.
  *
  * Curated roster is the same fixed 5-asset universe used everywhere else on
  * Plus (Console, Fear & Greed, Spot Pulse, Calendar) — per PM spec.
@@ -14,8 +15,8 @@
 import type { WatchlistPayload, Verdict } from '../contracts';
 import { computeWatchlistTags } from '../rules/watchlistTags';
 import { computePrimarySignal } from '../rules/watchlistSignal';
-import { fundingOiWeight, globalLongShort, pairsMarkets } from './cg-endpoints';
-import { primaryPair, pairSymbol, hasPerp, latestClose, type Dir } from './helpers';
+import { fundingOiWeight, globalLongShort, oiAggHistory, pairsMarkets } from './cg-endpoints';
+import { primaryPair, pairSymbol, hasPerp, latestClose, classifyDir, ohlcToSeries, type Dir } from './helpers';
 
 const CURATED = ['BTC', 'ETH', 'SOL', 'BNB', 'HYPE'];
 
@@ -35,25 +36,30 @@ export async function buildAsset(
   signalInputs?: SignalInputs,
 ): Promise<WatchlistPayload['assets'][number] | null> {
   const perp = hasPerp(asset);
-  const [pairs, funding, gls] = await Promise.all([
+  const [pairs, funding, gls, oi] = await Promise.all([
     pairsMarkets(asset).catch(() => []),
     fundingOiWeight(asset, '1h').catch(() => []),
     perp ? globalLongShort(pairSymbol(asset), '1h').catch(() => []) : Promise.resolve([]),
+    oiAggHistory(asset, '1h').catch(() => []),
   ]);
   const primary = primaryPair(pairs);
   if (!primary) return null;
 
   const price = primary.current_price;
   const change24h = primary.price_change_percent_24h;
-  const fundingRate = latestClose(funding); // decimal fraction (0.0004 = 0.04%)
+  const fundingRate = latestClose(funding); // already percent (0.0066 = 0.0066%)
   const pctLong = gls.length ? gls[gls.length - 1].global_account_long_percent : 50;
   const priceDir: Dir = change24h > 0.5 ? 'up' : change24h < -0.5 ? 'down' : 'flat';
+  // Real 24h OI direction (Rachelle v1.15 Plus §6) — estimating it from price meant
+  // "Coiling" (OI up, price flat) could never fire. No OI history → flat.
+  const oiSeries = ohlcToSeries(oi, 24);
+  const oiDir: Dir = oiSeries.length >= 2 ? classifyDir(oiSeries) : 'flat';
 
   const { actionTags, regimeTag } = computeWatchlistTags({
     fundingRate,
     priceToLiqPct: Infinity, // liq clusters tier-locked
     pctLong,
-    oiDirection: priceDir, // OI history omitted to cap call budget; approximate with price
+    oiDirection: oiDir,
     priceDirection: priceDir,
     isLowOiLowVolume: Math.abs(change24h) < 0.5,
   });

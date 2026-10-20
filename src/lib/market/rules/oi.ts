@@ -21,12 +21,10 @@
  *   - The doc has exactly 6 cells: 2 OI directions × 3 price directions.
  *     There is no ambiguity about which cell wins — they are mutually
  *     exclusive by construction.
- *   - OI flat is not a listed case in the doc. Decision: when OI is flat
- *     and price is moving, the signal is weaker; map OI-flat to the most
- *     neutral available outcome.  However the doc matrix only covers OI↑
- *     and OI↓ — if inputs have oiDirection='flat', fall through to a
- *     seventh unlisted "Stable OI" (grey) state, documented here:
- *       OI flat + any price direction → "Stable OI"  (grey)
+ *   - OI flat (Rachelle v1.15 Plus §2.7):
+ *       OI flat + Price↑   → "Trend Without Leverage" (grey-green)
+ *       OI flat + Price↓   → "Decline Without Panic"  (grey)
+ *       OI flat + Price flat → "Stable OI"            (grey)
  *
  * Input design: accept pre-classified directions (up/flat/down) rather
  * than raw numbers.  This keeps the engine pure and testable without
@@ -73,8 +71,14 @@ export function computeOi(inputs: OiInputs): OiResult {
       verdict = { label: 'Capitulation/Unwind',   color: 'grey' };
     }
   } else {
-    // oiDirection === 'flat' — not in the 6-cell doc matrix; unlisted fallback
-    verdict = { label: 'Stable OI', color: 'grey' };
+    // OI flat — Rachelle v1.15 Plus §2.7: a move without new leverage is its own state.
+    if (priceDirection === 'up') {
+      verdict = { label: 'Trend Without Leverage', color: 'grey-green' };
+    } else if (priceDirection === 'down') {
+      verdict = { label: 'Decline Without Panic',  color: 'grey' };
+    } else {
+      verdict = { label: 'Stable OI',              color: 'grey' };
+    }
   }
 
   return { verdict, tags: [] };

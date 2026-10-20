@@ -2,7 +2,7 @@
  * GET /api/market/onchain?asset=BTC&range=24h
  *
  * Returns an OnChainPayload for the given asset + range.
- * Supported assets: BTC, ETH, SOL, BNB, AVAX, ARB, DOGE, LINK, APT, SUI
+ * Supported assets: BTC, ETH, SOL, BNB, HYPE, AVAX, ARB, DOGE, LINK, APT, SUI
  * Supported ranges: 24h, 7d, 30d
  *
  * Cache: 300s, key per asset+range (tier-independent — no tier-sensitive
@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const ALLOWED_ASSETS = new Set([
-  'BTC', 'ETH', 'SOL', 'BNB', 'AVAX', 'ARB', 'DOGE', 'LINK', 'APT', 'SUI',
+  'BTC', 'ETH', 'SOL', 'BNB', 'HYPE', 'AVAX', 'ARB', 'DOGE', 'LINK', 'APT', 'SUI',
 ]);
 const ALLOWED_RANGES = new Set(['24h', '7d', '30d']);
 
@@ -36,7 +36,7 @@ export async function GET(request: Request) {
   }
 
   const payload = await getCachedFresh(
-    `market:v2:onchain:${asset}:${range}`,
+    `market:v3:onchain:${asset}:${range}`,
     300,
     () => getProvider().onchain(asset, range as '24h' | '7d' | '30d'),
   );
