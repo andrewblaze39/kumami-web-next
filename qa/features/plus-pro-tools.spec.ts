@@ -52,7 +52,7 @@ test.describe('Pro tools (qa2)', () => {
     }
     expect(['consistent', 'building']).toContain(body.sectionCMode);
     if (body.sectionCMode === 'building' && body.sectionC.length) {
-      await expect(page.getByText(/building 7-day history \(\d\/7 days\)/)).toBeVisible();
+      await expect(page.getByText(/building 3-day history \(\d\/3 days\)/)).toBeVisible(); // v1.15 Pro §19
     }
     await snap(page, info, 'watchlist-pro');
     g.assertClean();

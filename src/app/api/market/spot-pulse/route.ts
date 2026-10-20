@@ -16,7 +16,7 @@ import { authenticate } from '@/lib/market/api-helpers';
 import { getProvider } from '@/lib/market/provider';
 import { getCachedFresh } from '@/lib/market/cache';
 import { effectiveTier, parseView } from '@/lib/market/gating';
-import { pickExtraCoins } from '@/lib/market/consistentCoins';
+import { pickSectionC } from '@/lib/market/consistentCoins';
 import { ANCHOR_ASSETS, STABLECOINS } from '@/lib/market/rules/consistentFlow';
 import { netflowList } from '@/lib/market/live/cg-endpoints';
 
@@ -53,8 +53,7 @@ export async function GET(request: Request) {
 
   // Pro row 2: Also Worth Watching (shared, not per-user pins — one cached payload
   // serves every Pro user), then "Top volume" fillers for any empty slot.
-  const buffer = await getCachedFresh('market:v3:flow-radar', 60, () => getProvider().flowRadar('pro')).catch(() => []);
-  const extras = await pickExtraCoins(buffer, new Set(ANCHOR_ASSETS));
+  const extras = await pickSectionC(new Set(ANCHOR_ASSETS));
   const extraAssets = extras.coins.map((c) => c.asset).slice(0, 5);
   const fillers = await topVolumeCoins(new Set(extraAssets), 5 - extraAssets.length);
   const payload = await getCachedFresh(
@@ -62,5 +61,5 @@ export async function GET(request: Request) {
     15,
     () => getProvider().spotPulse('pro', timeframe, extraAssets, fillers),
   );
-  return NextResponse.json({ ...payload, extraMode: extras.mode, historyDays: extras.historyDays });
+  return NextResponse.json({ ...payload, extraMode: extras.mode, historyDays: extras.daysWithUsd });
 }

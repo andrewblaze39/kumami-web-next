@@ -31,11 +31,16 @@ export function isSupportedSymbol(sym: string): boolean {
   return SUPPORTED_SYMBOLS.has(streamSymbol(sym));
 }
 
-export function useLivePrices(symbols: string[]): Record<string, number> {
+/**
+ * @param opts.anySymbol stream every well-formed ticker, not just the alert list —
+ *   Watchlist Pro (v1.15 Pro §19). Binance ignores streams for pairs it doesn't
+ *   list, so coins not on Binance simply get no live price (checked 21 Oct 2026).
+ */
+export function useLivePrices(symbols: string[], opts: { anySymbol?: boolean } = {}): Record<string, number> {
   const [prices, setPrices] = useState<Record<string, number>>({});
   // Stable dependency key: sorted, de-duped, supported symbols only.
   const key = Array.from(new Set(symbols.map(streamSymbol)))
-    .filter((s) => SUPPORTED_SYMBOLS.has(s))
+    .filter((s) => (opts.anySymbol ? /^[A-Z0-9]{2,12}$/.test(s) : SUPPORTED_SYMBOLS.has(s)))
     .sort()
     .join(',');
   const wsRef = useRef<WebSocket | null>(null);
