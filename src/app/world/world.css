@@ -8129,6 +8129,7 @@
   font-weight: 600;
   text-decoration: none;
 }
+.world-root .w-console-event-badge svg { width: 16px; height: 16px; flex: none; }
 .world-root .w-console-event-badge b { color: var(--ink); font-weight: 700; }
 .world-root .w-console-event-badge:hover { background: rgba(240, 205, 126, 0.16); }
 .world-root .w-console-event-more {

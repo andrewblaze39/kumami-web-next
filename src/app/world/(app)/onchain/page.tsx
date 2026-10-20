@@ -300,7 +300,8 @@ export default function OnChainPage() {
   const etfNet7 = exNum(P?.etf, 'net7dUsd');
   const etfToday = etfBars.length ? etfBars[etfBars.length - 1] : 0;
   const etfNet7Disp = etfBars.length ? formatUsd(etfNet7) : D;
-  const etfTodayDisp = etfBars.length ? formatUsd(etfToday) : D;
+  // A $0 last bar is today's not-yet-reported flow (ETFs report after the US close), not a real zero.
+  const etfTodayDisp = !etfBars.length ? D : etfToday === 0 ? 'Not reported yet' : formatUsd(etfToday);
 
   const stbLast = stbS.length ? stbS[stbS.length - 1] : 0;
   const stbChg30 = exNum(P?.stablecoin, 'change30dPct');
@@ -541,7 +542,7 @@ export default function OnChainPage() {
             <div className="w-oc-note">30D view · best for ETF analysis</div>
             <div className="w-oc-fstats">
               <span className="w-oc-fstat">
-                Today <b className={!etfBars.length ? '' : etfToday >= 0 ? 'up' : 'down'}>{etfTodayDisp}</b>
+                Today <b className={!etfBars.length || etfToday === 0 ? '' : etfToday >= 0 ? 'up' : 'down'}>{etfTodayDisp}</b>
               </span>
             </div>
           </div>
