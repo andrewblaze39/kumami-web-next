@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { FileText, Newspaper, Clock, Sparkles, Zap, ArrowRight } from 'lucide-react';
+import { FileText, Newspaper, Clock, Sparkles, Zap, ArrowRight, Radar, Eye, Gauge } from 'lucide-react';
 import { collection, onSnapshot, query, where, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { ProShellHead } from './shared';
+import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
+import type { FearGreedPayload, FlowRadarPayload, WatchlistApiResponse } from '@/lib/market/contracts';
+import { digestUsd, topSmartMoneyOpens } from '@/lib/market/rules/digestLines';
 
 interface Row { id: string; label: string; meta?: string }
 
@@ -28,7 +31,7 @@ function usePublished(coll: string, map: (id: string, d: Record<string, unknown>
   return rows;
 }
 
-function Section({ icon, title, tab, rows, empty }: { icon: React.ReactNode; title: string; tab: string; rows: Row[]; empty: string }) {
+function Section({ icon, title, tab, href, rows, empty }: { icon: React.ReactNode; title: string; tab: string; href?: string; rows: Row[]; empty: string }) {
   return (
     <div className="dig-section">
       <h3>{icon} {title}</h3>
@@ -44,7 +47,7 @@ function Section({ icon, title, tab, rows, empty }: { icon: React.ReactNode; tit
           ))
         )}
       </div>
-      <Link className="adv-link" href={proHref(tab)}><ArrowRight size={13} /> Open {title}</Link>
+      <Link className="adv-link" href={href ?? proHref(tab)}><ArrowRight size={13} /> Open {title}</Link>
     </div>
   );
 }
@@ -52,10 +55,44 @@ function Section({ icon, title, tab, rows, empty }: { icon: React.ReactNode; tit
 /**
  * Daily Digest — the Pro landing tab. A live roll-up of the other Pro tabs:
  * latest research, news, upcoming calendar events, active airdrops and alpha —
- * each linking out. Smart-money / sentiment summaries arrive with the
- * market-data integration.
+ * each linking out — plus three market lines (Rachelle v1.15 Pro §1): the top 3
+ * Hyperliquid position opens in 24h, today's Also Worth Watching coins, and
+ * today's Fear & Greed read.
  */
+function useMarketLines() {
+  const flow = useMarketEndpoint<FlowRadarPayload>('/api/market/flow-radar?view=pro');
+  const watch = useMarketEndpoint<WatchlistApiResponse>('/api/market/watchlist?view=pro');
+  const fg = useMarketEndpoint<FearGreedPayload>('/api/market/fear-greed');
+  // "Last 24h" is measured from when the tab opened (the feed itself refreshes).
+  const [openedAt] = useState(() => Date.now());
+
+  const smartMoney: Row[] = flow.data
+    ? topSmartMoneyOpens(flow.data.events, openedAt).map((e) => ({
+        id: e.id,
+        label: `${e.asset} ${e.side ?? ''} opened`.replace('  ', ' '),
+        meta: digestUsd(e.amountUsd),
+      }))
+    : [];
+  const worth: Row[] = (watch.data?.sectionC ?? []).map((a) => ({
+    id: a.asset,
+    label: a.asset,
+    meta: a.reasons[0],
+  }));
+  const comp = fg.data?.composite;
+  const fearGreed: Row[] = comp && !comp.unavailable
+    ? [{ id: 'fg', label: comp.label, meta: `${Math.round(comp.score)} / 100` }]
+    : [];
+  const status = (s: string) => (s === 'loading' ? 'Loading…' : 'Unavailable right now.');
+  return {
+    smartMoney, worth, fearGreed,
+    smartEmpty: flow.data ? 'No large position opens in the last 24h.' : status(flow.status),
+    worthEmpty: watch.data ? 'No coin shows sustained accumulation right now.' : status(watch.status),
+    fgEmpty: fg.data ? 'No Fear & Greed read right now.' : status(fg.status),
+  };
+}
+
 export function DailyDigest() {
+  const m = useMarketLines();
   const research = usePublished('pro_research', (id, d) => ({ id, label: `${d.name as string} — ${d.pos as string} ${d.asset as string}` }));
   const news = usePublished('pro_news', (id, d) => ({ id, label: d.title as string }));
   const airdrops = usePublished('pro_airdrops', (id, d) => ({ id, label: d.name as string, meta: (d.deadline as string) || undefined }));
@@ -93,8 +130,8 @@ export function DailyDigest() {
   return (
     <>
       <ProShellHead eyebrow="Cross-cutting" icon={<FileText size={24} />} title="Daily Pro Digest">
-        Everything that moved, rolled into one read — your latest research, news, events, airdrops and
-        alpha in a single scan.
+        Everything that moved, rolled into one read — your latest research, news, events, airdrops,
+        alpha, smart money and market mood in a single scan.
       </ProShellHead>
 
       <div className="dig-hero">
@@ -113,10 +150,9 @@ export function DailyDigest() {
       <Section icon={<Clock size={16} />} title="Calendar" tab="calendar" rows={calendar} empty="Nothing upcoming." />
       <Section icon={<Sparkles size={16} />} title="Airdrops & Whitelist" tab="airdrops" rows={airdrops} empty="No active airdrops." />
 
-      <div className="apanel" style={{ padding: '16px 20px', color: 'var(--muted)', fontSize: 13, lineHeight: 1.6 }}>
-        Smart-money flow and a Fear &amp; Greed read will join this digest once the market-data
-        integration is live.
-      </div>
+      <Section icon={<Radar size={16} />} title="Smart Money" tab="flowradar" rows={m.smartMoney} empty={m.smartEmpty} />
+      <Section icon={<Eye size={16} />} title="Also Worth Watching" tab="watchlist" rows={m.worth} empty={m.worthEmpty} />
+      <Section icon={<Gauge size={16} />} title="Fear & Greed" tab="" href="/world/fear-greed" rows={m.fearGreed} empty={m.fgEmpty} />
     </>
   );
 }

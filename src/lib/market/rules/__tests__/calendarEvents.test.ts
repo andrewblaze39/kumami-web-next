@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   adminCategoryToType,
   adminToEvent,
+  badgeCountdown,
+  consoleBadgeEvents,
   isAttentionEligible,
   macroToEvent,
   mergeCalendarEvents,
@@ -102,20 +104,45 @@ describe('adminToEvent', () => {
   });
 });
 
-describe('isAttentionEligible (popup scope, spec §7.3)', () => {
+describe('isAttentionEligible (popups + badge, v1.15 Plus §5: team-added HIGH only)', () => {
   const ev = (over: object) => ({
     id: '1', type: 'unlock' as const, title: 't', ts: '2026-10-10T00:00:00Z', impact: 'HIGH' as const,
     assets: ['XYZ'], description: '', source: 'feed' as const, ...over,
   });
   it('requires HIGH impact', () => {
-    expect(isAttentionEligible(ev({ impact: 'MED', assets: ['BTC'] }))).toBe(false);
+    expect(isAttentionEligible(ev({ source: 'kumami', impact: 'MED' }))).toBe(false);
   });
-  it('requires a Plus-roster asset for feed events', () => {
-    expect(isAttentionEligible(ev({}))).toBe(false);
-    expect(isAttentionEligible(ev({ assets: ['HYPE'] }))).toBe(true);
+  it('never fires on feed events, even HIGH on a core asset', () => {
+    expect(isAttentionEligible(ev({ assets: ['BTC'] }))).toBe(false);
   });
-  it('always lets team-added HIGH events through', () => {
+  it('lets team-added HIGH events through', () => {
     expect(isAttentionEligible(ev({ source: 'kumami', assets: [] }))).toBe(true);
+  });
+});
+
+describe('consoleBadgeEvents (v1.15 Plus §1.5)', () => {
+  const now = Date.parse('2026-10-20T08:00:00Z');
+  const ev = (id: string, ts: string, over: object = {}) => ({
+    id, type: 'macro' as const, title: id, ts, impact: 'HIGH' as const, assets: [], description: '',
+    source: 'kumami' as const, ...over,
+  });
+  it('keeps team HIGH events starting within 6h, soonest first', () => {
+    const out = consoleBadgeEvents([
+      ev('later', '2026-10-20T13:30:00Z'),
+      ev('soon', '2026-10-20T09:00:00Z'),
+      ev('exactly6h', '2026-10-20T14:00:00Z'),
+      ev('too-far', '2026-10-20T14:01:00Z'),
+      ev('started', '2026-10-20T07:59:00Z'),
+      ev('med', '2026-10-20T09:00:00Z', { impact: 'MED' }),
+      ev('feed', '2026-10-20T09:00:00Z', { source: 'feed' }),
+      ev('allday', '2026-10-20T12:00:00Z', { allDay: true }),
+    ], now);
+    expect(out.map((e) => e.id)).toEqual(['soon', 'later', 'exactly6h']);
+  });
+  it('formats the countdown', () => {
+    expect(badgeCountdown('2026-10-20T12:00:00Z', now)).toBe('in 4h');
+    expect(badgeCountdown('2026-10-20T08:35:00Z', now)).toBe('in 35m');
+    expect(badgeCountdown('2026-10-20T08:00:20Z', now)).toBe('in 1m');
   });
 });
 

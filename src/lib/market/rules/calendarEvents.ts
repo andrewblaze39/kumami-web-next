@@ -173,19 +173,38 @@ export function adminToEvent(id: string, doc: AdminCalendarDoc): CalendarEvent |
   };
 }
 
-/** The fixed Plus roster the popups are scoped to (Kumami Plus §7.3). */
+/** The fixed Plus roster (Kumami Plus §7.3). */
 export const PLUS_ROSTER = ['BTC', 'ETH', 'SOL', 'BNB', 'HYPE'] as const;
 
 /**
  * Can this event trigger the "high-impact event soon" popups (Calendar D-1
- * popup + Console "Needs your attention today")? Spec §7.3: HIGH impact AND
- * involving BTC/ETH/SOL/BNB/HYPE. Team-added (Kumami) HIGH events always
- * qualify — an admin marking an event HIGH is an explicit "tell everyone".
+ * popup, Console "Needs your attention today") and the Console badge?
+ * Rachelle v1.15 Plus §5: the Calendar is manual-first, so all three run on
+ * team-added (Kumami) HIGH events only — an admin marking an event HIGH is an
+ * explicit "tell everyone". Feed events never trigger them, even if an admin
+ * switches a feed back on.
  */
 export function isAttentionEligible(e: CalendarEvent): boolean {
-  if (e.impact !== 'HIGH') return false;
-  if (e.source === 'kumami') return true;
-  return e.assets.some((a) => (PLUS_ROSTER as readonly string[]).includes(a));
+  return e.impact === 'HIGH' && e.source === 'kumami';
+}
+
+/** Console badge window (Rachelle v1.15 Plus §1.5): HIGH events starting within 6h. */
+export const CONSOLE_BADGE_WINDOW_MS = 6 * 3_600_000;
+
+/** Upcoming badge-eligible events, soonest first (already-started events excluded). */
+export function consoleBadgeEvents(events: CalendarEvent[], now: number): CalendarEvent[] {
+  return events
+    .filter((e) => {
+      const dt = Date.parse(e.ts) - now;
+      return isAttentionEligible(e) && !e.allDay && dt > 0 && dt <= CONSOLE_BADGE_WINDOW_MS;
+    })
+    .sort((a, b) => Date.parse(a.ts) - Date.parse(b.ts));
+}
+
+/** "in 4h" / "in 35m" — the badge's countdown, rounded to the nearest hour from 1h up. */
+export function badgeCountdown(ts: string, now: number): string {
+  const min = Math.max(1, Math.round((Date.parse(ts) - now) / 60_000));
+  return min < 60 ? `in ${min}m` : `in ${Math.round(min / 60)}h`;
 }
 
 /**

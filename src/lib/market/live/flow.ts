@@ -142,6 +142,8 @@ export async function buildFlowEvents(): Promise<FlowEvent[]> {
       severity: r.severity,
       description: r.description,
       ts: tsToIso(p.create_time),
+      side: isLong ? 'long' : 'short',
+      ...(p.position_action === 1 ? { action: 'open' as const } : p.position_action === 2 ? { action: 'close' as const } : {}),
     });
   }
 
