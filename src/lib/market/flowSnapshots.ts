@@ -8,7 +8,9 @@
  * refresh saves the full event list under its minute bucket, and Plus is
  * served the newest snapshot that is at least 15 minutes old.
  *
- * Storage: Firestore `flow_snapshots/{bucketMs}` = { bucket, events, savedAt }.
+ * Storage: Firestore `flow_snapshots/{bucketMs}` = { bucket, events, savedAt, v }.
+ * `v` = event format; snapshots from before the v1.15 directions (no `v`) are never
+ * served, so right after a deploy Plus shows "starting" for 15 min instead of old labels.
  * At most one write per minute per server instance; snapshots older than an
  * hour are deleted (best effort, about every 10 minutes).
  */
@@ -18,6 +20,8 @@ import type { FlowEvent } from './contracts';
 import { pickSnapshot } from './gating';
 
 const COLLECTION = 'flow_snapshots';
+/** Bump when FlowEvent directions/types change (2 = Rachelle v1.15 Plus §3). */
+export const SNAPSHOT_VERSION = 2;
 const KEEP_MS = 60 * 60_000;
 const CLEANUP_EVERY_MS = 10 * 60_000;
 
@@ -38,7 +42,7 @@ export async function saveFlowSnapshot(events: FlowEvent[], now = Date.now()): P
   lastSavedBucket = bucket;
   try {
     const store = await db();
-    await store.collection(COLLECTION).doc(String(bucket)).set({ bucket, events, savedAt: now });
+    await store.collection(COLLECTION).doc(String(bucket)).set({ bucket, events, savedAt: now, v: SNAPSHOT_VERSION });
     if (now - lastCleanup > CLEANUP_EVERY_MS) {
       lastCleanup = now;
       const old = await store.collection(COLLECTION).where('bucket', '<', now - KEEP_MS).limit(200).get();
@@ -65,7 +69,7 @@ export async function readDelayedFlow(delayMinutes: number, now = Date.now()): P
       .limit(1)
       .get();
     const doc = snap.docs[0];
-    if (!doc) return null;
+    if (!doc || doc.get('v') !== SNAPSHOT_VERSION) return null;
     const bucket = Number(doc.get('bucket'));
     if (pickSnapshot([bucket], now, delayMs) === null) return null;
     return { events: (doc.get('events') ?? []) as FlowEvent[], asOf: bucket };
