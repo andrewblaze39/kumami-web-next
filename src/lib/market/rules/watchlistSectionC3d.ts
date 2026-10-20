@@ -48,7 +48,10 @@ export type SectionC3dResult = {
 
 const fmt = (v: number) => {
   const a = Math.abs(v);
-  const s = a >= 1e9 ? `$${(a / 1e9).toFixed(1)}B` : `$${Math.round(a / 1e6)}M`;
+  const s = a >= 1e9 ? `$${(a / 1e9).toFixed(1)}B`
+    : a >= 1e7 ? `$${Math.round(a / 1e6)}M`
+    : a >= 1e6 ? `$${(a / 1e6).toFixed(1)}M`
+    : `$${Math.round(a / 1e3)}K`; // small spot flows read "$340K", never "$0M"
   return `${v >= 0 ? '+' : '−'}${s}`;
 };
 

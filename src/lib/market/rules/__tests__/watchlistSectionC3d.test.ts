@@ -49,6 +49,13 @@ describe('computeSectionC3d (Section C)', () => {
     expect(r.coins[0].reasons).toEqual(['Accumulating 3 of 3 days', 'net flow +$42M · spot buyers +$18M (3d)']);
   });
 
+  it('small spot flows read in $K / one decimal, never "$0M"', () => {
+    const r = computeSectionC3d([
+      day('2026-10-18', { LINK: t(4 * M, 0) }), day('2026-10-19', { LINK: t(4 * M, 0) }), day('2026-10-20', { LINK: t(0, 0) }),
+    ], { ...opts, spotNet3d: new Map([['LINK', 340_000]]) });
+    expect(r.coins[0].reasons[1]).toBe('net flow +$8.0M · spot buyers +$340K (3d)');
+  });
+
   it('a coin sold every day never qualifies (the v1.14 7-day rule ranked these first)', () => {
     const r = computeSectionC3d([
       day('2026-10-18', { XRP: t(1 * M, 30 * M) }),
