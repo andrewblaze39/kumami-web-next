@@ -109,7 +109,7 @@ export async function GET(request: Request) {
   // that one signal rather than the page.
   const [flowEvents, spotPulse] = await Promise.all([
     withTimeout(
-      getCachedFresh('market:v2:flow-radar', 60, () => getProvider().flowRadar('pro')),
+      getCachedFresh('market:v3:flow-radar', 60, () => getProvider().flowRadar('pro')),
       ENRICHMENT_TIMEOUT_MS,
     ).catch(() => null),
     withTimeout(

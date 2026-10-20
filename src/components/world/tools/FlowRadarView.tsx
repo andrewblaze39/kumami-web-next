@@ -19,6 +19,8 @@ import { formatUsd, relativeTime } from '@/components/world/panels/format';
 import { WIcon, CoinBadge } from '@/components/world/panels/console-ui';
 import ProductTour, { type TourStep } from '@/components/world/ProductTour';
 import { computeFlowBalance } from '@/lib/market/rules/flowBalance';
+import { computeFlowVerdict } from '@/lib/market/rules/flowVerdict';
+import { flowLean } from '@/lib/market/rules/flowDirections';
 
 type Payload = FlowRadarPayload & { delayed?: boolean; delayMinutes?: number; delayedAsOf?: string | null };
 
@@ -35,7 +37,7 @@ const FLOW_RADAR_TOUR: TourStep[] = [
   {
     selector: '[data-tour="fr-types"]',
     title: 'Four event types',
-    body: 'Whale Transfer (a large wallet moving on-chain), Exchange Flow (net direction in/out of exchanges), Liquidation Spike (forced closures), and Smart Money (large Hyperliquid positions).',
+    body: 'Whale Transfer (coins deposited to or withdrawn from an exchange), Exchange Flow ("Dry Powder": stablecoins arriving on or leaving exchanges — buying power), Liquidation Spike (forced closures — a long flush or a short squeeze), and Smart Money (large Hyperliquid positions opened or closed). Pro adds Netflow Flip.',
   },
   {
     selector: '[data-tour="fr-assets"]',
@@ -50,12 +52,12 @@ const FLOW_RADAR_TOUR: TourStep[] = [
   {
     selector: '[data-tour="fr-verdict"]',
     title: 'The market verdict band',
-    body: 'A one-line read on the whole visible window — Distribution Wave, Broad Accumulation, Liquidation Cascade, Mixed, or Quiet — computed from the bullish/bearish split of events you can see.',
+    body: 'A one-line read on the window you picked — Liquidation Cascade, Distribution Wave, Broad Accumulation, Mixed, or Quiet. One side has to outweigh the other 1.5×, and the dollar bar rises with the window (1H is half of 4H, 24H is 2.5×).',
   },
   {
     selector: '[data-tour="fr-feed"]',
     title: 'Reading a row',
-    body: 'The arrow icon shows bullish (→) vs bearish (⚡) lean, the badge shows severity, and the dollar amount is signed to match. On Pro, a subtle colored outline appears on a row when another Kumami panel (Spot Pulse, Console, or Watchlist) confirms the same read — hover the row to see why.',
+    body: 'The icon shows bullish (→), bearish (⚡) or neutral (closed positions, two-sided flushes — shown but not counted), the badge shows severity, and the dollar amount is signed to match. A coloured outline appears when another Kumami panel (Spot Pulse, the Console regime, or repeated whale flow) confirms the same read — hover the row to see why.',
   },
   {
     title: "That's Flow Radar 🎉",
@@ -65,10 +67,12 @@ const FLOW_RADAR_TOUR: TourStep[] = [
 
 const EVENT_TYPES: { key: FlowEvent['type']; label: string; dot: string }[] = [
   { key: 'whale_transfer', label: 'Whale Transfer', dot: '#46e3a0' },
-  { key: 'netflow_flip', label: 'Exchange Flow', dot: '#56dfe6' },
+  { key: 'exchange_flow', label: 'Exchange Flow', dot: '#56dfe6' },
   { key: 'liq_spike', label: 'Liquidation Spike', dot: '#ff6b81' },
   { key: 'smart_money', label: 'Smart Money', dot: '#b9a4ff' },
 ];
+/** Pro keeps Netflow Flip as a fifth type (Rachelle v1.15 Pro §18). */
+const PRO_EVENT_TYPES = [...EVENT_TYPES, { key: 'netflow_flip' as const, label: 'Netflow Flip', dot: '#f0cd7e' }];
 
 const ASSETS = ['All', 'BTC', 'ETH', 'SOL', 'BNB', 'HYPE'] as const;
 type AssetFilter = (typeof ASSETS)[number];
@@ -89,14 +93,11 @@ const TYPE_LABEL: Record<FlowEvent['type'], string> = {
   whale_transfer: 'Whale Transfer',
   exchange_flow: 'Exchange Flow',
   liq_spike: 'Liquidation Spike',
-  netflow_flip: 'Exchange Flow',
+  netflow_flip: 'Netflow Flip',
   whale_wall: 'Whale Wall',
   smart_money: 'Smart Money',
 };
 
-const BULLISH_DIRECTIONS = new Set<FlowEvent['direction']>([
-  'Outflow', 'Buy Pressure', 'Support Wall', 'Accumulation', 'Smart Money',
-]);
 
 const VERDICT_TONE: Record<string, string> = {
   green: 'w-bull',
@@ -114,8 +115,9 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
   // "Pro" here means the Pro VERSION of the tool, not the account.
   const isPremium = variant === 'pro';
 
+  const typeChips = isPremium ? PRO_EVENT_TYPES : EVENT_TYPES;
   const [types, setTypes] = useState<Set<FlowEvent['type']>>(
-    new Set(EVENT_TYPES.map((t) => t.key)),
+    new Set(typeChips.map((t) => t.key)),
   );
   // Plus: single-select fixed roster. Pro: multi-select against the live
   // asset universe (empty set = "All", per Kumami Pro §4.6a's default).
@@ -186,11 +188,15 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
         (e) =>
           types.has(e.type) &&
           severities.has(e.severity) &&
-          (isPremium ? (proAssets.size === 0 || proAssets.has(e.asset)) : (asset === 'All' || e.asset === asset)) &&
+          // Dry Powder is market-wide: it shows under every asset filter (v1.15 Plus §3).
+          (e.marketWide || (isPremium ? (proAssets.size === 0 || proAssets.has(e.asset)) : (asset === 'All' || e.asset === asset))) &&
           now - Date.parse(e.ts) <= windowMs,
       ),
     [events, types, severities, asset, isPremium, proAssets, windowMs, now],
   );
+
+  // Verdict band for the selected window (thresholds scale with it — v1.15 Plus §3).
+  const band = useMemo(() => computeFlowVerdict(filtered, timeframe), [filtered, timeframe]);
 
   const visible = filtered.slice(0, visibleCount);
   const remaining = filtered.length - visible.length;
@@ -246,7 +252,7 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
 
       <div className="w-flow-radar-filters">
         <div className="w-flow-radar-chip-row" data-tour="fr-types">
-          {EVENT_TYPES.map((t) => (
+          {typeChips.map((t) => (
             <button
               key={t.key}
               className={`w-flow-radar-chip${types.has(t.key) ? ' on' : ''}`}
@@ -313,14 +319,14 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
         <div className="w-panel-skeleton w-panel-skeleton-list" aria-busy="true" style={{ minHeight: 220 }} />
       ) : data ? (
         <>
-          <div className={`w-flow-radar-verdict w-flow-radar-verdict-${data.verdict.color}`} data-tour="fr-verdict">
+          <div className={`w-flow-radar-verdict w-flow-radar-verdict-${band.verdict.color}`} data-tour="fr-verdict">
             <div>
-              <span className={`w-flow-radar-verdict-label ${VERDICT_TONE[data.verdict.color] ?? 'w-muted'}`}>
-                <WIcon name="bolt" /> {data.verdict.label}
+              <span className={`w-flow-radar-verdict-label ${VERDICT_TONE[band.verdict.color] ?? 'w-muted'}`}>
+                <WIcon name="bolt" /> {band.verdict.label}
               </span>
-              <p>{data.sentence}</p>
+              <p>{band.sentence}</p>
             </div>
-            <div className="w-flow-radar-verdict-stat">{data.statLine}</div>
+            <div className="w-flow-radar-verdict-stat">{band.statLine}</div>
           </div>
 
           {isPremium && (
@@ -331,11 +337,11 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
               </div>
               <div className="w-flow-balance-rows">
                 <div className="w-flow-balance-row">
-                  <span className="w-bull">🟢 Bullish · off exchanges</span>
+                  <span className="w-bull">🟢 Bullish flow</span>
                   <b className="w-bull">{formatUsd(flowBalance.bullishUsd)}</b>
                 </div>
                 <div className="w-flow-balance-row">
-                  <span className="w-bear">🔴 Bearish · into exchanges</span>
+                  <span className="w-bear">🔴 Bearish flow</span>
                   <b className="w-bear">{formatUsd(flowBalance.bearishUsd)}</b>
                 </div>
               </div>
@@ -375,7 +381,9 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
             ) : (
               <div className="w-radar-list" aria-label="Flow radar events">
                 {visible.map((event) => {
-                  const bullish = BULLISH_DIRECTIONS.has(event.direction);
+                  const lean = flowLean(event.direction);
+                  const bullish = lean === 'bullish';
+                  const neutral = lean === 'neutral';
                   return (
                     <div
                       key={event.id}
@@ -383,15 +391,16 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
                       title={event.crossSignal ? `${event.crossSignal.label} — confirmed by another Kumami panel` : undefined}
                     >
                       <span
-                        className={`w-radar-ic ${bullish ? 'w-in' : 'w-out'}`}
-                        title={`Direction: ${event.direction}`}
+                        className={`w-radar-ic ${neutral ? 'w-acc' : bullish ? 'w-in' : 'w-out'}`}
+                        title={`Direction: ${event.direction}${neutral ? ' (neutral — not counted)' : ''}`}
                         aria-hidden="true"
                       >
-                        <WIcon name={bullish ? 'arrowR' : 'bolt'} />
+                        <WIcon name={neutral ? 'flame' : bullish ? 'arrowR' : 'bolt'} />
                       </span>
                       <div className="w-radar-main">
                         <b>
                           {TYPE_LABEL[event.type]} <span className="w-flow-radar-asset-tag">{event.asset}</span>{' '}
+                          <span className="w-flow-radar-dir">{event.direction}</span>{' '}
                           <span className={`w-flow-radar-sev-badge w-flow-radar-sev-${event.severity.toLowerCase()}`}>
                             {event.severity}
                           </span>
@@ -399,8 +408,8 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
                         <div className="w-rsub">{event.description}</div>
                       </div>
                       <div className="w-radar-amt">
-                        <b className={bullish ? 'w-bull' : 'w-bear'}>
-                          {bullish ? '+' : '−'}
+                        <b className={neutral ? '' : bullish ? 'w-bull' : 'w-bear'}>
+                          {neutral ? '' : bullish ? '+' : '−'}
                           {formatUsd(event.amountUsd)}
                         </b>
                         <span>{relativeTime(event.ts)}</span>
@@ -424,8 +433,11 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
 
           <div className="w-flow-radar-footer">
             <span>
-              {filtered.length} events in {timeframe} · {formatUsd(totalUsd)} across{' '}
-              {isPremium ? `${data.footer.assets.length} tracked assets` : 'BTC / ETH / SOL / BNB / HYPE'}
+              {/* No "$0" when the window is empty (quiet market, or the delayed feed just started). */}
+              {filtered.length === 0
+                ? `No events in ${timeframe} yet`
+                : `${filtered.length} event${filtered.length === 1 ? '' : 's'} in ${timeframe} · ${formatUsd(totalUsd)}`}{' '}
+              across {isPremium ? `${data.footer.assets.length} tracked assets` : 'BTC / ETH / SOL / BNB / HYPE'}
             </span>
             {!isPremium && (
               <span className="w-flow-radar-pro-nudge">Every coin, every severity, in real time → Flow Radar Pro</span>

@@ -12,7 +12,8 @@
  * Field shapes below were verified against live responses (2026-08).
  */
 
-import { cgCached } from '../coinglass/client';
+import { cgCached, cgFetch } from '../coinglass/client';
+import { getCachedFresh } from '../cache';
 
 export type OHLC = {
   time: number;
@@ -40,6 +41,22 @@ export type LiqCoinRow = {
   liquidation_usd_24h: number;
   long_liquidation_usd_24h: number;
   short_liquidation_usd_24h: number;
+  liquidation_usd_1h?: number;
+  long_liquidation_usd_1h?: number;
+  short_liquidation_usd_1h?: number;
+};
+
+/** /api/exchange/chain/tx/list row (Ethereum tokens only). transfer_type 1 = into the
+ *  exchange, 2 = out of it (checked against Binance's known hot wallet, 20 Oct 2026). */
+export type ExchangeChainTxRow = {
+  transaction_hash: string;
+  asset_symbol: string;
+  amount_usd: number;
+  exchange_name: string;
+  transfer_type: number;
+  from_address: string;
+  to_address: string;
+  transaction_time: number; // seconds
 };
 
 export type GlsRow = {
@@ -210,6 +227,17 @@ export const cvdHistory = (kind: 'futures' | 'spot', symbol: string, interval: s
 
 export const coinbasePremium = (interval: string) =>
   cgCached<PremiumRow[]>(`cg:premium:${interval}`, 300, '/api/coinbase-premium-index', { interval });
+
+/** One exchange's per-coin liquidations (coin-list takes one exchange per call). */
+export const liqCoinListFor = (exchange: string) =>
+  cgCached<LiqCoinRow[]>(`cg:liqcoinlist:${exchange}`, 300, '/api/futures/liquidation/coin-list', { exchange });
+
+/** Large (≥ $1M) exchange deposits/withdrawals of one token over the last hour.
+ *  One cache key per token: the hour window is fixed at fetch time, at most every 2 min. */
+export const exchangeChainTx = (symbol: string) =>
+  getCachedFresh<ExchangeChainTxRow[]>(`cg:exchtx:${symbol}`, 120, () =>
+    cgFetch<ExchangeChainTxRow[]>('/api/exchange/chain/tx/list',
+      { symbol, min_usd: 1_000_000, start_time: Date.now() - 3_600_000 }));
 
 export const netflowList = (kind: 'futures' | 'spot') =>
   cgCached<NetflowRow[]>(`cg:netflow:${kind}`, 120, `/api/${kind}/netflow-list`);

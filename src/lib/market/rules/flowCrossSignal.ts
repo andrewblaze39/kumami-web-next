@@ -1,27 +1,14 @@
 /**
- * Flow Radar cross-signal amplification (Pro tier only).
+ * Flow Radar cross-signal outlines — Rachelle v1.15 Plus §3 (now on Plus AND Pro,
+ * same rules). Reuses other panels' already-cached reads; first match wins,
+ * one coloured row outline per event.
  *
- * Kumami Pro §1.8 specs 3 cross-signal rules that reuse other panels' already
- * -cached data (no new API calls, cross-signal state cached with the event
- * buffer at 60s TTL). Rendered as a subtle colored row outline only — no
- * stacked chip, no extra descriptor text (kept visually separate from the
- * per-asset "significance" chip, which is a different, not-yet-built system).
- *
- * Rule 1 — Whale Transfer (bullish outflow) + Spot Pulse REAL BUYING/ACCUMULATION → green
- * Rule 2 — Liquidation Spike (bearish) + Console regime Bearish → red
- * Rule 3 — Smart Money (bullish/long) + Watchlist Whale Accumulation tag → green
- *   (implemented once Watchlist Pro's Whale Accumulation/Distribution tags exist)
- *
- * First-match-wins (only one outline per row). Falls back to the pre-existing
- * Fear & Greed check below when none of the 3 above fire — that one predates
- * this doc revision and isn't one of its 3 named rules, but is kept as an
- * additional, lower-priority signal rather than deleted.
- *
- * Liquidation Spike simplification: the current builder always classifies
- * liq_spike events as bearish ("Sell Pressure") — it doesn't yet distinguish
- * Mass Long Flush vs. Short Squeeze by long/short ratio (a separate, larger
- * gap in flowRadar.ts). Rule 2 below is written against the data that exists
- * today: any liq_spike event (all bearish) + a Bearish Console regime.
+ *   1. Whale Outflow + Spot Pulse REAL BUYING / ACCUMULATION     → green "Spot Pulse confirming"
+ *   2. Long Flush + Bearish regime                               → red   "Regime confirming"
+ *      Short Squeeze + Bullish regime                            → green "Regime confirming"
+ *   3. Long Opened + 2 or more bullish whale events in 24h       → green "Watchlist confirming"
+ *      Short Opened + 2 or more bearish whale events in 24h      → red   "Watchlist confirming"
+ *   4. Fallback: Whale Outflow + Fear / Extreme Fear             → green "Regime shift confirming"
  */
 
 import type { FlowEvent } from '../contracts';
@@ -34,9 +21,9 @@ export type FlowCrossSignalContext = {
   spotPulseVerdictByAsset?: Record<string, string>;
   /** Per-asset Console regime chip read, e.g. { BTC: 'Bearish' }. */
   consoleRegimeByAsset?: Record<string, 'Bullish' | 'Neutral' | 'Bearish'>;
-  /** Per-asset Watchlist action-tag labels currently showing, e.g. { BTC: ['Whale Accumulation'] }. */
-  watchlistTagsByAsset?: Record<string, string[]>;
-  /** Fear & Greed composite label snapshot (pre-existing check, kept as a fallback). */
+  /** Per-asset whale-transfer counts over 24h (the Watchlist's Whale Accumulation / Distribution source). */
+  whaleCounts24hByAsset?: Record<string, { bullish: number; bearish: number }>;
+  /** Fear & Greed composite label snapshot. */
   fearGreedLabel?: string;
 };
 
@@ -44,31 +31,30 @@ export function computeFlowCrossSignal(
   event: Pick<FlowEvent, 'type' | 'direction' | 'asset'>,
   ctx: FlowCrossSignalContext,
 ): FlowEvent['crossSignal'] {
-  // Rule 1 — Whale Transfer (bullish outflow) + Spot Pulse REAL BUYING/ACCUMULATION.
-  if (event.type === 'whale_transfer' && event.direction === 'Outflow') {
-    const spotVerdict = ctx.spotPulseVerdictByAsset?.[event.asset];
-    if (spotVerdict && BULLISH_SPOT_PULSE.has(spotVerdict)) {
-      return { label: 'Spot Pulse confirming', color: 'green' };
-    }
+  const { type, direction, asset } = event;
+
+  // 1 — Whale outflow confirmed by spot buying.
+  if (type === 'whale_transfer' && direction === 'Outflow') {
+    const spot = ctx.spotPulseVerdictByAsset?.[asset];
+    if (spot && BULLISH_SPOT_PULSE.has(spot)) return { label: 'Spot Pulse confirming', color: 'green' };
   }
 
-  // Rule 2 — Liquidation Spike (bearish) + Console regime Bearish.
-  if (event.type === 'liq_spike' && event.direction === 'Sell Pressure') {
-    if (ctx.consoleRegimeByAsset?.[event.asset] === 'Bearish') {
-      return { label: 'Regime confirming', color: 'red' };
-    }
+  // 2 — Liquidations in the direction of the regime.
+  if (type === 'liq_spike') {
+    const regime = ctx.consoleRegimeByAsset?.[asset];
+    if (direction === 'Long Flush' && regime === 'Bearish') return { label: 'Regime confirming', color: 'red' };
+    if (direction === 'Short Squeeze' && regime === 'Bullish') return { label: 'Regime confirming', color: 'green' };
   }
 
-  // Rule 3 — Smart Money (bullish) + Watchlist Whale Accumulation tag.
-  if (event.type === 'smart_money' && event.direction === 'Smart Money') {
-    const tags = ctx.watchlistTagsByAsset?.[event.asset];
-    if (tags?.includes('Whale Accumulation')) {
-      return { label: 'Watchlist confirming', color: 'green' };
-    }
+  // 3 — Smart money in the direction of repeated whale flow.
+  if (type === 'smart_money') {
+    const c = ctx.whaleCounts24hByAsset?.[asset];
+    if (direction === 'Long Opened' && (c?.bullish ?? 0) >= 2) return { label: 'Watchlist confirming', color: 'green' };
+    if (direction === 'Short Opened' && (c?.bearish ?? 0) >= 2) return { label: 'Watchlist confirming', color: 'red' };
   }
 
-  // Fallback — pre-existing Whale Transfer outflow + Fear & Greed reading Fear.
-  if (event.type === 'whale_transfer' && event.direction === 'Outflow' && ctx.fearGreedLabel && FEAR_LABELS.has(ctx.fearGreedLabel)) {
+  // 4 — Fallback: whale outflow while the crowd is fearful.
+  if (type === 'whale_transfer' && direction === 'Outflow' && ctx.fearGreedLabel && FEAR_LABELS.has(ctx.fearGreedLabel)) {
     return { label: 'Regime shift confirming', color: 'green' };
   }
 

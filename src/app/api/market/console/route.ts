@@ -28,7 +28,7 @@ export async function GET(request: Request) {
 
   const [payload, buffer] = await Promise.all([
     getCachedFresh('market:v2:console', 300, () => getProvider().console()),
-    getCachedFresh('market:v2:flow-radar', 60, () => getProvider().flowRadar('pro')).catch(() => null),
+    getCachedFresh('market:v3:flow-radar', 60, () => getProvider().flowRadar('pro')).catch(() => null),
   ]);
   if (buffer) {
     void saveFlowSnapshot(buffer);

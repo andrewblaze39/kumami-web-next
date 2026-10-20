@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 
   // Pro: second row = the shared "5 extra coins" (anchors excluded; not per-user
   // pins, so one cached payload serves every Pro user).
-  const buffer = await getCachedFresh('market:v2:flow-radar', 60, () => getProvider().flowRadar('pro')).catch(() => []);
+  const buffer = await getCachedFresh('market:v3:flow-radar', 60, () => getProvider().flowRadar('pro')).catch(() => []);
   const extras = await pickExtraCoins(buffer, new Set(ANCHOR_ASSETS));
   const extraAssets = extras.coins.map((c) => c.asset);
   const payload = await getCachedFresh(
