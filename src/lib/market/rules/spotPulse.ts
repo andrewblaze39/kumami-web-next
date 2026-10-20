@@ -1,15 +1,24 @@
 /**
- * Spot Pulse verdict engine.
+ * Spot Pulse engine — Rachelle v1.15 Plus §2.9 (one engine for the Plus tile,
+ * the Console preview and Spot Pulse Pro). Pure: the builder passes 1H flows
+ * and prices; every threshold lives here.
  *
- * Source: Rachelle's "Spot Pulse" spec (Kumami Website (5).docx), section 3
- * (per-asset verdict) + section 4 (market-wide verdict). Pure — all thresholds
- * live here; the UI only renders the returned verdict/colour.
+ * Answers, per coin: is a move backed by real spot buying, or by futures leverage?
  *
- * Answers, per asset: is a move backed by real spot buying, or driven by
- * futures leverage? Compares spot CVD vs futures CVD vs price over a window.
+ *   flow per bar        = taker buy − taker sell (never a difference of cum_vol_delta)
+ *   window              = 4H (4 bars) · 24H (24) · 7D (168)
+ *   normal swing        = std-dev of the PAST windows of the same length:
+ *                         4H → last 42 · 24H → last 30 · 7D → last 11
+ *   flow direction      = UP / DOWN only beyond 0.5× the normal swing (z ±0.5), else FLAT
+ *   < 8 past windows    = "Not enough history": BALANCED, left out of the market verdict
+ *   price band          = 4H ±0.75% · 24H ±1.5% · 7D ±4%
+ *
+ * v1.14 used "±2% of std-dev" (FLAT almost never happened) and ±1% price for
+ * every window, and its verdict table had holes (8 rows).
  */
 
 export type SpotDir = 'UP' | 'FLAT' | 'DOWN';
+export type SpotTimeframe = '4H' | '24H' | '7D';
 
 export type SpotVerdict =
   | 'REAL BUYING'
@@ -18,10 +27,11 @@ export type SpotVerdict =
   | 'SPECULATIVE'
   | 'FORCED DECLINE'
   | 'DISTRIBUTION'
+  | 'QUIET DISTRIBUTION'
   | 'COHERENT DECLINE'
   | 'BALANCED';
 
-/** Exact per-tile colours from the spec (§3 Per-Tile Color Mapping). */
+/** Per-tile colours (§3 Per-Tile Color Mapping); QUIET DISTRIBUTION is a softer DISTRIBUTION. */
 export const SPOT_COLORS: Record<SpotVerdict, string> = {
   'REAL BUYING': '#46e3a0',
   ACCUMULATION: 'rgba(70,227,160,0.7)',
@@ -29,6 +39,7 @@ export const SPOT_COLORS: Record<SpotVerdict, string> = {
   SPECULATIVE: '#f0b65e',
   'FORCED DECLINE': 'rgba(240,182,94,0.7)',
   DISTRIBUTION: '#ff6b81',
+  'QUIET DISTRIBUTION': 'rgba(255,107,129,0.7)',
   'COHERENT DECLINE': '#b04d5d',
   BALANCED: 'rgba(120,200,170,0.15)',
 };
@@ -36,39 +47,80 @@ export const SPOT_COLORS: Record<SpotVerdict, string> = {
 /** REVERSAL SETUP gets a subtle glow border (§3). */
 export const SPOT_GLOW: SpotVerdict = 'REVERSAL SETUP';
 
-// ── Directional classification (§3) ──────────────────────────────────────────
+export const WINDOW_BARS: Record<SpotTimeframe, number> = { '4H': 4, '24H': 24, '7D': 168 };
+export const PAST_WINDOWS: Record<SpotTimeframe, number> = { '4H': 42, '24H': 30, '7D': 11 };
+export const PRICE_BAND_PCT: Record<SpotTimeframe, number> = { '4H': 0.75, '24H': 1.5, '7D': 4 };
+export const MIN_PAST_WINDOWS = 8;
+export const FLOW_Z = 0.5;
 
-/** price_direction: > +1% UP · −1%…+1% FLAT · < −1% DOWN. */
-export function classifyPrice(pct: number): SpotDir {
-  if (pct > 1) return 'UP';
-  if (pct < -1) return 'DOWN';
+// ── Directional classification ───────────────────────────────────────────────
+
+export function classifyPrice(pct: number, tf: SpotTimeframe): SpotDir {
+  const band = PRICE_BAND_PCT[tf];
+  if (pct > band) return 'UP';
+  if (pct < -band) return 'DOWN';
   return 'FLAT';
+}
+
+/** UP / DOWN only beyond 0.5× the normal swing. A zero swing can't call a direction. */
+export function classifyFlow(delta: number, swing: number): SpotDir {
+  if (!(swing > 0)) return 'FLAT';
+  if (delta > FLOW_Z * swing) return 'UP';
+  if (delta < -FLOW_Z * swing) return 'DOWN';
+  return 'FLAT';
+}
+
+function stddev(xs: number[]): number {
+  if (xs.length < 2) return 0;
+  const m = xs.reduce((a, b) => a + b, 0) / xs.length;
+  return Math.sqrt(xs.reduce((a, b) => a + (b - m) ** 2, 0) / xs.length);
 }
 
 /**
- * cvd_direction: positive & beyond 2% of the 7-day CVD range → UP; within ±2%
- * of range → FLAT; negative & beyond → DOWN. "7-day CVD range" is the rolling
- * std-dev of 4H CVD deltas (passed in as `range`).
+ * Current window sum + the normal swing from the preceding same-length windows.
+ * `flows` is oldest → newest, one value per 1H bar. `pastWindows` = how many full
+ * past windows were available (capped at the spec's count).
  */
-export function classifyCvd(delta: number, range: number): SpotDir {
-  const threshold = 0.02 * Math.max(range, 0);
-  if (delta > 0 && Math.abs(delta) > threshold) return 'UP';
-  if (delta < 0 && Math.abs(delta) > threshold) return 'DOWN';
-  return 'FLAT';
+export function windowStats(flows: number[], tf: SpotTimeframe): { delta: number; swing: number; pastWindows: number } {
+  const n = WINDOW_BARS[tf];
+  if (flows.length < n) return { delta: 0, swing: 0, pastWindows: 0 };
+  const sum = (a: number[]) => a.reduce((s, v) => s + v, 0);
+  const delta = sum(flows.slice(-n));
+  const past: number[] = [];
+  for (let end = flows.length - n; end - n >= 0 && past.length < PAST_WINDOWS[tf]; end -= n) {
+    past.push(sum(flows.slice(end - n, end)));
+  }
+  return { delta, swing: stddev(past), pastWindows: past.length };
 }
 
-// ── Per-asset verdict (§3 Verdict Matrix, first match wins) ───────────────────
+// ── Per-coin verdict: all 27 combinations, first match wins ──────────────────
+
+/** r = spot share = |spot Δ| ÷ |futures Δ|. */
+export function verdictFor(price: SpotDir, spot: SpotDir, fut: SpotDir, r: number): SpotVerdict {
+  if (price === 'UP' && spot === 'UP' && fut !== 'UP') return 'REAL BUYING'; // spot-led
+  if (price === 'UP' && spot === 'UP' && fut === 'UP') return r > 0.4 ? 'REAL BUYING' : 'SPECULATIVE';
+  if (price === 'UP' && spot === 'FLAT' && fut === 'UP') return 'SPECULATIVE';
+  if (price === 'UP' && spot === 'DOWN') return 'DISTRIBUTION';
+  if (price === 'FLAT' && spot === 'UP') return 'ACCUMULATION';
+  if (price === 'FLAT' && spot === 'DOWN') return 'QUIET DISTRIBUTION';
+  if (price === 'DOWN' && spot === 'UP') return 'REVERSAL SETUP';
+  if (price === 'DOWN' && spot === 'DOWN') return 'COHERENT DECLINE';
+  if (price === 'DOWN' && spot === 'FLAT' && fut === 'DOWN') return 'FORCED DECLINE';
+  return 'BALANCED';
+}
 
 export type SpotPulseInputs = {
-  /** 4H price % change. */
-  priceChange4h: number;
-  /** Spot CVD 4H delta (USD; +buy / −sell). */
-  spotCvdChange: number;
-  /** Futures CVD 4H delta (USD). */
-  futCvdChange: number;
-  /** 7-day range (std-dev of 4H CVD deltas) for spot / futures. */
-  spotCvdRange: number;
-  futCvdRange: number;
+  timeframe: SpotTimeframe;
+  /** % price change over the window. */
+  priceChangePct: number;
+  /** Spot / futures flow over the window (USD, + buy / − sell). */
+  spotDelta: number;
+  futDelta: number;
+  /** Normal swings (std-dev of past same-length windows). */
+  spotSwing: number;
+  futSwing: number;
+  /** Past windows available for the spot side (< 8 → not enough history). */
+  pastWindows: number;
 };
 
 export type SpotVerdictResult = {
@@ -78,37 +130,21 @@ export type SpotVerdictResult = {
   priceDir: SpotDir;
   spotDir: SpotDir;
   futDir: SpotDir;
-  /** |spot_cvd_change| / |fut_cvd_change|. */
+  /** |spot Δ| / |futures Δ| (999 when futures is 0). */
   spotToFutRatio: number;
+  /** True when the coin has fewer than 8 past windows — reads BALANCED, excluded from the market verdict. */
+  notEnoughHistory: boolean;
 };
 
 export function computeSpotVerdict(x: SpotPulseInputs): SpotVerdictResult {
-  const priceDir = classifyPrice(x.priceChange4h);
-  const spotDir = classifyCvd(x.spotCvdChange, x.spotCvdRange);
-  const futDir = classifyCvd(x.futCvdChange, x.futCvdRange);
-  const absSpot = Math.abs(x.spotCvdChange);
-  const absFut = Math.abs(x.futCvdChange);
-  const spotToFutRatio = absFut > 0 ? absSpot / absFut : absSpot > 0 ? Infinity : 0;
-
-  let verdict: SpotVerdict;
-  if (priceDir === 'UP' && spotDir === 'UP' && futDir === 'UP' && spotToFutRatio > 0.4) {
-    verdict = 'REAL BUYING';
-  } else if (priceDir === 'UP' && spotDir === 'FLAT' && futDir === 'UP') {
-    verdict = 'SPECULATIVE';
-  } else if (priceDir === 'UP' && spotDir === 'DOWN' && futDir === 'UP') {
-    verdict = 'DISTRIBUTION';
-  } else if (priceDir === 'FLAT' && spotDir === 'UP') {
-    verdict = 'ACCUMULATION';
-  } else if (priceDir === 'DOWN' && spotDir === 'UP') {
-    verdict = 'REVERSAL SETUP';
-  } else if (priceDir === 'DOWN' && spotDir === 'DOWN' && futDir === 'DOWN') {
-    verdict = 'COHERENT DECLINE';
-  } else if (priceDir === 'DOWN' && spotDir === 'FLAT' && futDir === 'DOWN') {
-    verdict = 'FORCED DECLINE';
-  } else {
-    verdict = 'BALANCED';
-  }
-
+  const priceDir = classifyPrice(x.priceChangePct, x.timeframe);
+  const spotDir = classifyFlow(x.spotDelta, x.spotSwing);
+  const futDir = classifyFlow(x.futDelta, x.futSwing);
+  const absSpot = Math.abs(x.spotDelta);
+  const absFut = Math.abs(x.futDelta);
+  const ratio = absFut > 0 ? absSpot / absFut : absSpot > 0 ? Infinity : 0;
+  const notEnoughHistory = x.pastWindows < MIN_PAST_WINDOWS;
+  const verdict = notEnoughHistory ? 'BALANCED' : verdictFor(priceDir, spotDir, futDir, ratio);
   return {
     verdict,
     color: SPOT_COLORS[verdict],
@@ -116,69 +152,68 @@ export function computeSpotVerdict(x: SpotPulseInputs): SpotVerdictResult {
     priceDir,
     spotDir,
     futDir,
-    spotToFutRatio: Number.isFinite(spotToFutRatio) ? spotToFutRatio : 999,
+    spotToFutRatio: Number.isFinite(ratio) ? ratio : 999,
+    notEnoughHistory,
   };
 }
 
-// ── Market-wide verdict (§4, thresholds scale with grid size) ─────────────────
+// ── Market verdict: shares of tiles with data (same rules for 5 and 10 tiles) ─
 
 export type MarketVerdict =
   | 'Broad Buying'
-  | 'Speculation Dominant'
   | 'Distribution Wave'
-  | 'Selective Accumulation'
   | 'Broad Selloff'
-  | 'Mixed Market';
+  | 'Selective Accumulation'
+  | 'Speculation Dominant'
+  | 'Mixed Market'
+  | 'Not enough data';
 
-const BUYING = new Set<SpotVerdict>(['REAL BUYING', 'ACCUMULATION', 'REVERSAL SETUP']);
-const DECLINE = new Set<SpotVerdict>(['COHERENT DECLINE', 'FORCED DECLINE']);
+const BULLISH = new Set<SpotVerdict>(['REAL BUYING', 'ACCUMULATION', 'REVERSAL SETUP']);
+const BEARISH = new Set<SpotVerdict>(['DISTRIBUTION', 'QUIET DISTRIBUTION', 'COHERENT DECLINE', 'FORCED DECLINE']);
+const DISTRIBUTING = new Set<SpotVerdict>(['DISTRIBUTION', 'QUIET DISTRIBUTION']);
+const DECLINING = new Set<SpotVerdict>(['COHERENT DECLINE', 'FORCED DECLINE']);
 
-export function computeMarketVerdict(verdicts: SpotVerdict[], tier: 'plus' | 'pro'): MarketVerdict {
-  const count = (pred: (v: SpotVerdict) => boolean) => verdicts.filter(pred).length;
-  const buying = count((v) => BUYING.has(v));
-  const speculative = count((v) => v === 'SPECULATIVE');
-  const distribution = count((v) => v === 'DISTRIBUTION');
-  const accumulation = count((v) => v === 'ACCUMULATION');
-  const decline = count((v) => DECLINE.has(v));
+/** `verdicts` = tiles WITH data only (no "not enough history", no failed fetches). */
+export function computeMarketVerdict(verdicts: SpotVerdict[]): MarketVerdict {
+  const n = verdicts.length;
+  if (n < 4) return 'Not enough data';
+  const share = (pred: (v: SpotVerdict) => boolean) => verdicts.filter(pred).length / n;
+  const bullish = share((v) => BULLISH.has(v));
+  const bearish = share((v) => BEARISH.has(v));
+  const distributing = share((v) => DISTRIBUTING.has(v));
 
-  if (tier === 'plus') {
-    if (buying >= 3) return 'Broad Buying';
-    if (speculative >= 2) return 'Speculation Dominant';
-    if (distribution >= 2) return 'Distribution Wave';
-    if (accumulation >= 2 && distribution === 0) return 'Selective Accumulation';
-    if (decline >= 2) return 'Broad Selloff';
-    return 'Mixed Market';
-  }
-  // pro (10 tiles)
-  if (buying >= 6) return 'Broad Buying';
-  if (speculative >= 4) return 'Speculation Dominant';
-  if (distribution >= 3) return 'Distribution Wave';
-  if (accumulation >= 4 && distribution < 2) return 'Selective Accumulation';
-  if (decline >= 4) return 'Broad Selloff';
+  if (bullish >= 0.6 && bearish <= 0.2) return 'Broad Buying';
+  // Bearish states are checked before speculation (v1.14 checked speculation first).
+  if (distributing >= 0.4) return 'Distribution Wave';
+  if (share((v) => DECLINING.has(v)) >= 0.4) return 'Broad Selloff';
+  if (share((v) => v === 'ACCUMULATION') >= 0.4 && distributing === 0) return 'Selective Accumulation';
+  if (share((v) => v === 'SPECULATIVE') >= 0.4) return 'Speculation Dominant';
   return 'Mixed Market';
 }
 
-/** Hardcoded one-liner per market verdict — fallback until an LLM key exists (§4). */
+/** Template one-liner per market verdict (the AI layer will rewrite these later). */
 export const MARKET_SENTENCE: Record<MarketVerdict, string> = {
   'Broad Buying': 'Real spot demand is broad across majors — buyers are leading, not chasing leverage.',
-  'Speculation Dominant': 'Moves are running on futures leverage with thin spot support — treat rallies with caution.',
-  'Distribution Wave': 'Spot is selling into strength while futures stay long — a classic distribution setup.',
-  'Selective Accumulation': 'Quiet spot accumulation in a few names while price sits flat — patient buyers at work.',
+  'Distribution Wave': 'Spot is selling into strength or flat prices across the board — a distribution setup.',
   'Broad Selloff': 'Coherent selling across the board — spot and futures both heading for the exit.',
-  'Mixed Market': 'No single force in control — spot and futures signals are split across assets.',
+  'Selective Accumulation': 'Quiet spot accumulation in a few names while price sits flat — patient buyers at work.',
+  'Speculation Dominant': 'Moves are running on futures leverage with thin spot support — treat rallies with caution.',
+  'Mixed Market': 'No single force in control — spot and futures signals are split across coins.',
+  'Not enough data': 'Too few coins have enough data for a market-wide read right now.',
 };
 
-/** Divergence score for the bottom alert cards (§5 Selection Logic). */
+/** Divergence score for the bottom alert cards (§5 Selection Logic; QUIET DISTRIBUTION +4 in v1.15). */
 export function divergenceScore(
   v: SpotVerdictResult,
-  opts: { asset: string; spotCvdChange: number; priceChange4h: number; isDynamicRow2?: boolean },
+  opts: { asset: string; spotDelta: number; priceChangePct: number; isDynamicRow2?: boolean },
 ): number {
   let s = 0;
   if (v.verdict === 'DISTRIBUTION') s += 5;
+  if (v.verdict === 'QUIET DISTRIBUTION') s += 4;
   if (v.verdict === 'SPECULATIVE' && v.spotToFutRatio < 0.2) s += 4;
-  if (v.verdict === 'ACCUMULATION' && opts.priceChange4h >= -1 && opts.priceChange4h <= 1) s += 4;
+  if (v.verdict === 'ACCUMULATION') s += 4;
   if (v.verdict === 'REVERSAL SETUP') s += 3;
-  if (v.verdict === 'REAL BUYING' && opts.spotCvdChange > 50_000_000) s += 2;
+  if (v.verdict === 'REAL BUYING' && opts.spotDelta > 50_000_000) s += 2;
   const anchor = opts.asset === 'BTC' || opts.asset === 'ETH';
   if (anchor) s *= 1.3;
   if (opts.isDynamicRow2) s *= 1.2;

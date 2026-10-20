@@ -210,6 +210,10 @@ export type SpotPulseTile = {
   row: 1 | 2;
   /** True when the asset lacked enough data and defaulted to BALANCED. */
   insufficient?: boolean;
+  /** Fewer than 8 past windows (new listing) — BALANCED, left out of the market verdict. */
+  notEnoughHistory?: boolean;
+  /** Pro row 2: an Also Worth Watching coin, or a "Top volume" filler. */
+  source?: 'watchlist' | 'top-volume';
 };
 
 /** A divergence alert card below the grid. */

@@ -78,8 +78,8 @@ function makeLiveProvider(): MarketDataProvider {
       return live('intelligence', () => makeIntelligencePayloadLive(tier));
     },
 
-    async spotPulse(tier: 'free' | 'pro', timeframe: '4H' | '24H' | '7D', extraAssets: string[] = []): Promise<SpotPulsePayload> {
-      return live('spotPulse', () => makeSpotPulseLive(tier === 'pro' ? 'pro' : 'plus', timeframe, extraAssets));
+    async spotPulse(tier: 'free' | 'pro', timeframe: '4H' | '24H' | '7D', extraAssets: string[] = [], topVolume: string[] = []): Promise<SpotPulsePayload> {
+      return live('spotPulse', () => makeSpotPulseLive(tier === 'pro' ? 'pro' : 'plus', timeframe, extraAssets, topVolume));
     },
 
     async fearGreed(): Promise<FearGreedPayload> {

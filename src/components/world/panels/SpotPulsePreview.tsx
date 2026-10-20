@@ -19,7 +19,7 @@ function MiniTile({ t }: { t: SpotPulseTile }) {
       }}
     >
       <div className="w-sp-sym">{t.asset}</div>
-      <div className="w-sp-verdict">{t.insufficient ? 'NO DATA' : t.verdict}</div>
+      <div className="w-sp-verdict">{t.insufficient ? 'NO DATA' : t.notEnoughHistory ? 'NEW LISTING' : t.verdict}</div>
     </div>
   );
 }

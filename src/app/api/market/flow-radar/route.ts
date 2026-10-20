@@ -100,7 +100,7 @@ export async function GET(request: Request) {
     // would silently never match non-anchor assets, and would re-fetch data
     // this route already has in hand.
     const [spotPulse, console_, fearGreed] = await Promise.all([
-      withTimeout(getCachedFresh('market:v2:spot-pulse:pro:4H', 60, () => getProvider().spotPulse('pro', '4H')), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null),
+      withTimeout(getCachedFresh('market:v3:spot-pulse:pro:4H', 60, () => getProvider().spotPulse('pro', '4H')), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null),
       withTimeout(getCachedFresh('market:v2:console', 60, () => getProvider().console()), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null),
       withTimeout(getCachedFresh('market:v2:fear-greed', 300, () => getProvider().fearGreed()), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null),
     ]);
