@@ -113,7 +113,7 @@ export async function GET(request: Request) {
       ENRICHMENT_TIMEOUT_MS,
     ).catch(() => null),
     withTimeout(
-      getCachedFresh('market:v2:spot-pulse:pro:4H', 60, () => getProvider().spotPulse('pro', '4H')),
+      getCachedFresh('market:v3:spot-pulse:pro:4H', 60, () => getProvider().spotPulse('pro', '4H')),
       ENRICHMENT_TIMEOUT_MS,
     ).catch(() => null),
   ]);

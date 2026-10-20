@@ -1,14 +1,16 @@
 /**
- * Spot Pulse builder — assembles the SpotPulsePayload from live CoinGlass data.
+ * Spot Pulse builder — Rachelle v1.15 Plus §2.9 (Plus tile, Console preview and
+ * Spot Pulse Pro share it).
  *
- * Source: Rachelle's "Spot Pulse" spec. Answers "where is real money moving?"
- * by comparing spot CVD vs futures CVD vs price per asset (§3), then a
- * market-wide verdict (§4), divergence alert cards (§5) and footer stats (§6).
+ * Data, three calls per coin, 1H bars × 2016 (84 days) — one fetch per coin
+ * serves all three timeframes:
+ *   /api/spot/aggregated-cvd/history     exchange_list = Binance,OKX,Coinbase,Bybit,Bitget
+ *   /api/futures/aggregated-cvd/history  exchange_list = Binance,OKX,Bybit,Bitget,Hyperliquid
+ *   /api/futures/price/history           Binance <COIN>USDT
+ * Per bar flow = taker buy − taker sell. Timestamps are normalised (s or ms).
  *
- * Feasibility: the verdict engine is fully live (spot + futures aggregated-CVD,
- * price history). Per-asset spot *volume* and the Pro Row-2 dynamic trending
- * selection need /api/spot/coins-markets, which is tier-locked on the current
- * key — so this builds the 5 fixed anchors (Plus); Pro Row-2 awaits a plan upgrade.
+ * Footer 24h spot volume = taker buy + sell from /api/spot/netflow-list (on our
+ * plan — coins-markets isn't needed). The engine is in rules/spotPulse.ts.
  */
 
 import type { SpotPulsePayload, SpotPulseTile, SpotPulseAlert } from '../contracts';
@@ -16,102 +18,83 @@ import {
   computeSpotVerdict,
   computeMarketVerdict,
   divergenceScore,
+  windowStats,
   MARKET_SENTENCE,
+  WINDOW_BARS,
+  type SpotTimeframe,
   type SpotVerdict,
   type SpotVerdictResult,
 } from '../rules/spotPulse';
-import { cvdHistory, priceHistory, netflowList, type CvdRow } from './cg-endpoints';
+import { cvdHourly, priceHourly, netflowList, type CvdRow, type OHLC } from './cg-endpoints';
 import { pairSymbol, nowIso } from './helpers';
 
 const ANCHORS = ['BTC', 'ETH', 'SOL', 'BNB', 'HYPE'];
 
-export type SpotPulseTimeframe = '4H' | '24H' | '7D';
+export type SpotPulseTimeframe = SpotTimeframe;
 
-/**
- * §7 timeframe toggle. Each window reads CVD/price at a matching bar interval,
- * so the "delta" is the last bar over that window and the range (§3) is the
- * std-dev of same-interval deltas — apples-to-apples at any timeframe.
- */
-const TF_CFG: Record<SpotPulseTimeframe, { interval: string; rangeBars: number }> = {
-  '4H': { interval: '4h', rangeBars: 42 }, // ~7d of 4h bars
-  '24H': { interval: '1d', rangeBars: 30 }, // ~30d of daily bars
-  '7D': { interval: '1w', rangeBars: 26 }, // ~6mo of weekly bars
-};
+const toMs = (t: number) => (t < 1e12 ? t * 1000 : t);
+/** Per-bar flow = aggressive taker buy − sell. */
+const barFlow = (r: CvdRow) => (Number(r.agg_taker_buy_vol) || 0) - (Number(r.agg_taker_sell_vol) || 0);
 
-/** Per-bar CVD delta = aggressive taker buy − sell. */
-const barDelta = (r: CvdRow) => (Number(r.agg_taker_buy_vol) || 0) - (Number(r.agg_taker_sell_vol) || 0);
-
-function stddev(xs: number[]): number {
-  if (xs.length < 2) return 0;
-  const m = xs.reduce((a, b) => a + b, 0) / xs.length;
-  return Math.sqrt(xs.reduce((a, b) => a + (b - m) ** 2, 0) / xs.length);
+/** Oldest → newest, de-duplicated by hour. */
+function byHour<T extends { time: number }>(rows: T[]): T[] {
+  const m = new Map<number, T>();
+  for (const r of rows) m.set(Math.floor(toMs(Number(r.time)) / 3_600_000), r);
+  return [...m.entries()].sort((a, b) => a[0] - b[0]).map(([, r]) => r);
 }
 
 type Built = {
   tile: SpotPulseTile;
   res: SpotVerdictResult;
-  spotCvdChange: number;
-  priceChange4h: number;
+  spotDelta: number;
+  priceChangePct: number;
 };
 
-async function buildAsset(asset: string, row: 1 | 2, tf: SpotPulseTimeframe): Promise<Built | null> {
-  const pair = pairSymbol(asset);
-  const { interval, rangeBars } = TF_CFG[tf];
-  // null (not []) distinguishes "the fetch failed" from "the fetch succeeded
-  // with genuinely no rows" — the former must never silently feed a fake 0
-  // into a displayed CVD/price change.
-  const [spotCvdRaw, futCvdRaw, priceRowsRaw] = await Promise.all([
-    cvdHistory('spot', asset, interval).catch(() => null as CvdRow[] | null),
-    cvdHistory('futures', asset, interval).catch(() => null as CvdRow[] | null),
-    priceHistory(pair, interval).catch(() => null),
+async function buildAsset(asset: string, row: 1 | 2, tf: SpotPulseTimeframe, source?: SpotPulseTile['source']): Promise<Built | null> {
+  // null (not []) = the fetch failed — must never feed a fake 0 into a tile.
+  const [spotRaw, futRaw, priceRaw] = await Promise.all([
+    cvdHourly('spot', asset).catch(() => null as CvdRow[] | null),
+    cvdHourly('futures', asset).catch(() => null as CvdRow[] | null),
+    priceHourly(pairSymbol(asset)).catch(() => null as OHLC[] | null),
   ]);
-  const spotCvd = spotCvdRaw ?? [];
-  const futCvd = futCvdRaw ?? [];
-  const priceRows = priceRowsRaw ?? [];
-  const futFailed = futCvdRaw === null;
-  const priceFailed = priceRowsRaw === null;
+  const spot = byHour(spotRaw ?? []);
+  const fut = byHour(futRaw ?? []);
+  const prices = byHour(priceRaw ?? []);
+  if (!spot.length && !fut.length) return null; // no CVD on either side → no tile (§11)
 
-  // No CVD at all on either side → skip the tile entirely (§11).
-  if (!spotCvd.length && !futCvd.length) return null;
-
-  const spotCvdChange = spotCvd.length ? barDelta(spotCvd[spotCvd.length - 1]) : 0;
-  const futCvdChange = futCvd.length ? barDelta(futCvd[futCvd.length - 1]) : 0;
-  const spotCvdRange = stddev(spotCvd.slice(-rangeBars).map(barDelta));
-  const futCvdRange = stddev(futCvd.slice(-rangeBars).map(barDelta));
-
-  let priceChange4h = 0;
-  if (priceRows.length >= 2) {
-    const c1 = Number(priceRows[priceRows.length - 1].close);
-    const c0 = Number(priceRows[priceRows.length - 2].close);
-    priceChange4h = c0 ? ((c1 - c0) / c0) * 100 : 0;
+  const s = windowStats(spot.map(barFlow), tf);
+  const f = windowStats(fut.map(barFlow), tf);
+  const n = WINDOW_BARS[tf];
+  let priceChangePct = 0;
+  if (prices.length > n) {
+    const c1 = Number(prices[prices.length - 1].close);
+    const c0 = Number(prices[prices.length - 1 - n].close);
+    priceChangePct = c0 ? ((c1 - c0) / c0) * 100 : 0;
   }
 
-  const res = computeSpotVerdict({ priceChange4h, spotCvdChange, futCvdChange, spotCvdRange, futCvdRange });
-  // Insufficient (renders "NO DATA" / '—' on the tile, per the UI's existing
-  // convention) when the spot side is genuinely missing (spec §11), OR when
-  // the futures/price fetch outright failed — in either failure case the
-  // 0-fallbacks above would otherwise masquerade as a real flat reading.
-  const insufficient = !spotCvd.length || futFailed || priceFailed;
+  const res = computeSpotVerdict({
+    timeframe: tf, priceChangePct, spotDelta: s.delta, futDelta: f.delta,
+    spotSwing: s.swing, futSwing: f.swing, pastWindows: s.pastWindows,
+  });
+  // Missing spot side, or a failed futures/price fetch → "NO DATA" tile, never a fake flat read.
+  const insufficient = !spot.length || futRaw === null || priceRaw === null || prices.length <= n;
 
+  const common = {
+    asset, row, ...(source ? { source } : {}),
+    priceChange4h: Number(priceChangePct.toFixed(2)),
+    spotCvdChange: Math.round(s.delta), futCvdChange: Math.round(f.delta),
+  };
   const tile: SpotPulseTile = insufficient
-    ? {
-        asset, verdict: 'BALANCED', color: 'rgba(120,200,170,0.15)', glow: false,
-        priceChange4h: Number(priceChange4h.toFixed(2)),
-        spotCvdChange: Math.round(spotCvdChange), futCvdChange: Math.round(futCvdChange),
-        spotToFutRatio: 0, row, insufficient: true,
-      }
+    ? { ...common, verdict: 'BALANCED', color: 'rgba(120,200,170,0.15)', glow: false, spotToFutRatio: 0, insufficient: true }
     : {
-        asset, verdict: res.verdict, color: res.color, glow: res.glow,
-        priceChange4h: Number(priceChange4h.toFixed(2)),
-        spotCvdChange: Math.round(spotCvdChange), futCvdChange: Math.round(futCvdChange),
-        spotToFutRatio: Number(res.spotToFutRatio.toFixed(2)), row,
+        ...common, verdict: res.verdict, color: res.color, glow: res.glow,
+        spotToFutRatio: Number(res.spotToFutRatio.toFixed(2)),
+        ...(res.notEnoughHistory ? { notEnoughHistory: true } : {}),
       };
-
-  return { tile, res, spotCvdChange, priceChange4h };
+  return { tile, res, spotDelta: s.delta, priceChangePct };
 }
 
-/** Scale-aware $ amount for card text. A flat "$XM" rendered sub-$500K CVD
- *  moves as "$0M" (caught by Playwright QA on On-Chain Insights). */
+/** Scale-aware $ amount for card text (sub-$500K moves once rendered as "$0M"). */
 const M = (v: number) => {
   const a = Math.abs(v);
   if (a >= 1e9) return `$${(a / 1e9).toFixed(1)}B`;
@@ -125,10 +108,12 @@ const M = (v: number) => {
 function alertFor(b: Built, tf: SpotPulseTimeframe): SpotPulseAlert | null {
   const { tile } = b;
   const v = tile.verdict as SpotVerdict;
-  const amt = M(b.spotCvdChange);
+  const amt = M(b.spotDelta);
   switch (v) {
     case 'DISTRIBUTION':
       return { asset: tile.asset, verdict: v, color: tile.color, line1: `Spot selling ${amt} in ${tf}`, line2: 'Futures still buying — fake' };
+    case 'QUIET DISTRIBUTION':
+      return { asset: tile.asset, verdict: v, color: tile.color, line1: `Spot selling ${amt} in ${tf}`, line2: 'Price flat — quiet exit' };
     case 'SPECULATIVE': {
       const futAhead = b.res.spotToFutRatio > 0 ? (1 / b.res.spotToFutRatio).toFixed(1) : '∞';
       return { asset: tile.asset, verdict: v, color: tile.color, line1: `Futures ahead ${futAhead}x spot`, line2: 'Move likely to fade' };
@@ -136,7 +121,7 @@ function alertFor(b: Built, tf: SpotPulseTimeframe): SpotPulseAlert | null {
     case 'ACCUMULATION':
       return { asset: tile.asset, verdict: v, color: tile.color, line1: `Spot buying ${amt} in ${tf}`, line2: 'Price flat — quiet build' };
     case 'REVERSAL SETUP':
-      return { asset: tile.asset, verdict: v, color: tile.color, line1: `Spot buying ${amt} despite ${b.priceChange4h.toFixed(1)}% move`, line2: 'Floor forming — reversal setup' };
+      return { asset: tile.asset, verdict: v, color: tile.color, line1: `Spot buying ${amt} despite ${b.priceChangePct.toFixed(1)}% move`, line2: 'Floor forming — reversal setup' };
     case 'REAL BUYING':
       return { asset: tile.asset, verdict: v, color: tile.color, line1: `Spot leading — ${amt} inflow`, line2: 'Rally has genuine support' };
     default:
@@ -144,54 +129,53 @@ function alertFor(b: Built, tf: SpotPulseTimeframe): SpotPulseAlert | null {
   }
 }
 
+/**
+ * @param extraAssets Spot Pulse Pro row 2: the Watchlist Pro "Also Worth Watching" coins.
+ * @param topVolume   coins to fill row 2's empty slots, labelled "Top volume".
+ */
 export async function makeSpotPulseLive(
   tier: 'plus' | 'pro',
   tf: SpotPulseTimeframe = '4H',
   extraAssets: string[] = [],
+  topVolume: string[] = [],
 ): Promise<SpotPulsePayload> {
-  // Row 1 = the 5 fixed anchors. Spot Pulse Pro adds Row 2 = Watchlist Pro's
-  // extra coins (Andrew's spec v1.6 ← Rachelle: "Spot Pulse takes the tokens
-  // that enter the watchlist") — no need for the tier-locked spot/coins-markets.
-  const row2 = tier === 'pro' ? extraAssets.filter((a) => !ANCHORS.includes(a)).slice(0, 5) : [];
+  const watch = tier === 'pro' ? extraAssets.filter((a) => !ANCHORS.includes(a)).slice(0, 5) : [];
+  const fill = tier === 'pro' ? topVolume.filter((a) => !ANCHORS.includes(a) && !watch.includes(a)).slice(0, 5 - watch.length) : [];
   const [built, spotNet] = await Promise.all([
     Promise.all([
       ...ANCHORS.map((a) => buildAsset(a, 1, tf).catch(() => null)),
-      ...row2.map((a) => buildAsset(a, 2, tf).catch(() => null)),
+      ...watch.map((a) => buildAsset(a, 2, tf, 'watchlist').catch(() => null)),
+      ...fill.map((a) => buildAsset(a, 2, tf, 'top-volume').catch(() => null)),
     ]).then((xs) => xs.filter((b): b is Built => b !== null)),
-    // §6 spot netflow — 1h exchange netflow per symbol (only window CoinGlass exposes).
-    // Degrades to null (hidden) if the spot endpoint isn't on the current plan.
     netflowList('spot').catch(() => [] as Awaited<ReturnType<typeof netflowList>>),
   ]);
 
-  // Every anchor failed (or had no CVD on either side) — a total CoinGlass
-  // outage, not a genuinely quiet market. Throw rather than return an empty
-  // grid that would look like "no signals right now" (matches the live
-  // provider's documented "throw on catastrophic failure" convention).
-  if (built.length === 0) {
-    throw new Error('Spot Pulse data unavailable — all asset fetches failed');
-  }
+  // Every coin failed — an outage, not a quiet market: throw instead of an empty grid.
+  if (built.length === 0) throw new Error('Spot Pulse data unavailable — all asset fetches failed');
 
   const tiles = built.map((b) => b.tile);
-  const verdicts = tiles.map((t) => t.verdict as SpotVerdict);
-  // 10-tile thresholds only when the Pro grid is actually ~10 tiles.
-  const marketVerdict = computeMarketVerdict(verdicts, tier === 'pro' && tiles.length >= 8 ? 'pro' : 'plus');
+  // Market verdict on tiles with data only (no NO DATA, no "not enough history").
+  const withData = tiles.filter((t) => !t.insufficient && !t.notEnoughHistory);
+  const marketVerdict = computeMarketVerdict(withData.map((t) => t.verdict as SpotVerdict));
 
-  // Alert cards: top 3 by divergence score (§5).
   const scored = built
-    .map((b) => ({ b, score: divergenceScore(b.res, { asset: b.tile.asset, spotCvdChange: b.spotCvdChange, priceChange4h: b.priceChange4h }) }))
+    .filter((b) => !b.tile.insufficient && !b.tile.notEnoughHistory)
+    .map((b) => ({ b, score: divergenceScore(b.res, { asset: b.tile.asset, spotDelta: b.spotDelta, priceChangePct: b.priceChangePct, isDynamicRow2: b.tile.row === 2 }) }))
     .filter((x) => x.score > 0)
     .sort((a, b) => b.score - a.score);
   const alerts = scored.slice(0, 3).map((x) => alertFor(x.b, tf)).filter((a): a is SpotPulseAlert => a !== null);
 
-  const netSpotFlow = built.reduce((acc, b) => acc + b.spotCvdChange, 0);
+  const netSpotFlow = built.reduce((acc, b) => acc + (b.tile.insufficient ? 0 : b.spotDelta), 0);
 
-  // Aggregate 1h spot netflow across the tiles we actually rendered (§6).
+  // Footer: 24h spot volume (taker buy + sell) and 1h spot netflow across the rendered tiles.
   let spotNetflow: number | null = null;
+  let totalSpotVol24h: number | null = null;
   if (spotNet.length) {
-    const bySym = new Map(spotNet.map((n) => [n.symbol, Number(n.net_flow_usd_1h) || 0]));
-    const withData = built.filter((b) => bySym.has(b.tile.asset));
-    if (withData.length) {
-      spotNetflow = Math.round(withData.reduce((s, b) => s + (bySym.get(b.tile.asset) ?? 0), 0));
+    const bySym = new Map(spotNet.map((r) => [r.symbol, r]));
+    const rows = tiles.map((t) => bySym.get(t.asset)).filter((r): r is NonNullable<typeof r> => !!r);
+    if (rows.length) {
+      spotNetflow = Math.round(rows.reduce((s, r) => s + (Number(r.net_flow_usd_1h) || 0), 0));
+      totalSpotVol24h = Math.round(rows.reduce((s, r) => s + (Number(r.taker_buy_volume_usd_24h) || 0) + (Number(r.taker_sell_volume_usd_24h) || 0), 0));
     }
   }
 
@@ -199,11 +183,11 @@ export async function makeSpotPulseLive(
     tier,
     timeframe: tf,
     marketVerdict,
-    marketSentence: MARKET_SENTENCE[marketVerdict], // TODO(ai): LLM one-liner when an Anthropic key exists
+    marketSentence: MARKET_SENTENCE[marketVerdict],
     tiles,
     alerts,
     footer: {
-      totalSpotVol24h: null, // per-asset spot volume needs spot/coins-markets (tier-locked)
+      totalSpotVol24h,
       netSpotFlow: Math.round(netSpotFlow),
       divergenceCount: scored.length,
       spotNetflow,

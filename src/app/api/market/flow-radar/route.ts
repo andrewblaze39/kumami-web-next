@@ -89,7 +89,7 @@ export async function GET(request: Request) {
   // Cross-signal outlines (v1.15 Plus §3 — Plus and Pro, same rules). Each source is
   // best-effort (timeout + catch) so one slow read can't drop the others or the feed.
   const [spotPulse, console_, fearGreed] = await Promise.all([
-    withTimeout(getCachedFresh('market:v2:spotpulse:free:4H', 60, () => getProvider().spotPulse('free', '4H')), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null),
+    withTimeout(getCachedFresh('market:v3:spotpulse:free:4H', 60, () => getProvider().spotPulse('free', '4H')), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null),
     withTimeout(getCachedFresh('market:v2:console', 300, () => getProvider().console()), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null),
     withTimeout(getCachedFresh('market:v2:fear-greed', 300, () => getProvider().fearGreed()), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null),
   ]);

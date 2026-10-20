@@ -30,7 +30,7 @@ export interface MarketDataProvider {
   watchlist(uid: string, tier: 'free' | 'pro'): Promise<WatchlistPayload>;
   intelligence(tier: 'free' | 'pro'): Promise<IntelligencePayload>;
   /** extraAssets: Spot Pulse Pro's second row (Watchlist Pro's extra coins); ignored for free. */
-  spotPulse(tier: 'free' | 'pro', timeframe: '4H' | '24H' | '7D', extraAssets?: string[]): Promise<SpotPulsePayload>;
+  spotPulse(tier: 'free' | 'pro', timeframe: '4H' | '24H' | '7D', extraAssets?: string[], topVolume?: string[]): Promise<SpotPulsePayload>;
   fearGreed(): Promise<FearGreedPayload>;
   calendar(): Promise<CalendarPayload>;
 }
