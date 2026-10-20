@@ -175,10 +175,14 @@ The owner can read their own rows.
 |---|---|---|
 | `market_cache/{key}` | `/api/market/*` routes | `{ value, updatedAt }`. Shared TTL cache of CoinGlass/CoinGecko responses, 2–30 minutes |
 | `flow_snapshots/{bucket}` | `/api/market/flow-radar` | 15-minute Flow Radar Plus snapshots (old ones are pruned) |
-| `flow_daily/{yyyy-mm-dd}` | `/api/market/flow-radar` | Daily Flow Radar events (7-day consistency for Watchlist Pro) |
+| `flow_daily/{yyyy-mm-dd}` | `/api/market/flow-radar`, `/api/v1/cron/collect` | Daily Flow Radar tally per coin: event counts, `maxUsd`, and (from v1.15) `bullishUsd` / `bearishUsd` |
+| `flow_events/{eventKey}` | `/api/v1/cron/collect` | One doc per Flow Radar event (the event fields + `counted`, `firstSeen`, `lastSeen`, `expireAt` = event time + 7 days). Key = event id (tx hash, coin+hour, exchange+token+hour) |
+| `flow_hourly/{yyyy-mm-ddTHH}_{COIN}` | `/api/v1/cron/collect` | `{ hour, asset, bullishUsd, bearishUsd, expireAt }` — bullish/bearish $ per coin per hour (Dry Powder and neutral events excluded) |
 | `watchlists/{uid}` | `/api/market/watchlist` | `{ symbols }` (Watchlist Pro pins) |
 | `alerts/{id}` | `/api/webhooks/alchemy` | Wallet activity alerts |
 | `whales/{id}` | Admin | Tracked whale wallets |
+
+Server-only: no Firestore rule allows clients to read or write the `flow_*` collections (Admin SDK only). Retention: the collector deletes docs past `expireAt`; also add a Firestore **TTL policy** on `expireAt` for `flow_events` and `flow_hourly` (Console → Firestore → TTL) so nothing outlives 7 days if the collector stops.
 
 ## 6. Admin
 

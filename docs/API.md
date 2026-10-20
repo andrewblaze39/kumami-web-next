@@ -216,6 +216,14 @@ n8n posts `{ userId, chatRoomId, aiResponse }` to the `callbackUrl` it was given
 | `POST /admin/news/{id}/notify` | role `admin`/`superadmin`/`newsresearchadmin` | Sends one push notification to FCM topic `all-users` for a **published** news doc: `{title, body: summary}`, data `{type:'news', newsId}`. Sets `news.pushedAt`, so it sends only once. Called by the admin News publish pages. Replaces the old `notifyOnNewsPublish` function |
 | `POST /api/admin/subscription` (unversioned, web admin only) | superadmin | Grant or remove Pro manually. **Remove** also cancels the user's live Stripe subscription, so billing stops |
 
+### `POST /cron/collect` — Cloud Scheduler only
+The background collector (spec v1.15 Platform). Header `x-cron-secret: <CRON_SECRET>` (constant-time compare); 401 without it, 503 `not_configured` when `CRON_SECRET` isn't set. Each call (every 60 s) builds the Flow Radar events (shared 60 s buffer cache, ~10 CoinGlass calls), upserts them into `flow_events` (one doc per event key: liquidations keep their peak, Dry Powder the latest net), adds the new bullish/bearish $ to `flow_hourly`, records `flow_daily`, and deletes docs past their 7-day `expireAt`. Response: `{ events, created, updated, hourly, deleted, ms }`.
+
+Cloud Scheduler job (Andrew, once — project `kumami-6df47` for production, `kumami-dev` for dev):
+`gcloud scheduler jobs create http kumami-collector --schedule="* * * * *" --http-method=POST --uri="<APP_BASE_URL>/api/v1/cron/collect" --headers="x-cron-secret=<CRON_SECRET>" --attempt-deadline=50s --location=<region>`
+
+CoinGlass budget: every server call goes through one 70-per-minute window per instance (`lib/market/coinglass/rateWindow.ts`) with back-off on HTTP 429; pages read caches and never call CoinGlass directly.
+
 ---
 
 ## 9. Other server routes (unversioned, website-internal)
@@ -243,6 +251,7 @@ n8n posts `{ userId, chatRoomId, aiResponse }` to the `callbackUrl` it was given
 | `KUMA_CALLBACK_SECRET` (random 32+ bytes), `N8N_CHAT_WEBHOOK_URL`, `N8N_CHAT_METHOD` (`GET` default) | Kuma chat |
 | `APP_BASE_URL` (`https://kumami.world`) | Redirect and callback URLs |
 | `FIREBASE_SERVICE_ACCOUNT_JSON` | All server routes |
+| `CRON_SECRET` (random 32+ bytes) | `POST /cron/collect` (Cloud Scheduler header) |
 
 Stripe Dashboard setup, once per mode:
 - Products: Monthly $19.99/month and Yearly $199.99/year. Copy the price ids.
