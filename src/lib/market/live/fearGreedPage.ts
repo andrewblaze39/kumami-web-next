@@ -24,6 +24,7 @@ import {
 import { fearGreed, globalLongShort, stablecoinMcap, priceHistory } from './cg-endpoints';
 import { pairSymbol } from './helpers';
 import { makeIntelligencePayloadLive } from './intel';
+import { aiHeadlineTones } from '../llm/gemini';
 
 const BASKET: { asset: string; weight: number }[] = [
   { asset: 'BTC', weight: 0.50 },
@@ -152,9 +153,10 @@ export async function makeFearGreedPayloadLive(): Promise<FearGreedPayload> {
   const change7dUsd = stableFailed ? null : latestTotal - total7;
   const compScore = scoreMarketComposition(change7dUsd ?? 0);
 
-  // --- Sub-metric 5: news tone (estimated, keyword heuristic) ---------------
+  // --- Sub-metric 5: news tone — AI-labelled headlines (v1.15 Plus §4), keyword count as fallback
   const headlines = intel.briefs.map((b) => b.headline);
-  const classified = headlines.map(classifyHeadline);
+  const aiTones = await aiHeadlineTones(headlines);
+  const classified = aiTones ?? headlines.map(classifyHeadline);
   const bullishCount = classified.filter((c) => c === 'bullish').length;
   const newsUnavailable = headlines.length === 0;
   const bullishPct = newsUnavailable ? 50 : (bullishCount / headlines.length) * 100;
@@ -215,8 +217,8 @@ export async function makeFearGreedPayloadLive(): Promise<FearGreedPayload> {
         score: newsScore,
         value: Number(bullishPct.toFixed(0)),
         label: 'News Tone',
-        source: 'AI scoring (estimated) · pipeline in progress',
-        estimated: true,
+        source: aiTones ? 'AI-scored headlines · refreshed every 30 min' : 'Keyword estimate (AI unavailable)',
+        estimated: !aiTones,
         unavailable: newsUnavailable,
       },
     },
