@@ -15,7 +15,7 @@ import { authenticate } from '@/lib/market/api-helpers';
 import { getProvider } from '@/lib/market/provider';
 import { getCachedFresh } from '@/lib/market/cache';
 import { effectiveTier, parseView } from '@/lib/market/gating';
-import { pickExtraCoins } from '@/lib/market/consistentCoins';
+import { pickSectionC } from '@/lib/market/consistentCoins';
 import { ANCHOR_ASSETS } from '@/lib/market/rules/consistentFlow';
 
 export const dynamic = 'force-dynamic';
@@ -39,13 +39,13 @@ export async function GET(request: Request) {
 
   // Pro: second row = the shared "5 extra coins" (anchors excluded; not per-user
   // pins, so one cached payload serves every Pro user).
-  const buffer = await getCachedFresh('market:v2:flow-radar', 60, () => getProvider().flowRadar('pro')).catch(() => []);
-  const extras = await pickExtraCoins(buffer, new Set(ANCHOR_ASSETS));
+  // Row 2 = the Watchlist Pro Section C coins (shared rule, anchors excluded — v1.15 Pro §5).
+  const extras = await pickSectionC(new Set(ANCHOR_ASSETS));
   const extraAssets = extras.coins.map((c) => c.asset);
   const payload = await getCachedFresh(
     `market:v2:spotpulse:pro:${timeframe}:${extraAssets.join(',')}`,
     15,
     () => getProvider().spotPulse('pro', timeframe, extraAssets),
   );
-  return NextResponse.json({ ...payload, extraMode: extras.mode, historyDays: extras.historyDays });
+  return NextResponse.json({ ...payload, extraMode: extras.mode, historyDays: extras.daysWithUsd });
 }

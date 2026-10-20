@@ -8138,3 +8138,6 @@
   color: var(--muted);
   white-space: nowrap;
 }
+
+/* Watchlist Pro Section C "Only N coins…" line (v1.15 Pro §19, no padding) */
+.world-root .w-wl-note { display: block; color: var(--muted); font-size: 12.5px; }

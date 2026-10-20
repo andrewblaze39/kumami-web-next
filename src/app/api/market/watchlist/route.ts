@@ -40,7 +40,8 @@ import { authenticate } from '@/lib/market/api-helpers';
 import { getProvider } from '@/lib/market/provider';
 import { getCachedFresh } from '@/lib/market/cache';
 import { watchlistSlots, pinCap, effectiveTier, parseView } from '@/lib/market/gating';
-import { pickExtraCoins } from '@/lib/market/consistentCoins';
+import { pickSectionC, readPinMarkets } from '@/lib/market/consistentCoins';
+import { checkPin } from '@/lib/market/rules/watchlistPins';
 import type { WatchlistApiResponse } from '@/lib/market/contracts';
 import { buildAsset, type SignalInputs } from '@/lib/market/live/watchlist';
 import {
@@ -150,14 +151,13 @@ export async function GET(request: Request) {
       await Promise.all(curatedSymbols.map((sym) => buildAsset(sym, signalInputsFor(sym)).catch(() => null)))
     ).filter((a): a is WatchlistApiResponse['curatedAssets'][number] => a !== null);
 
-    // Section C (Andrew's spec v1.6 ← Rachelle: "5 fixed + 5 consistent spikes"):
-    // the coins most consistently present in Flow Radar over the last 7 days.
-    // Until 7 days of history exist, fall back to the 24h whale-flow scoring.
+    // Section C (Rachelle v1.15 Pro §19): 3-day net accumulation confirmed by spot
+    // buyers, liquid coins only, no padding. 'building' until 3 days of recorded $.
     const exclude = new Set([...sectionAAssets.map((a) => a.asset), ...curatedSymbols]);
-    const extras = await pickExtraCoins(events, exclude, now);
-    historyDays = extras.historyDays;
-    sectionCMode = extras.mode;
-    const scored = extras.coins;
+    const picked = await pickSectionC(exclude, now);
+    historyDays = picked.daysWithUsd;
+    sectionCMode = picked.mode;
+    const scored = picked.coins;
     sectionC = (
       await Promise.all(scored.map(async (s) => {
         const row = await buildAsset(s.asset, signalInputsFor(s.asset)).catch(() => null);
@@ -199,11 +199,19 @@ export async function POST(request: Request) {
 
   const cap = pinCap(tier);
 
-  const result = await addSymbol(uid, symbol, cap);
+  // Section B pin rules (Rachelle v1.15 Pro §19): ≥ $10M spot volume + a futures
+  // market; no stablecoins, wrapped tokens or core assets. If the market lists are
+  // unavailable, fall back to the fixed allowlist rather than block every pin.
+  const markets = await readPinMarkets();
+  if (markets) {
+    const check = checkPin(symbol, markets);
+    if (!check.ok) return NextResponse.json({ error: check.code, message: check.message }, { status: 400 });
+  }
+  const result = await addSymbol(uid, symbol, cap, undefined, markets ? () => true : undefined);
 
   if ('code' in result) {
     const status = result.code === 'slots_exceeded' ? 403 : 400;
-    return NextResponse.json({ error: result.code }, { status });
+    return NextResponse.json({ error: result.code, message: result.message }, { status });
   }
 
   return NextResponse.json({ symbols: result });

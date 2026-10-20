@@ -101,6 +101,8 @@ export type WatchlistError =
   | { code: 'slots_exceeded'; message: string }
   | { code: 'invalid_symbol'; message: string };
 
+const inAllowList = (s: string) => (ALLOWED_SYMBOLS as readonly string[]).includes(s);
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -119,7 +121,8 @@ export async function getCuratedSymbols(
  * Add a symbol to the user's curated watchlist.
  *
  * Returns the updated list on success, or a WatchlistError if:
- *   - symbol is not in the allowlist → code: 'invalid_symbol'
+ *   - `isAllowed(symbol)` is false → code: 'invalid_symbol' (default: the fixed allowlist;
+ *     Watchlist Pro passes the v1.15 liquidity check instead, see rules/watchlistPins.ts)
  *   - adding would exceed `maxSlots` → code: 'slots_exceeded'
  * Deduplicates silently (adding existing symbol is a no-op, returns current list).
  *
@@ -131,9 +134,10 @@ export async function addSymbol(
   symbol: string,
   maxSlots: number,
   deps: WatchlistDeps = makeFirestoreDeps(),
+  isAllowed: (symbol: string) => boolean = inAllowList,
 ): Promise<string[] | WatchlistError> {
   // Validate symbol before entering the transaction (cheap, no I/O)
-  if (!(ALLOWED_SYMBOLS as readonly string[]).includes(symbol)) {
+  if (!isAllowed(symbol)) {
     return { code: 'invalid_symbol', message: `Symbol "${symbol}" is not in the allowed list.` };
   }
 

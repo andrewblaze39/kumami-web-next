@@ -13,6 +13,9 @@ import type { FlowEvent } from './contracts';
 import { readFlowHistory } from './flowHistory';
 import { HISTORY_DAYS, rankConsistentFlow, STABLECOINS } from './rules/consistentFlow';
 import { computeSectionC } from './rules/watchlistSectionC';
+import { computeSectionC3d, type SectionC3dResult } from './rules/watchlistSectionC3d';
+import type { PinMarkets } from './rules/watchlistPins';
+import { netflowList } from './live/cg-endpoints';
 
 export type ExtraCoins = {
   coins: { asset: string; reasons: string[] }[];
@@ -49,4 +52,32 @@ export async function pickExtraCoins(
     }
   }
   return { coins, mode: 'building', historyDays };
+}
+
+/** Spot volume + futures markets from the cached netflow-lists (Section B pin check, Section C). */
+export async function readPinMarkets(): Promise<(PinMarkets & { spotNet3d: Map<string, number> }) | null> {
+  const [spot, futures] = await Promise.all([
+    netflowList('spot').catch(() => null),
+    netflowList('futures').catch(() => null),
+  ]);
+  if (!spot?.length || !futures?.length) return null;
+  const spotVolume = new Map<string, number>();
+  const spotNet3d = new Map<string, number>();
+  for (const r of spot) {
+    const s = String(r.symbol).toUpperCase();
+    spotVolume.set(s, (Number(r.taker_buy_volume_usd_24h) || 0) + (Number(r.taker_sell_volume_usd_24h) || 0));
+    spotNet3d.set(s, Number(r.net_flow_usd_3d) || 0);
+  }
+  return { spotVolume, spotNet3d, futures: new Set(futures.map((r) => String(r.symbol).toUpperCase())) };
+}
+
+/**
+ * Section C "Also Worth Watching" (Rachelle v1.15 Pro §19): 3-day net accumulation,
+ * confirmed by spot buyers, liquid coins only, no padding. Also Spot Pulse Pro's row 2.
+ * Without the netflow-lists (outage) nothing qualifies — never a guessed list.
+ */
+export async function pickSectionC(exclude: Set<string>, now = Date.now(), limit = 5): Promise<SectionC3dResult> {
+  const [history, markets] = await Promise.all([readFlowHistory(now), readPinMarkets()]);
+  if (!markets) return { coins: [], mode: 'building', daysWithUsd: 0 };
+  return computeSectionC3d(history, { exclude: new Set([...exclude, ...STABLECOINS]), markets, spotNet3d: markets.spotNet3d, limit });
 }
