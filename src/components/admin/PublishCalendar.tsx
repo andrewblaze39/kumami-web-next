@@ -8,7 +8,7 @@ import {
 } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminPageTour, { proAdminTourSteps } from './AdminPageTour';
-import { parseAdminWhen } from '@/lib/market/rules/calendarEvents';
+import { ADMIN_CATEGORIES, missingTokenSaleFields, parseAdminWhen, TOKEN_SALE } from '@/lib/market/rules/calendarEvents';
 
 /**
  * PublishCalendar — admin authoring for the shared Calendar (/world/calendar,
@@ -28,7 +28,14 @@ import { parseAdminWhen } from '@/lib/market/rules/calendarEvents';
 const IMPS = ['high', 'med', 'low'] as const;
 type Imp = (typeof IMPS)[number];
 const IMP_LABEL: Record<Imp, string> = { high: 'High impact', med: 'Medium', low: 'Low' };
-const CATS = ['Macro', 'Token unlock', 'On-chain', 'Regulatory', 'Project', 'Other'];
+const CATS = ADMIN_CATEGORIES;
+
+/** Importance guide for the team (Rachelle v1.15 Plus §5). */
+const IMPORTANCE_GUIDE: { imp: string; text: string }[] = [
+  { imp: 'High', text: 'CPI, PCE, NFP, FOMC decision or press conference, BoJ decision; unlocks ≥ 5% of circulating or ≥ $100M; Binance or Coinbase spot listings; tier-1 token sales. Only High events trigger the popups and the Console badge.' },
+  { imp: 'Medium', text: 'PPI, GDP, Retail Sales, ISM, JOLTS, FOMC Minutes, Fed Chair; ECB / BoE / PBoC decisions; unlocks ≥ 2% or ≥ $25M; OKX / Bybit / Upbit spot listings.' },
+  { imp: 'Low', text: 'Everything else (hidden on the Calendar unless the user turns LOW on).' },
+];
 
 /** Legacy docs stored free-text times ("8:30 AM UTC") — normalise to HH:MM for the time picker. */
 function toPickerTime(date: string, time: string | undefined): string {
@@ -47,10 +54,13 @@ interface CalDoc {
   cat: string;
   d: string;
   assets?: string;
+  venue?: string;
+  raise?: string;
+  link?: string;
   status: 'published' | 'draft';
 }
 
-const EMPTY = { t: '', date: '', time: '', imp: 'med' as Imp, cat: 'Macro', d: '', assets: '' };
+const EMPTY = { t: '', date: '', time: '', imp: 'med' as Imp, cat: 'Macro', d: '', assets: '', venue: '', raise: '', link: '' };
 
 /** pro_settings/calendar — automatic CoinGlass feeds on the Calendar (both OFF by default). */
 type FeedSettings = { macroFeed?: boolean; unlockFeed?: boolean; updatedBy?: string; updatedAt?: Timestamp };
@@ -116,6 +126,8 @@ export default function PublishCalendar() {
   const save = async (status: 'published' | 'draft') => {
     if (!currentUser) { setMessage('Please sign in'); return; }
     if (!form.t.trim() || !form.date) { setMessage('Title and date are required.'); return; }
+    const missing = status === 'published' ? missingTokenSaleFields(form) : [];
+    if (missing.length) { setMessage(`A token sale needs: ${missing.join(', ')}.`); return; }
     setLoading(true);
     try {
       if (editingId) {
@@ -136,6 +148,7 @@ export default function PublishCalendar() {
     setForm({
       t: item.t, date: item.date, time: toPickerTime(item.date, item.time), imp: item.imp,
       cat: item.cat, d: item.d, assets: item.assets ?? '',
+      venue: item.venue ?? '', raise: item.raise ?? '', link: item.link ?? '',
     });
     setMessage('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -212,8 +225,31 @@ export default function PublishCalendar() {
             {CATS.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
+        <details className="md:col-span-2 text-sm text-gray-700 border border-gray-200 rounded-md p-3">
+          <summary className="cursor-pointer font-medium text-gray-900">Which impact should I pick?</summary>
+          <ul className="mt-2 space-y-1">
+            {IMPORTANCE_GUIDE.map((g) => <li key={g.imp}><b>{g.imp}:</b> {g.text}</li>)}
+          </ul>
+        </details>
+        {form.cat === TOKEN_SALE && (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Venue (launchpad / exchange)</label>
+              <input className={inputCls} value={form.venue} onChange={(e) => set('venue', e.target.value)} placeholder="e.g. Binance Launchpool" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Raise or FDV</label>
+              <input className={inputCls} value={form.raise} onChange={(e) => set('raise', e.target.value)} placeholder="e.g. $12M raise · $400M FDV" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Official link</label>
+              <input className={inputCls} value={form.link} onChange={(e) => set('link', e.target.value)} placeholder="https://…" />
+              <p className="text-xs text-gray-500 mt-1">A token sale needs the project (title), ticker (assets), date, time in UTC, venue, raise or FDV, and this link.</p>
+            </div>
+          </>
+        )}
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Affected assets (optional)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{form.cat === TOKEN_SALE ? 'Ticker' : 'Affected assets (optional)'}</label>
           <input
             className={inputCls}
             value={form.assets}

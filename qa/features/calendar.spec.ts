@@ -84,8 +84,10 @@ test.describe('Calendar — CoinGlass feeds: OFF by default, admin switches (QA3
     await dismissPopupIfAny(page);
     await expectSaneText(page);
     await expect(chips(page).first()).toBeVisible();
+    // v1.15 Plus §5: HIGH + MED are on by default, LOW is off — no LOW chip shows yet.
+    const defaults = await chips(page).evaluateAll((els) => els.map((e) => e.getAttribute('title') ?? ''));
+    for (const t of defaults) expect(t).not.toMatch(/, LOW\)/);
     await page.getByRole('button', { name: 'MED', exact: true }).click();
-    await page.getByRole('button', { name: 'LOW', exact: true }).click();
     const highTitles = await chips(page).evaluateAll((els) => els.map((e) => e.getAttribute('title') ?? ''));
     expect(highTitles.length).toBeGreaterThan(0);
     for (const t of highTitles) expect(t).toMatch(/, HIGH\)/);

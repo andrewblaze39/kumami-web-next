@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import {
   adminCategoryToType,
+  ADMIN_CATEGORIES,
   adminToEvent,
+  airdropToEvent,
+  missingTokenSaleFields,
   badgeCountdown,
   consoleBadgeEvents,
   isAttentionEligible,
@@ -162,5 +165,29 @@ describe('mergeCalendarEvents', () => {
     };
     const out = mergeCalendarEvents([macroToEvent(row), macroToEvent(row)]);
     expect(out).toHaveLength(1);
+  });
+});
+
+describe('v1.15 Plus §5 — Listing, Token sale / TGE, airdrop TGE dates', () => {
+  it('has the new admin categories', () => {
+    expect(ADMIN_CATEGORIES).toEqual(expect.arrayContaining(['Listing', 'Token sale / TGE']));
+  });
+  it('a token sale needs project, ticker, date, UTC time, venue, raise/FDV and a link', () => {
+    expect(missingTokenSaleFields({ cat: 'Token sale / TGE' })).toEqual(['project', 'ticker', 'date', 'time (UTC)', 'venue', 'raise or FDV', 'link']);
+    expect(missingTokenSaleFields({
+      cat: 'Token sale / TGE', t: 'Acme', assets: 'ACME', date: '2026-11-02', time: '14:00', venue: 'Binance Launchpool', raise: '$12M raise', link: 'https://acme.xyz',
+    })).toEqual([]);
+    expect(missingTokenSaleFields({ cat: 'Listing', t: 'x' })).toEqual([]);
+  });
+  it('token sale details reach the event (venue, raise, link)', () => {
+    const e = adminToEvent('ts1', { t: 'Acme', date: '2026-11-02', time: '14:00', imp: 'high', cat: 'Token sale / TGE', assets: 'ACME', venue: 'Binance Launchpool', raise: '$400M FDV', link: 'https://acme.xyz' });
+    expect(e?.description).toBe('Venue: Binance Launchpool · Raise / FDV: $400M FDV');
+    expect(e?.link).toBe('https://acme.xyz');
+    expect(e?.ts).toBe('2026-11-02T14:00:00.000Z');
+  });
+  it('an airdrop with a TGE / claim date becomes a MED team event; without one, nothing', () => {
+    const e = airdropToEvent('a1', { name: 'Acme', cat: 'airdrop', desc: 'Claim opens', tgeDate: '2026-11-05', tgeTime: '09:30' });
+    expect(e).toMatchObject({ id: 'airdrop-a1', title: 'Acme — Airdrop TGE / claim', impact: 'MED', source: 'kumami', ts: '2026-11-05T09:30:00.000Z' });
+    expect(airdropToEvent('a2', { name: 'NoDate', desc: '' })).toBeNull();
   });
 });
