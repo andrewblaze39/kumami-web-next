@@ -3,6 +3,7 @@
 import type { ConsolePayload, FlowEvent } from '@/lib/market/contracts';
 import { formatUsd, relativeTime } from './format';
 import { WIcon } from './console-ui';
+import { flowLean, type FlowLean } from '@/lib/market/rules/flowDirections';
 
 type Props = {
   events: ConsolePayload['flowRadar'];
@@ -11,26 +12,19 @@ type Props = {
 
 const TYPE_LABEL: Record<FlowEvent['type'], string> = {
   whale_transfer: 'Whale Transfer',
-  exchange_flow: 'Exchange Flow',
+  exchange_flow: 'Dry Powder',
   liq_spike: 'Liq. Spike',
   netflow_flip: 'Netflow Flip',
   whale_wall: 'Whale Wall',
   smart_money: 'Smart Money',
 };
 
-// Reference radar-ic variants: in (green, arrow), out (red, bolt), acc (gold, flame)
+// Reference radar-ic variants: in (green, arrow) = bullish, out (red, bolt) = bearish,
+// acc (gold, flame) = neutral. Coloured by the shared v1.15 buckets — before this,
+// Inflow (bearish) showed as a green "+" and Outflow (bullish) as a red "−".
 type RadarDir = 'in' | 'out' | 'acc';
 
-const DIR_KIND: Record<FlowEvent['direction'], RadarDir> = {
-  Inflow: 'in',
-  'Buy Pressure': 'in',
-  'Support Wall': 'in',
-  Outflow: 'out',
-  'Sell Pressure': 'out',
-  'Resistance Wall': 'out',
-  Accumulation: 'acc',
-  'Smart Money': 'acc',
-};
+const LEAN_KIND: Record<FlowLean, RadarDir> = { bullish: 'in', bearish: 'out', neutral: 'acc' };
 
 const DIR_ICON: Record<RadarDir, 'arrowR' | 'bolt' | 'flame'> = {
   in: 'arrowR',
@@ -98,7 +92,7 @@ export default function FlowRadarFeed({ events, loading }: Props) {
           </div>
           <div className="w-radar-list" aria-label="Flow radar events">
             {events.map(event => {
-              const dir = DIR_KIND[event.direction] ?? 'in';
+              const dir = LEAN_KIND[flowLean(event.direction)];
               return (
                 <div key={event.id} className="w-radar-item">
                   <span
@@ -115,8 +109,8 @@ export default function FlowRadarFeed({ events, loading }: Props) {
                     </div>
                   </div>
                   <div className="w-radar-amt">
-                    <b className={dir === 'out' ? 'w-bear' : 'w-bull'}>
-                      {dir === 'out' ? '−' : '+'}
+                    <b className={dir === 'out' ? 'w-bear' : dir === 'in' ? 'w-bull' : ''}>
+                      {dir === 'out' ? '−' : dir === 'in' ? '+' : ''}
                       {formatUsd(event.amountUsd)}
                     </b>
                     <span>{relativeTime(event.ts)}</span>

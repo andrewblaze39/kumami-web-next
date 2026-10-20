@@ -1,103 +1,45 @@
 import { describe, it, expect } from 'vitest';
-import { computeFlowCrossSignal } from '../flowCrossSignal';
+import { computeFlowCrossSignal, type FlowCrossSignalContext } from '../flowCrossSignal';
+import type { FlowEvent } from '../../contracts';
+
+// Rachelle v1.15 Plus §3 cross-signal outlines (Plus and Pro).
+const e = (type: FlowEvent['type'], direction: FlowEvent['direction'], asset = 'BTC') => ({ type, direction, asset });
 
 describe('computeFlowCrossSignal', () => {
-  it('rule 1: whale outflow + Spot Pulse REAL BUYING → Spot Pulse confirming (green)', () => {
-    const r = computeFlowCrossSignal(
-      { type: 'whale_transfer', direction: 'Outflow', asset: 'BTC' },
-      { spotPulseVerdictByAsset: { BTC: 'REAL BUYING' } },
-    );
-    expect(r).toEqual({ label: 'Spot Pulse confirming', color: 'green' });
+  it('rule 1: whale outflow + Spot Pulse REAL BUYING/ACCUMULATION → green', () => {
+    for (const v of ['REAL BUYING', 'ACCUMULATION']) {
+      expect(computeFlowCrossSignal(e('whale_transfer', 'Outflow'), { spotPulseVerdictByAsset: { BTC: v } }))
+        .toEqual({ label: 'Spot Pulse confirming', color: 'green' });
+    }
+    expect(computeFlowCrossSignal(e('whale_transfer', 'Outflow'), { spotPulseVerdictByAsset: { BTC: 'SPECULATIVE' } })).toBeUndefined();
+    expect(computeFlowCrossSignal(e('whale_transfer', 'Inflow'), { spotPulseVerdictByAsset: { BTC: 'REAL BUYING' } })).toBeUndefined();
   });
 
-  it('rule 1: also fires on ACCUMULATION verdict', () => {
-    const r = computeFlowCrossSignal(
-      { type: 'whale_transfer', direction: 'Outflow', asset: 'ETH' },
-      { spotPulseVerdictByAsset: { ETH: 'ACCUMULATION' } },
-    );
-    expect(r?.label).toBe('Spot Pulse confirming');
+  it('rule 2: Long Flush + Bearish → red; Short Squeeze + Bullish → green (bullish mirror)', () => {
+    const ctx: FlowCrossSignalContext = { consoleRegimeByAsset: { BTC: 'Bearish', ETH: 'Bullish' } };
+    expect(computeFlowCrossSignal(e('liq_spike', 'Long Flush'), ctx)).toEqual({ label: 'Regime confirming', color: 'red' });
+    expect(computeFlowCrossSignal(e('liq_spike', 'Short Squeeze', 'ETH'), ctx)).toEqual({ label: 'Regime confirming', color: 'green' });
+    expect(computeFlowCrossSignal(e('liq_spike', 'Short Squeeze'), ctx)).toBeUndefined();
+    expect(computeFlowCrossSignal(e('liq_spike', 'Two-sided Flush'), ctx)).toBeUndefined();
   });
 
-  it('rule 1: does not fire on a bearish Spot Pulse verdict', () => {
-    const r = computeFlowCrossSignal(
-      { type: 'whale_transfer', direction: 'Outflow', asset: 'BTC' },
-      { spotPulseVerdictByAsset: { BTC: 'DISTRIBUTION' } },
-    );
-    expect(r).toBeUndefined();
+  it('rule 3: Long Opened + ≥ 2 bullish whale events → green; Short Opened + ≥ 2 bearish → red', () => {
+    const ctx: FlowCrossSignalContext = { whaleCounts24hByAsset: { BTC: { bullish: 2, bearish: 0 }, SOL: { bullish: 0, bearish: 3 } } };
+    expect(computeFlowCrossSignal(e('smart_money', 'Long Opened'), ctx)).toEqual({ label: 'Watchlist confirming', color: 'green' });
+    expect(computeFlowCrossSignal(e('smart_money', 'Short Opened', 'SOL'), ctx)).toEqual({ label: 'Watchlist confirming', color: 'red' });
+    expect(computeFlowCrossSignal(e('smart_money', 'Short Opened'), ctx)).toBeUndefined();
+    expect(computeFlowCrossSignal(e('smart_money', 'Position Closed'), ctx)).toBeUndefined();
+    expect(computeFlowCrossSignal(e('smart_money', 'Long Opened'), { whaleCounts24hByAsset: { BTC: { bullish: 1, bearish: 0 } } })).toBeUndefined();
   });
 
-  it('rule 1: does not fire on an inflow even with a bullish Spot Pulse verdict', () => {
-    const r = computeFlowCrossSignal(
-      { type: 'whale_transfer', direction: 'Inflow', asset: 'BTC' },
-      { spotPulseVerdictByAsset: { BTC: 'REAL BUYING' } },
-    );
-    expect(r).toBeUndefined();
+  it('rule 4 fallback: whale outflow + Fear / Extreme Fear', () => {
+    expect(computeFlowCrossSignal(e('whale_transfer', 'Outflow'), { fearGreedLabel: 'Extreme Fear' }))
+      .toEqual({ label: 'Regime shift confirming', color: 'green' });
+    expect(computeFlowCrossSignal(e('whale_transfer', 'Outflow'), { fearGreedLabel: 'Greed' })).toBeUndefined();
   });
 
-  it('rule 2: liq_spike + Bearish Console regime → Regime confirming (red)', () => {
-    const r = computeFlowCrossSignal(
-      { type: 'liq_spike', direction: 'Sell Pressure', asset: 'SOL' },
-      { consoleRegimeByAsset: { SOL: 'Bearish' } },
-    );
-    expect(r).toEqual({ label: 'Regime confirming', color: 'red' });
-  });
-
-  it('rule 2: does not fire when Console regime is not Bearish', () => {
-    const r = computeFlowCrossSignal(
-      { type: 'liq_spike', direction: 'Sell Pressure', asset: 'SOL' },
-      { consoleRegimeByAsset: { SOL: 'Neutral' } },
-    );
-    expect(r).toBeUndefined();
-  });
-
-  it('rule 3: smart_money + Watchlist Whale Accumulation tag → Watchlist confirming (green)', () => {
-    const r = computeFlowCrossSignal(
-      { type: 'smart_money', direction: 'Smart Money', asset: 'BNB' },
-      { watchlistTagsByAsset: { BNB: ['Whale Accumulation'] } },
-    );
-    expect(r).toEqual({ label: 'Watchlist confirming', color: 'green' });
-  });
-
-  it('rule 3: does not fire without the Whale Accumulation tag', () => {
-    const r = computeFlowCrossSignal(
-      { type: 'smart_money', direction: 'Smart Money', asset: 'BNB' },
-      { watchlistTagsByAsset: { BNB: ['Overheated'] } },
-    );
-    expect(r).toBeUndefined();
-  });
-
-  it('fallback: whale outflow during Fear → Regime shift confirming when no other rule fires', () => {
-    const r = computeFlowCrossSignal(
-      { type: 'whale_transfer', direction: 'Outflow', asset: 'BTC' },
-      { fearGreedLabel: 'Fear' },
-    );
-    expect(r).toEqual({ label: 'Regime shift confirming', color: 'green' });
-  });
-
-  it('fallback: Extreme Fear also qualifies', () => {
-    const r = computeFlowCrossSignal(
-      { type: 'whale_transfer', direction: 'Outflow', asset: 'BTC' },
-      { fearGreedLabel: 'Extreme Fear' },
-    );
-    expect(r?.label).toBe('Regime shift confirming');
-  });
-
-  it('fallback: does not fire when sentiment is not fear-leaning', () => {
-    expect(computeFlowCrossSignal({ type: 'whale_transfer', direction: 'Outflow', asset: 'BTC' }, { fearGreedLabel: 'Greed' })).toBeUndefined();
-    expect(computeFlowCrossSignal({ type: 'whale_transfer', direction: 'Outflow', asset: 'BTC' }, { fearGreedLabel: 'Neutral' })).toBeUndefined();
-  });
-
-  it('rule 1 takes priority over the Fear & Greed fallback when both would fire', () => {
-    const r = computeFlowCrossSignal(
-      { type: 'whale_transfer', direction: 'Outflow', asset: 'BTC' },
-      { spotPulseVerdictByAsset: { BTC: 'REAL BUYING' }, fearGreedLabel: 'Fear' },
-    );
-    expect(r?.label).toBe('Spot Pulse confirming');
-  });
-
-  it('no context at all → undefined', () => {
-    expect(computeFlowCrossSignal({ type: 'whale_transfer', direction: 'Outflow', asset: 'BTC' }, {})).toBeUndefined();
-    expect(computeFlowCrossSignal({ type: 'liq_spike', direction: 'Sell Pressure', asset: 'BTC' }, {})).toBeUndefined();
-    expect(computeFlowCrossSignal({ type: 'smart_money', direction: 'Smart Money', asset: 'BTC' }, {})).toBeUndefined();
+  it('rule 1 wins over the fallback', () => {
+    expect(computeFlowCrossSignal(e('whale_transfer', 'Outflow'), { spotPulseVerdictByAsset: { BTC: 'REAL BUYING' }, fearGreedLabel: 'Fear' })?.label)
+      .toBe('Spot Pulse confirming');
   });
 });

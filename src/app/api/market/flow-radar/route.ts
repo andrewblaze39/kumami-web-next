@@ -1,32 +1,22 @@
 /**
  * GET /api/market/flow-radar
  *
- * Returns the full FlowRadarPayload for the standalone /world/flow-radar tab.
+ * Returns the FlowRadarPayload for Flow Radar Plus (/world/flow-radar) and
+ * Flow Radar Pro (/world/pro?tab=flowradar). The page sends ?view=plus|pro.
+ * Events, buckets, verdict band and cross-signal rules are shared — Rachelle
+ * v1.15 Plus §3 / Pro §18:
+ *   Plus (?view=plus, every account) — 5 core assets, HIGH + MED, the 4 event
+ *     types (Exchange Flow = Dry Powder, market-wide so it shows for every
+ *     asset), served from the feed SNAPSHOT taken 15 min ago (flowSnapshots.ts).
+ *   Pro (?view=pro AND a Pro account) — real-time, every coin, LOW too, plus
+ *     Netflow Flip; coins under $1M 24h spot volume are hidden (flowLiquidity.ts).
+ *   Both get the cross-signal outlines (flowCrossSignal.ts).
  *
- * Two versions (Andrew's spec v1.6): the page sends ?view=plus|pro.
- *   Flow Radar Plus (?view=plus, every account — Pro accounts get the Plus
- *     version on the Plus page) — fixed 5-asset roster (BTC/ETH/SOL/BNB/HYPE),
- *     the 4 real event types, HIGH+MED only, served from the feed SNAPSHOT
- *     taken 15 min ago (lib/market/flowSnapshots.ts). A time filter can't do
- *     this: liquidation/netflow events are stamped with fetch time.
- *   Flow Radar Pro (?view=pro AND a Pro account) — see below.
- *   pro       — no asset-roster restriction (full tracked universe already
- *     flowing through the same bulk CoinGlass endpoints — see flow.ts's
- *     raised per-type caps), all 3 severities including LOW, no delay, and
- *     Pro-only cross-signal tags (Kumami Pro §1.8 — see flowCrossSignal.ts).
+ * Still not built: Large Limit Order (blocked on the current data plan) and the
+ * significance engine (needs the background collector).
  *
- * Event 5/6 (Netflow Flip already ships as its own type; Large Limit Order,
- * Kumami Pro §1.2 Event 6) is NOT implemented — /api/futures/orderbook/
- * large-limit-order is tier-locked on the current CoinGlass key. The
- * significance/baseline detection engine (§1.7) is also NOT implemented —
- * it needs a new daily scheduled-job mechanism this repo doesn't have yet.
- *
- * The market-verdict thresholds ($500M/count/$300M) are unchanged from Plus —
- * per the spec's own "Open items", they need re-validation against real
- * Pro-scale (100+ asset) event volume before being tuned further.
- *
- * Cache: 60s (short TTL — flow events are the most time-sensitive data),
- * tier-independent key (ungated; gating applied server-side after retrieval).
+ * Cache: the shared event buffer is 60s (market:v3:flow-radar — v3 since the
+ * v1.15 directions); filtering happens per request after retrieval.
  */
 
 import { NextResponse } from 'next/server';
@@ -39,6 +29,8 @@ import { recordFlowDay } from '@/lib/market/flowHistory';
 import { computeFlowVerdict } from '@/lib/market/rules/flowVerdict';
 import { computeFlowCrossSignal, type FlowCrossSignalContext } from '@/lib/market/rules/flowCrossSignal';
 import { computeWhaleEventCounts } from '@/lib/market/rules/watchlistSectionC';
+import { filterIlliquid, spotVolumeMap } from '@/lib/market/rules/flowLiquidity';
+import { netflowList } from '@/lib/market/live/cg-endpoints';
 import type { FlowEvent, FlowRadarPayload } from '@/lib/market/contracts';
 
 export const dynamic = 'force-dynamic';
@@ -60,11 +52,10 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T | null> {
 }
 
 const PLUS_ASSETS = ['BTC', 'ETH', 'SOL', 'BNB', 'HYPE'];
-// The 4 event types the builder actually emits (Kumami Plus §4.1). Fixed a
-// prior bug here: this list said 'exchange_flow', a type the builder never
-// produces (it emits 'netflow_flip' for that concept) — every Exchange Flow
-// event was being silently filtered out for every tier.
-const REAL_EVENT_TYPES = ['whale_transfer', 'netflow_flip', 'liq_spike', 'smart_money'];
+// Rachelle v1.15 Plus §3: the 4 Plus events (Exchange Flow = Dry Powder);
+// Pro also keeps Netflow Flip.
+const PLUS_EVENT_TYPES: FlowEvent['type'][] = ['whale_transfer', 'exchange_flow', 'liq_spike', 'smart_money'];
+const PRO_EVENT_TYPES: FlowEvent['type'][] = [...PLUS_EVENT_TYPES, 'netflow_flip'];
 
 export async function GET(request: Request) {
   const auth = await authenticate(request);
@@ -72,7 +63,7 @@ export async function GET(request: Request) {
   const tier = effectiveTier(parseView(request.url), auth.tier);
 
   // Cache the full (wide) event list; roster/severity/type filtering post-retrieval.
-  const allEvents = await getCachedFresh('market:v2:flow-radar', 60, () => getProvider().flowRadar('pro'));
+  const allEvents = await getCachedFresh('market:v3:flow-radar', 60, () => getProvider().flowRadar('pro'));
   // Side effects for the Plus delay + 7-day consistency history (throttled, never throw).
   void saveFlowSnapshot(allEvents);
   void recordFlowDay(allEvents);
@@ -84,57 +75,42 @@ export async function GET(request: Request) {
   const delayedFeed = delayed ? await readDelayedFlow(delayMinutes) : null;
   const base = isPro ? allEvents : (delayedFeed?.events ?? []);
 
-  let events: FlowEvent[] = base.filter((e) => REAL_EVENT_TYPES.includes(e.type));
+  let events: FlowEvent[] = base.filter((e) => (isPro ? PRO_EVENT_TYPES : PLUS_EVENT_TYPES).includes(e.type));
 
   if (!isPro) {
-    events = events.filter((e) => PLUS_ASSETS.includes(e.asset) && (e.severity === 'HIGH' || e.severity === 'MED'));
+    // Market-wide Dry Powder shows under every asset filter (v1.15 Plus §3).
+    events = events.filter((e) => (e.marketWide || PLUS_ASSETS.includes(e.asset)) && (e.severity === 'HIGH' || e.severity === 'MED'));
   } else {
-    // Pro-only cross-signal amplification (Kumami Pro §1.8) — pulls already
-    // -cached reads from Spot Pulse and Console, each independently
-    // best-effort (timeout + catch) so one slow or failing source can't drop
-    // the others or delay the response. The "Watchlist shows Whale
-    // Accumulation" rule is computed directly from this same event buffer
-    // (computeWhaleEventCounts — identical logic to what Watchlist Pro uses
-    // to derive that tag) rather than by calling the Watchlist API: that API
-    // only ever returns Section A's 5 fixed anchors, so a real fetch there
-    // would silently never match non-anchor assets, and would re-fetch data
-    // this route already has in hand.
-    const [spotPulse, console_, fearGreed] = await Promise.all([
-      withTimeout(getCachedFresh('market:v2:spot-pulse:pro:4H', 60, () => getProvider().spotPulse('pro', '4H')), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null),
-      withTimeout(getCachedFresh('market:v2:console', 60, () => getProvider().console()), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null),
-      withTimeout(getCachedFresh('market:v2:fear-greed', 300, () => getProvider().fearGreed()), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null),
-    ]);
-
-    const now = Date.now();
-    const events24h = allEvents.filter((e) => now - Date.parse(e.ts) <= 24 * 3_600_000);
-    const whaleCounts = computeWhaleEventCounts(events24h);
-    const watchlistTagsByAsset = Object.fromEntries(
-      Object.entries(whaleCounts).map(([asset, c]) => [
-        asset,
-        c.bearish >= 2 ? ['Whale Distribution'] : c.bullish >= 2 ? ['Whale Accumulation'] : [],
-      ]),
-    );
-
-    const ctx: FlowCrossSignalContext = {
-      spotPulseVerdictByAsset: spotPulse
-        ? Object.fromEntries(spotPulse.tiles.map((t) => [t.asset, t.verdict]))
-        : undefined,
-      consoleRegimeByAsset: console_
-        ? Object.fromEntries(console_.regimeChips.map((c) => [c.asset, c.regime]))
-        : undefined,
-      watchlistTagsByAsset,
-      fearGreedLabel: fearGreed?.composite.label,
-    };
-
-    events = events.map((e) => {
-      const crossSignal = computeFlowCrossSignal(e, ctx);
-      return crossSignal ? { ...e, crossSignal } : e;
-    });
+    // Illiquid filter (v1.15 Pro §18): hide coins under $1M 24h spot volume.
+    const spotRows = await withTimeout(netflowList('spot'), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null);
+    events = filterIlliquid(events, spotRows ? spotVolumeMap(spotRows) : null);
   }
 
-  const { verdict, sentence, statLine } = computeFlowVerdict(events);
+  // Cross-signal outlines (v1.15 Plus §3 — Plus and Pro, same rules). Each source is
+  // best-effort (timeout + catch) so one slow read can't drop the others or the feed.
+  const [spotPulse, console_, fearGreed] = await Promise.all([
+    withTimeout(getCachedFresh('market:v2:spotpulse:free:4H', 60, () => getProvider().spotPulse('free', '4H')), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null),
+    withTimeout(getCachedFresh('market:v2:console', 300, () => getProvider().console()), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null),
+    withTimeout(getCachedFresh('market:v2:fear-greed', 300, () => getProvider().fearGreed()), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null),
+  ]);
+  const now = Date.now();
+  const ctx: FlowCrossSignalContext = {
+    spotPulseVerdictByAsset: spotPulse ? Object.fromEntries(spotPulse.tiles.map((t) => [t.asset, t.verdict])) : undefined,
+    consoleRegimeByAsset: console_ ? Object.fromEntries(console_.regimeChips.map((c) => [c.asset, c.regime])) : undefined,
+    // The Watchlist's Whale Accumulation / Distribution source: whale events in the last 24h.
+    whaleCounts24hByAsset: computeWhaleEventCounts(base.filter((e) => now - Date.parse(e.ts) <= 24 * 3_600_000)),
+    fearGreedLabel: fearGreed?.composite.label,
+  };
+  events = events.map((e) => {
+    const crossSignal = computeFlowCrossSignal(e, ctx);
+    return crossSignal ? { ...e, crossSignal } : e;
+  });
+
+  // Server verdict = the 4H band (the page recomputes it for the selected window).
+  const last4h = events.filter((e) => now - Date.parse(e.ts) <= 4 * 3_600_000);
+  const { verdict, sentence, statLine } = computeFlowVerdict(last4h, '4H');
   const totalUsd = events.reduce((sum, e) => sum + e.amountUsd, 0);
-  const assets = isPro ? Array.from(new Set(events.map((e) => e.asset))).sort() : PLUS_ASSETS;
+  const assets = isPro ? Array.from(new Set(events.filter((e) => !e.marketWide).map((e) => e.asset))).sort() : PLUS_ASSETS;
 
   const payload: FlowRadarPayload = {
     events,

@@ -32,7 +32,7 @@ const LIQ_EXCHANGES = 'Binance,OKX,Bybit,Bitget,Gate,Hyperliquid,HTX,Bitmex,Deri
   const { cgFetch } = await import('../src/lib/market/coinglass/client');
   const { liqCoinList, liqAggHistory, type: _t } = (await import('../src/lib/market/live/cg-endpoints')) as typeof import('../src/lib/market/live/cg-endpoints') & { type?: never };
   void _t;
-  const { isExchangeLabel } = await import('../src/lib/market/live/flow');
+  const { whaleDirection } = await import('../src/lib/market/live/flow');
   const { computeFlowRadar } = await import('../src/lib/market/rules/flowRadar');
   const { tallyDay, mergeTallies, utcDay, STABLECOINS } = await import('../src/lib/market/rules/consistentFlow');
   const { adminDb } = await import('../src/lib/firebase-admin');
@@ -79,10 +79,10 @@ const LIQ_EXCHANGES = 'Binance,OKX,Bybit,Bitget,Gate,Hyperliquid,HTX,Bitmex,Deri
     for (const w of whales) {
       const amountUsd = Number(w.amount_usd);
       if (!Number.isFinite(amountUsd) || amountUsd < 5_000_000) continue;
-      const toEx = isExchangeLabel(w.to);
-      const fromEx = isExchangeLabel(w.from);
-      if (!toEx && !fromEx) continue;
+      const toEx = whaleDirection(w.from, w.to);
+      if (toEx === null) continue; // exchange↔exchange / wallet↔wallet say nothing (v1.15)
       const r = computeFlowRadar({ type: 'whale_transfer', asset: w.asset_symbol, amountUsd, toExchange: toEx });
+      if (!r) continue;
       const ms = w.block_timestamp < 1e12 ? w.block_timestamp * 1000 : w.block_timestamp;
       whaleEvents.push({ id: `bf-whale-${w.transaction_hash.slice(0, 12)}`, type: 'whale_transfer', asset: w.asset_symbol, amountUsd: Math.round(amountUsd), direction: r.direction, severity: r.severity, description: r.description, ts: new Date(ms).toISOString() });
     }
@@ -99,7 +99,9 @@ const LIQ_EXCHANGES = 'Binance,OKX,Bybit,Bitget,Gate,Hyperliquid,HTX,Bitmex,Deri
         if (ms < start || ms >= end) continue;
         const total = Number(r.aggregated_long_liquidation_usd ?? 0) + Number(r.aggregated_short_liquidation_usd ?? 0);
         if (total < 50_000_000) continue; // below MED — never counted
-        const fr = computeFlowRadar({ type: 'liq_spike', asset: sym, amountUsd: total });
+        const longShare = total > 0 ? Number(r.aggregated_long_liquidation_usd ?? 0) / total : 0.5;
+        const fr = computeFlowRadar({ type: 'liq_spike', asset: sym, amountUsd: total, longShare });
+        if (!fr) continue;
         events.push({ id: `bf-liq-${sym}-${ms}`, type: 'liq_spike', asset: sym, amountUsd: Math.round(total), direction: fr.direction, severity: fr.severity, description: fr.description, ts: new Date(ms).toISOString() });
         liqCount++;
       }

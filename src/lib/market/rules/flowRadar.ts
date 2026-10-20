@@ -1,74 +1,35 @@
 /**
- * Flow Radar event severity classifier.
+ * Flow Radar event classifier — Rachelle v1.15 Plus §3 (shared by Flow Radar
+ * Plus and Pro). Pure: raw event facts in, severity + direction + description
+ * out. `null` severity = below the floor, don't emit the event.
  *
- * Sources: doc lines 133–154 (Console section), 1094–1145 (detailed per-event).
+ * 1. whale_transfer (deposits to / withdrawals from an exchange only — the
+ *    caller drops exchange↔exchange and wallet↔wallet moves):
+ *      to exchange = Inflow (bearish) · from exchange = Outflow (bullish)
+ *      HIGH ≥ $100M · MED $10–100M · below $10M not emitted (the API floor)
  *
- * This engine classifies raw event facts into FlowEvent-compatible
- * severity + direction + description.  It is pure: no Date.now() —
- * callers pass timestamps as strings and the engine does not inspect
- * them for recency (that is the radarWatchlist engine's job).
+ * 2. exchange_flow — "Dry Powder" (USDT/USDC net per exchange, rolling 60 min):
+ *      stablecoins onto exchanges = Dry Powder In (bullish), off = Dry Powder Out (bearish)
+ *      HIGH ≥ $500M · MED $100–500M · LOW $25–100M (Pro) · below $25M not emitted
  *
- * Per-event thresholds (doc lines 1104–1134):
+ * 3. liq_spike (1h liquidations summed over 5 exchanges):
+ *      longs > 70% = Long Flush (bearish) · < 30% = Short Squeeze (bullish)
+ *      otherwise Two-sided Flush (neutral)
+ *      HIGH ≥ $200M/h · MED $50–200M/h · LOW $10–50M/h (Pro) · below $10M not emitted
  *
- * whale_transfer:
- *   amountUsd > $100M  → HIGH (red)
- *   $10M–$100M         → MED  (amber)
- *   < $10M             → LOW  (grey) — filtered out by default in UI
+ * 4. smart_money (Hyperliquid positions ≥ $1M; the API has no confidence field,
+ *    so severity is by size, per coin):
+ *      opened long = Long Opened (bullish) · opened short = Short Opened (bearish)
+ *      closed = Position Closed (neutral)
+ *      HIGH ≥ $100M any coin, ≥ $25M BTC/ETH, ≥ $10M others
+ *      MED  ≥ $5M BTC/ETH, ≥ $2M others · LOW ≥ $1M (Pro)
  *
- *   Boundary: $100M exactly → HIGH (outer band); $10M exactly → MED.
- *
- * exchange_flow:
- *   amountUsd > $500M  → HIGH
- *   $100M–$500M        → MED
- *   < $100M            → LOW
- *
- *   Boundary: $500M exactly → HIGH; $100M exactly → MED.
- *
- * liq_spike (per hour):
- *   amountUsd > $200M  → HIGH
- *   $50M–$200M         → MED
- *   < $50M             → LOW
- *
- *   Boundary: $200M exactly → HIGH; $50M exactly → MED.
- *
- * netflow_flip: always MED (doc lines 144–145, 1121–1123).
- *
- * whale_wall:
- *   amountUsd > $50M AND within 5% of current price → MED
- *   Otherwise: LOW
- *   (doc line 146: ">$50M within 5% of price = MED")
- *   No HIGH severity for whale_wall in the doc.
- *
- * smart_money:
- *   Doc says "smart_money per doc" in the brief.  The detailed section
- *   (lines 1094–1145) does not give explicit thresholds for smart_money
- *   event type — the doc lists it as a FlowEvent type and implies HIGH
- *   significance (it appears on the pro-tier alert feed as a distinct
- *   signal).  Decision: treat smart_money events as MED by default,
- *   with a dedicated 'confidence' input that can bump to HIGH if provided
- *   and > 0.8.  This is documented as an intentional decision since the
- *   doc lacks explicit thresholds.
- *
- * Direction tags (doc lines 1128–1134):
- *   Transfer TO exchange     → "Inflow"          (bear lean)
- *   Transfer FROM exchange   → "Outflow"         (bull lean)
- *   Net flow positive        → "Buy Pressure"
- *   Net flow negative        → "Sell Pressure"
- *   Whale limit order above price → "Resistance Wall"
- *   Whale limit order below price → "Support Wall"
- *
- * The doc also lists (lines 148–152) from the Console brief:
- *   accumulation pattern → "Accumulation" (bull)
- *   smart money long     → "Smart Money"  (bull)
- * These are used for smart_money event type.
- *
- * Additional directions from FlowEvent contract (contracts.ts):
- *   "Accumulation", "Smart Money" — used for smart_money events.
+ * netflow_flip (Pro): always MED, Buy/Sell Pressure — unchanged.
+ * whale_wall: still blocked on the current data plan; logic kept.
  */
 
 import type { FlowEvent } from '../contracts';
 
-/** Subset of FlowEvent fields produced by this engine. */
 export type FlowRadarResult = {
   severity: FlowEvent['severity'];
   direction: FlowEvent['direction'];
@@ -79,114 +40,113 @@ export type FlowRadarInputs = {
   type: FlowEvent['type'];
   asset: string;
   amountUsd: number;
-
-  /**
-   * For whale_transfer and exchange_flow: whether the movement
-   * is toward an exchange (inflow) or away (outflow).
-   */
+  /** whale_transfer: true = deposit to an exchange, false = withdrawal. */
   toExchange?: boolean;
-
-  /**
-   * For whale_wall: whether the order is above current price
-   * (resistance) or below (support).
-   * For whale_wall, also used with pricePct to determine MED threshold.
-   */
-  abovePrice?: boolean;
-
-  /**
-   * For whale_wall: distance from current price as a fraction
-   * (e.g. 0.03 = 3%).  Used to determine if within 5% threshold.
-   */
-  distanceFromPrice?: number;
-
-  /**
-   * For netflow_flip: direction of the new net flow after the flip.
-   * true = flipped to positive (buy pressure), false = flipped to negative.
-   */
-  flippedPositive?: boolean;
-
-  /**
-   * For smart_money: direction of the position (long = true).
-   */
+  /** exchange_flow: true = stablecoins net INTO exchanges over the window. */
+  netIntoExchanges?: boolean;
+  /** exchange_flow: exchange name for the description. */
+  exchange?: string;
+  /** liq_spike: share of the liquidated $ that were longs (0–1). */
+  longShare?: number;
+  /** smart_money: long (true) or short (false). */
   isLong?: boolean;
-
-  /**
-   * For smart_money: confidence 0–1.  > 0.8 bumps severity to HIGH.
-   * (Doc does not give explicit thresholds; this is a documented decision.)
-   */
-  confidence?: number;
+  /** smart_money: true = the position was closed (neutral). */
+  closed?: boolean;
+  /** netflow_flip: true = flipped to net buying. */
+  flippedPositive?: boolean;
+  /** whale_wall: order above the price (resistance) or below (support). */
+  abovePrice?: boolean;
+  /** whale_wall: distance from price as a fraction. */
+  distanceFromPrice?: number;
 };
 
-const M10  =    10_000_000;
-const M50  =    50_000_000;
-const M100 =   100_000_000;
-const M200 =   200_000_000;
-const M500 =   500_000_000;
+const M = 1_000_000;
+const fmtM = (usd: number) => `$${(usd / M).toFixed(usd >= 10 * M ? 0 : 1)}M`;
 
-export function computeFlowRadar(inputs: FlowRadarInputs): FlowRadarResult {
-  const { type, asset, amountUsd, toExchange, abovePrice, distanceFromPrice,
-    flippedPositive, isLong, confidence } = inputs;
+/** Severity for a dollar amount given the HIGH / MED / LOW floors (LOW optional). */
+function tier(usd: number, high: number, med: number, low?: number): FlowEvent['severity'] | null {
+  if (usd >= high) return 'HIGH';
+  if (usd >= med) return 'MED';
+  if (low !== undefined && usd >= low) return 'LOW';
+  return null;
+}
+
+const MAJORS = new Set(['BTC', 'ETH']);
+
+/** Smart-money size tiers (v1.15 Plus §3 event 4). */
+export function smartMoneySeverity(asset: string, usd: number): FlowEvent['severity'] | null {
+  const major = MAJORS.has(asset.toUpperCase());
+  if (usd >= 100 * M || usd >= (major ? 25 : 10) * M) return 'HIGH';
+  if (usd >= (major ? 5 : 2) * M) return 'MED';
+  if (usd >= 1 * M) return 'LOW';
+  return null;
+}
+
+/** null = below the event's floor — the caller skips it. */
+export function computeFlowRadar(inputs: FlowRadarInputs): FlowRadarResult | null {
+  const { type, asset, amountUsd } = inputs;
 
   switch (type) {
     case 'whale_transfer': {
-      const severity: FlowEvent['severity'] =
-        amountUsd >= M100 ? 'HIGH' :
-        amountUsd >= M10  ? 'MED'  : 'LOW';
-
-      const direction: FlowEvent['direction'] = toExchange ? 'Inflow' : 'Outflow';
-      const label = toExchange ? 'to exchange' : 'from exchange';
-      const description = `${asset} whale transfer ${label}: $${(amountUsd / 1e6).toFixed(0)}M`;
-      return { severity, direction, description };
+      const severity = tier(amountUsd, 100 * M, 10 * M);
+      if (!severity) return null;
+      const direction = inputs.toExchange ? 'Inflow' : 'Outflow';
+      const label = inputs.toExchange ? 'deposited to an exchange' : 'withdrawn from an exchange';
+      return { severity, direction, description: `${fmtM(amountUsd)} of ${asset} ${label}` };
     }
 
     case 'exchange_flow': {
-      const severity: FlowEvent['severity'] =
-        amountUsd >= M500 ? 'HIGH' :
-        amountUsd >= M100 ? 'MED'  : 'LOW';
-
-      const direction: FlowEvent['direction'] = toExchange ? 'Inflow' : 'Outflow';
-      const label = toExchange ? 'inflow' : 'outflow';
-      const description = `${asset} exchange ${label}: $${(amountUsd / 1e6).toFixed(0)}M`;
-      return { severity, direction, description };
+      const severity = tier(amountUsd, 500 * M, 100 * M, 25 * M);
+      if (!severity) return null;
+      const into = !!inputs.netIntoExchanges;
+      const where = inputs.exchange ? ` ${into ? 'onto' : 'off'} ${inputs.exchange}` : into ? ' onto exchanges' : ' off exchanges';
+      return {
+        severity,
+        direction: into ? 'Dry Powder In' : 'Dry Powder Out',
+        description: `${fmtM(amountUsd)} net ${asset}${where} in the last hour — ${into ? 'buying power arriving' : 'buying power leaving'}`,
+      };
     }
 
     case 'liq_spike': {
-      const severity: FlowEvent['severity'] =
-        amountUsd >= M200 ? 'HIGH' :
-        amountUsd >= M50  ? 'MED'  : 'LOW';
-
-      // Liquidation spike direction is Sell Pressure (longs wiped) or Buy Pressure (shorts)
-      // Doc doesn't distinguish here — use Sell Pressure as default for liq spikes
-      const direction: FlowEvent['direction'] = 'Sell Pressure';
-      const description = `${asset} liquidation spike: $${(amountUsd / 1e6).toFixed(0)}M/h`;
-      return { severity, direction, description };
-    }
-
-    case 'netflow_flip': {
-      // Always MED (doc lines 144–145, 1121–1123)
-      const direction: FlowEvent['direction'] = flippedPositive ? 'Buy Pressure' : 'Sell Pressure';
-      const label = flippedPositive ? 'sell→buy flip' : 'buy→sell flip';
-      const description = `${asset} netflow flip: ${label}`;
-      return { severity: 'MED', direction, description };
-    }
-
-    case 'whale_wall': {
-      // MED only if > $50M AND within 5% of price; otherwise LOW
-      const withinRange = (distanceFromPrice ?? Infinity) <= 0.05;
-      const severity: FlowEvent['severity'] = (amountUsd > M50 && withinRange) ? 'MED' : 'LOW';
-      const direction: FlowEvent['direction'] = abovePrice ? 'Resistance Wall' : 'Support Wall';
-      const label = abovePrice ? 'resistance wall' : 'support wall';
-      const description = `${asset} whale ${label}: $${(amountUsd / 1e6).toFixed(0)}M`;
-      return { severity, direction, description };
+      const severity = tier(amountUsd, 200 * M, 50 * M, 10 * M);
+      if (!severity) return null;
+      const longShare = inputs.longShare ?? 0.5;
+      const direction: FlowEvent['direction'] =
+        longShare > 0.7 ? 'Long Flush' : longShare < 0.3 ? 'Short Squeeze' : 'Two-sided Flush';
+      const who = direction === 'Long Flush' ? 'longs wiped out' : direction === 'Short Squeeze' ? 'shorts squeezed' : 'both sides flushed';
+      return {
+        severity,
+        direction,
+        description: `${asset} ${fmtM(amountUsd)} liquidated in 1h — ${who} (${Math.round(longShare * 100)}% longs)`,
+      };
     }
 
     case 'smart_money': {
-      // Doc lacks explicit thresholds; confidence > 0.8 → HIGH, else MED (documented decision)
-      const severity: FlowEvent['severity'] = (confidence ?? 0) > 0.8 ? 'HIGH' : 'MED';
-      const direction: FlowEvent['direction'] = isLong ? 'Smart Money' : 'Accumulation';
-      const label = isLong ? 'smart money long' : 'smart money accumulation';
-      const description = `${asset} ${label}: $${(amountUsd / 1e6).toFixed(0)}M`;
-      return { severity, direction, description };
+      const severity = smartMoneySeverity(asset, amountUsd);
+      if (!severity) return null;
+      const side = inputs.isLong ? 'long' : 'short';
+      if (inputs.closed) {
+        return { severity, direction: 'Position Closed', description: `${asset} ${side} closed: ${fmtM(amountUsd)}` };
+      }
+      return {
+        severity,
+        direction: inputs.isLong ? 'Long Opened' : 'Short Opened',
+        description: `${asset} ${side} opened: ${fmtM(amountUsd)}`,
+      };
+    }
+
+    case 'netflow_flip': {
+      const direction: FlowEvent['direction'] = inputs.flippedPositive ? 'Buy Pressure' : 'Sell Pressure';
+      const label = inputs.flippedPositive ? 'sell→buy flip' : 'buy→sell flip';
+      return { severity: 'MED', direction, description: `${asset} netflow flip: ${label}` };
+    }
+
+    case 'whale_wall': {
+      const withinRange = (inputs.distanceFromPrice ?? Infinity) <= 0.05;
+      const severity: FlowEvent['severity'] = amountUsd > 50 * M && withinRange ? 'MED' : 'LOW';
+      const direction: FlowEvent['direction'] = inputs.abovePrice ? 'Resistance Wall' : 'Support Wall';
+      const label = inputs.abovePrice ? 'resistance wall' : 'support wall';
+      return { severity, direction, description: `${asset} whale ${label}: ${fmtM(amountUsd)}` };
     }
   }
 }

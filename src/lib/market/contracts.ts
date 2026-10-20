@@ -74,12 +74,21 @@ export type FlowEvent = {
   direction:
     | 'Inflow'
     | 'Outflow'
-    | 'Accumulation'
-    | 'Smart Money'
+    | 'Dry Powder In'
+    | 'Dry Powder Out'
+    | 'Long Flush'
+    | 'Short Squeeze'
+    | 'Two-sided Flush'
+    | 'Long Opened'
+    | 'Short Opened'
+    | 'Position Closed'
     | 'Buy Pressure'
     | 'Sell Pressure'
     | 'Resistance Wall'
-    | 'Support Wall';
+    | 'Support Wall'
+    // Legacy (before v1.15) — still found in stored 7-day history/snapshots.
+    | 'Accumulation'
+    | 'Smart Money';
   severity: 'HIGH' | 'MED' | 'LOW';
   description: string;
   ts: string;
@@ -88,6 +97,11 @@ export type FlowEvent = {
   action?: 'open' | 'close';
   /** smart_money only: position side (negative size = short). */
   side?: 'long' | 'short';
+  /** liq_spike only: share of the liquidated $ that were longs (0–1). */
+  longShare?: number;
+  /** Market-wide event (Dry Powder stablecoin flow): shown under every asset filter,
+   *  counted in the verdict band, never in a coin's Watchlist accumulation. */
+  marketWide?: boolean;
   /** Pro-only cross-signal confirmation (e.g. "Regime shift confirming"). */
   crossSignal?: { label: string; color: Verdict['color'] };
 };
