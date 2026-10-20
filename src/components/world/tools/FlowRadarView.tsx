@@ -433,8 +433,11 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
 
           <div className="w-flow-radar-footer">
             <span>
-              {filtered.length} events in {timeframe} · {formatUsd(totalUsd)} across{' '}
-              {isPremium ? `${data.footer.assets.length} tracked assets` : 'BTC / ETH / SOL / BNB / HYPE'}
+              {/* No "$0" when the window is empty (quiet market, or the delayed feed just started). */}
+              {filtered.length === 0
+                ? `No events in ${timeframe} yet`
+                : `${filtered.length} event${filtered.length === 1 ? '' : 's'} in ${timeframe} · ${formatUsd(totalUsd)}`}{' '}
+              across {isPremium ? `${data.footer.assets.length} tracked assets` : 'BTC / ETH / SOL / BNB / HYPE'}
             </span>
             {!isPremium && (
               <span className="w-flow-radar-pro-nudge">Every coin, every severity, in real time → Flow Radar Pro</span>
