@@ -42,6 +42,11 @@ export default function MarketConditions({ data }: Props) {
             AI confidence <b>{confidence !== undefined ? confidence.toFixed(2) : '—'}</b> · fused
             from on-chain flow, macro &amp; sentiment
           </div>
+          {data.interpretation && (
+            <p className="w-mc-ai" title={data.interpretationAi ? 'Written by AI from the verdict above — the verdict itself comes from the rule engine' : undefined}>
+              {data.interpretation}
+            </p>
+          )}
           <div
             className="w-senti-bar"
             role="progressbar"

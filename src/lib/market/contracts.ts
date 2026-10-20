@@ -29,6 +29,8 @@ export type Series = { t: number; v: number }[];
 /** Full payload for the /world Console page. */
 export type ConsolePayload = {
   marketConditions: PanelVerdict & {
+    /** True when `interpretation` came from the AI layer (false = template fallback). */
+    interpretationAi?: boolean;
     /** null when the Fear & Greed fetch failed — render "No data", never a fake midpoint. */
     fearGreed: number | null;
     /** Server-derived label for the Fear & Greed value (e.g. "Extreme Greed"). */
