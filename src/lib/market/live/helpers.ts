@@ -82,7 +82,7 @@ export function pairSymbol(asset: string): string {
 }
 
 /** Assets that have Binance USDT perps for the exchange-specific endpoints. */
-const PERP_ASSETS = new Set(['BTC', 'ETH', 'SOL', 'BNB', 'AVAX', 'ARB', 'DOGE', 'LINK', 'APT', 'SUI', 'XRP', 'ADA']);
+const PERP_ASSETS = new Set(['BTC', 'ETH', 'SOL', 'BNB', 'HYPE', 'AVAX', 'ARB', 'DOGE', 'LINK', 'APT', 'SUI', 'XRP', 'ADA']);
 export const hasPerp = (asset: string): boolean => PERP_ASSETS.has(asset.toUpperCase());
 
 /** ISO timestamp helper for `updatedAt` fields. */

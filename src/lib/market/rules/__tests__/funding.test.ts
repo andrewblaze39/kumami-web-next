@@ -1,32 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { computeFunding, type FundingInputs } from '../funding';
 
-// Doc lines 416–449 (detailed) and lines 186–196 (summary).
-// Bands (3-cycle average):
+// Rachelle v1.15 Plus §2.1 — continuous bands (3-cycle average, percent):
 //   > +0.15%            → "Overheated Long"  (red)
-//   +0.06% to +0.15%    → "Crowded Long"     (amber)
-//   +0.01% to +0.05%    → "Neutral"          (grey)   ← "Neutral" upper half
-//   -0.01% to -0.05%    → "Mild Short Bias"  (grey)   ← doc explicitly names this
-//   -0.06% to -0.1%     → "Crowded Short"    (amber)
-//   < -0.1%             → "Extreme Short"    (green)
-//
-// NOTE: Doc lines 186-191 use a simplified 5-band table (no "Mild Short Bias").
-// The detailed section (lines 416-437) wins — it splits the neutral zone into two named bands.
-// Boundary decisions (strict vs inclusive):
-//   > +0.15% → Overheated, so 0.15% = "Crowded Long" (top of amber band)
-//   +0.06% to +0.15% inclusive → Crowded Long
-//   +0.01% to +0.05% inclusive → Neutral
-//   -0.01% to -0.05% inclusive → Mild Short Bias (grey)
-//   -0.06% to -0.1% inclusive → Crowded Short
-//   < -0.1% → Extreme Short, so -0.1% = "Crowded Short" (bottom of amber)
-//
-// The ranges have an implicit gap: 0.05% < x < 0.06% and -0.05% < x < -0.06%.
-// Decision: values in 0.051%–0.059% round to nearest named band by proximity.
-// Actually doc text "±0.05%" in summary (line 189) suggests 0 to ±0.05% is Neutral.
-// Reconcile: detailed doc wins: +0.01 to +0.05 = Neutral, +0.06 to +0.15 = Crowded Long.
-// Gap [0.0501, 0.0599]: assign to Neutral (closer to +0.05 boundary described).
-// Similarly [-0.0501, -0.0599]: assign to Mild Short Bias.
-// Implementation uses: ≤ 0.05 for Neutral upper bound, ≥ 0.06 for Crowded Long lower bound.
+//   +0.05% to +0.15%    → "Crowded Long"     (amber)   ← starts at +0.05% exactly
+//   −0.05% to +0.05%    → "Neutral"          (grey)    ← "Mild Short Bias" removed
+//   −0.10% to −0.05%    → "Crowded Short"    (amber)
+//   < −0.10%            → "Extreme Short"    (green)
 
 describe('computeFunding — base verdict from 3-cycle average', () => {
   it('Overheated Long when avg > +0.15%', () => {
@@ -51,8 +31,13 @@ describe('computeFunding — base verdict from 3-cycle average', () => {
     expect(r.verdict.label).toBe('Crowded Long');
   });
 
-  it('Neutral at +0.05%', () => {
-    const r = computeFunding({ avg3Cycle: 0.05, cycleHistory: [], delta24h: 0 });
+  it('Crowded Long at exactly +0.05% (no gap up to +0.06%)', () => {
+    expect(computeFunding({ avg3Cycle: 0.05, cycleHistory: [], delta24h: 0 }).verdict.label).toBe('Crowded Long');
+    expect(computeFunding({ avg3Cycle: 0.055, cycleHistory: [], delta24h: 0 }).verdict.label).toBe('Crowded Long');
+  });
+
+  it('Neutral just below +0.05%', () => {
+    const r = computeFunding({ avg3Cycle: 0.049, cycleHistory: [], delta24h: 0 });
     expect(r.verdict.label).toBe('Neutral');
     expect(r.verdict.color).toBe('grey');
   });
@@ -67,15 +52,17 @@ describe('computeFunding — base verdict from 3-cycle average', () => {
     expect(r.verdict.label).toBe('Neutral');
   });
 
-  it('Mild Short Bias at -0.01%', () => {
-    const r = computeFunding({ avg3Cycle: -0.01, cycleHistory: [], delta24h: 0 });
-    expect(r.verdict.label).toBe('Mild Short Bias');
-    expect(r.verdict.color).toBe('grey');
+  it('Neutral from 0 down to just above −0.05% (Mild Short Bias removed)', () => {
+    for (const v of [-0.005, -0.01, -0.049]) {
+      const r = computeFunding({ avg3Cycle: v, cycleHistory: [], delta24h: 0 });
+      expect(r.verdict.label).toBe('Neutral');
+      expect(r.verdict.color).toBe('grey');
+    }
   });
 
-  it('Mild Short Bias at -0.05%', () => {
+  it('Crowded Short at exactly −0.05%', () => {
     const r = computeFunding({ avg3Cycle: -0.05, cycleHistory: [], delta24h: 0 });
-    expect(r.verdict.label).toBe('Mild Short Bias');
+    expect(r.verdict.label).toBe('Crowded Short');
   });
 
   it('Crowded Short at -0.06%', () => {

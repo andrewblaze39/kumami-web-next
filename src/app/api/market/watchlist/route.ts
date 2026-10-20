@@ -83,7 +83,7 @@ export async function GET(request: Request) {
 
   // Full tier-agnostic payload cached 300s per uid — base rows for Section A.
   const fullPayload = await getCachedFresh(
-    `market:v2:watchlist:${uid}`,
+    `market:v3:watchlist:${uid}`,
     300,
     () => getProvider().watchlist(uid, 'pro'),
   );

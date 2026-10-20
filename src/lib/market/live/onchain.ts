@@ -101,8 +101,11 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
   // Exchange-balance netflow (shared by netflow + premium/etf cross-signals).
   // null when the exchange-balance fetch failed OR price is unknown — a $ net
   // flow needs both a real balance-change quantity and a real price.
-  const balField: 'balance_change_1d' | 'balance_change_7d' | 'balance_change_30d' =
-    range === '24h' ? 'balance_change_1d' : range === '7d' ? 'balance_change_7d' : 'balance_change_30d';
+  // Exchange balances update once a day, so a 24H window usually compares a value
+  // with itself — on 24H the Netflow panel reads 7D instead (Rachelle v1.15 Plus §2.2).
+  const netRange: Range = range === '24h' ? '7d' : range;
+  const balField: 'balance_change_7d' | 'balance_change_30d' =
+    netRange === '7d' ? 'balance_change_7d' : 'balance_change_30d';
   const netBalanceQty = (exchBal ?? []).reduce((acc, r) => acc + (Number(r[balField]) || 0), 0);
   // Positive netUsd = net OUTFLOW = accumulation. Balance falling (negative change) = outflow.
   const netUsd = exchBal === null || price === null ? null : -netBalanceQty * price;
@@ -116,7 +119,9 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
   // catch below turns into an honest "unavailable" panel (no fake 0.0000% rate).
   try {
     if (fundingRows === null) throw new Error('funding fetch failed');
-    const closesPct = fundingRows.map((r) => num(r.close) * 100); // decimal → percent
+    // The OI-weighted funding feed is already in percent (0.0066 = 0.0066%) — the
+    // same scale fix the Console got in v1.19; ×100 made normal funding look overheated.
+    const closesPct = fundingRows.map((r) => num(r.close));
     const last3 = closesPct.slice(-3);
     const avg3 = last3.length ? last3.reduce((a, b) => a + b, 0) / last3.length : 0;
     const currentRatePct = closesPct.length ? closesPct[closesPct.length - 1] : 0;
@@ -124,7 +129,7 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
     const r = computeFunding({ avg3Cycle: avg3, cycleHistory: closesPct, delta24h });
     panels.funding = panel(r.verdict, `Funding ${currentRatePct.toFixed(4)}% — ${r.verdict.label}`, {
       tags: r.tags,
-      series: toSeries(fundingRows, points, (x) => Number(x.time), (x) => num(x.close) * 100),
+      series: toSeries(fundingRows, points, (x) => Number(x.time), (x) => num(x.close)),
       extra: { asset: A, range, currentRatePct: Number(currentRatePct.toFixed(4)) },
     });
   } catch { panels.funding = neutral('Funding rate unavailable', { asset: A, range }); }
@@ -171,7 +176,7 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
     panels.netflow = panel(r.verdict, `${(Math.abs(netUsd) / 1e6).toFixed(0)}M net ${dir} — ${r.verdict.label}`, {
       tags: r.tags,
       series,
-      extra: { asset: A, range, netUsd: Math.round(netUsd) },
+      extra: { asset: A, range, netRange, netUsd: Math.round(netUsd) },
     });
   } catch { panels.netflow = neutral('Exchange netflow unavailable', { asset: A, range }); }
 

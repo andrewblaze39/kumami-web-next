@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { computeWatchlistTags, type WatchlistTagsInputs } from '../watchlistTags';
 
 // Doc lines 1062–1092.
-// Signal 1 (Funding): > +0.1% → "Overheated" red; < 0% → "Short Heavy" amber
+// Signal 1 (Funding, percent units): > +0.1% → "Overheated" red; < −0.05% → "Short Heavy" amber (v1.15)
 // Signal 2 (Liq prox): ≤ 3% → "Near Liq Zone" red; ≤ 5% → "Watch Level" amber
 // Signal 3 (L/S): > 70% → "Crowded Long" amber; < 30% → "Crowded Short" amber
 // Regime: OI+price up → "Trending Up"; OI+price down → "Trending Down";
@@ -19,23 +19,30 @@ const neutral: WatchlistTagsInputs = {
 
 describe('computeWatchlistTags — Signal 1: Funding Rate', () => {
   it('Overheated (red) when fundingRate > +0.1%', () => {
-    const r = computeWatchlistTags({ ...neutral, fundingRate: 0.0011 });
+    const r = computeWatchlistTags({ ...neutral, fundingRate: 0.11 });
     expect(r.actionTags.some(t => t.label === 'Overheated' && t.color === 'red')).toBe(true);
   });
 
   it('no Overheated at exactly +0.1% (not strictly greater)', () => {
-    const r = computeWatchlistTags({ ...neutral, fundingRate: 0.001 });
+    const r = computeWatchlistTags({ ...neutral, fundingRate: 0.1 });
     expect(r.actionTags.some(t => t.label === 'Overheated')).toBe(false);
   });
 
-  it('Short Heavy (amber) when fundingRate < 0%', () => {
-    const r = computeWatchlistTags({ ...neutral, fundingRate: -0.001 });
+  it('Short Heavy (amber) when fundingRate < −0.05%', () => {
+    const r = computeWatchlistTags({ ...neutral, fundingRate: -0.051 });
     expect(r.actionTags.some(t => t.label === 'Short Heavy' && t.color === 'amber')).toBe(true);
   });
 
-  it('no Short Heavy at exactly 0%', () => {
-    const r = computeWatchlistTags({ ...neutral, fundingRate: 0 });
-    expect(r.actionTags.some(t => t.label === 'Short Heavy')).toBe(false);
+  it('no Short Heavy for mildly negative funding (0 to −0.05%)', () => {
+    for (const f of [0, -0.01, -0.05]) {
+      const r = computeWatchlistTags({ ...neutral, fundingRate: f });
+      expect(r.actionTags.some(t => t.label === 'Short Heavy')).toBe(false);
+    }
+  });
+
+  it('normal funding (+0.0066%, the feed’s real scale) fires no funding tag', () => {
+    const r = computeWatchlistTags({ ...neutral, fundingRate: 0.0066 });
+    expect(r.actionTags).toEqual([]);
   });
 });
 
@@ -98,7 +105,7 @@ describe('computeWatchlistTags — Signal 3: Long/Short Ratio', () => {
 describe('computeWatchlistTags — max 2 action tags with severity ordering', () => {
   it('returns at most 2 action tags even when all 3 signals fire', () => {
     const r = computeWatchlistTags({
-      fundingRate: 0.002,      // Overheated (red)
+      fundingRate: 0.2,      // Overheated (red)
       priceToLiqPct: 0.02,    // Near Liq Zone (red)
       pctLong: 75,             // Crowded Long (amber)
       oiDirection: 'up',
@@ -109,7 +116,7 @@ describe('computeWatchlistTags — max 2 action tags with severity ordering', ()
 
   it('selects the 2 most severe when all 3 signals fire (red > amber)', () => {
     const r = computeWatchlistTags({
-      fundingRate: 0.002,      // Overheated (red) — Signal 1
+      fundingRate: 0.2,      // Overheated (red) — Signal 1
       priceToLiqPct: 0.02,    // Near Liq Zone (red) — Signal 2
       pctLong: 75,             // Crowded Long (amber) — Signal 3
       oiDirection: 'flat',
@@ -128,7 +135,7 @@ describe('computeWatchlistTags — max 2 action tags with severity ordering', ()
   });
 
   it('returns 1 action tag when only 1 signal fires', () => {
-    const r = computeWatchlistTags({ ...neutral, fundingRate: 0.002 });
+    const r = computeWatchlistTags({ ...neutral, fundingRate: 0.2 });
     expect(r.actionTags).toHaveLength(1);
   });
 });
@@ -167,7 +174,7 @@ describe('computeWatchlistTags — regime tag', () => {
   it('regime tag is NOT counted toward the 2-tag limit', () => {
     // All 3 signals + regime — result should still have max 2 action tags and 1 regime tag
     const r = computeWatchlistTags({
-      fundingRate: 0.002,
+      fundingRate: 0.2,
       priceToLiqPct: 0.02,
       pctLong: 75,
       oiDirection: 'up',

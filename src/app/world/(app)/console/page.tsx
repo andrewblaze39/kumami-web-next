@@ -11,6 +11,7 @@ import FlowRadarFeed from '@/components/world/panels/FlowRadarFeed';
 import CalendarPreview from '@/components/world/panels/CalendarPreview';
 import WatchlistPreview from '@/components/world/panels/WatchlistPreview';
 import AttentionPopup from '@/components/world/panels/AttentionPopup';
+import ConsoleEventBadge from '@/components/world/panels/ConsoleEventBadge';
 import ProductTour, { type TourStep } from '@/components/world/ProductTour';
 
 const CONSOLE_TOUR: TourStep[] = [
@@ -136,6 +137,8 @@ export default function ConsolePage() {
           </span>
         </div>
       </div>
+
+      <ConsoleEventBadge />
 
       {market.status === 'error' && (
         <p className="w-console-stale-banner" role="status">

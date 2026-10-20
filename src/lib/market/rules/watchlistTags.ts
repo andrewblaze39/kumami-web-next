@@ -5,10 +5,11 @@
  *
  * Per-asset, 3 signals + 1 regime tag, output max 2 most-severe action tags.
  *
- * Signal 1 — Funding Rate (doc lines 1070–1073):
- *   fundingRate > +0.1%  → "Overheated" (red)
- *   fundingRate < 0%     → "Short Heavy" (amber)
- *   otherwise            → no tag
+ * Signal 1 — Funding Rate (doc lines 1070–1073; Short Heavy per Rachelle v1.15 Plus §6,
+ * one funding scale with Console §1 and On-Chain §2.1):
+ *   fundingRate > +0.1%     → "Overheated" (red)
+ *   fundingRate < −0.05%    → "Short Heavy" (amber)
+ *   otherwise               → no tag
  *
  * Signal 2 — Liquidation proximity (doc lines 1075–1078):
  *   priceToLiqPct ≤ 3%   → "Near Liq Zone" (red)
@@ -47,7 +48,7 @@
 import type { Verdict } from '../contracts';
 
 export type WatchlistTagsInputs = {
-  /** OI-weighted funding rate (decimal, e.g. 0.001 = 0.1%). */
+  /** OI-weighted funding rate in percent (0.1 = 0.1%) — the feed's own scale. */
   fundingRate: number;
   /**
    * Distance from current price to nearest large liquidation cluster,
@@ -92,9 +93,9 @@ function computeSignalTags(inputs: WatchlistTagsInputs): CandidateTag[] {
   const candidates: CandidateTag[] = [];
 
   // Signal 1 — Funding Rate
-  if (fundingRate > 0.001) {
+  if (fundingRate > 0.1) {
     candidates.push({ tag: { label: 'Overheated', color: 'red' }, priority: 1 });
-  } else if (fundingRate < 0) {
+  } else if (fundingRate < -0.05) {
     candidates.push({ tag: { label: 'Short Heavy', color: 'amber' }, priority: 1 });
   }
 

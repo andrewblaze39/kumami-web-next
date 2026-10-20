@@ -7,23 +7,34 @@
  * Unsupported symbols are ignored. The socket auto-reconnects.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-// Symbols with a USDT spot pair on Binance that we monitor for alerts.
+// Symbols with a trading USDT spot pair on Binance that we monitor for alerts.
+// Checked against Binance exchangeInfo on 20 Oct 2026 (Rachelle v1.15 Pro §2):
+// HYPE added (a core asset); MATIC → POL and RNDR → RENDER were renamed and the
+// old pairs are halted; TONUSDT is halted too, so TON was dropped.
 export const SUPPORTED_SYMBOLS = new Set([
-  'BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA', 'AVAX', 'LINK', 'MATIC',
-  'DOT', 'ARB', 'OP', 'LTC', 'TRX', 'NEAR', 'APT', 'SUI', 'TON', 'INJ',
-  'ATOM', 'UNI', 'AAVE', 'FIL', 'ETC', 'HBAR', 'ICP', 'RNDR', 'IMX', 'SEI',
+  'BTC', 'ETH', 'SOL', 'BNB', 'HYPE', 'XRP', 'DOGE', 'ADA', 'AVAX', 'LINK', 'POL',
+  'DOT', 'ARB', 'OP', 'LTC', 'TRX', 'NEAR', 'APT', 'SUI', 'INJ',
+  'ATOM', 'UNI', 'AAVE', 'FIL', 'ETC', 'HBAR', 'ICP', 'RENDER', 'IMX', 'SEI',
 ]);
 
+/** Old ticker → the symbol Binance streams now, so alerts saved on the old name keep working. */
+export const RENAMED_SYMBOLS: Record<string, string> = { MATIC: 'POL', RNDR: 'RENDER' };
+
+const streamSymbol = (sym: string): string => {
+  const s = sym.trim().toUpperCase();
+  return RENAMED_SYMBOLS[s] ?? s;
+};
+
 export function isSupportedSymbol(sym: string): boolean {
-  return SUPPORTED_SYMBOLS.has(sym.trim().toUpperCase());
+  return SUPPORTED_SYMBOLS.has(streamSymbol(sym));
 }
 
 export function useLivePrices(symbols: string[]): Record<string, number> {
   const [prices, setPrices] = useState<Record<string, number>>({});
   // Stable dependency key: sorted, de-duped, supported symbols only.
-  const key = Array.from(new Set(symbols.map((s) => s.trim().toUpperCase())))
+  const key = Array.from(new Set(symbols.map(streamSymbol)))
     .filter((s) => SUPPORTED_SYMBOLS.has(s))
     .sort()
     .join(',');
@@ -73,5 +84,10 @@ export function useLivePrices(symbols: string[]): Record<string, number> {
     };
   }, [key]);
 
-  return prices;
+  // Also answer under the old ticker (MATIC → POL's price) for alerts saved before the rename.
+  return useMemo(() => {
+    const out = { ...prices };
+    for (const [old, now] of Object.entries(RENAMED_SYMBOLS)) if (out[now] != null) out[old] = out[now];
+    return out;
+  }, [prices]);
 }

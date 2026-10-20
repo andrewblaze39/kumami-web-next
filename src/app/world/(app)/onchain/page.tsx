@@ -69,7 +69,7 @@ function divFromColor(c: Verdict['color']): OcDivType {
 type Tag = { t: string; k: string };
 
 /* Assets supported by /api/market/onchain */
-const OC_ASSETS = ['BTC', 'ETH', 'SOL', 'BNB', 'AVAX'] as const;
+const OC_ASSETS = ['BTC', 'ETH', 'SOL', 'BNB', 'HYPE'] as const;
 type OcAsset = (typeof OC_ASSETS)[number];
 
 const RANGES = ['24H', '7D', '30D'] as const;
@@ -154,6 +154,11 @@ const exNumOrNull = (panel: P | undefined, key: string): number | null => {
   return typeof v === 'number' ? v : null;
 };
 
+const exStr = (panel: P | undefined, key: string): string | null => {
+  const v = panel?.extra?.[key];
+  return typeof v === 'string' ? v : null;
+};
+
 const signPct = (n: number, dp = 2) => `${n >= 0 ? '+' : ''}${n.toFixed(dp)}%`;
 
 /* ------------------------------------------------------------------ */
@@ -168,7 +173,7 @@ const ONCHAIN_TOUR: TourStep[] = [
   {
     selector: '[data-tour="oc-controls"]',
     title: 'Pick an asset & timeframe',
-    body: 'Switch between BTC, ETH, SOL, BNB and AVAX, and choose a 24H / 7D / 30D window. Everything on the page updates to match.',
+    body: 'Switch between BTC, ETH, SOL, BNB and HYPE, and choose a 24H / 7D / 30D window. Everything on the page updates to match.',
   },
   {
     selector: '[data-tour="oc-tiles"]',
@@ -223,7 +228,7 @@ export default function OnChainPage() {
   };
 
   // Spot Pulse click-through (§8): open the selected coin's on-chain view, when
-  // it's an asset this page covers (BTC/ETH/SOL/BNB — HYPE has no on-chain panel).
+  // it's one of the 5 core assets this page covers.
   const openAssetView = (sym: string) => {
     if ((OC_ASSETS as readonly string[]).includes(sym)) {
       setAsset(sym as OcAsset);
@@ -262,9 +267,11 @@ export default function OnChainPage() {
   const netUsdNum = exNumOrNull(P?.netflow, 'netUsd');
   const netDir: 'in' | 'out' = (netUsdNum ?? 0) >= 0 ? 'out' : 'in';
   const netDisp = netUsdNum !== null ? formatUsd(Math.abs(netUsdNum)) : D;
-  // CoinGlass exchange balances update once a day, so a 24H window usually
-  // compares a value with itself → "$0 · Neutral" is misleading. Say so instead.
-  const netDailyOnly = range === '24H' && netUsdNum !== null && Math.abs(netUsdNum) < 1;
+  // Exchange balances update once a day, so on 24H the server reads the 7D change
+  // (Rachelle v1.15 Plus §2.2). A zero 7D change still says "Updates daily".
+  const netRangeRaw = exStr(P?.netflow, 'netRange');
+  const netRangeLabel = netRangeRaw === '30d' ? '30D' : netRangeRaw === '7d' ? '7D' : range;
+  const netDailyOnly = netUsdNum !== null && Math.abs(netUsdNum) < 1;
   const netHasData = netUsdNum !== null && !netDailyOnly;
 
   const glsPctNum = exNumOrNull(P?.longshort, 'globalPctLong');
@@ -293,7 +300,8 @@ export default function OnChainPage() {
   const etfNet7 = exNum(P?.etf, 'net7dUsd');
   const etfToday = etfBars.length ? etfBars[etfBars.length - 1] : 0;
   const etfNet7Disp = etfBars.length ? formatUsd(etfNet7) : D;
-  const etfTodayDisp = etfBars.length ? formatUsd(etfToday) : D;
+  // A $0 last bar is today's not-yet-reported flow (ETFs report after the US close), not a real zero.
+  const etfTodayDisp = !etfBars.length ? D : etfToday === 0 ? 'Not reported yet' : formatUsd(etfToday);
 
   const stbLast = stbS.length ? stbS[stbS.length - 1] : 0;
   const stbChg30 = exNum(P?.stablecoin, 'change30dPct');
@@ -408,8 +416,8 @@ export default function OnChainPage() {
           </div>
           <div className="w-oc-support">
             {netDailyOnly
-              ? 'Exchange balances update once a day — switch to 7D to see the flow'
-              : `${netHasData ? (netDir === 'out' ? 'Coins leaving exchanges' : 'Coins arriving to exchanges') : 'Exchange balance flow'} · ${range}`}
+              ? 'Exchange balances update once a day'
+              : `${netHasData ? (netDir === 'out' ? 'Coins leaving exchanges' : 'Coins arriving to exchanges') : 'Exchange balance flow'} · ${netRangeLabel}${netRangeLabel !== range ? ' (updates daily)' : ''}`}
           </div>
         </div>
 
@@ -534,7 +542,7 @@ export default function OnChainPage() {
             <div className="w-oc-note">30D view · best for ETF analysis</div>
             <div className="w-oc-fstats">
               <span className="w-oc-fstat">
-                Today <b className={!etfBars.length ? '' : etfToday >= 0 ? 'up' : 'down'}>{etfTodayDisp}</b>
+                Today <b className={!etfBars.length || etfToday === 0 ? '' : etfToday >= 0 ? 'up' : 'down'}>{etfTodayDisp}</b>
               </span>
             </div>
           </div>

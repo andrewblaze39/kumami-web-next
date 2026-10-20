@@ -84,6 +84,10 @@ export type FlowEvent = {
   description: string;
   ts: string;
   interpretation?: string;
+  /** smart_money only: Hyperliquid position_action (1 = opened, 2 = closed). */
+  action?: 'open' | 'close';
+  /** smart_money only: position side (negative size = short). */
+  side?: 'long' | 'short';
   /** Pro-only cross-signal confirmation (e.g. "Regime shift confirming"). */
   crossSignal?: { label: string; color: Verdict['color'] };
 };
