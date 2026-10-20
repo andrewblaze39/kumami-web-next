@@ -43,8 +43,11 @@ export type AdminCalendarDoc = {
   date?: string;         // YYYY-MM-DD
   time?: string;         // "HH:MM" (UTC) from the time picker; legacy docs may hold free text like "8:30 AM UTC"
   imp?: string;          // 'high' | 'med' | 'low'
-  cat?: string;          // Macro | Token unlock | On-chain | Regulatory | Project | Other
+  cat?: string;          // Macro | Token unlock | Listing | Token sale / TGE | On-chain | Regulatory | Project | Other
   d?: string;            // description
+  venue?: string;        // Token sale / TGE: where it happens (launchpad / exchange)
+  raise?: string;        // Token sale / TGE: raise or FDV, free text ("$12M raise", "$400M FDV")
+  link?: string;         // Token sale / TGE: official link
   assets?: string;       // comma-separated tickers, optional
   status?: string;       // only 'published' docs are ever passed in
 };
@@ -152,6 +155,27 @@ export function parseAdminAssets(raw: string | undefined, type: CalendarEvent['t
 
 const IMPACT: Record<string, CalendarEvent['impact']> = { high: 'HIGH', med: 'MED', medium: 'MED', low: 'LOW' };
 
+/** Rachelle v1.15 Plus §5 admin categories. */
+export const ADMIN_CATEGORIES = ['Macro', 'Token unlock', 'Listing', 'Token sale / TGE', 'On-chain', 'Regulatory', 'Project', 'Other'];
+export const TOKEN_SALE = 'Token sale / TGE';
+
+/**
+ * A token sale needs project, ticker, date and time (UTC), venue, raise or FDV, and a
+ * link (v1.15 Plus §5). Returns the missing field names (empty = complete).
+ */
+export function missingTokenSaleFields(doc: AdminCalendarDoc): string[] {
+  if (doc.cat !== TOKEN_SALE) return [];
+  const miss: string[] = [];
+  if (!doc.t?.trim()) miss.push('project');
+  if (!doc.assets?.trim()) miss.push('ticker');
+  if (!doc.date) miss.push('date');
+  if (!/^\d{2}:\d{2}$/.test(doc.time ?? '')) miss.push('time (UTC)');
+  if (!doc.venue?.trim()) miss.push('venue');
+  if (!doc.raise?.trim()) miss.push('raise or FDV');
+  if (!/^https?:\/\/\S+$/i.test(doc.link?.trim() ?? '')) miss.push('link');
+  return miss;
+}
+
 /** Returns null for docs without a title or a valid date (never rendered half-broken). */
 export function adminToEvent(id: string, doc: AdminCalendarDoc): CalendarEvent | null {
   const title = (doc.t ?? '').trim();
@@ -167,9 +191,41 @@ export function adminToEvent(id: string, doc: AdminCalendarDoc): CalendarEvent |
     allDay: when.allDay,
     impact: IMPACT[(doc.imp ?? '').toLowerCase()] ?? 'MED',
     assets: parseAdminAssets(doc.assets, type),
-    description: (doc.d ?? '').trim(),
+    description: [
+      (doc.d ?? '').trim(),
+      doc.venue?.trim() ? `Venue: ${doc.venue.trim()}` : '',
+      doc.raise?.trim() ? `Raise / FDV: ${doc.raise.trim()}` : '',
+    ].filter(Boolean).join(' · '),
     source: 'kumami',
     category: doc.cat?.trim() || undefined,
+    ...(/^https?:\/\//i.test(doc.link?.trim() ?? '') ? { link: doc.link!.trim() } : {}),
+  };
+}
+
+/** Published Airdrops & Whitelist doc (components/admin/PublishAirdrops). */
+export type AirdropDoc = { name?: string; cat?: string; desc?: string; tgeDate?: string; tgeTime?: string };
+
+/**
+ * An Airdrops & Whitelist entry with a TGE / claim date appears on the Calendar
+ * automatically (v1.15 Plus §5) — as a team event, MED impact.
+ */
+export function airdropToEvent(id: string, doc: AirdropDoc): CalendarEvent | null {
+  const name = (doc.name ?? '').trim();
+  if (!name || !doc.tgeDate) return null;
+  const when = parseAdminWhen(doc.tgeDate, doc.tgeTime);
+  if (!when) return null;
+  const kind = doc.cat === 'whitelist' ? 'Whitelist' : 'Airdrop';
+  return {
+    id: `airdrop-${id}`,
+    type: 'protocol',
+    title: `${name} — ${kind} TGE / claim`,
+    ts: when.ts,
+    allDay: when.allDay,
+    impact: 'MED',
+    assets: [],
+    description: (doc.desc ?? '').trim().slice(0, 200),
+    source: 'kumami',
+    category: 'Airdrop TGE / claim',
   };
 }
 

@@ -29,6 +29,9 @@ interface AirdropDoc {
   cat: Cat;
   desc: string;
   deadline: string;
+  /** TGE / claim date (YYYY-MM-DD) + optional UTC time — puts the entry on the Calendar (v1.15 Plus §5). */
+  tgeDate?: string;
+  tgeTime?: string;
   val: string;
   elig: Elig;
   color: string;
@@ -37,7 +40,7 @@ interface AirdropDoc {
 }
 
 const EMPTY = {
-  name: '', cat: 'airdrop' as Cat, desc: '', deadline: '', val: '',
+  name: '', cat: 'airdrop' as Cat, desc: '', deadline: '', val: '', tgeDate: '', tgeTime: '',
   elig: 'check' as Elig, color: '#5ee9a8', checklist: [] as ChecklistRow[],
 };
 
@@ -88,6 +91,7 @@ export default function PublishAirdrops() {
     setEditingId(item.id);
     setForm({
       name: item.name, cat: item.cat, desc: item.desc, deadline: item.deadline,
+      tgeDate: item.tgeDate ?? '', tgeTime: item.tgeTime ?? '',
       val: item.val, elig: item.elig, color: item.color || '#5ee9a8', checklist: item.checklist || [],
     });
     setMessage('');
@@ -133,6 +137,14 @@ export default function PublishAirdrops() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
           <input className={inputCls} value={form.deadline} onChange={(e) => set('deadline', e.target.value)} placeholder="e.g. 2d 4h, or Not live" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">TGE / claim date (optional)</label>
+          <div className="flex gap-2">
+            <input type="date" className={inputCls} value={form.tgeDate} onChange={(e) => set('tgeDate', e.target.value)} aria-label="TGE / claim date" />
+            <input type="time" className={inputCls} value={form.tgeTime} onChange={(e) => set('tgeTime', e.target.value)} aria-label="TGE / claim time (UTC)" />
+          </div>
+          <p className="text-xs text-gray-500 mt-1">With a date, the entry also appears on the Calendar (time in UTC; blank = all day).</p>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Estimated value</label>

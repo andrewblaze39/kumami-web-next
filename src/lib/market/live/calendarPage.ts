@@ -25,6 +25,8 @@ import type { CalendarEvent, CalendarPayload } from '../contracts';
 import { economicCalendar, coinUnlocks } from './cg-endpoints';
 import {
   adminToEvent,
+  airdropToEvent,
+  type AirdropDoc,
   macroToEvent,
   mergeCalendarEvents,
   unlockToEvent,
@@ -34,10 +36,15 @@ import {
 async function adminEvents(): Promise<CalendarEvent[]> {
   try {
     const { adminDb } = await import('@/lib/firebase-admin');
-    const snap = await adminDb().collection('pro_calendar').where('status', '==', 'published').get();
-    return snap.docs
-      .map((d) => adminToEvent(d.id, d.data() as AdminCalendarDoc))
-      .filter((e): e is CalendarEvent => e !== null);
+    const [snap, drops] = await Promise.all([
+      adminDb().collection('pro_calendar').where('status', '==', 'published').get(),
+      // Airdrops & Whitelist entries with a TGE / claim date (v1.15 Plus §5).
+      adminDb().collection('pro_airdrops').where('status', '==', 'published').get().catch(() => null),
+    ]);
+    return [
+      ...snap.docs.map((d) => adminToEvent(d.id, d.data() as AdminCalendarDoc)),
+      ...(drops?.docs ?? []).map((d) => airdropToEvent(d.id, d.data() as AirdropDoc)),
+    ].filter((e): e is CalendarEvent => e !== null);
   } catch (err) {
     console.error('[calendar] admin events (pro_calendar) unavailable:', err);
     return [];

@@ -144,6 +144,8 @@ export type CalendarEvent = {
   allDay?: boolean;
   /** Admin-chosen category label (e.g. "Regulatory", "Project") — admin events only. */
   category?: string;
+  /** Official link (Token sale / TGE events). */
+  link?: string;
 };
 
 /** Full payload for the shared /world/calendar page (Plus and Pro). */
