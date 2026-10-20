@@ -16,6 +16,7 @@
  */
 
 import { getCachedFresh } from '../cache';
+import { takeSlot } from './rateWindow';
 
 const CG_ORIGIN = 'https://open-api-v4.coinglass.com';
 
@@ -83,6 +84,7 @@ export async function cgFetch<T>(path: string, params?: CgParams): Promise<T> {
     // first Spot Pulse 7D load = ~15–30 uncached calls at once) used to drop
     // coins entirely after a single retry (found by Playwright QA, 10 Oct 2026).
     for (let attempt = 0; attempt <= RATE_LIMIT_RETRIES; attempt++) {
+      await takeSlot(); // one shared 70/min budget (v1.15 Platform) — retries count too
       const res = await fetch(url.toString(), {
         headers: { 'CG-API-KEY': key, accept: 'application/json' },
         cache: 'no-store', // we manage freshness via our own TTL cache
