@@ -302,8 +302,10 @@ test.describe('Firestore rules — a free user must not grant themselves Pro', (
       await openPage(page, '/world/console');
       const name = await firestore(page, 'PATCH', `users/${qa0Uid}?updateMask.fieldPaths=displayName`, { fields: { displayName: { stringValue: 'QA0 New' } } });
       expect(name.status, 'profile name edit must stay allowed').toBe(200);
-      const off = await firestore(page, 'PATCH', `users/${qa0Uid}?updateMask.fieldPaths=isPremium&updateMask.fieldPaths=subscriptionStatus`, {
-        fields: { isPremium: { booleanValue: false }, subscriptionStatus: { stringValue: 'cancelled-immediate' } },
+      // A value that can't already be stored: rules only block CHANGED fields, so re-writing
+      // 'cancelled-immediate' after the admin "remove Pro" test (other project) was a no-op 200.
+      const off = await firestore(page, 'PATCH', `users/${qa0Uid}?updateMask.fieldPaths=subscriptionStatus`, {
+        fields: { subscriptionStatus: { stringValue: `qa-self-write-${Date.now()}` } },
       });
       expect(off.status, 'subscription status is server-only since v1.13').toBe(403);
     });
