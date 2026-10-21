@@ -73,6 +73,11 @@ function tier(usd: number, high: number, med: number, low?: number): FlowEvent['
 
 const MAJORS = new Set(['BTC', 'ETH']);
 
+/** Hyperliquid lists some coins per 1,000 units with a "k" prefix (kPEPE, kBONK): show the coin itself. */
+export function hyperliquidAsset(symbol: string): string {
+  return (/^k[A-Z0-9]{2,}$/.test(symbol) ? symbol.slice(1) : symbol).toUpperCase();
+}
+
 /** Smart-money size tiers (v1.15 Plus §3 event 4). */
 export function smartMoneySeverity(asset: string, usd: number): FlowEvent['severity'] | null {
   const major = MAJORS.has(asset.toUpperCase());

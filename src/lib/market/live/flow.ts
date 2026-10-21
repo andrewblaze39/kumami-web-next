@@ -13,7 +13,7 @@
  */
 
 import type { FlowEvent } from '../contracts';
-import { computeFlowRadar } from '../rules/flowRadar';
+import { computeFlowRadar, hyperliquidAsset } from '../rules/flowRadar';
 import {
   whaleTransfers,
   netflowList,
@@ -199,7 +199,8 @@ export async function buildFlowEvents(now: number = Date.now()): Promise<FlowEve
   for (const p of [...hl].sort((x, y) => y.position_value_usd - x.position_value_usd)) {
     const isLong = p.position_size > 0;
     const closed = p.position_action === 2;
-    const r = computeFlowRadar({ type: 'smart_money', asset: p.symbol, amountUsd: p.position_value_usd, isLong, closed });
+    const asset = hyperliquidAsset(p.symbol);
+    const r = computeFlowRadar({ type: 'smart_money', asset, amountUsd: p.position_value_usd, isLong, closed });
     if (!r) continue;
     const id = `hl-${p.user.slice(0, 10)}-${p.symbol}-${p.create_time}`;
     if (seenHl.has(id)) continue;
@@ -207,7 +208,7 @@ export async function buildFlowEvents(now: number = Date.now()): Promise<FlowEve
     events.push({
       id,
       type: 'smart_money',
-      asset: p.symbol,
+      asset,
       amountUsd: Math.round(p.position_value_usd),
       direction: r.direction,
       severity: r.severity,

@@ -30,6 +30,7 @@ verified, following the `feature-test-tutorial` conventions.
 ## Plus
 
 - [v1.15 quick wins](plus/v115-quick-wins/how-to-test.md) — On-Chain (HYPE, funding bands + scale, Netflow 7D, flat-OI states), Watchlist tags, Console badge for HIGH events within 6h, Daily Digest market lines, price-alert coins (HYPE, POL, RENDER). Automated: `qa/features/v115-quick-wins.spec.ts`.
+- [v1.20 market engines](plus/v120-market-engines/how-to-test.md) — Flow Radar (new directions, Dry Powder, verdict band, AI sentence, Pro illiquid filter), Spot Pulse engine, Watchlist Pro pins + 3-day Section C, Calendar Listing / Token sale + airdrop dates (Pro only), AI layer, background collector. Automated: `qa/features/v115-*.spec.ts`.
 - [Calendar](plus/calendar/how-to-test.md) — shared Plus + Pro calendar at `/world/calendar`: feed events plus team events authored at `/admin/pro-calendar` (drafts hidden, ★ team events, high-impact popup). Automated: `qa/features/calendar.spec.ts`.
 
 ## Automated QA (Playwright)

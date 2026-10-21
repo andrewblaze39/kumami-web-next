@@ -86,3 +86,13 @@ describe('netflow_flip and whale_wall (unchanged)', () => {
     expect(computeFlowRadar({ type: 'whale_wall', asset: 'BTC', amountUsd: 60 * M, abovePrice: false, distanceFromPrice: 0.06 })).toMatchObject({ severity: 'LOW', direction: 'Support Wall' });
   });
 });
+
+describe('hyperliquidAsset', () => {
+  it('drops the per-1,000 "k" prefix and upper-cases', async () => {
+    const { hyperliquidAsset } = await import('../flowRadar');
+    expect(hyperliquidAsset('kPEPE')).toBe('PEPE');
+    expect(hyperliquidAsset('kBONK')).toBe('BONK');
+    expect(hyperliquidAsset('BTC')).toBe('BTC');
+    expect(hyperliquidAsset('KAITO')).toBe('KAITO');
+  });
+});
