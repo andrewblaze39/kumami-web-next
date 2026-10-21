@@ -125,10 +125,11 @@ export async function GET(request: Request) {
   const aiSentences: Partial<Record<FlowWindow, { verdict: string; text: string }>> = {};
   await Promise.all(windows.map(async (w) => {
     const evs = inWindow(w);
+    if (evs.length === 0) return; // nothing to say beyond the template ("flow is calm")
     const band = computeFlowVerdict(evs, w);
     const top = [...evs].sort((a, b) => b.amountUsd - a.amountUsd).slice(0, 3);
     const facts = { window: w, verdict: band.verdict.label, statLine: band.statLine, top: top.map((e) => `${e.asset} ${e.direction} $${Math.round(e.amountUsd / 1e6)}M`) };
-    const key = `flow:${isPro ? 'pro' : 'plus'}:${w}:${band.verdict.label}:${top.map((e) => e.id).join(',')}`;
+    const key = `flow2:${isPro ? 'pro' : 'plus'}:${w}:${band.verdict.label}:${top.map((e) => e.id).join(',')}`;
     // A cold AI call never holds the feed up for long; the fetch keeps running and fills the cache.
     const r = await withTimeout(aiSentence(key, flowVerdictPrompt(facts), band.sentence), AI_TIMEOUT_MS).catch(() => null);
     if (r?.ai) aiSentences[w] = { verdict: band.verdict.label, text: r.text };

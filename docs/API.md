@@ -228,7 +228,7 @@ CoinGlass budget: every server call goes through one 70-per-minute window per in
 
 ## 9. Other server routes (unversioned, website-internal)
 
-`/api/market/*` (console, onchain, flow-radar, heatmap, intelligence, watchlist, calendar, fear-greed, spot-pulse), `/api/education/progress`, `/api/portfolio-scan`, `/api/wallet-data`, `/api/wallet-profile`, `/api/intents`, `/api/tracker/bootstrap`, `/api/coingecko/*`, `/api/webhooks/alchemy`. All use the same Bearer auth (except CoinGecko). See `docs/ARCHITECTURE.md` §4a. They'll move under `/api/v1` when the app needs them.
+`/api/market/*` (console, onchain, flow-radar — since v1.20 its response also has `aiSentences: { [window]: { verdict, text } }`, Gemini rewrites of the band sentence; heatmap, intelligence, watchlist, calendar, fear-greed, spot-pulse), `/api/education/progress`, `/api/portfolio-scan`, `/api/wallet-data`, `/api/wallet-profile`, `/api/intents`, `/api/tracker/bootstrap`, `/api/coingecko/*`, `/api/webhooks/alchemy`. All use the same Bearer auth (except CoinGecko). See `docs/ARCHITECTURE.md` §4a. They'll move under `/api/v1` when the app needs them.
 
 ## 10. What replaced the Firebase Functions
 

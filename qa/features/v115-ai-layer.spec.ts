@@ -33,6 +33,9 @@ test('Flow Radar: the AI sentence under the verdict band matches the page band f
   const { body } = await apiAsUser<{ aiSentences?: Record<string, { verdict: string; text: string }> }>(page, '/api/market/flow-radar');
   await info.attach('flow-ai', { body: JSON.stringify(body.aiSentences ?? null, null, 1), contentType: 'application/json' });
   const ai = body.aiSentences?.['24H'];
+  // An empty window keeps the template on purpose; otherwise the AI path should answer.
+  const empty = (await page.getByText(/No events in 24H yet/).count()) > 0;
+  test.skip(!ai && empty, 'no events in 24H — template sentence by design');
   expect(ai, 'Gemini key is set — the 24H sentence should be present').toBeTruthy();
   expect(ai!.text).not.toMatch(/coinglass/i);
   const label = (await page.locator('.w-flow-radar-verdict-label').innerText()).trim();
