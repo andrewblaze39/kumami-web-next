@@ -30,6 +30,9 @@ export type FlowDayTally = {
   high: number;
   bullish: number;
   bearish: number;
+  /** Bullish / bearish $ that day (recorded from v1.15 on — feeds the 3-day Section C). */
+  bullishUsd?: number;
+  bearishUsd?: number;
 };
 
 export type FlowDailyDoc = { date: string; assets: Record<string, FlowDayTally> };
@@ -52,12 +55,12 @@ export function tallyDay(events: FlowEvent[], day: string): Record<string, FlowD
   for (const e of events) {
     if (e.severity !== 'HIGH' && e.severity !== 'MED') continue;
     if (utcDay(e.ts) !== day) continue;
-    const t = (out[e.asset] ??= { maxEvents: 0, maxUsd: 0, high: 0, bullish: 0, bearish: 0 });
+    const t = (out[e.asset] ??= { maxEvents: 0, maxUsd: 0, high: 0, bullish: 0, bearish: 0, bullishUsd: 0, bearishUsd: 0 });
     t.maxEvents += 1;
     t.maxUsd += e.amountUsd;
     if (e.severity === 'HIGH') t.high += 1;
-    if (BULLISH_DIRECTIONS.has(e.direction)) t.bullish += 1;
-    else if (BEARISH_DIRECTIONS.has(e.direction)) t.bearish += 1;
+    if (BULLISH_DIRECTIONS.has(e.direction)) { t.bullish += 1; t.bullishUsd = (t.bullishUsd ?? 0) + e.amountUsd; }
+    else if (BEARISH_DIRECTIONS.has(e.direction)) { t.bearish += 1; t.bearishUsd = (t.bearishUsd ?? 0) + e.amountUsd; }
   }
   return out;
 }
@@ -77,6 +80,9 @@ export function mergeTallies(
           high: Math.max(s.high, f.high),
           bullish: Math.max(s.bullish, f.bullish),
           bearish: Math.max(s.bearish, f.bearish),
+          ...(f.bullishUsd !== undefined || s.bullishUsd !== undefined
+            ? { bullishUsd: Math.max(s.bullishUsd ?? 0, f.bullishUsd ?? 0), bearishUsd: Math.max(s.bearishUsd ?? 0, f.bearishUsd ?? 0) }
+            : {}),
         }
       : f;
   }

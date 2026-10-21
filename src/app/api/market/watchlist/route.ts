@@ -40,7 +40,8 @@ import { authenticate } from '@/lib/market/api-helpers';
 import { getProvider } from '@/lib/market/provider';
 import { getCachedFresh } from '@/lib/market/cache';
 import { watchlistSlots, pinCap, effectiveTier, parseView } from '@/lib/market/gating';
-import { pickExtraCoins } from '@/lib/market/consistentCoins';
+import { pickSectionC, readPinMarkets } from '@/lib/market/consistentCoins';
+import { checkPin } from '@/lib/market/rules/watchlistPins';
 import type { WatchlistApiResponse } from '@/lib/market/contracts';
 import { buildAsset, type SignalInputs } from '@/lib/market/live/watchlist';
 import {
@@ -72,6 +73,12 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T | null> {
     new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
   ]);
 }
+
+/** A row that can't be built is dropped, but never silently (QA found 4 of 5 rows missing under load). */
+const logRowFailure = (asset: string) => (err: unknown) => {
+  console.error(`[watchlist] ${asset} row failed:`, err instanceof Error ? err.message : err);
+  return null;
+};
 
 export async function GET(request: Request) {
   const auth = await authenticate(request);
@@ -109,11 +116,11 @@ export async function GET(request: Request) {
   // that one signal rather than the page.
   const [flowEvents, spotPulse] = await Promise.all([
     withTimeout(
-      getCachedFresh('market:v2:flow-radar', 60, () => getProvider().flowRadar('pro')),
+      getCachedFresh('market:v3:flow-radar', 60, () => getProvider().flowRadar('pro')),
       ENRICHMENT_TIMEOUT_MS,
     ).catch(() => null),
     withTimeout(
-      getCachedFresh('market:v2:spot-pulse:pro:4H', 60, () => getProvider().spotPulse('pro', '4H')),
+      getCachedFresh('market:v3:spot-pulse:pro:4H', 60, () => getProvider().spotPulse('pro', '4H')),
       ENRICHMENT_TIMEOUT_MS,
     ).catch(() => null),
   ]);
@@ -139,7 +146,7 @@ export async function GET(request: Request) {
   // (see live/watchlist.ts), so re-invoking it here is cheap — no new
   // network calls, just a fresh tag pass.
   const sectionARebuilt = await Promise.all(
-    sectionAAssets.map((a) => buildAsset(a.asset, signalInputsFor(a.asset)).catch(() => null)),
+    sectionAAssets.map((a) => buildAsset(a.asset, signalInputsFor(a.asset)).catch(logRowFailure(a.asset))),
   );
   sectionAAssets = sectionARebuilt.filter((a): a is WatchlistApiResponse['assets'][number] => a !== null);
 
@@ -147,20 +154,19 @@ export async function GET(request: Request) {
     // Pro-only: Section B (custom list) also gets Signal/Status tags, plus
     // Section C ("Also Worth Watching") is scored from whatever's left in the buffer.
     curatedAssets = (
-      await Promise.all(curatedSymbols.map((sym) => buildAsset(sym, signalInputsFor(sym)).catch(() => null)))
+      await Promise.all(curatedSymbols.map((sym) => buildAsset(sym, signalInputsFor(sym)).catch(logRowFailure(sym))))
     ).filter((a): a is WatchlistApiResponse['curatedAssets'][number] => a !== null);
 
-    // Section C (Andrew's spec v1.6 ← Rachelle: "5 fixed + 5 consistent spikes"):
-    // the coins most consistently present in Flow Radar over the last 7 days.
-    // Until 7 days of history exist, fall back to the 24h whale-flow scoring.
+    // Section C (Rachelle v1.15 Pro §19): 3-day net accumulation confirmed by spot
+    // buyers, liquid coins only, no padding. 'building' until 3 days of recorded $.
     const exclude = new Set([...sectionAAssets.map((a) => a.asset), ...curatedSymbols]);
-    const extras = await pickExtraCoins(events, exclude, now);
-    historyDays = extras.historyDays;
-    sectionCMode = extras.mode;
-    const scored = extras.coins;
+    const picked = await pickSectionC(exclude, now);
+    historyDays = picked.daysWithUsd;
+    sectionCMode = picked.mode;
+    const scored = picked.coins;
     sectionC = (
       await Promise.all(scored.map(async (s) => {
-        const row = await buildAsset(s.asset, signalInputsFor(s.asset)).catch(() => null);
+        const row = await buildAsset(s.asset, signalInputsFor(s.asset)).catch(logRowFailure(s.asset));
         return row ? { ...row, reasons: s.reasons } : null;
       }))
     ).filter((r): r is WatchlistApiResponse['sectionC'][number] => r !== null);
@@ -199,11 +205,19 @@ export async function POST(request: Request) {
 
   const cap = pinCap(tier);
 
-  const result = await addSymbol(uid, symbol, cap);
+  // Section B pin rules (Rachelle v1.15 Pro §19): ≥ $10M spot volume + a futures
+  // market; no stablecoins, wrapped tokens or core assets. If the market lists are
+  // unavailable, fall back to the fixed allowlist rather than block every pin.
+  const markets = await readPinMarkets();
+  if (markets) {
+    const check = checkPin(symbol, markets);
+    if (!check.ok) return NextResponse.json({ error: check.code, message: check.message }, { status: 400 });
+  }
+  const result = await addSymbol(uid, symbol, cap, undefined, markets ? () => true : undefined);
 
   if ('code' in result) {
     const status = result.code === 'slots_exceeded' ? 403 : 400;
-    return NextResponse.json({ error: result.code }, { status });
+    return NextResponse.json({ error: result.code, message: result.message }, { status });
   }
 
   return NextResponse.json({ symbols: result });

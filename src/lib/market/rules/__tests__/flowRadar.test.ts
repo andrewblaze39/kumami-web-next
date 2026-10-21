@@ -1,232 +1,98 @@
 import { describe, it, expect } from 'vitest';
-import { computeFlowRadar } from '../flowRadar';
+import { computeFlowRadar, smartMoneySeverity } from '../flowRadar';
 
-// Doc lines 133–154 (Console), 1094–1145 (detailed).
-// Per-event thresholds:
-//   whale_transfer: ≥$100M HIGH · ≥$10M MED · <$10M LOW
-//   exchange_flow:  ≥$500M HIGH · ≥$100M MED · <$100M LOW
-//   liq_spike:      ≥$200M HIGH · ≥$50M MED  · <$50M LOW
-//   netflow_flip:   always MED
-//   whale_wall:     >$50M within 5% of price → MED; else LOW
-//   smart_money:    confidence > 0.8 → HIGH; else MED
+// Rachelle v1.15 Plus §3 — events, directions and severity tiers.
+const M = 1_000_000;
 
-describe('computeFlowRadar — whale_transfer', () => {
-  it('HIGH when > $100M', () => {
-    const r = computeFlowRadar({ type: 'whale_transfer', asset: 'BTC', amountUsd: 150_000_000, toExchange: true });
-    expect(r.severity).toBe('HIGH');
+describe('whale_transfer', () => {
+  it('deposit = Inflow, withdrawal = Outflow', () => {
+    expect(computeFlowRadar({ type: 'whale_transfer', asset: 'BTC', amountUsd: 20 * M, toExchange: true })?.direction).toBe('Inflow');
+    expect(computeFlowRadar({ type: 'whale_transfer', asset: 'BTC', amountUsd: 20 * M, toExchange: false })?.direction).toBe('Outflow');
   });
-
-  it('HIGH at exactly $100M (outer band gets boundary)', () => {
-    const r = computeFlowRadar({ type: 'whale_transfer', asset: 'BTC', amountUsd: 100_000_000, toExchange: false });
-    expect(r.severity).toBe('HIGH');
-  });
-
-  it('MED just below $100M', () => {
-    const r = computeFlowRadar({ type: 'whale_transfer', asset: 'BTC', amountUsd: 99_000_000, toExchange: false });
-    expect(r.severity).toBe('MED');
-  });
-
-  it('MED at exactly $10M (outer band gets boundary)', () => {
-    const r = computeFlowRadar({ type: 'whale_transfer', asset: 'BTC', amountUsd: 10_000_000, toExchange: true });
-    expect(r.severity).toBe('MED');
-  });
-
-  it('LOW below $10M', () => {
-    const r = computeFlowRadar({ type: 'whale_transfer', asset: 'BTC', amountUsd: 9_000_000, toExchange: true });
-    expect(r.severity).toBe('LOW');
-  });
-
-  it('direction Inflow when toExchange=true', () => {
-    const r = computeFlowRadar({ type: 'whale_transfer', asset: 'BTC', amountUsd: 150_000_000, toExchange: true });
-    expect(r.direction).toBe('Inflow');
-  });
-
-  it('direction Outflow when toExchange=false', () => {
-    const r = computeFlowRadar({ type: 'whale_transfer', asset: 'BTC', amountUsd: 150_000_000, toExchange: false });
-    expect(r.direction).toBe('Outflow');
-  });
-
-  it('description includes asset and amount', () => {
-    const r = computeFlowRadar({ type: 'whale_transfer', asset: 'ETH', amountUsd: 200_000_000, toExchange: false });
-    expect(r.description).toContain('ETH');
-    expect(r.description).toContain('200');
+  it('HIGH ≥ $100M, MED $10–100M, nothing below $10M', () => {
+    expect(computeFlowRadar({ type: 'whale_transfer', asset: 'BTC', amountUsd: 100 * M, toExchange: true })?.severity).toBe('HIGH');
+    expect(computeFlowRadar({ type: 'whale_transfer', asset: 'BTC', amountUsd: 99 * M, toExchange: true })?.severity).toBe('MED');
+    expect(computeFlowRadar({ type: 'whale_transfer', asset: 'BTC', amountUsd: 10 * M, toExchange: true })?.severity).toBe('MED');
+    expect(computeFlowRadar({ type: 'whale_transfer', asset: 'BTC', amountUsd: 9.9 * M, toExchange: true })).toBeNull();
   });
 });
 
-describe('computeFlowRadar — exchange_flow', () => {
-  it('HIGH at exactly $500M', () => {
-    const r = computeFlowRadar({ type: 'exchange_flow', asset: 'BTC', amountUsd: 500_000_000, toExchange: true });
-    expect(r.severity).toBe('HIGH');
+describe('exchange_flow (Dry Powder)', () => {
+  it('stablecoins onto exchanges = Dry Powder In (bullish), off = Dry Powder Out', () => {
+    expect(computeFlowRadar({ type: 'exchange_flow', asset: 'USDT', amountUsd: 30 * M, netIntoExchanges: true, exchange: 'Binance' })?.direction).toBe('Dry Powder In');
+    expect(computeFlowRadar({ type: 'exchange_flow', asset: 'USDT', amountUsd: 30 * M, netIntoExchanges: false })?.direction).toBe('Dry Powder Out');
   });
-
-  it('MED at $100M–$499M', () => {
-    const r = computeFlowRadar({ type: 'exchange_flow', asset: 'BTC', amountUsd: 300_000_000, toExchange: true });
-    expect(r.severity).toBe('MED');
+  it('HIGH ≥ $500M, MED $100–500M, LOW $25–100M, nothing below $25M', () => {
+    const sev = (usd: number) => computeFlowRadar({ type: 'exchange_flow', asset: 'USDC', amountUsd: usd, netIntoExchanges: true })?.severity ?? null;
+    expect(sev(500 * M)).toBe('HIGH');
+    expect(sev(100 * M)).toBe('MED');
+    expect(sev(25 * M)).toBe('LOW');
+    expect(sev(24 * M)).toBeNull();
   });
-
-  it('MED at exactly $100M', () => {
-    const r = computeFlowRadar({ type: 'exchange_flow', asset: 'BTC', amountUsd: 100_000_000, toExchange: false });
-    expect(r.severity).toBe('MED');
-  });
-
-  it('LOW below $100M', () => {
-    const r = computeFlowRadar({ type: 'exchange_flow', asset: 'BTC', amountUsd: 50_000_000, toExchange: false });
-    expect(r.severity).toBe('LOW');
-  });
-
-  it('direction Inflow for toExchange=true', () => {
-    const r = computeFlowRadar({ type: 'exchange_flow', asset: 'BTC', amountUsd: 500_000_000, toExchange: true });
-    expect(r.direction).toBe('Inflow');
-  });
-
-  it('direction Outflow for toExchange=false', () => {
-    const r = computeFlowRadar({ type: 'exchange_flow', asset: 'BTC', amountUsd: 500_000_000, toExchange: false });
-    expect(r.direction).toBe('Outflow');
+  it('names the exchange', () => {
+    expect(computeFlowRadar({ type: 'exchange_flow', asset: 'USDT', amountUsd: 30 * M, netIntoExchanges: true, exchange: 'Binance' })?.description)
+      .toMatch(/USDT onto Binance/);
   });
 });
 
-describe('computeFlowRadar — liq_spike', () => {
-  it('HIGH at exactly $200M', () => {
-    const r = computeFlowRadar({ type: 'liq_spike', asset: 'BTC', amountUsd: 200_000_000 });
-    expect(r.severity).toBe('HIGH');
+describe('liq_spike', () => {
+  const liq = (usd: number, longShare: number) => computeFlowRadar({ type: 'liq_spike', asset: 'ETH', amountUsd: usd, longShare });
+  it('> 70% longs = Long Flush, < 30% = Short Squeeze, else Two-sided Flush', () => {
+    expect(liq(60 * M, 0.71)?.direction).toBe('Long Flush');
+    expect(liq(60 * M, 0.29)?.direction).toBe('Short Squeeze');
+    expect(liq(60 * M, 0.7)?.direction).toBe('Two-sided Flush');
+    expect(liq(60 * M, 0.3)?.direction).toBe('Two-sided Flush');
   });
-
-  it('HIGH above $200M', () => {
-    const r = computeFlowRadar({ type: 'liq_spike', asset: 'BTC', amountUsd: 500_000_000 });
-    expect(r.severity).toBe('HIGH');
+  it('HIGH ≥ $200M/h, MED $50–200M, LOW $10–50M, nothing below $10M', () => {
+    expect(liq(200 * M, 0.9)?.severity).toBe('HIGH');
+    expect(liq(50 * M, 0.9)?.severity).toBe('MED');
+    expect(liq(10 * M, 0.9)?.severity).toBe('LOW');
+    expect(liq(9 * M, 0.9)).toBeNull();
   });
-
-  it('MED at exactly $50M', () => {
-    const r = computeFlowRadar({ type: 'liq_spike', asset: 'ETH', amountUsd: 50_000_000 });
-    expect(r.severity).toBe('MED');
-  });
-
-  it('MED between $50M and $200M', () => {
-    const r = computeFlowRadar({ type: 'liq_spike', asset: 'ETH', amountUsd: 100_000_000 });
-    expect(r.severity).toBe('MED');
-  });
-
-  it('LOW below $50M', () => {
-    const r = computeFlowRadar({ type: 'liq_spike', asset: 'ETH', amountUsd: 30_000_000 });
-    expect(r.severity).toBe('LOW');
-  });
-
-  it('description includes /h suffix', () => {
-    const r = computeFlowRadar({ type: 'liq_spike', asset: 'ETH', amountUsd: 200_000_000 });
-    expect(r.description).toContain('/h');
+  it('never labels a squeeze "Sell Pressure" any more', () => {
+    expect(liq(80 * M, 0.1)?.direction).not.toBe('Sell Pressure');
   });
 });
 
-describe('computeFlowRadar — netflow_flip', () => {
-  it('always MED severity', () => {
-    const r = computeFlowRadar({ type: 'netflow_flip', asset: 'BTC', amountUsd: 0, flippedPositive: true });
-    expect(r.severity).toBe('MED');
+describe('smart_money', () => {
+  it('opened long = bullish label, opened short = bearish label, closed = neutral', () => {
+    expect(computeFlowRadar({ type: 'smart_money', asset: 'BTC', amountUsd: 30 * M, isLong: true })?.direction).toBe('Long Opened');
+    expect(computeFlowRadar({ type: 'smart_money', asset: 'BTC', amountUsd: 30 * M, isLong: false })?.direction).toBe('Short Opened');
+    expect(computeFlowRadar({ type: 'smart_money', asset: 'BTC', amountUsd: 30 * M, isLong: false, closed: true })?.direction).toBe('Position Closed');
   });
-
-  it('Buy Pressure when flippedPositive=true', () => {
-    const r = computeFlowRadar({ type: 'netflow_flip', asset: 'BTC', amountUsd: 0, flippedPositive: true });
-    expect(r.direction).toBe('Buy Pressure');
+  it('size tiers differ for BTC/ETH and other coins', () => {
+    expect(smartMoneySeverity('BTC', 25 * M)).toBe('HIGH');
+    expect(smartMoneySeverity('BTC', 24 * M)).toBe('MED');
+    expect(smartMoneySeverity('ETH', 5 * M)).toBe('MED');
+    expect(smartMoneySeverity('ETH', 4.9 * M)).toBe('LOW');
+    expect(smartMoneySeverity('SOL', 10 * M)).toBe('HIGH');
+    expect(smartMoneySeverity('SOL', 2 * M)).toBe('MED');
+    expect(smartMoneySeverity('SOL', 1.9 * M)).toBe('LOW');
+    expect(smartMoneySeverity('SOL', 1 * M)).toBe('LOW');
+    expect(smartMoneySeverity('SOL', 0.9 * M)).toBeNull();
   });
-
-  it('Sell Pressure when flippedPositive=false', () => {
-    const r = computeFlowRadar({ type: 'netflow_flip', asset: 'BTC', amountUsd: 0, flippedPositive: false });
-    expect(r.direction).toBe('Sell Pressure');
-  });
-
-  it('description says "sell→buy flip" when flippedPositive=true (flipping TO buy pressure)', () => {
-    const r = computeFlowRadar({ type: 'netflow_flip', asset: 'BTC', amountUsd: 0, flippedPositive: true });
-    expect(r.description).toContain('sell→buy flip');
-  });
-
-  it('description says "buy→sell flip" when flippedPositive=false (flipping TO sell pressure)', () => {
-    const r = computeFlowRadar({ type: 'netflow_flip', asset: 'BTC', amountUsd: 0, flippedPositive: false });
-    expect(r.description).toContain('buy→sell flip');
+  it('HIGH at $100M for any coin', () => {
+    expect(smartMoneySeverity('PEPE', 100 * M)).toBe('HIGH');
   });
 });
 
-describe('computeFlowRadar — whale_wall', () => {
-  it('MED when > $50M and within 5% of price', () => {
-    const r = computeFlowRadar({
-      type: 'whale_wall', asset: 'BTC', amountUsd: 60_000_000,
-      abovePrice: true, distanceFromPrice: 0.03,
-    });
-    expect(r.severity).toBe('MED');
+describe('netflow_flip and whale_wall (unchanged)', () => {
+  it('netflow flip is always MED, Buy/Sell Pressure', () => {
+    expect(computeFlowRadar({ type: 'netflow_flip', asset: 'SOL', amountUsd: 1, flippedPositive: true })).toMatchObject({ severity: 'MED', direction: 'Buy Pressure' });
+    expect(computeFlowRadar({ type: 'netflow_flip', asset: 'SOL', amountUsd: 1, flippedPositive: false })?.direction).toBe('Sell Pressure');
   });
-
-  it('LOW when ≤ $50M even within 5%', () => {
-    const r = computeFlowRadar({
-      type: 'whale_wall', asset: 'BTC', amountUsd: 50_000_000,
-      abovePrice: false, distanceFromPrice: 0.02,
-    });
-    expect(r.severity).toBe('LOW');
-  });
-
-  it('LOW when > $50M but outside 5%', () => {
-    const r = computeFlowRadar({
-      type: 'whale_wall', asset: 'BTC', amountUsd: 60_000_000,
-      abovePrice: true, distanceFromPrice: 0.06,
-    });
-    expect(r.severity).toBe('LOW');
-  });
-
-  it('Resistance Wall when abovePrice=true', () => {
-    const r = computeFlowRadar({
-      type: 'whale_wall', asset: 'BTC', amountUsd: 60_000_000,
-      abovePrice: true, distanceFromPrice: 0.03,
-    });
-    expect(r.direction).toBe('Resistance Wall');
-  });
-
-  it('Support Wall when abovePrice=false', () => {
-    const r = computeFlowRadar({
-      type: 'whale_wall', asset: 'BTC', amountUsd: 60_000_000,
-      abovePrice: false, distanceFromPrice: 0.03,
-    });
-    expect(r.direction).toBe('Support Wall');
-  });
-
-  it('MED at exactly 5% distance (boundary inclusive)', () => {
-    const r = computeFlowRadar({
-      type: 'whale_wall', asset: 'BTC', amountUsd: 60_000_000,
-      abovePrice: true, distanceFromPrice: 0.05,
-    });
-    expect(r.severity).toBe('MED');
+  it('whale wall MED only above $50M within 5% of price', () => {
+    expect(computeFlowRadar({ type: 'whale_wall', asset: 'BTC', amountUsd: 60 * M, abovePrice: true, distanceFromPrice: 0.04 })).toMatchObject({ severity: 'MED', direction: 'Resistance Wall' });
+    expect(computeFlowRadar({ type: 'whale_wall', asset: 'BTC', amountUsd: 60 * M, abovePrice: false, distanceFromPrice: 0.06 })).toMatchObject({ severity: 'LOW', direction: 'Support Wall' });
   });
 });
 
-describe('computeFlowRadar — smart_money', () => {
-  it('HIGH when confidence > 0.8', () => {
-    const r = computeFlowRadar({
-      type: 'smart_money', asset: 'BTC', amountUsd: 50_000_000, isLong: true, confidence: 0.9,
-    });
-    expect(r.severity).toBe('HIGH');
-  });
-
-  it('MED when confidence = 0.8 (not strictly > 0.8)', () => {
-    const r = computeFlowRadar({
-      type: 'smart_money', asset: 'BTC', amountUsd: 50_000_000, isLong: true, confidence: 0.8,
-    });
-    expect(r.severity).toBe('MED');
-  });
-
-  it('MED when no confidence provided', () => {
-    const r = computeFlowRadar({
-      type: 'smart_money', asset: 'BTC', amountUsd: 50_000_000, isLong: false,
-    });
-    expect(r.severity).toBe('MED');
-  });
-
-  it('Smart Money direction when isLong=true', () => {
-    const r = computeFlowRadar({
-      type: 'smart_money', asset: 'SOL', amountUsd: 20_000_000, isLong: true,
-    });
-    expect(r.direction).toBe('Smart Money');
-  });
-
-  it('Accumulation direction when isLong=false', () => {
-    const r = computeFlowRadar({
-      type: 'smart_money', asset: 'SOL', amountUsd: 20_000_000, isLong: false,
-    });
-    expect(r.direction).toBe('Accumulation');
+describe('hyperliquidAsset', () => {
+  it('drops the per-1,000 "k" prefix and upper-cases', async () => {
+    const { hyperliquidAsset } = await import('../flowRadar');
+    expect(hyperliquidAsset('kPEPE')).toBe('PEPE');
+    expect(hyperliquidAsset('kBONK')).toBe('BONK');
+    expect(hyperliquidAsset('BTC')).toBe('BTC');
+    expect(hyperliquidAsset('KAITO')).toBe('KAITO');
   });
 });

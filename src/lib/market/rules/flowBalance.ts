@@ -3,19 +3,13 @@
  *
  * Directional pressure over the last 24H: bullish $ vs bearish $, a net
  * figure, and a verdict label. Reuses the same bullish/bearish direction
- * vocabulary as the Market Verdict Band (flowVerdict.ts) — same events, a
+ * buckets as the Market Verdict Band (flowDirections.ts, Rachelle v1.15) — same events, a
  * different lens (magnitude/balance over a fixed 24H window, not a "what
  * happened just now" read over the user's selected timeframe).
  */
 
 import type { FlowEvent } from '../contracts';
-
-const BULLISH_DIRECTIONS = new Set<FlowEvent['direction']>([
-  'Outflow', 'Buy Pressure', 'Support Wall', 'Accumulation', 'Smart Money',
-]);
-const BEARISH_DIRECTIONS = new Set<FlowEvent['direction']>([
-  'Inflow', 'Sell Pressure', 'Resistance Wall',
-]);
+import { BEARISH_DIRECTIONS, BULLISH_DIRECTIONS } from './flowDirections';
 
 export type FlowBalanceVerdict =
   | 'Strong Accumulation'

@@ -16,6 +16,7 @@ import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
 import { formatPrice, formatChange, verdictColorClass } from '@/components/world/panels/format';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLivePrices } from '@/lib/pro/useLivePrices';
 import ProductTour, { type TourStep } from '@/components/world/ProductTour';
 import type { Verdict, WatchlistApiResponse } from '@/lib/market/contracts';
 
@@ -114,6 +115,13 @@ export default function WatchlistView({ variant }: { variant: ToolVariant }) {
   const bw = market.data ? toRows(market.data.assets) : [];
   const pinnedRows = market.data ? toRows(market.data.curatedAssets) : [];
   const sectionCRows = market.data ? toSectionCRows(market.data.sectionC) : [];
+  // Watchlist Pro: live prices from Binance's free stream (the one Following & Alerts
+  // uses — v1.15 Pro §19). Coins not on Binance keep the normal refresh.
+  const live = useLivePrices(
+    isPremium ? [...bw, ...pinnedRows, ...sectionCRows].map((r) => r.sym) : [],
+    { anySymbol: true },
+  );
+  const priceOf = (w: WatchRow) => (live[w.sym] != null ? `$${formatPrice(live[w.sym])}` : w.price);
   const pinCap = market.data?.pinCap ?? null;
   const pinnedCount = market.data?.curatedSymbols.length ?? 0;
   // Safety net: if the fetch is somehow still unresolved after 12s (a hung
@@ -146,7 +154,9 @@ export default function WatchlistView({ variant }: { variant: ToolVariant }) {
       if (!res.ok) {
         const body = await res.json().catch(() => null);
         setPinError(
-          body?.error === 'slots_exceeded'
+          typeof body?.message === 'string' && body.error !== 'slots_exceeded'
+            ? body.message
+            : body?.error === 'slots_exceeded'
             ? 'Your watchlist is full.'
             : body?.error === 'invalid_symbol'
             ? `"${symbol}" isn't a supported ticker yet.`
@@ -249,7 +259,7 @@ export default function WatchlistView({ variant }: { variant: ToolVariant }) {
               </span>
             </div>
             <div>
-              <b style={{ fontWeight: 800 }}>{w.price}</b>
+              <b style={{ fontWeight: 800 }}>{priceOf(w)}</b>
             </div>
             <div className="w-c-24h">
               <span className={w.dir === 'up' ? 'w-bull' : 'w-bear'} style={{ fontWeight: 800 }}>
@@ -349,7 +359,7 @@ export default function WatchlistView({ variant }: { variant: ToolVariant }) {
                   </button>
                 </div>
                 <div>
-                  <b style={{ fontWeight: 800 }}>{w.price}</b>
+                  <b style={{ fontWeight: 800 }}>{priceOf(w)}</b>
                 </div>
                 <div className="w-c-24h">
                   <span className={w.dir === 'up' ? 'w-bull' : 'w-bear'} style={{ fontWeight: 800 }}>
@@ -377,17 +387,24 @@ export default function WatchlistView({ variant }: { variant: ToolVariant }) {
       )}
 
       {/* ── Section C — Also Worth Watching (Pro, auto-detected) ── */}
-      {isPremium && sectionCRows.length > 0 && (
+      {isPremium && market.data && (
         <div className="w-wl-table" style={{ marginTop: 16 }}>
           <div className="w-wl-flowbar">
             <WIcon name="flame" />
             <span>Also Worth Watching</span>
             <span className="w-wl-auto" style={{ marginLeft: 'auto' }}>
               {market.data?.sectionCMode === 'consistent'
-                ? 'Most consistent in Flow Radar · last 7 days'
-                : `Last 24h · building 7-day history (${market.data?.historyDays ?? 0}/7 days)`}
+                ? '3-day net accumulation · confirmed by spot buyers'
+                : `3-day net accumulation · building 3-day history (${market.data?.historyDays ?? 0}/3 days)`}
             </span>
           </div>
+          {sectionCRows.length < 5 && (
+            <div className="w-wl-trow w-wl-note">
+              {sectionCRows.length === 0
+                ? 'No coin shows sustained accumulation right now.'
+                : `Only ${sectionCRows.length} coin${sectionCRows.length === 1 ? ' shows' : 's show'} sustained accumulation right now.`}
+            </div>
+          )}
           {sectionCRows.map((w) => (
             <div key={w.sym} className="w-wl-trow">
               <div className="w-wl-asset">
@@ -395,7 +412,7 @@ export default function WatchlistView({ variant }: { variant: ToolVariant }) {
                 <span><b>◆ {w.sym}</b><span>{w.name}</span></span>
               </div>
               <div>
-                <b style={{ fontWeight: 800 }}>{w.price}</b>
+                <b style={{ fontWeight: 800 }}>{priceOf(w)}</b>
               </div>
               <div className="w-c-24h">
                 <span className={w.dir === 'up' ? 'w-bull' : 'w-bear'} style={{ fontWeight: 800 }}>

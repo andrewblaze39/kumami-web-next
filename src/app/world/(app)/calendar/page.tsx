@@ -105,7 +105,8 @@ const D1_DISMISSED_KEY = 'kumami_calendar_d1_dismissed';
 export default function CalendarPage() {
   const { status, data } = useMarketEndpoint<CalendarPayload>('/api/market/calendar');
   const [type, setType] = useState<(typeof TYPES)[number]['key']>('all');
-  const [impacts, setImpacts] = useState<Set<CalendarEvent['impact']>>(new Set(IMPACTS));
+  // HIGH + MED by default (v1.15 Plus §5); LOW is one tap away.
+  const [impacts, setImpacts] = useState<Set<CalendarEvent['impact']>>(new Set(['HIGH', 'MED']));
   const [asset, setAsset] = useState<AssetFilter>('All');
   const [monthCursor, setMonthCursor] = useState<Date>(() => startOfMonth(new Date()));
   const [popupEvent, setPopupEvent] = useState<CalendarEvent | null>(null);
@@ -224,6 +225,9 @@ export default function CalendarPage() {
               {nextUp.title} <span className={IMPACT_BADGE[nextUp.impact]}>{nextUp.impact}</span>
             </div>
             <p>{nextUp.description}</p>
+            {nextUp.link && (
+              <a className="w-cal-link" href={nextUp.link} target="_blank" rel="noopener noreferrer">Official link →</a>
+            )}
             <span className="w-cal-nextup-when">{formatEventDate(nextUp)}</span>
           </div>
           <span className="w-cal-nextup-type" style={{ color: TYPE_COLOR[nextUp.type] }}>
@@ -311,6 +315,9 @@ export default function CalendarPage() {
             <div className="w-cal-d1-title">{popupEvent.title}</div>
             <div className="w-cal-d1-when">{formatEventDate(popupEvent)}</div>
             <p>{popupEvent.description}</p>
+            {popupEvent.link && (
+              <a className="w-cal-link" href={popupEvent.link} target="_blank" rel="noopener noreferrer">Official link →</a>
+            )}
             <div className="w-cal-d1-assets">
               Affected: {popupEvent.assets.length ? popupEvent.assets.join(', ') : 'market-wide'}
             </div>

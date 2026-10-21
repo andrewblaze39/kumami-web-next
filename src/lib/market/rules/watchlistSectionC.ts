@@ -22,13 +22,7 @@
  */
 
 import type { FlowEvent } from '../contracts';
-
-const BULLISH_DIRECTIONS = new Set<FlowEvent['direction']>([
-  'Outflow', 'Buy Pressure', 'Support Wall', 'Accumulation', 'Smart Money',
-]);
-const BEARISH_DIRECTIONS = new Set<FlowEvent['direction']>([
-  'Inflow', 'Sell Pressure', 'Resistance Wall',
-]);
+import { BEARISH_DIRECTIONS, BULLISH_DIRECTIONS } from './flowDirections';
 
 const M50 = 50_000_000;
 
@@ -70,13 +64,11 @@ export function computeWhaleEventUsd(events: FlowEvent[]): Record<string, { bull
  *  Signal column's "Multi-signal" composite (whale + smart money aligned). */
 export function computeSmartMoneyCounts(events: FlowEvent[]): Record<string, { bullish: number; bearish: number }> {
   const counts: Record<string, { bullish: number; bearish: number }> = {};
-  const bullishDirections = new Set<FlowEvent['direction']>(['Smart Money', 'Outflow', 'Buy Pressure', 'Support Wall', 'Accumulation']);
-  const bearishDirections = new Set<FlowEvent['direction']>(['Inflow', 'Sell Pressure', 'Resistance Wall']);
   for (const e of events) {
     if (e.type !== 'smart_money') continue;
     const bucket = counts[e.asset] ?? { bullish: 0, bearish: 0 };
-    if (bullishDirections.has(e.direction)) bucket.bullish += 1;
-    else if (bearishDirections.has(e.direction)) bucket.bearish += 1;
+    if (BULLISH_DIRECTIONS.has(e.direction)) bucket.bullish += 1;
+    else if (BEARISH_DIRECTIONS.has(e.direction)) bucket.bearish += 1;
     counts[e.asset] = bucket;
   }
   return counts;
@@ -89,7 +81,8 @@ export function computeSectionC(
 ): SectionCEntry[] {
   const byAsset = new Map<string, FlowEvent[]>();
   for (const e of events24h) {
-    if (excludeAssets.has(e.asset)) continue;
+    // Dry Powder (stablecoin) flow is market-wide — never a coin's accumulation (v1.15 Plus §3).
+    if (excludeAssets.has(e.asset) || e.marketWide) continue;
     const list = byAsset.get(e.asset) ?? [];
     list.push(e);
     byAsset.set(e.asset, list);

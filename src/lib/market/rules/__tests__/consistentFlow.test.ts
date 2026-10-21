@@ -55,7 +55,7 @@ describe('tallyDay / mergeTallies', () => {
       ev('DOGE', 'LOW', '2026-10-10T03:00:00Z'),
       ev('DOGE', 'HIGH', '2026-10-09T23:00:00Z'),
     ], '2026-10-10');
-    expect(out.DOGE).toEqual({ maxEvents: 2, maxUsd: 25e6, high: 1, bullish: 1, bearish: 1 });
+    expect(out.DOGE).toEqual({ maxEvents: 2, maxUsd: 25e6, high: 1, bullish: 1, bearish: 1, bullishUsd: 20e6, bearishUsd: 5e6 });
   });
 
   it('merges overlapping snapshots with a field-wise max (never sums)', () => {

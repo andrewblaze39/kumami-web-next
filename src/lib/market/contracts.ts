@@ -29,6 +29,8 @@ export type Series = { t: number; v: number }[];
 /** Full payload for the /world Console page. */
 export type ConsolePayload = {
   marketConditions: PanelVerdict & {
+    /** True when `interpretation` came from the AI layer (false = template fallback). */
+    interpretationAi?: boolean;
     /** null when the Fear & Greed fetch failed — render "No data", never a fake midpoint. */
     fearGreed: number | null;
     /** Server-derived label for the Fear & Greed value (e.g. "Extreme Greed"). */
@@ -74,12 +76,21 @@ export type FlowEvent = {
   direction:
     | 'Inflow'
     | 'Outflow'
-    | 'Accumulation'
-    | 'Smart Money'
+    | 'Dry Powder In'
+    | 'Dry Powder Out'
+    | 'Long Flush'
+    | 'Short Squeeze'
+    | 'Two-sided Flush'
+    | 'Long Opened'
+    | 'Short Opened'
+    | 'Position Closed'
     | 'Buy Pressure'
     | 'Sell Pressure'
     | 'Resistance Wall'
-    | 'Support Wall';
+    | 'Support Wall'
+    // Legacy (before v1.15) — still found in stored 7-day history/snapshots.
+    | 'Accumulation'
+    | 'Smart Money';
   severity: 'HIGH' | 'MED' | 'LOW';
   description: string;
   ts: string;
@@ -88,6 +99,11 @@ export type FlowEvent = {
   action?: 'open' | 'close';
   /** smart_money only: position side (negative size = short). */
   side?: 'long' | 'short';
+  /** liq_spike only: share of the liquidated $ that were longs (0–1). */
+  longShare?: number;
+  /** Market-wide event (Dry Powder stablecoin flow): shown under every asset filter,
+   *  counted in the verdict band, never in a coin's Watchlist accumulation. */
+  marketWide?: boolean;
   /** Pro-only cross-signal confirmation (e.g. "Regime shift confirming"). */
   crossSignal?: { label: string; color: Verdict['color'] };
 };
@@ -144,6 +160,8 @@ export type CalendarEvent = {
   allDay?: boolean;
   /** Admin-chosen category label (e.g. "Regulatory", "Project") — admin events only. */
   category?: string;
+  /** Official link (Token sale / TGE events). */
+  link?: string;
 };
 
 /** Full payload for the shared /world/calendar page (Plus and Pro). */
@@ -210,6 +228,10 @@ export type SpotPulseTile = {
   row: 1 | 2;
   /** True when the asset lacked enough data and defaulted to BALANCED. */
   insufficient?: boolean;
+  /** Fewer than 8 past windows (new listing) — BALANCED, left out of the market verdict. */
+  notEnoughHistory?: boolean;
+  /** Pro row 2: an Also Worth Watching coin, or a "Top volume" filler. */
+  source?: 'watchlist' | 'top-volume';
 };
 
 /** A divergence alert card below the grid. */

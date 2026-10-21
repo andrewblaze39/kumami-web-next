@@ -16,6 +16,8 @@ import { getCachedFresh } from '@/lib/market/cache';
 import { getDelayMinutes } from '@/lib/market/gating';
 import { readDelayedFlow, saveFlowSnapshot } from '@/lib/market/flowSnapshots';
 import { recordFlowDay } from '@/lib/market/flowHistory';
+import { aiSentence } from '@/lib/market/llm/gemini';
+import { regimeFallback, regimePrompt, type RegimeFacts } from '@/lib/market/llm/aiText';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -28,7 +30,7 @@ export async function GET(request: Request) {
 
   const [payload, buffer] = await Promise.all([
     getCachedFresh('market:v2:console', 300, () => getProvider().console()),
-    getCachedFresh('market:v2:flow-radar', 60, () => getProvider().flowRadar('pro')).catch(() => null),
+    getCachedFresh('market:v3:flow-radar', 60, () => getProvider().flowRadar('pro')).catch(() => null),
   ]);
   if (buffer) {
     void saveFlowSnapshot(buffer);
@@ -40,5 +42,25 @@ export async function GET(request: Request) {
     (e) => PLUS_ASSETS.includes(e.asset) && (e.severity === 'HIGH' || e.severity === 'MED'),
   );
 
-  return NextResponse.json({ ...payload, flowRadar });
+  // AI sentence under the regime (v1.15 Platform): rewrites the computed verdict, never changes it.
+  // Cached 20 min per verdict + rounded inputs, so it only changes when the picture does.
+  const mc = payload.marketConditions;
+  const facts: RegimeFacts = {
+    verdict: mc.verdict.label,
+    confidence: mc.confidence,
+    fearGreed: mc.fearGreed,
+    fearGreedLabel: mc.fearGreedLabel,
+    etf7dUsd: mc.tiles.etfFlow7d?.usd ?? null,
+    pctLong: mc.tiles.onChainBias?.pctLong ?? null,
+    liq24hUsd: mc.tiles.liq24h?.totalUsd ?? null,
+  };
+  const bucket = [facts.verdict, facts.fearGreed === null ? 'x' : Math.round(facts.fearGreed / 5),
+    facts.etf7dUsd == null ? 'x' : Math.round(facts.etf7dUsd / 1e8), facts.pctLong == null ? 'x' : Math.round(facts.pctLong / 5)].join(':');
+  const sentence = await aiSentence(`console:${bucket}`, regimePrompt(facts), regimeFallback(facts));
+
+  return NextResponse.json({
+    ...payload,
+    marketConditions: { ...mc, interpretation: sentence.text, interpretationAi: sentence.ai },
+    flowRadar,
+  });
 }

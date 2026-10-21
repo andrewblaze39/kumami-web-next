@@ -24,12 +24,17 @@ const TFS: TF[] = ['4H', '24H', '7D'];
 
 const signM = (v: number) => `${v >= 0 ? '+' : '−'}$${Math.abs(v / 1e6).toFixed(1)}M`;
 const pct = (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
+const vol = (v: number) => (v >= 1e9 ? `$${(v / 1e9).toFixed(1)}B` : `$${(v / 1e6).toFixed(0)}M`);
+const ago = (iso: string, now: number) => {
+  const min = Math.max(0, Math.round((now - Date.parse(iso)) / 60_000));
+  return min === 0 ? 'just now' : `${min} min ago`;
+};
 const textOn = (t: SpotPulseTile) => (t.verdict === 'BALANCED' ? 'var(--muted-2, var(--muted))' : '#07201b');
 
 function Tile({ t, tf, onSelect }: { t: SpotPulseTile; tf: TF; onSelect?: (a: string) => void }) {
   const clickable = !!onSelect && !t.insufficient;
   const go = clickable ? () => onSelect!(t.asset) : undefined;
-  const tip = `${t.asset} · ${t.verdict}\nSpot CVD ${tf}: ${signM(t.spotCvdChange)}\nFutures CVD ${tf}: ${signM(t.futCvdChange)}\nPrice ${tf}: ${pct(t.priceChange4h)}${t.insufficient ? '\ninsufficient data' : clickable ? '\nClick to open on-chain view' : ''}`;
+  const tip = `${t.asset} · ${t.verdict}${t.source === 'top-volume' ? ' · Top volume' : ''}\nSpot flow ${tf}: ${signM(t.spotCvdChange)}\nFutures flow ${tf}: ${signM(t.futCvdChange)}\nPrice ${tf}: ${pct(t.priceChange4h)}${t.insufficient ? '\ninsufficient data' : t.notEnoughHistory ? '\nNew listing — not enough history for a read; left out of the market verdict' : clickable ? '\nClick to open on-chain view' : ''}`;
   return (
     <div
       className="w-sp-tile"
@@ -55,8 +60,11 @@ function Tile({ t, tf, onSelect }: { t: SpotPulseTile; tf: TF; onSelect?: (a: st
         cursor: clickable ? 'pointer' : 'default',
       }}
     >
-      <div className="w-sp-sym">{t.asset}</div>
-      <div className="w-sp-verdict">{t.insufficient ? 'NO DATA' : t.verdict}</div>
+      <div className="w-sp-sym">
+        {t.asset}
+        {t.source === 'top-volume' && <span className="w-sp-src">Top volume</span>}
+      </div>
+      <div className="w-sp-verdict">{t.insufficient ? 'NO DATA' : t.notEnoughHistory ? 'NOT ENOUGH HISTORY' : t.verdict}</div>
       <div className="w-sp-price">{t.insufficient ? '—' : pct(t.priceChange4h)}</div>
     </div>
   );
@@ -65,8 +73,9 @@ function Tile({ t, tf, onSelect }: { t: SpotPulseTile; tf: TF; onSelect?: (a: st
 /**
  * variant="plus" (default) — the Spot Pulse tile on On-Chain Insights: 5 anchors.
  * variant="pro" — Spot Pulse Pro, the full tool (/world/pro?tab=spotpulse):
- * anchors + Watchlist Pro's 5 extra coins, 10-tile verdict, 15s refresh.
- * Neither is delayed (Andrew's spec v1.6).
+ * core assets + Also Worth Watching coins (empty slots: "Top volume"), 15s cache.
+ * One engine and one market-verdict rule for both (Rachelle v1.15 Plus §2.9);
+ * the data underneath refreshes every 2 minutes.
  */
 export default function SpotPulse({
   onSelectAsset,
@@ -82,13 +91,14 @@ export default function SpotPulse({
   const data = market.data;
   const loading = market.status === 'loading' && !data;
 
-  // Stale-data chip (§9): re-evaluate on a 30s tick so it appears if refreshes stop.
+  // "Updated n min ago" + stale chip: re-evaluate on a 30s tick. The shared data
+  // refreshes every 2 min, so only > 5 min means refreshes have stopped.
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(id);
   }, []);
-  const stale = !!data?.updatedAt && now - new Date(data.updatedAt).getTime() > 120_000;
+  const stale = !!data?.updatedAt && now - new Date(data.updatedAt).getTime() > 300_000;
 
   return (
     <div className="w-oc-panel">
@@ -106,7 +116,7 @@ export default function SpotPulse({
         </span>
         <span className="w-oc-ph-r" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {stale && (
-            <span className="w-sp-stale" title="Live data hasn't refreshed in over 2 minutes — trying to reconnect.">
+            <span className="w-sp-stale" title="Data hasn't refreshed in over 5 minutes — trying to reconnect.">
               <WIcon name="clock" /> Data delayed
             </span>
           )}
@@ -177,13 +187,15 @@ export default function SpotPulse({
                 ({data.footer.spotNetflow >= 0 ? 'out of exchanges' : 'into exchanges'})
               </span>
             )}
+            {data.footer.totalSpotVol24h != null && (
+              <span>· 24h spot volume <b>{vol(data.footer.totalSpotVol24h)}</b></span>
+            )}
             <span>· {data.footer.divergenceCount} divergence signal{data.footer.divergenceCount === 1 ? '' : 's'}</span>
+            <span>· Updated {ago(data.updatedAt, now)}</span>
             {variant === 'pro' ? (
               <span className="w-delay-note" style={{ marginLeft: 'auto' }}>
-                <WIcon name="clock" /> {data.timeframe} window · live ·{' '}
-                {data.extraMode === 'consistent'
-                  ? 'row 2 = most consistent in Flow Radar (7 days)'
-                  : `row 2 = last 24h flow (7-day history ${data.historyDays ?? 0}/7)`}
+                <WIcon name="clock" /> {data.timeframe} window · row 2 = Also Worth Watching
+                {data.tiles.some((t) => t.source === 'top-volume') ? ' + Top volume' : ''}
               </span>
             ) : (
               <span className="w-delay-note" style={{ marginLeft: 'auto' }}>
