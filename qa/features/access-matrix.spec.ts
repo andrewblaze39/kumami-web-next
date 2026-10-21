@@ -136,17 +136,18 @@ test.describe('API — Pro data only for subscribers', () => {
     test(`${role}: flow-radar / watchlist / spot-pulse with ?view=pro`, async ({ browser }) => {
       await as(browser, role, async (page) => {
         await openPage(page, '/world/console');
-        type FR = { delayed: boolean; events: { asset: string; severity: string; crossSignal?: unknown }[] };
+        type FR = { delayed: boolean; events: { asset: string; severity: string; marketWide?: boolean }[] };
         const fr = await apiAsUser<FR>(page, '/api/market/flow-radar?view=pro');
         expect(fr.status).toBe(200);
         if (isPro) {
           expect(fr.body.delayed).toBe(false);
         } else {
           expect(fr.body.delayed, 'non-subscriber got the real-time feed').toBe(true);
+          // Cross-signal outlines are on Plus too since v1.20 (Rachelle v1.15 Plus §3);
+          // market-wide Dry Powder (USDT / USDC) shows under every filter.
           for (const e of fr.body.events) {
-            expect(PLUS_ROSTER, `non-roster coin ${e.asset} leaked`).toContain(e.asset);
+            if (!e.marketWide) expect(PLUS_ROSTER, `non-roster coin ${e.asset} leaked`).toContain(e.asset);
             expect(e.severity).not.toBe('LOW');
-            expect(e.crossSignal).toBeUndefined();
           }
         }
 
