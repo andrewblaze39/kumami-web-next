@@ -55,7 +55,7 @@ test.describe('Pro tools (qa2)', () => {
       await expect(page.getByText(/building 3-day history \(\d\/3 days\)/)).toBeVisible(); // v1.15 Pro §19
     }
     await snap(page, info, 'watchlist-pro');
-    g.assertClean();
+    g.assertClean([/stream.binance.com/]); // live-price socket closing on navigation is noise
   });
 
   test('Spot Pulse Pro: anchors first + up to 5 extra coins, live, 10-tile rules', async ({ page }, info) => {
