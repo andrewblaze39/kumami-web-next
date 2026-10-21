@@ -26,11 +26,15 @@ import { getCachedFresh } from '@/lib/market/cache';
 import { effectiveTier, getDelayMinutes, parseView } from '@/lib/market/gating';
 import { readDelayedFlow, saveFlowSnapshot } from '@/lib/market/flowSnapshots';
 import { recordFlowDay } from '@/lib/market/flowHistory';
-import { computeFlowVerdict } from '@/lib/market/rules/flowVerdict';
+import { computeFlowVerdict, type FlowWindow } from '@/lib/market/rules/flowVerdict';
 import { computeFlowCrossSignal, type FlowCrossSignalContext } from '@/lib/market/rules/flowCrossSignal';
 import { computeWhaleEventCounts } from '@/lib/market/rules/watchlistSectionC';
 import { filterIlliquid, spotVolumeMap } from '@/lib/market/rules/flowLiquidity';
 import { netflowList } from '@/lib/market/live/cg-endpoints';
+import { binanceSpotVolumes } from '@/lib/market/live/binance';
+import { aiSentence } from '@/lib/market/llm/gemini';
+import { flowVerdictPrompt } from '@/lib/market/llm/aiText';
+const WINDOW_MS: Record<FlowWindow, number> = { '1H': 3_600_000, '4H': 4 * 3_600_000, '24H': 24 * 3_600_000, '7D': 7 * 24 * 3_600_000 };
 import type { FlowEvent, FlowRadarPayload } from '@/lib/market/contracts';
 
 export const dynamic = 'force-dynamic';
@@ -44,6 +48,7 @@ export const runtime = 'nodejs';
 // which is also when several endpoints can each eat a 10s connect-timeout +
 // 1 retry — without a bound here those can stack into 30-40s responses).
 const CROSS_SIGNAL_TIMEOUT_MS = 4_000;
+const AI_TIMEOUT_MS = 3_000;
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T | null> {
   return Promise.race([
     p,
@@ -82,8 +87,12 @@ export async function GET(request: Request) {
     events = events.filter((e) => (e.marketWide || PLUS_ASSETS.includes(e.asset)) && (e.severity === 'HIGH' || e.severity === 'MED'));
   } else {
     // Illiquid filter (v1.15 Pro §18): hide coins under $1M 24h spot volume.
-    const spotRows = await withTimeout(netflowList('spot'), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null);
-    events = filterIlliquid(events, spotRows ? spotVolumeMap(spotRows) : null);
+    // Coins outside the list's top ~100 fall back to their Binance volume (Andrew, 21 Oct 2026).
+    const [spotRows, binanceVol] = await Promise.all([
+      withTimeout(netflowList('spot'), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null),
+      withTimeout(binanceSpotVolumes(), CROSS_SIGNAL_TIMEOUT_MS).catch(() => null),
+    ]);
+    events = filterIlliquid(events, spotRows ? spotVolumeMap(spotRows) : null, binanceVol);
   }
 
   // Cross-signal outlines (v1.15 Plus §3 — Plus and Pro, same rules). Each source is
@@ -107,8 +116,23 @@ export async function GET(request: Request) {
   });
 
   // Server verdict = the 4H band (the page recomputes it for the selected window).
-  const last4h = events.filter((e) => now - Date.parse(e.ts) <= 4 * 3_600_000);
-  const { verdict, sentence, statLine } = computeFlowVerdict(last4h, '4H');
+  const inWindow = (w: FlowWindow) => events.filter((e) => now - Date.parse(e.ts) <= WINDOW_MS[w]);
+  const { verdict, sentence, statLine } = computeFlowVerdict(inWindow('4H'), '4H');
+
+  // AI sentence under the band, per window (v1.15 Plus §3). The page uses it only while
+  // its own band (same window, no asset/type/severity filter) has the same verdict.
+  const windows: FlowWindow[] = isPro ? ['1H', '4H', '24H', '7D'] : ['1H', '4H', '24H'];
+  const aiSentences: Partial<Record<FlowWindow, { verdict: string; text: string }>> = {};
+  await Promise.all(windows.map(async (w) => {
+    const evs = inWindow(w);
+    const band = computeFlowVerdict(evs, w);
+    const top = [...evs].sort((a, b) => b.amountUsd - a.amountUsd).slice(0, 3);
+    const facts = { window: w, verdict: band.verdict.label, statLine: band.statLine, top: top.map((e) => `${e.asset} ${e.direction} $${Math.round(e.amountUsd / 1e6)}M`) };
+    const key = `flow:${isPro ? 'pro' : 'plus'}:${w}:${band.verdict.label}:${top.map((e) => e.id).join(',')}`;
+    // A cold AI call never holds the feed up for long; the fetch keeps running and fills the cache.
+    const r = await withTimeout(aiSentence(key, flowVerdictPrompt(facts), band.sentence), AI_TIMEOUT_MS).catch(() => null);
+    if (r?.ai) aiSentences[w] = { verdict: band.verdict.label, text: r.text };
+  }));
   const totalUsd = events.reduce((sum, e) => sum + e.amountUsd, 0);
   const assets = isPro ? Array.from(new Set(events.filter((e) => !e.marketWide).map((e) => e.asset))).sort() : PLUS_ASSETS;
 
@@ -123,6 +147,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     ...payload,
+    aiSentences,
     delayed,
     ...(delayed ? { delayMinutes, delayedAsOf: delayedFeed ? new Date(delayedFeed.asOf).toISOString() : null } : {}),
   });

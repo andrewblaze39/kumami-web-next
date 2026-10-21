@@ -229,6 +229,11 @@ export function airdropToEvent(id: string, doc: AirdropDoc): CalendarEvent | nul
   };
 }
 
+/** Airdrop entries are Pro content: the Calendar route hides them from Plus. */
+export function isAirdropEvent(e: Pick<CalendarEvent, 'id'>): boolean {
+  return e.id.startsWith('airdrop-');
+}
+
 /** The fixed Plus roster (Kumami Plus §7.3). */
 export const PLUS_ROSTER = ['BTC', 'ETH', 'SOL', 'BNB', 'HYPE'] as const;
 

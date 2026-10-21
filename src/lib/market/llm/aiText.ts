@@ -53,6 +53,27 @@ export function regimeFallback(f: RegimeFacts): string {
   return `The rule engine reads the market as ${f.verdict}${mood}.`;
 }
 
+export type FlowVerdictFacts = {
+  window: string;
+  verdict: string;
+  statLine: string;
+  /** Biggest events in the window, e.g. "BTC Long Flush $62M". */
+  top: string[];
+};
+
+/** Flow Radar verdict-band sentence prompt (v1.15 Plus §3: AI sentence under the band). */
+export function flowVerdictPrompt(f: FlowVerdictFacts): string {
+  return [
+    'You write one line under the verdict of a crypto money-flow radar.',
+    `Window: last ${f.window}.`,
+    `Rule-engine verdict (fixed, restate it, do not change it): ${f.verdict}.`,
+    `Summary: ${f.statLine}.`,
+    f.top.length ? `Biggest events: ${f.top.join('; ')}.` : 'No large events.',
+    'Write 1–2 short sentences: what this flow says about who is acting and what to watch next.',
+    'No hedging words (could, might). No advice to buy or sell. No numbers that are not given above. Plain English.',
+  ].join('\n');
+}
+
 export type Tone = 'bullish' | 'bearish' | 'neutral';
 
 /** Headline classification prompt for Fear & Greed News Tone. */

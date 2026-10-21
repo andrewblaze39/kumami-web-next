@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cleanSentence, newsTonePrompt, parseTones, regimeFallback, regimePrompt } from '../aiText';
+import { cleanSentence, flowVerdictPrompt, newsTonePrompt, parseTones, regimeFallback, regimePrompt } from '../aiText';
 
 describe('AI layer text helpers (v1.15 Platform)', () => {
   it('cleans model output: quotes, markdown, whitespace', () => {
@@ -31,5 +31,11 @@ describe('AI layer text helpers (v1.15 Platform)', () => {
   });
   it('numbers the headlines in the tone prompt', () => {
     expect(newsTonePrompt(['ETF inflows jump', 'Exchange hacked'])).toContain('1. ETF inflows jump\n2. Exchange hacked');
+  });
+  it('flow verdict prompt pins the verdict and only passes the given facts', () => {
+    const p = flowVerdictPrompt({ window: '4H', verdict: 'Distribution Wave', statLine: '$820M bearish vs $310M bullish', top: ['BTC Inflow $210M'] });
+    expect(p).toContain('do not change it): Distribution Wave.');
+    expect(p).toContain('Biggest events: BTC Inflow $210M.');
+    expect(flowVerdictPrompt({ window: '1H', verdict: 'Quiet Flow', statLine: '0 events tracked', top: [] })).toContain('No large events.');
   });
 });

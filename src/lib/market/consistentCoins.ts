@@ -11,9 +11,10 @@ import 'server-only';
 
 import type { FlowEvent } from './contracts';
 import { readFlowHistory } from './flowHistory';
-import { HISTORY_DAYS, rankConsistentFlow, STABLECOINS } from './rules/consistentFlow';
+import { HISTORY_DAYS, rankConsistentFlow, STABLECOINS, type FlowDailyDoc } from './rules/consistentFlow';
 import { computeSectionC } from './rules/watchlistSectionC';
-import { computeSectionC3d, type SectionC3dResult } from './rules/watchlistSectionC3d';
+import { computeSectionC3d, hourlyToBlocks, SECTION_C_DAYS, type FlowHourlyRow, type SectionC3dResult } from './rules/watchlistSectionC3d';
+import { hourOf } from './rules/collector';
 import type { PinMarkets } from './rules/watchlistPins';
 import { netflowList } from './live/cg-endpoints';
 
@@ -77,7 +78,28 @@ export async function readPinMarkets(): Promise<(PinMarkets & { spotNet3d: Map<s
  * Without the netflow-lists (outage) nothing qualifies — never a guessed list.
  */
 export async function pickSectionC(exclude: Set<string>, now = Date.now(), limit = 5): Promise<SectionC3dResult> {
-  const [history, markets] = await Promise.all([readFlowHistory(now), readPinMarkets()]);
+  const [hourly, markets] = await Promise.all([readHourlyBlocks(now), readPinMarkets()]);
   if (!markets) return { coins: [], mode: 'building', daysWithUsd: 0 };
-  return computeSectionC3d(history, { exclude: new Set([...exclude, ...STABLECOINS]), markets, spotNet3d: markets.spotNet3d, limit });
+  const opts = { exclude: new Set([...exclude, ...STABLECOINS]), markets, spotNet3d: markets.spotNet3d, limit };
+  if (hourly) return { ...computeSectionC3d(hourly, opts), mode: 'consistent', daysWithUsd: SECTION_C_DAYS, source: 'hourly' };
+  return { ...computeSectionC3d(await readFlowHistory(now), opts), source: 'daily' };
+}
+
+/**
+ * The last 72h of flow_hourly as three 24h blocks — null until the collector has
+ * covered the whole 72h (then the flow_daily migration path is used, per the spec).
+ */
+async function readHourlyBlocks(now: number): Promise<FlowDailyDoc[] | null> {
+  try {
+    const { adminDb } = await import('@/lib/firebase-admin');
+    const coll = adminDb().collection('flow_hourly');
+    const from = hourOf(new Date(now - SECTION_C_DAYS * 24 * 3_600_000).toISOString());
+    const oldest = await coll.orderBy('hour').limit(1).get();
+    if (oldest.empty || String(oldest.docs[0].get('hour')) > from) return null;
+    const snap = await coll.where('hour', '>=', from).get();
+    return hourlyToBlocks(snap.docs.map((d) => d.data() as FlowHourlyRow), now);
+  } catch (err) {
+    console.error('[sectionC] flow_hourly unavailable — using flow_daily:', err);
+    return null;
+  }
 }

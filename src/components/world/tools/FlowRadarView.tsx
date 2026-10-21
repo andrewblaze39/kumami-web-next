@@ -22,7 +22,10 @@ import { computeFlowBalance } from '@/lib/market/rules/flowBalance';
 import { computeFlowVerdict } from '@/lib/market/rules/flowVerdict';
 import { flowLean } from '@/lib/market/rules/flowDirections';
 
-type Payload = FlowRadarPayload & { delayed?: boolean; delayMinutes?: number; delayedAsOf?: string | null };
+type Payload = FlowRadarPayload & {
+  /** AI rewrite of the band sentence per window (v1.15 Plus §3), present only when the AI answered. */
+  aiSentences?: Partial<Record<Timeframe, { verdict: string; text: string }>>;
+  delayed?: boolean; delayMinutes?: number; delayedAsOf?: string | null };
 
 /** Which version to render (Andrew's spec v1.6): the Plus page always renders
  *  'plus' (even for Pro accounts); the Pro tab /world/pro?tab=flowradar renders
@@ -197,6 +200,12 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
 
   // Verdict band for the selected window (thresholds scale with it — v1.15 Plus §3).
   const band = useMemo(() => computeFlowVerdict(filtered, timeframe), [filtered, timeframe]);
+  // The server's AI sentence describes the unfiltered window, so it's only used while no
+  // asset / type / severity filter is on and the verdicts agree; otherwise the template.
+  const unfiltered = types.size === typeChips.length && severities.size === SEVERITIES.length
+    && (isPremium ? proAssets.size === 0 : asset === 'All');
+  const ai = data?.aiSentences?.[timeframe];
+  const bandSentence = unfiltered && ai?.verdict === band.verdict.label ? ai.text : band.sentence;
 
   const visible = filtered.slice(0, visibleCount);
   const remaining = filtered.length - visible.length;
@@ -324,7 +333,7 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
               <span className={`w-flow-radar-verdict-label ${VERDICT_TONE[band.verdict.color] ?? 'w-muted'}`}>
                 <WIcon name="bolt" /> {band.verdict.label}
               </span>
-              <p>{band.sentence}</p>
+              <p title={bandSentence !== band.sentence ? 'Written by AI from the verdict — the verdict itself comes from the rule engine' : undefined}>{bandSentence}</p>
             </div>
             <div className="w-flow-radar-verdict-stat">{band.statLine}</div>
           </div>

@@ -67,7 +67,7 @@ test('admin: an airdrop with a TGE / claim date', async ({ browser }) => {
   await ctx.close();
 });
 
-test('Plus user: token sale with venue, raise and link; airdrop claim day; LOW hidden by default', async ({ browser }, info) => {
+test('Plus user: token sale with venue, raise and link; no airdrops (Pro-only); LOW hidden by default', async ({ browser }, info) => {
   const ctx = await browser.newContext({ storageState: AUTH.plus });
   const page = await ctx.newPage();
   const g = guard(page);
@@ -76,16 +76,30 @@ test('Plus user: token sale with venue, raise and link; airdrop claim day; LOW h
   const sale = body.events.find((e) => e.title === SALE);
   expect(sale?.description).toContain('Venue: Binance Launchpool · Raise / FDV: $12M raise');
   expect(sale?.link).toBe('https://example.com/acme');
-  const drop = body.events.find((e) => e.title.startsWith(DROP));
-  expect(drop).toMatchObject({ impact: 'MED', category: 'Airdrop TGE / claim' });
+  // Airdrops are Pro content (Andrew, 21 Oct 2026) — never in a Plus payload.
+  expect(body.events.some((e) => e.category === 'Airdrop TGE / claim')).toBe(false);
   expect(body.events.find((e) => e.title === LOW)?.impact).toBe('LOW');
 
   await expect(page.locator('.w-cal-cell-event').filter({ hasText: SALE })).toBeVisible();
-  await expect(page.locator('.w-cal-cell-event').filter({ hasText: DROP })).toBeVisible();
+  await expect(page.locator('.w-cal-cell-event').filter({ hasText: DROP })).toHaveCount(0);
   await expect(page.locator('.w-cal-cell-event').filter({ hasText: LOW })).toHaveCount(0);
   await page.locator('.w-flow-radar-chip', { hasText: 'LOW' }).click();
   await expect(page.locator('.w-cal-cell-event').filter({ hasText: LOW })).toBeVisible();
   await snap(page, info, 'v115-calendar-plus');
+  g.assertClean();
+  await ctx.close();
+});
+
+test('Pro user: the airdrop claim day shows on the Calendar', async ({ browser }, info) => {
+  const ctx = await browser.newContext({ storageState: AUTH.pro });
+  const page = await ctx.newPage();
+  const g = guard(page);
+  await openPage(page, '/world/calendar');
+  const { body } = await apiAsUser<{ events: Ev[] }>(page, '/api/market/calendar');
+  const drop = body.events.find((e) => e.title.startsWith(DROP));
+  expect(drop).toMatchObject({ impact: 'MED', category: 'Airdrop TGE / claim' });
+  await expect(page.locator('.w-cal-cell-event').filter({ hasText: DROP })).toBeVisible();
+  await snap(page, info, 'v115-calendar-pro');
   g.assertClean();
   await ctx.close();
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeSectionC3d, dayNet } from '../watchlistSectionC3d';
+import { computeSectionC3d, dayNet, hourlyToBlocks } from '../watchlistSectionC3d';
 import { checkPin, type PinMarkets } from '../watchlistPins';
 import type { FlowDailyDoc, FlowDayTally } from '../consistentFlow';
 
@@ -102,5 +102,27 @@ describe('computeSectionC3d (Section C)', () => {
     expect(r.mode).toBe('building');
     expect(r.daysWithUsd).toBe(1);
     expect(r.coins.map((c) => c.asset)).toEqual(['LINK']);
+  });
+});
+
+describe('hourlyToBlocks (flow_hourly → rolling 24h blocks)', () => {
+  const now = Date.parse('2026-10-21T12:30:00Z');
+  it('sums each coin per 24h block ending now, oldest first; drops older and future hours', () => {
+    const blocks = hourlyToBlocks([
+      { hour: '2026-10-21T12', asset: 'LINK', bullishUsd: 4 * M, bearishUsd: 1 * M }, // block 3 (now)
+      { hour: '2026-10-20T13', asset: 'LINK', bullishUsd: 2 * M },                   // block 3 (23.5h ago)
+      { hour: '2026-10-20T12', asset: 'LINK', bullishUsd: 3 * M },                   // block 2 (24.5h ago)
+      { hour: '2026-10-18T13', asset: 'LINK', bullishUsd: 1 * M },                   // block 1 (71.5h ago)
+      { hour: '2026-10-18T12', asset: 'LINK', bullishUsd: 99 * M },                  // 72.5h ago → dropped
+      { hour: '2026-10-21T13', asset: 'LINK', bullishUsd: 99 * M },                  // future → dropped
+    ], now);
+    expect(blocks.map((b) => b.date)).toEqual(['2026-10-19T12:30:00.000Z', '2026-10-20T12:30:00.000Z', '2026-10-21T12:30:00.000Z']);
+    expect(blocks.map((b) => dayNet(b.assets.LINK).net)).toEqual([1 * M, 3 * M, 5 * M]);
+  });
+  it('feeds computeSectionC3d unchanged', () => {
+    const rows = [0, 1, 2].map((d) => ({ hour: new Date(now - d * 24 * 3_600_000).toISOString().slice(0, 13), asset: 'LINK', bullishUsd: 3 * M }));
+    const r = computeSectionC3d(hourlyToBlocks(rows, now), { exclude: new Set(), markets, spotNet3d: new Map([['LINK', 2 * M]]) });
+    expect(r.coins.map((c) => c.asset)).toEqual(['LINK']);
+    expect(r.coins[0].reasons[0]).toBe('Accumulating 3 of 3 days');
   });
 });

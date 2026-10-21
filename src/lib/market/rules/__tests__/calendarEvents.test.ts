@@ -4,6 +4,7 @@ import {
   ADMIN_CATEGORIES,
   adminToEvent,
   airdropToEvent,
+  isAirdropEvent,
   missingTokenSaleFields,
   badgeCountdown,
   consoleBadgeEvents,
@@ -189,5 +190,7 @@ describe('v1.15 Plus §5 — Listing, Token sale / TGE, airdrop TGE dates', () =
     const e = airdropToEvent('a1', { name: 'Acme', cat: 'airdrop', desc: 'Claim opens', tgeDate: '2026-11-05', tgeTime: '09:30' });
     expect(e).toMatchObject({ id: 'airdrop-a1', title: 'Acme — Airdrop TGE / claim', impact: 'MED', source: 'kumami', ts: '2026-11-05T09:30:00.000Z' });
     expect(airdropToEvent('a2', { name: 'NoDate', desc: '' })).toBeNull();
+    expect(isAirdropEvent(e!)).toBe(true);
+    expect(isAirdropEvent({ id: 'admin-x' })).toBe(false);
   });
 });
