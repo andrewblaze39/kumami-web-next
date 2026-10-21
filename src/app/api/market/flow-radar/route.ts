@@ -129,9 +129,10 @@ export async function GET(request: Request) {
     const band = computeFlowVerdict(evs, w);
     const top = [...evs].sort((a, b) => b.amountUsd - a.amountUsd).slice(0, 3);
     const facts = { window: w, verdict: band.verdict.label, statLine: band.statLine, top: top.map((e) => `${e.asset} ${e.direction} $${Math.round(e.amountUsd / 1e6)}M`) };
-    const key = `flow2:${isPro ? 'pro' : 'plus'}:${w}:${band.verdict.label}:${top.map((e) => e.id).join(',')}`;
+    // One sentence per tier + window + verdict + biggest event per 30 min keeps AI calls to a few hundred a day.
+    const key = `flow3:${isPro ? 'pro' : 'plus'}:${w}:${band.verdict.label}:${top[0] ? `${top[0].asset}-${top[0].direction}` : ''}`;
     // A cold AI call never holds the feed up for long; the fetch keeps running and fills the cache.
-    const r = await withTimeout(aiSentence(key, flowVerdictPrompt(facts), band.sentence), AI_TIMEOUT_MS).catch(() => null);
+    const r = await withTimeout(aiSentence(key, flowVerdictPrompt(facts), band.sentence, 1800), AI_TIMEOUT_MS).catch(() => null);
     if (r?.ai) aiSentences[w] = { verdict: band.verdict.label, text: r.text };
   }));
   const totalUsd = events.reduce((sum, e) => sum + e.amountUsd, 0);

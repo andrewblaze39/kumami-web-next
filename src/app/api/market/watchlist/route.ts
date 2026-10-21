@@ -74,6 +74,12 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T | null> {
   ]);
 }
 
+/** A row that can't be built is dropped, but never silently (QA found 4 of 5 rows missing under load). */
+const logRowFailure = (asset: string) => (err: unknown) => {
+  console.error(`[watchlist] ${asset} row failed:`, err instanceof Error ? err.message : err);
+  return null;
+};
+
 export async function GET(request: Request) {
   const auth = await authenticate(request);
   if (auth instanceof NextResponse) return auth;
@@ -140,7 +146,7 @@ export async function GET(request: Request) {
   // (see live/watchlist.ts), so re-invoking it here is cheap — no new
   // network calls, just a fresh tag pass.
   const sectionARebuilt = await Promise.all(
-    sectionAAssets.map((a) => buildAsset(a.asset, signalInputsFor(a.asset)).catch(() => null)),
+    sectionAAssets.map((a) => buildAsset(a.asset, signalInputsFor(a.asset)).catch(logRowFailure(a.asset))),
   );
   sectionAAssets = sectionARebuilt.filter((a): a is WatchlistApiResponse['assets'][number] => a !== null);
 
@@ -148,7 +154,7 @@ export async function GET(request: Request) {
     // Pro-only: Section B (custom list) also gets Signal/Status tags, plus
     // Section C ("Also Worth Watching") is scored from whatever's left in the buffer.
     curatedAssets = (
-      await Promise.all(curatedSymbols.map((sym) => buildAsset(sym, signalInputsFor(sym)).catch(() => null)))
+      await Promise.all(curatedSymbols.map((sym) => buildAsset(sym, signalInputsFor(sym)).catch(logRowFailure(sym))))
     ).filter((a): a is WatchlistApiResponse['curatedAssets'][number] => a !== null);
 
     // Section C (Rachelle v1.15 Pro §19): 3-day net accumulation confirmed by spot
@@ -160,7 +166,7 @@ export async function GET(request: Request) {
     const scored = picked.coins;
     sectionC = (
       await Promise.all(scored.map(async (s) => {
-        const row = await buildAsset(s.asset, signalInputsFor(s.asset)).catch(() => null);
+        const row = await buildAsset(s.asset, signalInputsFor(s.asset)).catch(logRowFailure(s.asset));
         return row ? { ...row, reasons: s.reasons } : null;
       }))
     ).filter((r): r is WatchlistApiResponse['sectionC'][number] => r !== null);

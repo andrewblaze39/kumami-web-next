@@ -155,3 +155,14 @@ async function _getCached<T>(
   _inflight.set(key, fetchPromise);
   return fetchPromise;
 }
+
+/** Read a raw cache value without fetching (null when missing). */
+export async function peekCached<T>(key: string, deps: CacheDeps = makeFirestoreDeps()): Promise<T | null> {
+  const entry = await deps.get(key);
+  return entry ? (entry.value as T) : null;
+}
+
+/** Write a raw cache value (e.g. a shared flag). Never throws. */
+export async function setCached(key: string, value: unknown, deps: CacheDeps = makeFirestoreDeps()): Promise<void> {
+  await deps.set(key, value, deps.now());
+}

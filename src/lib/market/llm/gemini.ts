@@ -3,12 +3,17 @@
  * 15–30 min shared cache. It only rewrites text from the computed verdicts —
  * callers always pass a fallback, and any error, timeout or odd answer returns it.
  *
- * Env: GEMINI_API_KEY (already set), GEMINI_MODEL (default gemini-2.5-flash).
+ * Env: GEMINI_API_KEY (already set), GEMINI_MODEL (default gemini-3.5-flash-lite).
+ *
+ * Quota: on HTTP 429 the layer stops calling for the retry time Google gives
+ * (capped at 6h), shared through the market cache, so a used-up quota means
+ * template text — not a failed call on every page view. The free tier allows
+ * only ~20 calls/day per model (found 21 Oct 2026); production needs billing on.
  */
 import 'server-only';
 
 import { createHash } from 'node:crypto';
-import { getCachedFresh } from '../cache';
+import { getCachedFresh, peekCached, setCached } from '../cache';
 import { cleanSentence, newsTonePrompt, parseTones, type Tone } from './aiText';
 
 const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
@@ -18,11 +23,28 @@ export function aiConfigured(): boolean {
   return !!process.env.GEMINI_API_KEY;
 }
 
+// Quota cooldown: in memory for this instance, plus a shared cache entry for the others.
+const COOLDOWN_KEY = 'ai:v1:cooldown';
+let cooldownUntil = 0;
+
+async function startCooldown(secs: number): Promise<void> {
+  cooldownUntil = Date.now() + secs * 1000;
+  await setCached(COOLDOWN_KEY, cooldownUntil).catch(() => {});
+}
+
+async function inCooldown(): Promise<boolean> {
+  if (Date.now() < cooldownUntil) return true;
+  const shared = await peekCached<number>(COOLDOWN_KEY).catch(() => null);
+  if (shared && Date.now() < shared) { cooldownUntil = shared; return true; }
+  return false;
+}
+
 /** One Gemini call → plain text. Throws on any failure (callers fall back). */
 export async function geminiText(prompt: string, opts: { maxTokens?: number; json?: boolean } = {}): Promise<string> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error('GEMINI_API_KEY is not set');
-  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  if (await inCooldown()) throw new Error('AI paused (quota cooldown)');
+  const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {
@@ -34,13 +56,20 @@ export async function geminiText(prompt: string, opts: { maxTokens?: number; jso
         generationConfig: {
           temperature: 0.3,
           maxOutputTokens: opts.maxTokens ?? 200,
-          thinkingConfig: { thinkingBudget: 0 },
+          // 2.5 models take a token budget; 3.x models a level (a budget there is a 400).
+          thinkingConfig: model.includes('2.5') ? { thinkingBudget: 0 } : { thinkingLevel: 'minimal' },
           ...(opts.json ? { responseMimeType: 'application/json' } : {}),
         },
       }),
       signal: ctrl.signal,
       cache: 'no-store',
     });
+    if (res.status === 429) {
+      const body = await res.text().catch(() => '');
+      const secs = Number(body.match(/"retryDelay":\s*"(\d+)s"/)?.[1] ?? 600);
+      await startCooldown(Math.min(Math.max(secs, 60), 6 * 3600));
+      throw new Error('Gemini HTTP 429 (quota) — pausing AI calls');
+    }
     if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
     const body = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
     const text = body.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';

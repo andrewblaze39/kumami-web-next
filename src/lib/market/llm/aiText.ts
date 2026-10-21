@@ -69,7 +69,7 @@ export function flowVerdictPrompt(f: FlowVerdictFacts): string {
     `Rule-engine verdict (fixed, restate it, do not change it): ${f.verdict}.`,
     `Summary: ${f.statLine}.`,
     f.top.length ? `Biggest events: ${f.top.join('; ')}.` : 'No large events.',
-    'Write 1–2 short sentences: what this flow says and what to watch next.',
+    'Write 1–2 short sentences: what this flow says and what to watch next. Name at most one coin: the one in the biggest event.',
     'Say "large wallets" or "traders"; never claim they are institutions or retail. Do not repeat the verdict name or the summary line word for word.',
     'No hedging words (could, might). No advice to buy or sell. No numbers that are not given above. Plain English.',
   ].join('\n');

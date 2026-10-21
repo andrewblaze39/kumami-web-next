@@ -30,6 +30,7 @@ export async function takeSlot(now: () => number = Date.now): Promise<void> {
       starts.push(t);
       return;
     }
+    if (wait > 5_000) console.warn(`[coinglass] 70/min budget full — next call waits ${Math.round(wait / 1000)}s`);
     await new Promise((r) => setTimeout(r, wait + 5));
   }
 }
