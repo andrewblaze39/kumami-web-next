@@ -47,12 +47,6 @@ export function regimePrompt(f: RegimeFacts): string {
   ].join('\n');
 }
 
-/** Template fallback when the AI is unavailable — always true to the computed verdict. */
-export function regimeFallback(f: RegimeFacts): string {
-  const mood = f.fearGreed === null ? '' : ` with sentiment at ${f.fearGreed} (${f.fearGreedLabel})`;
-  return `The rule engine reads the market as ${f.verdict}${mood}.`;
-}
-
 export type FlowVerdictFacts = {
   window: string;
   verdict: string;

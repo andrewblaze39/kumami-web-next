@@ -1,13 +1,15 @@
 /**
- * AI layer (Rachelle v1.15 Platform): Gemini with a template fallback and a
- * 15–30 min shared cache. It only rewrites text from the computed verdicts —
- * callers always pass a fallback, and any error, timeout or odd answer returns it.
+ * AI layer (Rachelle v1.15 Platform): Gemini with a 15–30 min shared cache. It
+ * only rewrites text from the computed verdicts. There is NO template fallback
+ * (Andrew's hard rule, 22 Oct 2026): when the AI is off or fails, callers get null
+ * and the page says "AI read · coming soon" / "unavailable" instead.
  *
- * Env: GEMINI_API_KEY (already set), GEMINI_MODEL (default gemini-3.5-flash-lite).
+ * Env: AI_ENABLED=true switches it on (off by default until Gemini billing is on),
+ * GEMINI_API_KEY, GEMINI_MODEL (default gemini-3.5-flash-lite).
  *
  * Quota: on HTTP 429 the layer stops calling for the retry time Google gives
  * (capped at 6h), shared through the market cache, so a used-up quota means
- * template text — not a failed call on every page view. The free tier allows
+ * "unavailable" — not a failed call on every page view. The free tier allows
  * only ~20 calls/day per model (found 21 Oct 2026); production needs billing on.
  */
 import 'server-only';
@@ -19,8 +21,14 @@ import { cleanSentence, newsTonePrompt, parseTones, type Tone } from './aiText';
 const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
 const TIMEOUT_MS = 8_000;
 
-export function aiConfigured(): boolean {
-  return !!process.env.GEMINI_API_KEY;
+/** The AI layer runs only when switched on AND a key is set. */
+export function aiEnabled(): boolean {
+  return process.env.AI_ENABLED === 'true' && !!process.env.GEMINI_API_KEY;
+}
+
+/** For payloads: 'off' (not switched on) vs 'unavailable' (on, but this call failed). */
+export function aiStatus(text: unknown): 'ok' | 'off' | 'unavailable' {
+  return !aiEnabled() ? 'off' : text ? 'ok' : 'unavailable';
 }
 
 // Quota cooldown: in memory for this instance, plus a shared cache entry for the others.
@@ -42,7 +50,7 @@ async function inCooldown(): Promise<boolean> {
 /** One Gemini call → plain text. Throws on any failure (callers fall back). */
 export async function geminiText(prompt: string, opts: { maxTokens?: number; json?: boolean } = {}): Promise<string> {
   const key = process.env.GEMINI_API_KEY;
-  if (!key) throw new Error('GEMINI_API_KEY is not set');
+  if (!key || !aiEnabled()) throw new Error('AI layer is off');
   if (await inCooldown()) throw new Error('AI paused (quota cooldown)');
   const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
   const ctrl = new AbortController();
@@ -81,31 +89,31 @@ export async function geminiText(prompt: string, opts: { maxTokens?: number; jso
 }
 
 /**
- * A cached AI sentence. `cacheKey` must change whenever the facts change enough to
- * need a new sentence (e.g. verdict + rounded inputs). Returns `fallback` (and is
- * never cached as AI text) when the AI is off or fails.
+ * One AI sentence, cached `ttlSec` under `cacheKey` — the key should change only
+ * when the facts need a new sentence (e.g. verdict + rounded inputs). null when the
+ * AI is off or fails; nothing is ever cached in its place.
  */
-export async function aiSentence(cacheKey: string, prompt: string, fallback: string, ttlSec = 1200): Promise<{ text: string; ai: boolean }> {
-  if (!aiConfigured()) return { text: fallback, ai: false };
+export async function aiSentence(cacheKey: string, prompt: string, ttlSec = 1200): Promise<string | null> {
+  if (!aiEnabled()) return null;
   try {
-    const text = await getCachedFresh(`ai:v1:${cacheKey}`, ttlSec, async () => {
+    return await getCachedFresh(`ai:v1:${cacheKey}`, ttlSec, async () => {
       const s = cleanSentence(await geminiText(prompt));
       if (!s) throw new Error('unusable AI sentence');
       return s;
     });
-    return { text, ai: true };
   } catch (err) {
-    console.error('[ai] sentence fell back to the template:', err instanceof Error ? err.message : err);
-    return { text: fallback, ai: false };
+    console.error('[ai] sentence unavailable:', err instanceof Error ? err.message : err);
+    return null;
   }
 }
 
 /**
  * Fear & Greed News Tone (v1.15 Plus §4): the AI labels the same headlines the
- * keyword count used. Cached 30 min per headline set; null = use the keyword count.
+ * keyword count used. Cached 30 min per headline set; null = AI off or failed
+ * (News Tone then shows as unavailable and is left out of the composite).
  */
 export async function aiHeadlineTones(headlines: string[]): Promise<Tone[] | null> {
-  if (!aiConfigured() || headlines.length === 0) return null;
+  if (!aiEnabled() || headlines.length === 0) return null;
   const key = createHash('sha1').update(headlines.join('\n')).digest('hex').slice(0, 16);
   try {
     return await getCachedFresh(`ai:v1:tones:${key}`, 1800, async () => {
@@ -114,7 +122,7 @@ export async function aiHeadlineTones(headlines: string[]): Promise<Tone[] | nul
       return tones;
     });
   } catch (err) {
-    console.error('[ai] news tone fell back to keywords:', err instanceof Error ? err.message : err);
+    console.error('[ai] news tone unavailable:', err instanceof Error ? err.message : err);
     return null;
   }
 }

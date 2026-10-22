@@ -47,7 +47,7 @@ export default function RegimeChips({ chips, loading }: Props) {
             role="listitem"
             aria-label={
               chip.price !== null && chip.change24h !== null
-                ? `${chip.asset}: ${chip.regime}, price $${formatPrice(chip.price)}, 24h ${formatChange(chip.change24h)}, AI confidence ${chip.confidence.toFixed(2)}`
+                ? `${chip.asset}: ${chip.regime}, price $${formatPrice(chip.price)}, 24h ${formatChange(chip.change24h)}, confidence ${chip.confidence.toFixed(2)}`
                 : `${chip.asset}: ${chip.regime}, price data unavailable`
             }
           >
@@ -70,7 +70,7 @@ export default function RegimeChips({ chips, loading }: Props) {
             <div className="w-reg-lbl">{chip.regime}</div>
             <div className="w-reg-conf">
               {chip.price !== null
-                ? <>AI conf {chip.confidence.toFixed(2)} · ${formatPrice(chip.price)}</>
+                ? <>Conf {chip.confidence.toFixed(2)} · ${formatPrice(chip.price)}</>
                 : <span className="w-muted">No price data</span>}
             </div>
           </div>

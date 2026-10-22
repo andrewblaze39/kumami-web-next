@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cleanSentence, flowVerdictPrompt, newsTonePrompt, parseTones, regimeFallback, regimePrompt } from '../aiText';
+import { cleanSentence, flowVerdictPrompt, newsTonePrompt, parseTones, regimePrompt } from '../aiText';
 
 describe('AI layer text helpers (v1.15 Platform)', () => {
   it('cleans model output: quotes, markdown, whitespace', () => {
@@ -18,9 +18,6 @@ describe('AI layer text helpers (v1.15 Platform)', () => {
     expect(p).toContain('verdict (fixed, restate it, do not change it): Leaning Bullish (confidence 0.67)');
     expect(p).toContain('BTC ETF net flow, last 7 days: +$298M');
     expect(p).toMatch(/No advice to buy or sell/);
-  });
-  it('the fallback restates the verdict', () => {
-    expect(regimeFallback({ verdict: 'Neutral', fearGreed: 51, fearGreedLabel: 'Neutral' })).toBe('The rule engine reads the market as Neutral with sentiment at 51 (Neutral).');
   });
   it('parses tone labels only when there is exactly one valid label per headline', () => {
     expect(parseTones('["bullish","Neutral","bearish"]', 3)).toEqual(['bullish', 'neutral', 'bearish']);

@@ -189,11 +189,9 @@ export default function FearGreedPage() {
         <div className="w-fg-tile">
           <span className="w-fg-tile-label">News Tone</span>
           {subMetrics.newsTone.unavailable ? (
-            <b className="w-muted">No data</b>
+            <b className="w-muted">{/coming soon/.test(subMetrics.newsTone.source) ? 'Coming soon' : 'No data'}</b>
           ) : (
-            <b>
-              {subMetrics.newsTone.estimated && <span className="w-fg-estimated-badge">Estimated</span>} {subMetrics.newsTone.value}% pos
-            </b>
+            <b>{subMetrics.newsTone.value}% pos</b>
           )}
           <span className="w-fg-tile-source">{subMetrics.newsTone.source}</span>
         </div>
@@ -207,8 +205,8 @@ export default function FearGreedPage() {
           <p>
             Every number above is a weighted blend of 5 signals: Price Momentum (30%), Long/Short Sentiment (20%),
             Volatility (15%), Market Composition (20%), and News Tone (15%). Each is scored 0–100, then combined into
-            the composite score shown in the gauge. News Tone is currently an estimated keyword heuristic over live
-            headlines — it&apos;ll be replaced with a validated AI classifier.
+            the composite score shown in the gauge. News Tone is AI-scored headlines; while the AI is off (coming
+            soon) or a signal has no data, it is left out and the other weights scale up — nothing is filled in.
           </p>
         </div>
       )}

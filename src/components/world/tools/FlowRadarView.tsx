@@ -25,6 +25,8 @@ import { flowLean } from '@/lib/market/rules/flowDirections';
 type Payload = FlowRadarPayload & {
   /** AI rewrite of the band sentence per window (v1.15 Plus §3), present only when the AI answered. */
   aiSentences?: Partial<Record<Timeframe, { verdict: string; text: string }>>;
+  /** AI layer switched on (false → "AI read · coming soon"). */
+  aiOn?: boolean;
   delayed?: boolean; delayMinutes?: number; delayedAsOf?: string | null };
 
 /** Which version to render (Andrew's spec v1.6): the Plus page always renders
@@ -201,11 +203,12 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
   // Verdict band for the selected window (thresholds scale with it — v1.15 Plus §3).
   const band = useMemo(() => computeFlowVerdict(filtered, timeframe), [filtered, timeframe]);
   // The server's AI sentence describes the unfiltered window, so it's only used while no
-  // asset / type / severity filter is on and the verdicts agree; otherwise the template.
+  // asset / type / severity filter is on and the verdicts agree. No template sentence in
+  // its place (Andrew's hard rule, 22 Oct 2026): AI off → "coming soon", otherwise nothing.
   const unfiltered = types.size === typeChips.length && severities.size === SEVERITIES.length
     && (isPremium ? proAssets.size === 0 : asset === 'All');
   const ai = data?.aiSentences?.[timeframe];
-  const bandSentence = unfiltered && ai?.verdict === band.verdict.label ? ai.text : band.sentence;
+  const aiText = unfiltered && ai?.verdict === band.verdict.label ? ai.text : null;
 
   const visible = filtered.slice(0, visibleCount);
   const remaining = filtered.length - visible.length;
@@ -333,7 +336,11 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
               <span className={`w-flow-radar-verdict-label ${VERDICT_TONE[band.verdict.color] ?? 'w-muted'}`}>
                 <WIcon name="bolt" /> {band.verdict.label}
               </span>
-              <p title={bandSentence !== band.sentence ? 'Written by AI from the verdict — the verdict itself comes from the rule engine' : undefined}>{bandSentence}</p>
+              {aiText ? (
+                <p title="Written by AI from the verdict — the verdict itself comes from the rule engine">{aiText}</p>
+              ) : data.aiOn === false ? (
+                <p className="w-ai-soon">AI read · coming soon</p>
+              ) : null}
             </div>
             <div className="w-flow-radar-verdict-stat">{band.statLine}</div>
           </div>

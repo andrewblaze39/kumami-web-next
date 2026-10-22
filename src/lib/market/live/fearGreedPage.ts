@@ -11,9 +11,9 @@
  *   - Market Composition reuses CoinGlass's own stablecoin index (already used
  *     by the On-Chain "Stablecoin Supply" tile) instead of a new DefiLlama
  *     integration — same underlying concept (total stablecoin market cap).
- *   - News Tone has no live LLM wired yet, so it's a lightweight keyword
- *     heuristic over real Intelligence headlines — marked "Estimated" in the
- *     UI per the doc's own instruction for this sub-metric.
+ *   - News Tone is AI-scored headlines (v1.15 Plus §4). With the AI off or
+ *     failing it is unavailable and left out of the composite — no keyword
+ *     estimate in its place (Andrew's hard rule, 22 Oct 2026).
  */
 
 import type { FearGreedPayload } from '../contracts';
@@ -24,7 +24,7 @@ import {
 import { fearGreed, globalLongShort, stablecoinMcap, priceHistory } from './cg-endpoints';
 import { pairSymbol } from './helpers';
 import { makeIntelligencePayloadLive } from './intel';
-import { aiHeadlineTones } from '../llm/gemini';
+import { aiEnabled, aiHeadlineTones } from '../llm/gemini';
 
 const BASKET: { asset: string; weight: number }[] = [
   { asset: 'BTC', weight: 0.50 },
@@ -47,24 +47,6 @@ function dailyReturns(closes: number[]): number[] {
     if (closes[i - 1] > 0) out.push((closes[i] - closes[i - 1]) / closes[i - 1]);
   }
   return out;
-}
-
-const BULLISH_WORDS = [
-  'surge', 'rally', 'inflow', 'bullish', 'gain', 'breakout', 'accumulat',
-  'record high', 'adoption', 'upgrade', 'partnership', 'soar', 'jump', 'buy',
-];
-const BEARISH_WORDS = [
-  'crash', 'selloff', 'sell-off', 'bearish', 'outflow', 'hack', 'exploit',
-  'ban', 'lawsuit', 'decline', 'drop', 'liquidat', 'dump', 'fear', 'plunge', 'halt',
-];
-
-function classifyHeadline(headline: string): 'bullish' | 'bearish' | 'neutral' {
-  const h = headline.toLowerCase();
-  const bull = BULLISH_WORDS.filter((w) => h.includes(w)).length;
-  const bear = BEARISH_WORDS.filter((w) => h.includes(w)).length;
-  if (bull > bear) return 'bullish';
-  if (bear > bull) return 'bearish';
-  return 'neutral';
 }
 
 /**
@@ -153,26 +135,23 @@ export async function makeFearGreedPayloadLive(): Promise<FearGreedPayload> {
   const change7dUsd = stableFailed ? null : latestTotal - total7;
   const compScore = scoreMarketComposition(change7dUsd ?? 0);
 
-  // --- Sub-metric 5: news tone — AI-labelled headlines (v1.15 Plus §4), keyword count as fallback
+  // --- Sub-metric 5: news tone — AI-labelled headlines (v1.15 Plus §4); no AI → unavailable
   const headlines = intel.briefs.map((b) => b.headline);
   const aiTones = await aiHeadlineTones(headlines);
-  const classified = aiTones ?? headlines.map(classifyHeadline);
-  const bullishCount = classified.filter((c) => c === 'bullish').length;
-  const newsUnavailable = headlines.length === 0;
-  const bullishPct = newsUnavailable ? 50 : (bullishCount / headlines.length) * 100;
-  const newsScore = scoreNewsTone(bullishPct);
+  const newsUnavailable = aiTones === null;
+  const bullishPct = aiTones ? (aiTones.filter((c) => c === 'bullish').length / aiTones.length) * 100 : null;
+  const newsScore = bullishPct === null ? null : scoreNewsTone(bullishPct);
 
   const composite = {
+    // Only the sub-metrics with real data count; the weights re-normalise over them.
     ...computeCompositeFearGreed({
-      priceMomentum: momentumScore,
-      longShortSentiment: lsScore,
-      volatility: vol.score,
-      marketComposition: compScore,
+      priceMomentum: momentumAvg.hasAny ? momentumScore : null,
+      longShortSentiment: longAvg.hasAny ? lsScore : null,
+      volatility: volAvg.hasAny ? vol.score : null,
+      marketComposition: stableFailed ? null : compScore,
       newsTone: newsScore,
     }),
-    // Every sub-metric failed — the weighted score above is built entirely
-    // from neutral fallbacks, not a real reading. Flag it rather than show a
-    // synthesized number as if it meant something.
+    // Every sub-metric failed — no real reading at all.
     unavailable: !momentumAvg.hasAny && !longAvg.hasAny && !volAvg.hasAny && stableFailed && newsUnavailable,
   };
 
@@ -214,11 +193,11 @@ export async function makeFearGreedPayloadLive(): Promise<FearGreedPayload> {
         unavailable: stableFailed,
       },
       newsTone: {
-        score: newsScore,
-        value: Number(bullishPct.toFixed(0)),
+        score: newsScore ?? 0,
+        value: bullishPct === null ? 0 : Number(bullishPct.toFixed(0)),
         label: 'News Tone',
-        source: aiTones ? 'AI-scored headlines · refreshed every 30 min' : 'Keyword estimate (AI unavailable)',
-        estimated: !aiTones,
+        source: aiTones ? 'AI-scored headlines · refreshed every 30 min'
+          : aiEnabled() ? 'AI news tone unavailable right now · not counted' : 'AI news tone · coming soon · not counted',
         unavailable: newsUnavailable,
       },
     },

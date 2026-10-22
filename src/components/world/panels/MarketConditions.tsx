@@ -28,7 +28,7 @@ export default function MarketConditions({ data }: Props) {
           <span className="w-ic"><WIcon name="spark" /></span>
           {' '}Market Conditions <span className="w-sub">· Today&apos;s Brief</span>
         </span>
-        <span className="w-sub">AI-fused regime read</span>
+        <span className="w-sub">Rule-based regime read</span>
       </div>
 
       <div className="w-mc-hero">
@@ -39,13 +39,16 @@ export default function MarketConditions({ data }: Props) {
             <span className={REGIME_TONE[verdict.color] ?? 'w-flat'}>{verdict.label}</span>
           </div>
           <div className="w-mc-conf">
-            AI confidence <b>{confidence !== undefined ? confidence.toFixed(2) : '—'}</b> · fused
-            from on-chain flow, macro &amp; sentiment
+            Confidence <b>{confidence !== undefined ? confidence.toFixed(2) : '—'}</b> · from
+            Fear &amp; Greed, ETF flows, funding and open interest
           </div>
-          {data.interpretation && (
-            <p className="w-mc-ai" title={data.interpretationAi ? 'Written by AI from the verdict above — the verdict itself comes from the rule engine' : undefined}>
+          {/* AI read: the AI's text, or an honest state — never a template (Andrew, 22 Oct 2026). */}
+          {data.interpretation ? (
+            <p className="w-mc-ai" title="Written by AI from the verdict above — the verdict itself comes from the rule engine">
               {data.interpretation}
             </p>
+          ) : (
+            <p className="w-mc-ai w-ai-soon">{data.aiStatus === 'unavailable' ? 'AI read unavailable right now' : 'AI read · coming soon'}</p>
           )}
           <div
             className="w-senti-bar"

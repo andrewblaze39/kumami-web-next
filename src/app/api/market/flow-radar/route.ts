@@ -34,7 +34,7 @@ import { computeWhaleEventCounts } from '@/lib/market/rules/watchlistSectionC';
 import { filterIlliquid, spotVolumeMap } from '@/lib/market/rules/flowLiquidity';
 import { netflowList } from '@/lib/market/live/cg-endpoints';
 import { binanceSpotVolumes } from '@/lib/market/live/binance';
-import { aiSentence } from '@/lib/market/llm/gemini';
+import { aiEnabled, aiSentence } from '@/lib/market/llm/gemini';
 import { flowVerdictPrompt } from '@/lib/market/llm/aiText';
 const WINDOW_MS: Record<FlowWindow, number> = { '1H': 3_600_000, '4H': 4 * 3_600_000, '24H': 24 * 3_600_000, '7D': 7 * 24 * 3_600_000 };
 import type { FlowEvent, FlowRadarPayload } from '@/lib/market/contracts';
@@ -122,17 +122,17 @@ export async function GET(request: Request) {
   // its own band (same window, no asset/type/severity filter) has the same verdict.
   const windows: FlowWindow[] = isPro ? ['1H', '4H', '24H', '7D'] : ['1H', '4H', '24H'];
   const aiSentences: Partial<Record<FlowWindow, { verdict: string; text: string }>> = {};
-  await Promise.all(windows.map(async (w) => {
+  if (aiEnabled()) await Promise.all(windows.map(async (w) => {
     const evs = inWindow(w);
-    if (evs.length === 0) return; // nothing to say beyond the template ("flow is calm")
+    if (evs.length === 0) return; // nothing to read in an empty window
     const band = computeFlowVerdict(evs, w);
     const top = [...evs].sort((a, b) => b.amountUsd - a.amountUsd).slice(0, 3);
     const facts = { window: w, verdict: band.verdict.label, statLine: band.statLine, top: top.map((e) => `${e.asset} ${e.direction} $${Math.round(e.amountUsd / 1e6)}M`) };
     // One sentence per tier + window + verdict + biggest event per 30 min keeps AI calls to a few hundred a day.
     const key = `flow3:${isPro ? 'pro' : 'plus'}:${w}:${band.verdict.label}:${top[0] ? `${top[0].asset}-${top[0].direction}` : ''}`;
     // A cold AI call never holds the feed up for long; the fetch keeps running and fills the cache.
-    const r = await withTimeout(aiSentence(key, flowVerdictPrompt(facts), band.sentence, 1800), AI_TIMEOUT_MS).catch(() => null);
-    if (r?.ai) aiSentences[w] = { verdict: band.verdict.label, text: r.text };
+    const text = await withTimeout(aiSentence(key, flowVerdictPrompt(facts), 1800), AI_TIMEOUT_MS).catch(() => null);
+    if (text) aiSentences[w] = { verdict: band.verdict.label, text };
   }));
   const totalUsd = events.reduce((sum, e) => sum + e.amountUsd, 0);
   const assets = isPro ? Array.from(new Set(events.filter((e) => !e.marketWide).map((e) => e.asset))).sort() : PLUS_ASSETS;
@@ -149,6 +149,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     ...payload,
     aiSentences,
+    aiOn: aiEnabled(),
     delayed,
     ...(delayed ? { delayMinutes, delayedAsOf: delayedFeed ? new Date(delayedFeed.asOf).toISOString() : null } : {}),
   });

@@ -87,6 +87,16 @@ describe('classifyComposite', () => {
 });
 
 describe('computeCompositeFearGreed', () => {
+  it('leaves a missing sub-metric out and re-weights the rest (no neutral 50 filled in)', () => {
+    const r = computeCompositeFearGreed({
+      priceMomentum: 80, longShortSentiment: 80, volatility: 80, marketComposition: 80, newsTone: null,
+    });
+    expect(r.score).toBe(80);
+    const one = computeCompositeFearGreed({
+      priceMomentum: null, longShortSentiment: null, volatility: 20, marketComposition: null, newsTone: null,
+    });
+    expect(one.score).toBe(20);
+  });
   it('weights sub-metrics per the doc (0.30/0.20/0.15/0.20/0.15)', () => {
     const r = computeCompositeFearGreed({
       priceMomentum: 100,

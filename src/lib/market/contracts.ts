@@ -29,8 +29,8 @@ export type Series = { t: number; v: number }[];
 /** Full payload for the /world Console page. */
 export type ConsolePayload = {
   marketConditions: PanelVerdict & {
-    /** True when `interpretation` came from the AI layer (false = template fallback). */
-    interpretationAi?: boolean;
+    /** AI sentence state: 'ok' (interpretation is AI text), 'off' (AI not switched on — "coming soon"), 'unavailable' (this call failed). */
+    aiStatus?: 'ok' | 'off' | 'unavailable';
     /** null when the Fear & Greed fetch failed — render "No data", never a fake midpoint. */
     fearGreed: number | null;
     /** Server-derived label for the Fear & Greed value (e.g. "Extreme Greed"). */
@@ -117,12 +117,10 @@ export type FearGreedSubMetric = {
   label: string;
   /** Small caption crediting the data source, e.g. "CoinGecko · tracked basket". */
   source: string;
-  /** True only for News Tone until its LLM classification is validated. */
-  estimated?: boolean;
   /**
-   * True when every underlying live source for this sub-metric failed —
-   * `value`/`score` are neutral placeholders feeding the composite only, not a
-   * real reading, and the UI should render "No data" rather than format them.
+   * True when this sub-metric has no real reading (its sources failed, or for News
+   * Tone the AI is off) — it is left out of the composite, and the UI renders
+   * "No data" / "Coming soon" instead of formatting `value`/`score`.
    */
   unavailable?: boolean;
 };

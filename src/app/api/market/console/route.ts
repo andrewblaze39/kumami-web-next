@@ -17,8 +17,8 @@ import { getDelayMinutes } from '@/lib/market/gating';
 import { readDelayedFlow, recordFlowEvents } from '@/lib/market/flowDelayed';
 import { PLUS_ASSETS } from '@/lib/market/rules/flowDelayed';
 import { recordFlowDay } from '@/lib/market/flowHistory';
-import { aiSentence } from '@/lib/market/llm/gemini';
-import { regimeFallback, regimePrompt, type RegimeFacts } from '@/lib/market/llm/aiText';
+import { aiSentence, aiStatus } from '@/lib/market/llm/gemini';
+import { regimePrompt, type RegimeFacts } from '@/lib/market/llm/aiText';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -43,6 +43,7 @@ export async function GET(request: Request) {
   );
 
   // AI sentence under the regime (v1.15 Platform): rewrites the computed verdict, never changes it.
+  // No template fallback (Andrew, 22 Oct 2026): off or failed → the page says so.
   // Cached 20 min per verdict + rounded inputs, so it only changes when the picture does.
   const mc = payload.marketConditions;
   const facts: RegimeFacts = {
@@ -56,11 +57,11 @@ export async function GET(request: Request) {
   };
   const bucket = [facts.verdict, facts.fearGreed === null ? 'x' : Math.round(facts.fearGreed / 5),
     facts.etf7dUsd == null ? 'x' : Math.round(facts.etf7dUsd / 1e8), facts.pctLong == null ? 'x' : Math.round(facts.pctLong / 5)].join(':');
-  const sentence = await aiSentence(`console:${bucket}`, regimePrompt(facts), regimeFallback(facts));
+  const sentence = await aiSentence(`console:${bucket}`, regimePrompt(facts));
 
   return NextResponse.json({
     ...payload,
-    marketConditions: { ...mc, interpretation: sentence.text, interpretationAi: sentence.ai },
+    marketConditions: { ...mc, interpretation: sentence ?? undefined, aiStatus: aiStatus(sentence) },
     flowRadar,
   });
 }

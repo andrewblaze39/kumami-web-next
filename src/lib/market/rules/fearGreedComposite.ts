@@ -74,7 +74,7 @@ export function scoreMarketComposition(change7dUsd: number): number {
 }
 
 // ---------------------------------------------------------------------------
-// Sub-metric 5 — News Tone (estimated; % of headlines classified bullish)
+// Sub-metric 5 — News Tone (% of headlines the AI labels bullish)
 // ---------------------------------------------------------------------------
 
 export function scoreNewsTone(bullishPct: number): number {
@@ -116,19 +116,26 @@ export function classifyComposite(score: number): { label: string; color: Verdic
   return { label: 'Extreme Fear', color: 'red' };
 }
 
-export function computeCompositeFearGreed(scores: SubMetricScores): {
+/**
+ * Weighted composite over the sub-metrics that have real data (null = missing):
+ * the weights re-normalise over what's present, so a missing factor is left out
+ * rather than filled with a neutral 50 (Andrew's hard rule, 22 Oct 2026). With
+ * nothing present the score is 50 — callers flag that payload as unavailable.
+ */
+export function computeCompositeFearGreed(scores: { [K in keyof SubMetricScores]: number | null }): {
   score: number;
   label: string;
   color: Verdict['color'];
 } {
-  const weighted =
-    scores.priceMomentum * WEIGHTS.priceMomentum +
-    scores.longShortSentiment * WEIGHTS.longShortSentiment +
-    scores.volatility * WEIGHTS.volatility +
-    scores.marketComposition * WEIGHTS.marketComposition +
-    scores.newsTone * WEIGHTS.newsTone;
-
-  const score = Math.round(weighted);
+  let sum = 0;
+  let weight = 0;
+  for (const k of Object.keys(WEIGHTS) as (keyof SubMetricScores)[]) {
+    const v = scores[k];
+    if (v === null) continue;
+    sum += v * WEIGHTS[k];
+    weight += WEIGHTS[k];
+  }
+  const score = weight > 0 ? Math.round(sum / weight) : 50;
   const { label, color } = classifyComposite(score);
   return { score, label, color };
 }
