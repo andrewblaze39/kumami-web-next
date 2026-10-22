@@ -11,8 +11,11 @@ Pro, Calendar, AI layer).
 
 ## 1. Flow Radar Plus — `/world/flow-radar` (Plus account)
 
-1. The header says **Delayed 15m**. Right after a deploy it can say the delayed
-   feed is starting. That's expected for up to 15 min.
+1. The header says **Delayed 15m**. Every event is at least 15 min old, and the
+   feed keeps the last 24h (it's served from stored events, not a live copy), so
+   it shows events right away even after a quiet spell or a deploy. Check with
+   Flow Radar Pro open in another tab: a new BTC/ETH/SOL/BNB/HYPE HIGH/MED event
+   appears on Pro first and on Plus about 15 min later.
 2. Event rows use the new labels:
    - **Inflow / Outflow** (whale deposits and withdrawals);
    - **Dry Powder In / Out** (stablecoins);

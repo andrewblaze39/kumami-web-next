@@ -128,19 +128,6 @@ export function effectiveTier(view: ToolView, accountTier: Tier): Tier {
 }
 
 /**
- * Pick the snapshot to serve a delayed (Plus) feed: the newest snapshot bucket
- * at least `delayMs` old, but not older than `delayMs + maxExtraMs` (stale
- * beyond that is worse than an honest "warming up" state). Returns null when
- * none qualifies. Pure — the Firestore read lives in flowSnapshots.ts.
- */
-export function pickSnapshot(buckets: number[], now: number, delayMs: number, maxExtraMs = 10 * 60_000): number | null {
-  const newest = now - delayMs;
-  const oldest = newest - maxExtraMs;
-  const ok = buckets.filter((b) => b <= newest && b >= oldest);
-  return ok.length ? Math.max(...ok) : null;
-}
-
-/**
  * Cap the length of a list to the free-tier asset cap.
  *   - pro: full list.
  *   - free: slice(0, FREE_HEATMAP_ASSET_CAP).
