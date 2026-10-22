@@ -109,7 +109,8 @@ const BAD_TEXT: [RegExp, string][] = [
   [/\[object Object\]/, '[object Object]'],
   [/\bInfinity\b/, 'Infinity'],
   [/\$0(?:\.0+)?(?![.\d])/, '$0 placeholder'],
-  [/(?<![\d.])(?:[1-9]\d{3,}|[2-9]\d{2})(?:\.\d+)?%/, 'percentage ≥ 200%'],
+  // Week-over-week change of a flow (ETF "+264% · vs prior 7d") can really be large.
+  [/(?<![\d.])(?:[1-9]\d{3,}|[2-9]\d{2})(?:\.\d+)?%(?! · vs prior)/, 'percentage ≥ 200%'],
   [/coinglass/i, 'provider name shown to users'],
   [/lorem ipsum/i, 'lorem ipsum'],
 ];
