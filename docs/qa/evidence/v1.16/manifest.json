@@ -1,0 +1,152 @@
+[
+  {
+    "item": 1,
+    "file": "item-01-console-regime.jpg",
+    "caption": "Global Regime \"Neutral\", confidence 0.5, Fear & Greed 67 (CoinGlass index)."
+  },
+  {
+    "item": 2,
+    "file": "item-02-regime-chips.jpg",
+    "caption": "Coin chips. HYPE confidence 0.7 (cap 0.70); max of the others 1."
+  },
+  {
+    "item": 3,
+    "file": "item-03-console-flow-preview.jpg",
+    "caption": "Console Flow Radar preview: \"Delayed 15m\", HIGH/MED events of the 5 core coins, from saved history."
+  },
+  {
+    "item": 4,
+    "file": "item-04-console-badge.jpg",
+    "caption": "Badge for a [TEST] HIGH event 2h ahead: \"[TEST] Evidence CPI in 2h — expect volatility\"."
+  },
+  {
+    "item": 5,
+    "file": "item-05-btc-with-etf.jpg",
+    "caption": "BTC: middle row has CVD, US Demand Premium and ETF Flow (1 ETF panel)."
+  },
+  {
+    "item": 6,
+    "file": "item-06-btc-funding.jpg",
+    "caption": "BTC Funding Rate tile: \"Funding Rate ? +0.0041% NEUTRAL OI-weighted · Every 8H\"."
+  },
+  {
+    "item": 7,
+    "file": "item-07-btc-netflow-7d.jpg",
+    "caption": "Exchange Netflow on the 24H page range: \"Exchange Netflow ? $3.8B in HEAVY DISTRIBUTION Coins arriving to exchanges · 7D (updates daily)\"."
+  },
+  {
+    "item": 8,
+    "file": "item-08-btc-open-interest.jpg",
+    "caption": "Open Interest panel: \"Capitulation/Unwind\"."
+  },
+  {
+    "item": 5,
+    "file": "item-05-switcher-hype.jpg",
+    "caption": "Coin switcher: BTC, ETH, SOL, BNB, HYPE — no AVAX."
+  },
+  {
+    "item": 5,
+    "file": "item-05-hype-no-etf.jpg",
+    "caption": "HYPE: no ETF Flow panel (0 ETF panels) — two panels in the middle row."
+  },
+  {
+    "item": 6,
+    "file": "item-06-hype-funding.jpg",
+    "caption": "HYPE Funding Rate tile: \"Funding Rate ? +0.0065% NEUTRAL OI-weighted · Every 8H\"."
+  },
+  {
+    "item": 9,
+    "file": "item-09-hover-card.jpg",
+    "caption": "Hover card on BTC (4H): price DOWN, spot DOWN, futures DOWN → COHERENT DECLINE."
+  },
+  {
+    "item": 10,
+    "file": "item-10-tiles-4h.jpg",
+    "caption": "4H tiles: BTC COHERENT DECLINE (DOWN/DOWN/DOWN) · ETH FORCED DECLINE (DOWN/FLAT/DOWN) · SOL COHERENT DECLINE (DOWN/DOWN/DOWN) · BNB COHERENT DECLINE (DOWN/DOWN/DOWN) · HYPE BALANCED (FLAT/FLAT/DOWN)."
+  },
+  {
+    "item": 11,
+    "file": "item-11-banner-4h.jpg",
+    "caption": "4H market verdict: Broad Selloff — from COHERENT DECLINE, FORCED DECLINE, COHERENT DECLINE, COHERENT DECLINE, BALANCED."
+  },
+  {
+    "item": 12,
+    "file": "item-12-empty-4h.jpg",
+    "caption": "4H: no cards — \"No divergence signals in this window right now.\" and footer count 0."
+  },
+  {
+    "item": 10,
+    "file": "item-10-tiles-7d.jpg",
+    "caption": "7D tiles: BTC BALANCED (FLAT/FLAT/FLAT) · ETH ACCUMULATION (FLAT/UP/DOWN) · SOL ACCUMULATION (FLAT/UP/DOWN) · BNB QUIET DISTRIBUTION (FLAT/DOWN/DOWN) · HYPE ACCUMULATION (FLAT/UP/DOWN)."
+  },
+  {
+    "item": 12,
+    "file": "item-12-cards-7d.jpg",
+    "caption": "7D: 3 alert cards; footer count = cards; banner Broad Buying."
+  },
+  {
+    "item": 13,
+    "file": "item-13-flow-radar-plus.jpg",
+    "caption": "Flow Radar Plus: 26 events, newest is 27 min old (≥ 15), only HIGH/MED, 5 core coins + Dry Powder."
+  },
+  {
+    "item": 13,
+    "file": "item-13-whale-filter.jpg",
+    "caption": "Whale Transfer filter: 9 rows, directions Outflow/Inflow."
+  },
+  {
+    "item": 14,
+    "file": "item-14-dry-powder-filter.jpg",
+    "caption": "Exchange Flow filter: 0 Dry Powder rows (none on Plus right now — needs $100M+ net in an hour)."
+  },
+  {
+    "item": 15,
+    "file": "item-15-liquidation-filter.jpg",
+    "caption": "Liquidation Spike filter: 0 rows (none on Plus right now)."
+  },
+  {
+    "item": 15,
+    "file": "item-15-smart-money-filter.jpg",
+    "caption": "Smart Money filter: 17 rows (Position Closed/Short Opened/Long Opened)."
+  },
+  {
+    "item": 16,
+    "file": "item-16-verdict-1h.jpg",
+    "caption": "1H verdict band: \"Quiet Flow\" — 3 events tracked."
+  },
+  {
+    "item": 16,
+    "file": "item-16-verdict-4h.jpg",
+    "caption": "4H verdict band: \"Mixed Flow\" — 7 bullish · 3 bearish events."
+  },
+  {
+    "item": 16,
+    "file": "item-16-verdict-24h.jpg",
+    "caption": "24H verdict band: \"Mixed Flow\" — 12 bullish · 5 bearish events."
+  },
+  {
+    "item": 17,
+    "file": "item-17-outline.jpg",
+    "caption": "Outlined row — \"Watchlist confirming — confirmed by another Kumami panel\". 7 outlined events in the feed."
+  },
+  {
+    "item": 17,
+    "file": "item-17-ai-line.jpg",
+    "caption": "AI line under the band (hover title: \"Written by AI from the verdict — the verdict itself comes from the rule engine\")."
+  },
+  {
+    "item": 9,
+    "file": "item-09-pro-hover-card.jpg",
+    "caption": "Spot Pulse Pro (10 tiles): the hover card works on Pro too."
+  },
+  {
+    "item": 15,
+    "file": "item-15-flow-radar-pro.jpg",
+    "caption": "Flow Radar Pro (real-time): 93 events, 35 LOW (Pro only) — exchange_flow, liq_spike, smart_money."
+  },
+  {
+    "item": 16,
+    "file": "item-16-pro-verdict-7d.jpg",
+    "caption": "Pro 7D verdict band (thresholds ×10): \"Mixed Flow\"."
+  }
+]
