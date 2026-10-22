@@ -237,6 +237,7 @@ export default function OnChainPage() {
   };
 
   const a = asset;
+  const hasEtf = a === 'BTC' || a === 'ETH';
 
   const market = useMarketEndpoint<OnChainPayload>(
     `/api/market/onchain?asset=${a}&range=${RANGE_API[range]}`,
@@ -442,8 +443,8 @@ export default function OnChainPage() {
         <SpotPulse onSelectAsset={openAssetView} />
       </div>
 
-      {/* ---- Tier 2 row: CVD / Premium / ETF ---- */}
-      <div className="w-oc-brow" data-tour="oc-brow">
+      {/* ---- Tier 2 row: CVD / Premium / ETF (ETF only for BTC and ETH, the coins with ETF data) ---- */}
+      <div className={hasEtf ? 'w-oc-brow' : 'w-oc-brow w-oc-brow-2'} data-tour="oc-brow">
         {/* CVD */}
         <div className="w-oc-panel">
           <div className="w-oc-ph">
@@ -520,7 +521,7 @@ export default function OnChainPage() {
         </div>
 
         {/* ETF flow */}
-        <div className="w-oc-panel">
+        {hasEtf && <div className="w-oc-panel">
           <div className="w-oc-ph">
             <span className="w-oc-ttl">
               <WIcon name="layers" /> ETF Flow{' '}
@@ -546,7 +547,7 @@ export default function OnChainPage() {
               </span>
             </div>
           </div>
-        </div>
+        </div>}
       </div>
 
       {/* ---- Show more / tier 3 ---- */}

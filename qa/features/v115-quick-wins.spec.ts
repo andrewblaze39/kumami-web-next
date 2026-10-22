@@ -67,12 +67,15 @@ test.describe('On-Chain v1.15 (qa1)', () => {
     await page.getByRole('button', { name: 'HYPE', exact: true }).first().click();
     await expect(fundingValue).toHaveText(/%/, { timeout: 60_000 }); // cold cache: ~16 upstream reads
     await expect(page.getByText(/Exchange balance flow|Coins (leaving|arriving)|Updates daily|unavailable|—/).first()).toBeVisible();
+    // No ETF data for HYPE: no ETF panel (Andrew, 22 Oct 2026 — it used to show Bitcoin ETFs unlabelled).
+    await expect(page.locator('.w-oc-panel .w-oc-ttl', { hasText: 'ETF Flow' })).toHaveCount(0);
     await expectSaneText(page);
     await snap(page, info, 'v115-onchain-hype');
 
     await page.getByRole('button', { name: 'BTC', exact: true }).first().click();
     await expect(fundingValue).toHaveText(/%/, { timeout: 60_000 });
     await expect(page.getByText(/· 7D \(updates daily\)|Updates daily|Exchange balance flow/).first()).toBeVisible();
+    await expect(page.locator('.w-oc-panel .w-oc-ttl', { hasText: 'ETF Flow' })).toHaveCount(1);
     await expectSaneText(page);
     await snap(page, info, 'v115-onchain-btc');
     g.assertClean();

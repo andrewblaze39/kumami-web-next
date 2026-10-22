@@ -61,7 +61,9 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
   const A = asset.toUpperCase();
   const pair = pairSymbol(A);
   const perp = hasPerp(A);
-  const etfChain = A === 'ETH' ? 'ethereum' : 'bitcoin';
+  // Only BTC and ETH have ETF data; other coins get no ETF panel (Andrew, 22 Oct 2026 —
+  // before, they silently showed the Bitcoin ETF numbers).
+  const etfChain = A === 'ETH' ? 'ethereum' : A === 'BTC' ? 'bitcoin' : null;
 
   // Fetch everything in parallel; each panel guards its own inputs.
   // `.catch(() => null)` (not `[]`) on feeds whose absence must NOT silently
@@ -81,7 +83,7 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
     perp ? cvdHistory('futures', A, interval).catch(empty<CvdRow>) : Promise.resolve(empty<CvdRow>()),
     perp ? cvdHistory('spot', A, interval).catch(empty<CvdRow>) : Promise.resolve(empty<CvdRow>()),
     coinbasePremium(interval).catch(empty<PremiumRow>),
-    etfFlow(etfChain).catch(empty<EtfFlowRow>),
+    etfChain ? etfFlow(etfChain).catch(empty<EtfFlowRow>) : Promise.resolve(empty<EtfFlowRow>()),
     exchangeBalance(A).catch(() => null as ExchBalanceRow[] | null),
     exchangeBalanceChart(A).catch(() => null),
     stablecoinMcap().catch(() => null),
@@ -255,7 +257,8 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
   } catch { panels.premium = neutral('Coinbase premium unavailable', { asset: A, range }); }
 
   // ---- etf ---------------------------------------------------------------
-  try {
+  if (!etfChain) panels.etf = neutral(`No spot ETF data for ${A}`, { asset: A, range });
+  else try {
     const last = etfRows[etfRows.length - 1];
     const dailyFlowUsd = last?.flow_usd ?? 0;
     const last7 = etfRows.slice(-7);
