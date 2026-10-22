@@ -104,7 +104,8 @@ def TABLE(rows: Sequence[Sequence[str]], widths: Sequence[int] | None = None) ->
             cell = r[c] if c < len(r) else ""
             tcs.append(
                 f'<w:tc><w:tcPr><w:tcW w:type="dxa" w:w="{widths[c]}"/></w:tcPr>'
-                f"{P(cell) if isinstance(cell, str) else P(cell)}</w:tc>"
+                # a cell can also be ready-made paragraph XML (e.g. add_image() + a caption)
+                f"{cell if isinstance(cell, str) and cell.startswith('<w:p') else P(cell)}</w:tc>"
             )
         trs.append("<w:tr>" + "".join(tcs) + "</w:tr>")
     return (
@@ -413,6 +414,58 @@ class SpecDoc:
                 break
 
     # -- output ------------------------------------------------------------
+    def add_image(self, img_path: str, width_in: float) -> str:
+        """Add a JPEG/PNG to word/media and return a paragraph showing it inline at
+        `width_in` inches wide (height keeps the image's ratio). Put the returned
+        paragraph in the body or inside a table cell."""
+        import struct
+        raw = open(img_path, "rb").read()
+        ext = "png" if raw[:8] == b"\x89PNG\r\n\x1a\n" else "jpeg"
+        if ext == "png":
+            w, h = struct.unpack(">II", raw[16:24])
+        else:  # walk the JPEG markers to the first SOF
+            i = 2
+            while i < len(raw):
+                marker, size = raw[i + 1], struct.unpack(">H", raw[i + 2:i + 4])[0]
+                if 0xC0 <= marker <= 0xCF and marker not in (0xC4, 0xC8, 0xCC):
+                    h, w = struct.unpack(">HH", raw[i + 5:i + 9])
+                    break
+                i += 2 + size
+        n = sum(1 for k in self._data if k.startswith("word/media/")) + 1
+        name = f"word/media/evidence{n}.{'png' if ext == 'png' else 'jpg'}"
+        while name in self._data:
+            n += 1
+            name = f"word/media/evidence{n}.{'png' if ext == 'png' else 'jpg'}"
+        self._data[name] = raw
+        self._infos.append(zipfile.ZipInfo(name))
+        rels = self._data["word/_rels/document.xml.rels"].decode("utf8")
+        ids = [int(x) for x in re.findall(r'Id="rId(\d+)"', rels)]
+        rid = f"rId{max(ids) + 1}"
+        rels = rels.replace("</Relationships>",
+            f'<Relationship Id="{rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" '
+            f'Target="{name[len("word/"):]}"/></Relationships>')
+        self._data["word/_rels/document.xml.rels"] = rels.encode("utf8")
+        ct = self._data["[Content_Types].xml"].decode("utf8")
+        ext_name = name.rsplit(".", 1)[1]
+        if f'Extension="{ext_name}"' not in ct:
+            mime = "image/png" if ext == "png" else "image/jpeg"
+            ct = ct.replace("</Types>", f'<Default Extension="{ext_name}" ContentType="{mime}"/></Types>')
+            self._data["[Content_Types].xml"] = ct.encode("utf8")
+        cx = int(width_in * 914400)
+        cy = int(cx * h / w)
+        pid = 1000 + n
+        return (
+            '<w:p><w:pPr/><w:r><w:drawing><wp:inline xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+            'xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">'
+            f'<wp:extent cx="{cx}" cy="{cy}"/><wp:docPr id="{pid}" name="Evidence {n}"/>'
+            '<wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr>'
+            '<a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic>'
+            f'<pic:nvPicPr><pic:cNvPr id="0" name="{_esc(img_path.replace(chr(92), "/").rsplit("/", 1)[-1])}"/><pic:cNvPicPr/></pic:nvPicPr>'
+            f'<pic:blipFill><a:blip r:embed="{rid}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>'
+            f'<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="{cx}" cy="{cy}"/></a:xfrm><a:prstGeom prst="rect"/></pic:spPr>'
+            '</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>'
+        )
+
     def save(self, path: str | None = None) -> str:
         path = path or self.path
         xml = self._head + "".join(self.blocks) + self._tail
