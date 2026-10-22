@@ -39,6 +39,7 @@ test.describe('Spot Pulse Plus v1.15 (qa1)', () => {
       expect(body.tiles.length).toBeLessThanOrEqual(5);
       expect(body.tiles.filter((t) => !t.insufficient).length, `${tf}: every tile NO DATA`).toBeGreaterThan(0);
       body.tiles.forEach((t) => seen.add(`${tf}:${t.asset}:${t.verdict}`));
+      expect(body.footer.divergenceCount, `${tf}: footer count = cards shown`).toBe(body.alerts.length);
     }
     await info.attach('verdicts', { body: [...seen].join('\n'), contentType: 'text/plain' });
     await expect(page.getByText(/Updated (just now|\d+ min ago)/).first()).toBeVisible({ timeout: 60_000 });

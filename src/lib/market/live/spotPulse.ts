@@ -190,7 +190,7 @@ export async function makeSpotPulseLive(
     footer: {
       totalSpotVol24h,
       netSpotFlow: Math.round(netSpotFlow),
-      divergenceCount: scored.length,
+      divergenceCount: alerts.length, // = the cards shown (top 3), so the footer matches
       spotNetflow,
     },
     updatedAt: nowIso(),

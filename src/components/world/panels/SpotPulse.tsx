@@ -207,6 +207,9 @@ export default function SpotPulse({
             ))}
           </div>
         )}
+        {data && data.tiles.length > 0 && data.alerts.length === 0 && (
+          <p className="w-sp-alerts-empty">No divergence signals in this window right now.</p>
+        )}
 
         {/* Footer stats */}
         {data && (
