@@ -58,6 +58,13 @@ test.describe('Flow Radar Plus v1.15 (qa1)', () => {
       expect(['HIGH', 'MED']).toContain(e.severity);
       if (!e.marketWide) expect(CORE, `non-roster asset ${e.asset}`).toContain(e.asset);
     }
+    // Delay from stored history (Andrew, 22 Oct 2026): every event is 15+ min old, no warm-up wait.
+    const delayedBody = body as Payload & { delayedAsOf: string | null };
+    expect(delayedBody.delayedAsOf, 'delayed feed should not be "starting"').not.toBeNull();
+    for (const e of body.events) {
+      expect(Date.now() - Date.parse(e.ts), `${e.id} newer than 15 min`).toBeGreaterThanOrEqual(15 * 60_000 - 5_000);
+    }
+    await expect(page.getByText('delayed feed is starting')).toHaveCount(0);
     await expect(page.locator('.w-flow-radar-verdict-label')).toHaveText(new RegExp(VERDICTS.join('|')));
     // The band follows the selected window.
     for (const tf of ['1H', '4H', '24H']) {

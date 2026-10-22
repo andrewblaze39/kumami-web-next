@@ -159,7 +159,7 @@ describe('watchlistSlots', () => {
 // ---------------------------------------------------------------------------
 // Plus/Pro tool split (Andrew's spec v1.6)
 // ---------------------------------------------------------------------------
-import { effectiveTier, parseView, pickSnapshot } from '../gating';
+import { effectiveTier, parseView } from '../gating';
 
 describe('parseView / effectiveTier', () => {
   it('only ?view=pro is the Pro view', () => {
@@ -171,18 +171,5 @@ describe('parseView / effectiveTier', () => {
     expect(effectiveTier('plus', 'pro')).toBe('free');
     expect(effectiveTier('pro', 'free')).toBe('free');
     expect(effectiveTier('pro', 'pro')).toBe('pro');
-  });
-});
-
-describe('pickSnapshot', () => {
-  const now = 1_000 * 60_000;
-  const delay = 15 * 60_000;
-  it('takes the newest snapshot at least 15 min old', () => {
-    expect(pickSnapshot([now - 16 * 60_000, now - 20 * 60_000, now - 5 * 60_000], now, delay)).toBe(now - 16 * 60_000);
-  });
-  it('rejects snapshots older than delay + 10 min, and returns null when none qualify', () => {
-    expect(pickSnapshot([now - 30 * 60_000], now, delay)).toBeNull();
-    expect(pickSnapshot([now - 1 * 60_000], now, delay)).toBeNull();
-    expect(pickSnapshot([], now, delay)).toBeNull();
   });
 });

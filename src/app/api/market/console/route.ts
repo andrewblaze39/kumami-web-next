@@ -3,9 +3,9 @@
  *
  * Returns the ConsolePayload. The Console is a Plus page, so its Flow Radar
  * preview always shows the Flow Radar PLUS feed (Andrew's spec v1.6): the
- * snapshot taken 15 minutes ago (lib/market/flowSnapshots.ts), limited to
+ * stored events visible for 15+ minutes (lib/market/flowDelayed.ts), limited to
  * BTC/ETH/SOL/BNB/HYPE and HIGH/MED events — for every account. This route
- * also refreshes the shared Flow Radar buffer and saves snapshots/history, so
+ * also refreshes the shared Flow Radar buffer and stores its events/history, so
  * the delayed feed keeps filling even when nobody opens Flow Radar itself.
  */
 
@@ -14,7 +14,8 @@ import { authenticate } from '@/lib/market/api-helpers';
 import { getProvider } from '@/lib/market/provider';
 import { getCachedFresh } from '@/lib/market/cache';
 import { getDelayMinutes } from '@/lib/market/gating';
-import { readDelayedFlow, saveFlowSnapshot } from '@/lib/market/flowSnapshots';
+import { readDelayedFlow, recordFlowEvents } from '@/lib/market/flowDelayed';
+import { PLUS_ASSETS } from '@/lib/market/rules/flowDelayed';
 import { recordFlowDay } from '@/lib/market/flowHistory';
 import { aiSentence } from '@/lib/market/llm/gemini';
 import { regimeFallback, regimePrompt, type RegimeFacts } from '@/lib/market/llm/aiText';
@@ -22,7 +23,6 @@ import { regimeFallback, regimePrompt, type RegimeFacts } from '@/lib/market/llm
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const PLUS_ASSETS = ['BTC', 'ETH', 'SOL', 'BNB', 'HYPE'];
 
 export async function GET(request: Request) {
   const auth = await authenticate(request);
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
     getCachedFresh('market:v3:flow-radar', 60, () => getProvider().flowRadar('pro')).catch(() => null),
   ]);
   if (buffer) {
-    void saveFlowSnapshot(buffer);
+    recordFlowEvents();
     void recordFlowDay(buffer);
   }
 

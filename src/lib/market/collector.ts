@@ -16,15 +16,27 @@ import { getCachedFresh } from './cache';
 import { getProvider } from './provider';
 import { recordFlowDay } from './flowHistory';
 import { eventKey, foldEvent, hourlyDeltas, RETENTION_MS, type StoredEvent } from './rules/collector';
+import { plusVisibleAt } from './rules/flowDelayed';
 
 export type CollectorResult = { events: number; created: number; updated: number; hourly: number; deleted: number; ms: number };
 
 const DELETE_BATCH = 200;
 
-export async function runCollector(now = Date.now()): Promise<CollectorResult> {
+/**
+ * One collector run. `skipIfRanWithinMs`: the pages also trigger runs (see
+ * flowDelayed.ts), so they skip when any run — cron or page — happened that
+ * recently; returns null when skipped. flow_meta/collector records the last run
+ * and `since` (the first run ever), which tells the Plus feed history exists.
+ */
+export async function runCollector(now = Date.now(), opts: { skipIfRanWithinMs?: number } = {}): Promise<CollectorResult | null> {
   const t0 = Date.now();
   const { adminDb } = await import('@/lib/firebase-admin');
   const db = adminDb();
+
+  const metaRef = db.collection('flow_meta').doc('collector');
+  const meta = (await metaRef.get()).data() as { lastRun?: number; since?: number } | undefined;
+  if (opts.skipIfRanWithinMs && meta?.lastRun && now - meta.lastRun < opts.skipIfRanWithinMs) return null;
+  await metaRef.set({ lastRun: now, ...(meta?.since ? {} : { since: now }) }, { merge: true });
 
   const events: FlowEvent[] = await getCachedFresh('market:v3:flow-radar', 60, () => getProvider().flowRadar('pro'));
   await recordFlowDay(events, now);
@@ -37,9 +49,10 @@ export async function runCollector(now = Date.now()): Promise<CollectorResult> {
   const adds: { e: FlowEvent; add: number }[] = [];
   const batch = db.batch();
   events.forEach((e, i) => {
-    const prev = snaps[i]?.exists ? (snaps[i].data() as StoredEvent) : undefined;
+    const prev = snaps[i]?.exists ? (snaps[i].data() as StoredEvent & { plusAt?: number }) : undefined;
     const f = foldEvent(prev, e);
-    if (prev && prev.amountUsd === f.amountUsd && prev.direction === e.direction) return; // nothing new
+    const plusAt = plusVisibleAt(prev, e, now);
+    if (prev && prev.amountUsd === f.amountUsd && prev.direction === e.direction && prev.plusAt === plusAt) return; // nothing new
     if (prev) updated++; else created++;
     batch.set(refs[i], {
       ...e,
@@ -47,6 +60,7 @@ export async function runCollector(now = Date.now()): Promise<CollectorResult> {
       counted: f.counted,
       lastSeen: Timestamp.fromMillis(now),
       ...(prev ? {} : { firstSeen: Timestamp.fromMillis(now) }),
+      ...(plusAt !== undefined ? { plusAt } : {}),
       expireAt: expireAt(e.ts),
     }, { merge: true });
     adds.push({ e, add: f.addToHourly });

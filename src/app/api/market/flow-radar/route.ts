@@ -7,7 +7,8 @@
  * v1.15 Plus §3 / Pro §18:
  *   Plus (?view=plus, every account) — 5 core assets, HIGH + MED, the 4 event
  *     types (Exchange Flow = Dry Powder, market-wide so it shows for every
- *     asset), served from the feed SNAPSHOT taken 15 min ago (flowSnapshots.ts).
+ *     asset), served from the stored event history: events visible for 15+ min, last
+ *     24h (flowDelayed.ts).
  *   Pro (?view=pro AND a Pro account) — real-time, every coin, LOW too, plus
  *     Netflow Flip; coins under $1M 24h spot volume are hidden (flowLiquidity.ts).
  *   Both get the cross-signal outlines (flowCrossSignal.ts).
@@ -24,7 +25,8 @@ import { authenticate } from '@/lib/market/api-helpers';
 import { getProvider } from '@/lib/market/provider';
 import { getCachedFresh } from '@/lib/market/cache';
 import { effectiveTier, getDelayMinutes, parseView } from '@/lib/market/gating';
-import { readDelayedFlow, saveFlowSnapshot } from '@/lib/market/flowSnapshots';
+import { readDelayedFlow, recordFlowEvents } from '@/lib/market/flowDelayed';
+import { PLUS_ASSETS, PLUS_EVENT_TYPES } from '@/lib/market/rules/flowDelayed';
 import { recordFlowDay } from '@/lib/market/flowHistory';
 import { computeFlowVerdict, type FlowWindow } from '@/lib/market/rules/flowVerdict';
 import { computeFlowCrossSignal, type FlowCrossSignalContext } from '@/lib/market/rules/flowCrossSignal';
@@ -56,10 +58,7 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T | null> {
   ]);
 }
 
-const PLUS_ASSETS = ['BTC', 'ETH', 'SOL', 'BNB', 'HYPE'];
-// Rachelle v1.15 Plus §3: the 4 Plus events (Exchange Flow = Dry Powder);
 // Pro also keeps Netflow Flip.
-const PLUS_EVENT_TYPES: FlowEvent['type'][] = ['whale_transfer', 'exchange_flow', 'liq_spike', 'smart_money'];
 const PRO_EVENT_TYPES: FlowEvent['type'][] = [...PLUS_EVENT_TYPES, 'netflow_flip'];
 
 export async function GET(request: Request) {
@@ -69,14 +68,14 @@ export async function GET(request: Request) {
 
   // Cache the full (wide) event list; roster/severity/type filtering post-retrieval.
   const allEvents = await getCachedFresh('market:v3:flow-radar', 60, () => getProvider().flowRadar('pro'));
-  // Side effects for the Plus delay + 7-day consistency history (throttled, never throw).
-  void saveFlowSnapshot(allEvents);
+  // Side effects: store events for the Plus delay + 7-day consistency history (throttled, never throw).
+  recordFlowEvents();
   void recordFlowDay(allEvents);
 
   const isPro = tier === 'pro';
   const delayed = !isPro;
   const delayMinutes = getDelayMinutes();
-  // Plus: the snapshot from ≥15 min ago. null = no snapshot old enough yet (cold start).
+  // Plus: stored events visible for ≥15 min. null = history younger than 15 min (first run).
   const delayedFeed = delayed ? await readDelayedFlow(delayMinutes) : null;
   const base = isPro ? allEvents : (delayedFeed?.events ?? []);
 
