@@ -7,7 +7,6 @@ import RenewBanner from '@/components/world/billing/RenewBanner';
 import { WorldModeProvider, useWorldMode } from '@/contexts/WorldModeContext';
 import Sidebar from '@/components/world/shell/Sidebar';
 import Topbar from '@/components/world/shell/Topbar';
-import MobileTabBar from '@/components/world/shell/MobileTabBar';
 import KumaDock from '@/components/world/kuma/KumaDock';
 import ShellLegalFooter from '@/components/legal/ShellLegalFooter';
 
@@ -75,7 +74,6 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Mobile bottom tab bar — CSS-only hidden above 760px, see world.css */}
-      <MobileTabBar onMenuClick={() => setSidebarOpen(v => !v)} />
     </div>
   );
 }

@@ -56,12 +56,6 @@ export default function ModeToggle() {
           onClick={() => setMode('beginner')}
           title="Basic workspace — learning, news & community tools"
         >
-          {/* Seedling — beginner/starter glyph (mobile shows icons only for inactive modes) */}
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 21v-8" />
-            <path d="M12 13c0-4-3-7-8-7 0 4 3 7 8 7Z" />
-            <path d="M12 10c0-3.5 2.5-6 8-6 0 3.5-2.5 6-8 6Z" />
-          </svg>
           <span>Basic</span>
         </button>
         <button
@@ -69,9 +63,6 @@ export default function ModeToggle() {
           onClick={() => setMode('advanced')}
           title="Plus workspace — live market console, on-chain data & alerts"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m12 3 2.6 5.6 6.1.7-4.5 4.1 1.2 6L12 16.8 6.6 19.4l1.2-6L3.3 9.3l6.1-.7Z" />
-          </svg>
           <span>Plus</span>
         </button>
         <button
@@ -83,9 +74,6 @@ export default function ModeToggle() {
               : 'Pro workspace — locked until you upgrade'
           }
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M13 3 5 13h5l-1 8 8-10h-5Z" />
-          </svg>
           <span>Pro</span>
           {!isPremium && (
             <svg className="w-lock-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
