@@ -91,17 +91,20 @@ describe('computeSectionC3d (Section C)', () => {
     expect(pinned.coins).toEqual([]);
   });
 
-  it('building mode until 3 days with recorded $; older days estimated from counts', () => {
+  it('building mode until 3 days with recorded $; count-only days are left out, never estimated', () => {
     const legacy: FlowDayTally = { maxEvents: 4, maxUsd: 40 * M, high: 0, bullish: 3, bearish: 1 };
-    expect(dayNet(legacy)).toEqual({ net: 20 * M, estimated: true });
+    expect(dayNet(legacy)).toBeNull();
     const r = computeSectionC3d([
       day('2026-10-18', { LINK: legacy }),
-      day('2026-10-19', { LINK: legacy }),
+      day('2026-10-19', { LINK: t(10 * M, 0) }),
       day('2026-10-20', { LINK: t(10 * M, 0) }),
     ], opts);
     expect(r.mode).toBe('building');
-    expect(r.daysWithUsd).toBe(1);
+    expect(r.daysWithUsd).toBe(2);
     expect(r.coins.map((c) => c.asset)).toEqual(['LINK']);
+    expect(r.coins[0].reasons[0]).toBe('Accumulating 2 of 2 days');
+    const one = computeSectionC3d([day('2026-10-19', { LINK: legacy }), day('2026-10-20', { LINK: t(10 * M, 0) })], opts);
+    expect(one.coins).toEqual([]); // one real day can't show 2 days of accumulation
   });
 });
 
@@ -117,7 +120,7 @@ describe('hourlyToBlocks (flow_hourly → rolling 24h blocks)', () => {
       { hour: '2026-10-21T13', asset: 'LINK', bullishUsd: 99 * M },                  // future → dropped
     ], now);
     expect(blocks.map((b) => b.date)).toEqual(['2026-10-19T12:30:00.000Z', '2026-10-20T12:30:00.000Z', '2026-10-21T12:30:00.000Z']);
-    expect(blocks.map((b) => dayNet(b.assets.LINK).net)).toEqual([1 * M, 3 * M, 5 * M]);
+    expect(blocks.map((b) => dayNet(b.assets.LINK))).toEqual([1 * M, 3 * M, 5 * M]);
   });
   it('feeds computeSectionC3d unchanged', () => {
     const rows = [0, 1, 2].map((d) => ({ hour: new Date(now - d * 24 * 3_600_000).toISOString().slice(0, 13), asset: 'LINK', bullishUsd: 3 * M }));

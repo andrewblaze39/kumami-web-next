@@ -17,9 +17,10 @@
  * No padding: fewer than 5 qualify → show fewer.
  *
  * Data: the daily Flow Radar tally (flow_daily). Each day's bullish/bearish $ is
- * recorded from v1.15 on; older days only have event counts, so their $ split is
- * estimated from the counts and the section is labelled "building 3-day history"
- * until 3 days with real $ exist.
+ * recorded from v1.15 on; older days only have event counts and are left out — no
+ * $ estimated from counts (Andrew's hard rule, 22 Oct 2026). Until 3 days with real
+ * $ exist the section is labelled "building 3-day history" and the reasons say how
+ * many days of data there are ("Accumulating 2 of 2 days").
  *
  * Once the background collector has written 72h of flow_hourly (the spec's source),
  * the three days become rolling 24h blocks ending now (hourlyToBlocks), recomputed
@@ -83,14 +84,13 @@ const fmt = (v: number) => {
   return `${v >= 0 ? '+' : '−'}${s}`;
 };
 
-/** A day's net buying $ for one coin: recorded $ when present, else estimated from counts. */
-export function dayNet(t: FlowDayTally): { net: number; estimated: boolean } {
-  if (typeof t.bullishUsd === 'number' && typeof t.bearishUsd === 'number') {
-    return { net: t.bullishUsd - t.bearishUsd, estimated: false };
-  }
-  const n = t.bullish + t.bearish;
-  return { net: n > 0 ? (t.maxUsd * (t.bullish - t.bearish)) / n : 0, estimated: true };
+/** A day's recorded net buying $ for one coin; null when that day has no recorded $ (never estimated). */
+export function dayNet(t: FlowDayTally): number | null {
+  return typeof t.bullishUsd === 'number' && typeof t.bearishUsd === 'number' ? t.bullishUsd - t.bearishUsd : null;
 }
+
+/** A day counts only if it recorded $ (v1.15+); older count-only days are left out. */
+const hasUsd = (d: FlowDailyDoc) => Object.values(d.assets ?? {}).some((t) => typeof t.bullishUsd === 'number');
 
 export function computeSectionC3d(
   days: FlowDailyDoc[],
@@ -103,18 +103,19 @@ export function computeSectionC3d(
   },
 ): SectionC3dResult {
   const last = [...days].sort((a, b) => a.date.localeCompare(b.date)).slice(-SECTION_C_DAYS);
-  const daysWithUsd = last.filter((d) => Object.values(d.assets ?? {}).some((t) => typeof t.bullishUsd === 'number')).length;
+  const real = last.filter(hasUsd);
+  const daysWithUsd = real.length;
   const mode = daysWithUsd >= SECTION_C_DAYS ? 'consistent' : 'building';
 
   const candidates = new Set<string>();
-  for (const d of last) for (const [asset, t] of Object.entries(d.assets ?? {})) {
+  for (const d of real) for (const [asset, t] of Object.entries(d.assets ?? {})) {
     if (t.maxEvents > 0 && !opts.exclude.has(asset)) candidates.add(asset);
   }
 
   const coins: SectionC3dEntry[] = [];
   for (const asset of candidates) {
     if (!checkPin(asset, opts.markets).ok) continue; // core / stable / wrapped / illiquid
-    const nets = last.map((d) => (d.assets?.[asset] ? dayNet(d.assets[asset]).net : 0));
+    const nets = real.map((d) => (d.assets?.[asset] ? dayNet(d.assets[asset]) ?? 0 : 0));
     const daysAccumulating = nets.filter((n) => n > 0).length;
     const net3d = nets.reduce((s, n) => s + n, 0);
     const lastDay = nets[nets.length - 1] ?? 0;
@@ -129,7 +130,7 @@ export function computeSectionC3d(
       net3d,
       spotNet3d: spot,
       reasons: [
-        `Accumulating ${daysAccumulating} of ${last.length || SECTION_C_DAYS} days`,
+        `Accumulating ${daysAccumulating} of ${real.length} days`,
         `net flow ${fmt(net3d)} · spot buyers ${fmt(spot)} (3d)`,
       ],
     });
