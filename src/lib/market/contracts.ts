@@ -232,6 +232,8 @@ export type SpotPulseTile = {
   notEnoughHistory?: boolean;
   /** Pro row 2: an Also Worth Watching coin, or a "Top volume" filler. */
   source?: 'watchlist' | 'top-volume';
+  /** Direction of price / spot flow / futures flow over the window (hover card). */
+  dirs?: { price: 'UP' | 'FLAT' | 'DOWN'; spot: 'UP' | 'FLAT' | 'DOWN'; fut: 'UP' | 'FLAT' | 'DOWN' };
 };
 
 /** A divergence alert card below the grid. */

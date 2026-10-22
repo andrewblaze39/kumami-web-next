@@ -31,16 +31,49 @@ const ago = (iso: string, now: number) => {
 };
 const textOn = (t: SpotPulseTile) => (t.verdict === 'BALANCED' ? 'var(--muted-2, var(--muted))' : '#07201b');
 
+// Price counts as UP/DOWN beyond these bands (rules/spotPulse.ts PRICE_BAND_PCT).
+const PRICE_BAND: Record<TF, string> = { '4H': '±0.75%', '24H': '±1.5%', '7D': '±4%' };
+
+/** Hover / focus card: the three directions behind the verdict (Andrew, 22 Oct 2026 — replaces the browser tooltip). */
+function TileCard({ t, tf, clickable }: { t: SpotPulseTile; tf: TF; clickable: boolean }) {
+  const d = t.dirs;
+  const row = (label: string, value: string, dir?: string) => (
+    <div className="w-sp-pop-row">
+      <span>{label}</span>
+      <b>{value}{dir && <em className={`w-sp-dir w-sp-dir-${dir.toLowerCase()}`}>{dir}</em>}</b>
+    </div>
+  );
+  return (
+    <div className="w-sp-pop" role="tooltip">
+      <div className="w-sp-pop-h">
+        {t.asset} · {t.insufficient ? 'No data' : t.notEnoughHistory ? 'Not enough history' : t.verdict}
+        {t.source === 'top-volume' ? ' · Top volume' : ''}
+      </div>
+      {t.insufficient ? (
+        <div className="w-sp-pop-note">Not enough data for a read right now.</div>
+      ) : (
+        <>
+          {row(`Price ${tf}`, pct(t.priceChange4h), d?.price)}
+          {row(`Spot flow ${tf}`, signM(t.spotCvdChange), d?.spot)}
+          {row(`Futures flow ${tf}`, signM(t.futCvdChange), d?.fut)}
+          <div className="w-sp-pop-note">
+            Price counts as a move beyond {PRICE_BAND[tf]}; a flow counts when it&apos;s unusual for this coin (over half its normal swing).
+            {t.notEnoughHistory ? ' New listing — left out of the market verdict.' : clickable ? ' Click to open the on-chain view.' : ''}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function Tile({ t, tf, onSelect }: { t: SpotPulseTile; tf: TF; onSelect?: (a: string) => void }) {
   const clickable = !!onSelect && !t.insufficient;
   const go = clickable ? () => onSelect!(t.asset) : undefined;
-  const tip = `${t.asset} · ${t.verdict}${t.source === 'top-volume' ? ' · Top volume' : ''}\nSpot flow ${tf}: ${signM(t.spotCvdChange)}\nFutures flow ${tf}: ${signM(t.futCvdChange)}\nPrice ${tf}: ${pct(t.priceChange4h)}${t.insufficient ? '\ninsufficient data' : t.notEnoughHistory ? '\nNew listing — not enough history for a read; left out of the market verdict' : clickable ? '\nClick to open on-chain view' : ''}`;
   return (
     <div
       className="w-sp-tile"
-      title={tip}
       role={clickable ? 'button' : undefined}
-      tabIndex={clickable ? 0 : undefined}
+      tabIndex={0}
       onClick={go}
       onKeyDown={
         clickable
@@ -66,6 +99,7 @@ function Tile({ t, tf, onSelect }: { t: SpotPulseTile; tf: TF; onSelect?: (a: st
       </div>
       <div className="w-sp-verdict">{t.insufficient ? 'NO DATA' : t.notEnoughHistory ? 'NOT ENOUGH HISTORY' : t.verdict}</div>
       <div className="w-sp-price">{t.insufficient ? '—' : pct(t.priceChange4h)}</div>
+      <TileCard t={t} tf={tf} clickable={clickable} />
     </div>
   );
 }

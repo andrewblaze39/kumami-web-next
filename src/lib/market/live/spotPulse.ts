@@ -89,6 +89,7 @@ async function buildAsset(asset: string, row: 1 | 2, tf: SpotPulseTimeframe, sou
     : {
         ...common, verdict: res.verdict, color: res.color, glow: res.glow,
         spotToFutRatio: Number(res.spotToFutRatio.toFixed(2)),
+        dirs: { price: res.priceDir, spot: res.spotDir, fut: res.futDir },
         ...(res.notEnoughHistory ? { notEnoughHistory: true } : {}),
       };
   return { tile, res, spotDelta: s.delta, priceChangePct };

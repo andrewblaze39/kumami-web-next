@@ -7963,6 +7963,26 @@
   transform: translateY(-2px);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
 }
+.world-root .w-sp-tile { position: relative; }
+.world-root .w-sp-tile:hover, .world-root .w-sp-tile:focus-within { z-index: 20; }
+/* Hover / focus card under a Spot Pulse tile */
+.world-root .w-sp-pop {
+  position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  width: 250px; max-width: calc(100vw - 32px); padding: 10px 12px; border-radius: 10px;
+  background: var(--panel-2); color: var(--ink); border: 1px solid var(--border-2);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35); font-size: 12px; font-weight: 500; line-height: 1.45;
+  letter-spacing: 0; text-transform: none; text-align: left;
+  opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.12s ease;
+}
+.world-root .w-sp-tile:hover .w-sp-pop, .world-root .w-sp-tile:focus-within .w-sp-pop { opacity: 1; visibility: visible; }
+.world-root .w-sp-pop-h { font-weight: 800; margin-bottom: 6px; }
+.world-root .w-sp-pop-row { display: flex; justify-content: space-between; gap: 10px; }
+.world-root .w-sp-pop-row span { color: var(--muted); }
+.world-root .w-sp-pop-note { margin-top: 6px; color: var(--muted); font-size: 11px; }
+.world-root .w-sp-dir { font-style: normal; font-size: 10px; font-weight: 800; margin-left: 6px; padding: 1px 5px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); }
+.world-root .w-sp-dir-up { color: var(--bull); }
+.world-root .w-sp-dir-down { color: var(--bear); }
+.world-root .w-sp-dir-flat { color: var(--muted); }
 .world-root .w-sp-sym {
   font-weight: 800;
   font-size: 16px;

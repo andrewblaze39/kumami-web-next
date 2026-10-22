@@ -43,6 +43,13 @@ test.describe('Spot Pulse Plus v1.15 (qa1)', () => {
     await info.attach('verdicts', { body: [...seen].join('\n'), contentType: 'text/plain' });
     await expect(page.getByText(/Updated (just now|\d+ min ago)/).first()).toBeVisible({ timeout: 60_000 });
     await expect(page.getByText(/24h spot volume/).first()).toBeVisible();
+    // Hover card (22 Oct 2026): directions behind the verdict, on Plus and Pro.
+    const tile = page.locator('.w-sp-grid .w-sp-tile').first();
+    await tile.hover();
+    const pop = tile.locator('.w-sp-pop');
+    await expect(pop).toBeVisible();
+    await expect(pop).toContainText(/Price 4H/);
+    await expect(pop).toContainText(/UP|FLAT|DOWN|Not enough data/);
     await expectSaneText(page);
     await snap(page, info, 'v115-spotpulse-plus');
     g.assertClean();
@@ -67,6 +74,13 @@ test.describe('Spot Pulse Pro v1.15 (qa2)', () => {
       expect(['USDT', 'USDC', 'WBTC', 'WETH']).not.toContain(t.asset);
     }
     if (row2.some((t) => t.source === 'top-volume')) await expect(page.getByText('Top volume').first()).toBeVisible();
+    // Hover card (22 Oct 2026): directions behind the verdict, on Plus and Pro.
+    const tile = page.locator('.w-sp-grid .w-sp-tile').first();
+    await tile.hover();
+    const pop = tile.locator('.w-sp-pop');
+    await expect(pop).toBeVisible();
+    await expect(pop).toContainText(/Price 4H/);
+    await expect(pop).toContainText(/UP|FLAT|DOWN|Not enough data/);
     await expectSaneText(page);
     await snap(page, info, 'v115-spotpulse-pro');
     await info.attach('row2', { body: JSON.stringify(row2.map((t) => [t.asset, t.source, t.verdict])), contentType: 'application/json' });
