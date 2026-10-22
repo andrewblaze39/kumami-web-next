@@ -361,6 +361,10 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
                   <b className="w-bear">{formatUsd(flowBalance.bearishUsd)}</b>
                 </div>
               </div>
+              {/* No directional flow → say so; never a made-up 50/50 split (Andrew's hard rule, 22 Oct 2026). */}
+              {flowBalance.bullishUsd + flowBalance.bearishUsd === 0 ? (
+                <p className="w-ai-soon">No bullish or bearish flow in the last 24h.</p>
+              ) : (<>
               <div className="w-flow-balance-bar">
                 <div className="w-flow-balance-bar-bull" style={{ width: `${flowBalance.bullishPct}%` }} />
                 <div className="w-flow-balance-bar-bear" style={{ width: `${flowBalance.bearishPct}%` }} />
@@ -376,6 +380,7 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
                   {formatUsd(Math.abs(flowBalance.netUsd))} {flowBalance.verdict}
                 </span>
               </div>
+              </>)}
             </div>
           )}
 

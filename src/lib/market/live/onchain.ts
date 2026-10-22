@@ -185,11 +185,11 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
   // ---- longshort ---------------------------------------------------------
   // gls is null only when the fetch failed (a non-perp asset resolves to a real
   // `[]` above, by design — no long/short market exists for it either way).
-  // globalPctLong still falls back to 50 as a NEUTRAL input to the verdict
-  // engine only; the raw displayed value is omitted from `extra` whenever there
-  // is no real reading, so the UI shows "No data" rather than a fake 50% Long.
+  // No real reading → an "unavailable" panel, never a verdict computed from a
+  // stand-in 50% (Andrew's hard rule, 22 Oct 2026).
   try {
     const hasGls = gls !== null && gls.length > 0;
+    if (!hasGls) throw new Error('no long/short reading');
     const globalPctLongRaw = hasGls ? gls[gls.length - 1].global_account_long_percent : null;
     const globalPctLong = globalPctLongRaw ?? 50;
     const hasTls = tls.length > 0;
