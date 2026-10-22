@@ -6,7 +6,7 @@ description: >-
   built; REQUEST versions (Rachelle) are a copy with changed sections labelled
   "(To be developed)" and every change listed per product in the Release notes. Each
   version is its own Google Doc "Kumami Product Spec vX.Y"; the working copy is
-  docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx. Three modes:
+  docs/Rachelle Product Specs/Kumami_World_Product_Spec_v1.16.docx. Three modes:
   INTAKE (Rachelle shared a request version: download, list the To-be-developed items,
   put them on the FounderOS roadmap), UPDATE (after anything user- or admin-facing is
   built, fixed or removed: rewrite the section as built, drop its label, add a Release
@@ -22,12 +22,12 @@ The full process is `docs/DEVELOPMENT_WORKFLOW.md` (orchestrated by
 
 | Version kind | Who | What it says |
 |---|---|---|
-| **Build version** (v1.14, v1.20, …) | Andrew (this skill prepares it) | Exactly what the website does today. Items not built yet keep `(To be developed)` plus a short reason. |
+| **Build version** (v1.14, v1.16, …) | Andrew (this skill prepares it) | Exactly what the website does today. Items not built yet keep `(To be developed)` plus a short reason. |
 | **Request version** (v1.15, …) | Rachelle | The previous build version plus her changes: each changed section's heading ends with `(To be developed)`, and every change is one Release-notes line grouped by product ("Plus · Flow Radar: delay 15 → 30 min"). |
 
 Each version is its **own Google Doc** "Kumami Product Spec vX.Y" in the shared
 Drive folder, never edited after it is shared; the next one takes the next free
-number. Our working copy is `docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx`.
+number. Our working copy is `docs/Rachelle Product Specs/Kumami_World_Product_Spec_v1.16.docx`.
 Downloaded request versions live in `docs/Rachelle Product Specs/versions/`.
 
 Retired 18 Oct 2026: Rachelle's separate `Kumami Website (N).docx` docs and the
@@ -58,7 +58,7 @@ gap report (`rachelle-gap-analysis`). Don't refresh the gap report any more.
 2. Changes not from Rachelle (fixes, Andrew's own work) are written into their
    section the same way.
 3. Add a line to the **upcoming build version's** Release-notes entry (create the
-   entry `vX.Y (in progress)` if missing; X.Y = next free number):
+   entry `vX.Y (in progress)` if missing; X.Y = Rachelle's request version + 1):
    "Built from v1.15: Plus · Flow Radar delay is now 30 min", or "Also changed: …".
 4. No version bump per change; the version is set when the build version is published.
 5. Move the roadmap item to Testing / Done as the workflow says.
@@ -67,7 +67,7 @@ gap report (`rachelle-gap-analysis`). Don't refresh the gap report any more.
 
 1. Check every section still matches the code (see Editing mechanics, steps 1–2).
 2. Items not built keep `(To be developed)` and get a one-line reason.
-3. `d.set_version(...)` with the next free number; turn the `(in progress)` entry into
+3. `d.set_version(...)` with Rachelle's request version + 1 (rename the file to `Kumami_World_Product_Spec_vX.Y.docx` with `git mv`); turn the `(in progress)` entry into
    the final Release-notes entry: "Built from vX.Y", "Also changed", "Not built yet".
 4. Save, check (step 5 below), commit on `dev`, and give Andrew the .docx to publish as a
    new Google Doc "Kumami Product Spec vX.Y" (or upload it with the Google Drive
@@ -84,7 +84,7 @@ gap report (`rachelle-gap-analysis`). Don't refresh the gap report any more.
 
 ## Versioning
 
-- One version per **shared file**: a build version when Andrew publishes one, a request version when Rachelle shares one. The next file always takes the next free number (internal builds v1.15–v1.19 mean the next build version after Rachelle's v1.15 is v1.20).
+- One version per **shared file**: a build version when Andrew publishes one, a request version when Rachelle shares one. Numbering and naming (Andrew, 22 Oct 2026): the next build version is Rachelle's request version **+ 1** (her v1.15 → our v1.16), and the version number is always in the file name and the Google Doc name (`Kumami_World_Product_Spec_v1.16.docx` → "Kumami Product Spec v1.16"; rename the file with `git mv` when the version changes). Release notes per build version: **Part 1** a table — # · Rachelle asked · What we changed · How to verify · Notes — one row per ask, with screenshot evidence on a linked evidence page; **Part 2** other website changes. The doc also keeps a **Roadmap / To be developed** section. Before a build version goes out, Andrew reviews Rachelle's asks one at a time.
 - Between published versions, changes collect in the `vX.Y (in progress)` Release-notes entry.
 - Release-note entries are history — never rewrite or delete old ones. Corrections go in the new entry ("Corrections to v1.3 text: …").
 - Every entry ends with a **"Not re-audited in this version"** bullet when you didn't check the whole doc. Say which sections you didn't verify.
@@ -94,9 +94,9 @@ gap report (`rachelle-gap-analysis`). Don't refresh the gap report any more.
 ### 1 · Work out what changed
 
 ```bash
-python -I .claude/skills/product-spec-doc-update/scripts/spec_doc.py version "docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx"
+python -I .claude/skills/product-spec-doc-update/scripts/spec_doc.py version "docs/Rachelle Product Specs/Kumami_World_Product_Spec_v1.16.docx"
 # the version line names the commit the doc reflects:
-python -I -c "import sys;sys.path.insert(0,'.claude/skills/product-spec-doc-update/scripts');from spec_doc import SpecDoc;print(SpecDoc(sys.argv[1]).text(2))" "docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx"
+python -I -c "import sys;sys.path.insert(0,'.claude/skills/product-spec-doc-update/scripts');from spec_doc import SpecDoc;print(SpecDoc(sys.argv[1]).text(2))" "docs/Rachelle Product Specs/Kumami_World_Product_Spec_v1.16.docx"
 git log --oneline <that-sha>..HEAD          # everything since the doc was last synced
 git diff --stat <that-sha>..HEAD -- src/
 ```
@@ -110,7 +110,7 @@ For every section you touch, open the actual component, route or rule and confir
 ### 3 · Locate the blocks to edit
 
 ```bash
-python -I .claude/skills/product-spec-doc-update/scripts/spec_doc.py outline "docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx" [start] [end]
+python -I .claude/skills/product-spec-doc-update/scripts/spec_doc.py outline "docs/Rachelle Product Specs/Kumami_World_Product_Spec_v1.16.docx" [start] [end]
 ```
 
 This prints `index|style|text` per top-level block. Tables are one block (`TABLE`) and images show as `[IMG]`. Python's `-I` flag ignores `PYTHONIOENCODING`, so the CLI reconfigures stdout to UTF-8 itself. In your own snippets, call `sys.stdout.reconfigure(encoding="utf-8")`.
@@ -122,7 +122,7 @@ Use the helpers in `scripts/spec_doc.py`. They're stdlib only (no lxml/pandoc/Wo
 ```python
 import sys; sys.path.insert(0, r".claude/skills/product-spec-doc-update/scripts")
 from spec_doc import SpecDoc, P, H, BULLET, TABLE
-DOC = r"docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx"
+DOC = r"docs/Rachelle Product Specs/Kumami_World_Product_Spec_v1.16.docx"
 d = SpecDoc(DOC)
 
 d.set_version("1.4", "2026-10-20", "<short sha of the code commit>")

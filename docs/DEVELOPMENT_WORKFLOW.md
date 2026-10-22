@@ -11,7 +11,7 @@ There is **one product spec**: the shared Google Doc "Kumami Product Spec". Ever
 
 ```
  BUILD version (Andrew)          REQUEST version (Rachelle)          BUILD version (Andrew)
- v1.14 = the website as built ─► v1.15 = v1.14 + her changes,    ─► v1.20 = the website as built,
+ v1.14 = the website as built ─► v1.15 = v1.14 + her changes,    ─► v1.16 = the website as built,
  today. Rachelle tests the        each changed section marked         incl. her v1.15 changes that
  site against it.                 "(To be developed)", every          were built; "(To be developed)"
                                   change listed in Release notes      removed for those. Then repeat.
@@ -20,10 +20,10 @@ There is **one product spec**: the shared Google Doc "Kumami Product Spec". Ever
 1. **Andrew shares a build version** (e.g. v1.14). It describes exactly what the website does today.
 2. **Rachelle tests the website against it.** Where she wants something changed, she copies it to the next number (v1.15), edits the product sections, marks each changed section **`(To be developed)`**, and lists every change **per product** in the Release notes. Example: _"Plus · Flow Radar: delay 15 min → 30 min (To be developed)"_.
 3. **Andrew develops the changes**, with Claude Code running the steps in section 3: clarify, plan, build, checks, QA.
-4. **Andrew shares the next build version** (e.g. v1.20). It is the website as built: Rachelle's changes that shipped lose their `(To be developed)` label, and anything not built yet keeps it, with a note why. Its Release notes say what was built from v1.15 and what else changed.
+4. **Andrew shares the next build version** (e.g. v1.16). It is the website as built: Rachelle's changes that shipped lose their `(To be developed)` label, and anything not built yet keeps it, with a note why. Its Release notes say what was built from v1.15 and what else changed.
 5. Back to step 2.
 
-The next version always takes the **next free number**, so build versions can jump when there were internal builds in between. For example, v1.15 to v1.19 were internal builds, so the next build version is **v1.20**.
+Numbering and naming (Andrew, 22 Oct 2026): the next build version is Rachelle's request version **+ 1** (her v1.15 → our v1.16), and the version number is always in the file name and the Google Doc name (`Kumami_World_Product_Spec_v1.16.docx` → "Kumami Product Spec v1.16"; rename the file with `git mv` when the version changes). Release notes per build version: **Part 1** a table — # · Rachelle asked · What we changed · How to verify · Notes — one row per ask, with screenshot evidence on a linked evidence page; **Part 2** other website changes. The doc also keeps a **Roadmap / To be developed** section. Before a build version goes out, Andrew reviews Rachelle's asks one at a time.
 
 **Only Andrew releases `dev` → `main`** (production).
 
@@ -34,7 +34,7 @@ The next version always takes the **next free number**, so build versions can ju
 | Document | What it is | Who writes it |
 |---|---|---|
 | Google Doc **"Kumami Product Spec vX.Y"**, one file per version | The product spec. Build versions = the website as built. Request versions = build version + Rachelle's `(To be developed)` changes. | Build versions: Andrew (Claude prepares them). Request versions: Rachelle. |
-| `docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx` | Claude's working copy of the next build version. Each build version is published from it as a new Google Doc. | Claude, via skill `product-spec-doc-update` |
+| `docs/Rachelle Product Specs/Kumami_World_Product_Spec_v1.16.docx` | Claude's working copy of the next build version. Each build version is published from it as a new Google Doc. | Claude, via skill `product-spec-doc-update` |
 | `docs/Rachelle Product Specs/versions/` | A downloaded copy of each request version Rachelle shares (so the changes can be read and compared in the repo) | Claude |
 | `docs/plans/YYYY-MM-DD-<feature>.md` | The build plan for one change | Claude, via skill `product-spec-to-feature` |
 | `testing/<area>/<feature>/how-to-test.md` | Click-by-click test steps for Andrew | Claude, via skill `kumami-qa` |
@@ -82,7 +82,7 @@ The next version always takes the **next free number**, so build versions can ju
 - Then `vault-sync` (second brain) and push `dev`.
 
 ### Step 9 — Share the next build version
-- When the batch from a request version is done (or whenever Andrew decides), the working copy becomes the next build version: next free number, Release notes complete. Items not built keep `(To be developed)`, each with a short reason.
+- When the batch from a request version is done (or whenever Andrew decides), the working copy becomes the next build version: Rachelle's number + 1, Release notes complete (Part 1 table + Part 2), file renamed to the new version. Items not built keep `(To be developed)`, each with a short reason.
 - Publish it as a new Google Doc **"Kumami Product Spec vX.Y"** in the shared folder (Claude prepares it; Andrew shares it with Rachelle and the CEO).
 
 ### Step 10 — Release to production (**Andrew only**)

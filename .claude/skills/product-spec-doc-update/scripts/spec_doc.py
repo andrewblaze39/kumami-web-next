@@ -1,6 +1,6 @@
 """
 spec_doc.py — tiny, dependency-free editor for the Kumami product spec .docx
-(docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx).
+(docs/Rachelle Product Specs/Kumami_World_Product_Spec_v1.16.docx).
 
 Pure stdlib (zipfile + re): no lxml/pandoc/LibreOffice needed, so it runs on
 Andrew's Windows box as-is. It edits word/document.xml at the level of
@@ -14,7 +14,7 @@ Typical use (see SKILL.md for the full workflow):
     import sys; sys.path.insert(0, r".claude/skills/product-spec-doc-update/scripts")
     from spec_doc import SpecDoc, P, H, BULLET, TABLE
 
-    d = SpecDoc(r"docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx")
+    d = SpecDoc(r"docs/Rachelle Product Specs/Kumami_World_Product_Spec_v1.16.docx")
     i = d.find("6. Watchlist", style="Heading2")
     d.replace_text(d.find("Asset roster:", start=i), "Asset roster: ...")
     d.set_version("1.4", "2026-10-20", "abc1234")

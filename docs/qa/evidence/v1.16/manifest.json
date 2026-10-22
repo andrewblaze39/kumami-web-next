@@ -87,12 +87,12 @@
   {
     "item": 13,
     "file": "item-13-flow-radar-plus.jpg",
-    "caption": "Flow Radar Plus: 26 events, newest is 27 min old (≥ 15), only HIGH/MED, 5 core coins + Dry Powder."
+    "caption": "Flow Radar Plus: 32 events, newest is 32 min old (≥ 15), only HIGH/MED, 5 core coins + Dry Powder."
   },
   {
     "item": 13,
     "file": "item-13-whale-filter.jpg",
-    "caption": "Whale Transfer filter: 9 rows, directions Outflow/Inflow."
+    "caption": "Whale Transfer filter: 10 rows, directions Inflow/Outflow."
   },
   {
     "item": 14,
@@ -107,32 +107,32 @@
   {
     "item": 15,
     "file": "item-15-smart-money-filter.jpg",
-    "caption": "Smart Money filter: 17 rows (Position Closed/Short Opened/Long Opened)."
+    "caption": "Smart Money filter: 22 rows (Long Opened/Position Closed/Short Opened)."
   },
   {
     "item": 16,
     "file": "item-16-verdict-1h.jpg",
-    "caption": "1H verdict band: \"Quiet Flow\" — 3 events tracked."
+    "caption": "1H verdict band: \"Quiet Flow\" — 4 events tracked."
   },
   {
     "item": 16,
     "file": "item-16-verdict-4h.jpg",
-    "caption": "4H verdict band: \"Mixed Flow\" — 7 bullish · 3 bearish events."
+    "caption": "4H verdict band: \"Mixed Flow\" — 10 bullish · 4 bearish events."
   },
   {
     "item": 16,
     "file": "item-16-verdict-24h.jpg",
-    "caption": "24H verdict band: \"Mixed Flow\" — 12 bullish · 5 bearish events."
+    "caption": "24H verdict band: \"Mixed Flow\" — 15 bullish · 6 bearish events."
   },
   {
     "item": 17,
     "file": "item-17-outline.jpg",
-    "caption": "Outlined row — \"Watchlist confirming — confirmed by another Kumami panel\". 7 outlined events in the feed."
+    "caption": "Outlined row — \"Watchlist confirming — confirmed by another Kumami panel\". 9 outlined events in the feed."
   },
   {
     "item": 17,
     "file": "item-17-ai-line.jpg",
-    "caption": "AI line under the band (hover title: \"Written by AI from the verdict — the verdict itself comes from the rule engine\")."
+    "caption": "Under the band: \"AI read · coming soon\" — AI off until Gemini billing, no template sentence."
   },
   {
     "item": 9,
@@ -148,5 +148,120 @@
     "item": 16,
     "file": "item-16-pro-verdict-7d.jpg",
     "caption": "Pro 7D verdict band (thresholds ×10): \"Mixed Flow\"."
+  },
+  {
+    "item": 18,
+    "file": "item-18-news-tone.jpg",
+    "caption": "News Tone: \"AI news tone · coming soon · not counted\". Composite 62 (Greed) from Price Momentum, Long/Short Sentiment, Volatility · 7D vs 30D, Market Composition."
+  },
+  {
+    "item": 18,
+    "file": "item-18-how-it-works.jpg",
+    "caption": "How this works: missing signals are left out, nothing filled in."
+  },
+  {
+    "item": 18,
+    "file": "item-18-console-ai-soon.jpg",
+    "caption": "Console: \"AI read · coming soon\" under the regime; \"Confidence\" (not \"AI confidence\")."
+  },
+  {
+    "item": 20,
+    "file": "item-20-watchlist-plus.jpg",
+    "caption": "Watchlist Plus: BTC [no tag] · ETH [Crowded Long] · SOL [Crowded Long] · BNB [Crowded Long] · HYPE [no tag]."
+  },
+  {
+    "item": 19,
+    "file": "item-19-admin-form-guide.jpg",
+    "caption": "Admin /admin/pro-calendar: category list incl. Listing and Token sale / TGE; importance guide in the form."
+  },
+  {
+    "item": 19,
+    "file": "item-19-calendar-plus.jpg",
+    "caption": "Plus: a test day with 6 team events (1 HIGH, 4 MED, 1 LOW) — LOW hidden by default, the cell shows 3 + \"+N more\". API: 6 test events, 0 airdrop dates (Plus sees none)."
+  },
+  {
+    "item": 19,
+    "file": "item-19-calendar-pro.jpg",
+    "caption": "Pro: a test day with 6 team events (1 HIGH, 4 MED, 1 LOW) — LOW hidden by default, the cell shows 3 + \"+N more\". API: 7 test events, 1 airdrop dates (Pro sees the test airdrop)."
+  },
+  {
+    "item": 21,
+    "file": "item-21-digest.jpg",
+    "caption": "Daily Digest: Smart Money, Also Worth Watching and Fear & Greed sections; old disclaimer present: no."
+  },
+  {
+    "item": 19,
+    "file": "item-19-admin-token-sale-refused.jpg",
+    "caption": "Admin: Token sale / TGE without venue, raise and link → refused: \"A token sale needs: ticker, venue, raise or FDV, link.\". Categories include Listing and Token sale / TGE; the importance guide is in the form."
+  },
+  {
+    "item": 19,
+    "file": "item-19-calendar-plus-low-on.jpg",
+    "caption": "Plus with LOW switched on: the LOW test event is now counted in the day cell."
+  },
+  {
+    "item": 22,
+    "file": "item-22-spot-pulse-pro.jpg",
+    "caption": "Spot Pulse Pro: 10 tiles — row 1 BTC, ETH, SOL, BNB, HYPE; row 2 UNI (Also Worth Watching), ZEC (Also Worth Watching), XRP (Top volume), NEAR (Top volume), ENA (Top volume); market verdict Distribution Wave (same share rules as Plus)."
+  },
+  {
+    "item": 23,
+    "file": "item-23-flow-radar-pro-coins.jpg",
+    "caption": "Flow Radar Pro: real-time (delayed=false), 91 events; non-core coins shown, all past the ≥ $1M spot-volume filter: NEAR, DOGE, ADA, TIA, DOT, PEPE, AERO, TRUMP, TAO, ZRO, USDT, USDC, ZEC, XMR."
+  },
+  {
+    "item": 24,
+    "file": "item-24-flow-balance.jpg",
+    "caption": "Flow Balance (Pro, last 24h): \"Flow balance Last 24H 🟢 Bullish flow $350M 🔴 Bearish flow $493M 41% 59% NET −$144M Distribution\"."
+  },
+  {
+    "item": 24,
+    "file": "item-24-netflow-flip-chip.jpg",
+    "caption": "Pro filter chips include Netflow Flip; 11 netflow-flip events right now; no \"Delayed\" chip on Pro."
+  },
+  {
+    "item": 25,
+    "file": "item-25-pin-usdc.jpg",
+    "caption": "Pin USDC: \"Stablecoins and wrapped tokens can't be pinned.\"."
+  },
+  {
+    "item": 25,
+    "file": "item-25-pin-btc.jpg",
+    "caption": "Pin BTC: \"BTC is a core asset — it's always in Section A.\"."
+  },
+  {
+    "item": 25,
+    "file": "item-25-pin-zzzq.jpg",
+    "caption": "Pin ZZZQ: \"Not enough liquidity to track reliably.\"."
+  },
+  {
+    "item": 25,
+    "file": "item-25-pin-pepe.jpg",
+    "caption": "Pin PEPE: \"1/15 ASSETS TRACKED\"."
+  },
+  {
+    "item": 26,
+    "file": "item-26-also-worth-watching.jpg",
+    "caption": "Also Worth Watching (mode: consistent): UNI — Accumulating 2 of 3 days · net flow +$8.4M · spot buyers +$2.4M (3d) | ZEC — Accumulating 2 of 3 days · net flow +$9.1M · spot buyers +$7.4M (3d)."
+  },
+  {
+    "item": 27,
+    "file": "item-27-live-prices.jpg",
+    "caption": "Live prices: Binance price stream connected: yes; a price on the table changed within 30 s: yes."
+  },
+  {
+    "item": 21,
+    "file": "item-21-alerts-hype-pol.jpg",
+    "caption": "Price alerts for HYPE, POL (MATIC's new name) and BTC with live Binance prices — HYPE $78.56, POL $0.0915, BTC $81,984 within 9 s (\"connecting…\" shows until the first tick)."
+  },
+  {
+    "item": 29,
+    "file": null,
+    "caption": "Collector run on kumami-dev, 22 Oct 2026: POST /api/v1/cron/collect with the secret header → {events: 93, created: 92, updated: 1, hourly: 39}; flow_meta/collector written; 18 Plus-eligible events stored, all 15+ min old and served to Plus at once. Without the header → 401; without CRON_SECRET set → 503."
+  },
+  {
+    "item": 12,
+    "file": null,
+    "caption": "Empty-state line (\"No divergence signals in this window right now.\") not captured: at screenshot time every window had at least one card. Covered by the Spot Pulse test (footer count = cards)."
   }
 ]

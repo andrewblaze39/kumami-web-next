@@ -20,8 +20,8 @@ INTAKE mode), plus Andrew's answers from the clarify step. Rachelle's old
 ## 1 · Read the planned section
 
 ```bash
-python -I .claude/skills/product-spec-doc-update/scripts/spec_doc.py planned "docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx"
-python -I .claude/skills/product-spec-doc-update/scripts/spec_doc.py outline "docs/Rachelle Product Specs/Kumami_World_Product_Spec_andrew.docx" <start> <end>
+python -I .claude/skills/product-spec-doc-update/scripts/spec_doc.py planned "docs/Rachelle Product Specs/Kumami_World_Product_Spec_v1.16.docx"
+python -I .claude/skills/product-spec-doc-update/scripts/spec_doc.py outline "docs/Rachelle Product Specs/Kumami_World_Product_Spec_v1.16.docx" <start> <end>
 ```
 
 Read the whole planned section, including its tables, which hold the thresholds and verdict matrices (`SpecDoc.table_rows(i)`). The status line names the Rachelle source (e.g. `Kumami Website (6) §7`). Open that part of her doc too, for detail the translation may have summarised. Paragraphs and tables in order:

@@ -23,7 +23,7 @@ process here, change the doc and the PDF too.
 
 Build version (Andrew, website as built) → Rachelle tests the site → request version
 (her changes marked `(To be developed)`, every change in Release notes per product) →
-we build → next build version (next free number) → repeat. One Google Doc file per
+we build → next build version (Rachelle's number + 1, version in the file name) → repeat. One Google Doc file per
 version, never edited after sharing. Rachelle's old `Kumami Website (N).docx` docs and
 the gap report are retired.
 

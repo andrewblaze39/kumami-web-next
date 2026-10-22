@@ -20,7 +20,7 @@ workflow changes. It does not apply to pure questions ("what's the status?",
 ## Steps
 
 1. **Research first (quickly), then ask.** Read the relevant code, Andrew's spec
-   (`Kumami_World_Product_Spec_andrew.docx`) and Rachelle's spec, so the
+   (`Kumami_World_Product_Spec_v1.16.docx`) and Rachelle's spec, so the
    questions are specific ("Watchlist Pro's 'Also Worth Watching' uses 24h
    whale flow today; Rachelle's note says 7-day consistency — which one?"),
    not generic ("what do you want?"). Mention any facts you found that change
