@@ -57,7 +57,7 @@ function dailyReturns(closes: number[]): number[] {
  * average, which is instead re-weighted over whichever assets did succeed.
  */
 async function assetMomentumAndVol(asset: string): Promise<{ momentumPct: number; volRatio: number } | null> {
-  const rows = await priceHistory(asset, '1d').catch(() => []);
+  const rows = await priceHistory(pairSymbol(asset), '1d').catch(() => []); // pair name (BTCUSDT), not the coin
   const closes = rows.map((r) => Number(r.close)).filter((n) => Number.isFinite(n) && n > 0);
   if (closes.length < 8) return null;
 
