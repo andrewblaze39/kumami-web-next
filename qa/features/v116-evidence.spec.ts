@@ -291,7 +291,7 @@ test.describe('v1.16 evidence — items 19, 21–27', () => {
     await dismissOverlays(page);
     await page.locator('.dig-section').filter({ hasText: 'Loading…' }).first().waitFor({ state: 'detached', timeout: 120_000 }).catch(() => {});
     await shot(21, 'digest', page, `Daily Digest: Smart Money, Also Worth Watching and Fear & Greed sections; old disclaimer present: ${(await page.getByText(/once the market-data/).count()) > 0 ? 'YES' : 'no'}.`);
-    await openPage(page, '/world/pro?tab=following');
+    await openPage(page, '/world/pro?tab=followhub');
     await dismissOverlays(page);
     const builder = page.locator('[data-tour="fa-builder"]');
     for (const sym of ['HYPE', 'POL']) {
@@ -353,17 +353,17 @@ test.describe('v1.16 evidence — items 19, 21–27', () => {
     await pin('USDC', 'pin-usdc', "Stablecoins and wrapped tokens can't be pinned.");
     await pin('BTC', 'pin-btc', /BTC is a core asset/);
     await pin('ZZZQ', 'pin-zzzq', 'Not enough liquidity to track reliably.');
-    await pin('PEPE', 'pin-pepe', /\d+\/15 assets tracked/);
+    await pin('PEPE', 'pin-pepe', /[1-9]\d*\/15 assets tracked/);
     const prow = page.locator('.w-wl-trow').filter({ hasText: 'PEPE' });
     await prow.getByRole('button', { name: /^(Remove|Remove PEPE)$/ }).filter({ visible: true }).first().click().catch(() => {});
     const { body } = await apiAsUser<{ sectionC: { asset: string; reasons: string[] }[]; sectionCMode?: string }>(page, '/api/market/watchlist?view=pro');
     const c = page.locator('.w-wl-table').filter({ hasText: 'Also Worth Watching' });
     await shot(26, 'also-worth-watching', c, `Also Worth Watching (mode: ${body.sectionCMode}): ${body.sectionC.map((x) => `${x.asset} — ${x.reasons.join(' · ')}`).join(' | ') || 'no coin qualifies right now'}.`);
-    const first = page.locator('[data-tour="wl-table"] .w-wl-trow').first();
-    const p1 = await first.innerText();
-    await page.waitForTimeout(8000);
-    const p2 = await first.innerText();
-    await shot(27, 'live-prices', page.locator('[data-tour="wl-table"]'), `Live prices: Binance price stream connected: ${sockets.some((u) => u.includes('stream.binance.com')) ? 'yes' : 'no'}; first row changed within 8 s: ${p1 !== p2 ? 'yes' : 'no (quiet tick)'}.`);
+    const table = page.locator('[data-tour="wl-table"]');
+    const p1 = await table.innerText();
+    let p2 = p1;
+    for (let i = 0; i < 10 && p2 === p1; i++) { await page.waitForTimeout(3000); p2 = await table.innerText(); }
+    await shot(27, 'live-prices', page.locator('[data-tour="wl-table"]'), `Live prices: Binance price stream connected: ${sockets.some((u) => u.includes('stream.binance.com')) ? 'yes' : 'no'}; a price on the table changed within 30 s: ${p1 !== p2 ? 'yes' : 'no (quiet tick)'}.`);
     await ctx.close();
   });
 });

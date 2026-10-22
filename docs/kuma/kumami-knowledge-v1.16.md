@@ -1,7 +1,7 @@
-# Kumami — knowledge for Kuma AI (v1.20, 21 Oct 2026)
+# Kumami — knowledge for Kuma AI (v1.16, 22 Oct 2026)
 
 > Source text for Kuma AI's company knowledge (Pro §17 "knowledge refresh"),
-> written from product spec v1.20. Customer-facing: no data-provider names, no
+> written from product spec v1.16. Customer-facing: no data-provider names, no
 > internal section numbers. **Draft for Rachelle and Andrew to review.** After
 > approval, replace the old knowledge chunks in the n8n "Kuma AI Agent" workflow
 > (delete the old chunks first, don't add duplicates) and check the answers
@@ -39,8 +39,8 @@ and Pro modes change how much detail is shown.
 
 - **Console:** the 10-second daily briefing. A Global Regime (from Strongly
   Bullish to Strongly Bearish, with a confidence score) built from Fear & Greed,
-  7-day ETF flows, funding and open interest vs price, plus a short AI-written
-  read of it. Four macro tiles (BTC ETF flow, BTC dominance, on-chain long/short
+  7-day ETF flows, funding and open interest vs price (an AI-written read of it
+  is coming soon). Four macro tiles (BTC ETF flow, BTC dominance, on-chain long/short
   bias, 24h liquidations), regime chips for BTC, ETH, SOL, BNB and HYPE, and
   previews of Spot Pulse, Flow Radar, the Calendar and the Watchlist. A bar at
   the top warns when a high-impact event the Kumami team flagged starts within 6
@@ -65,8 +65,8 @@ and Pro modes change how much detail is shown.
     Mixed Flow, Quiet Flow, or a liquidation cascade). Coloured outlines show
     when another Kumami tool agrees.
 - **Fear & Greed:** Kumami's own 0–100 index, built from five factors: price
-  momentum, long/short sentiment, volatility, stablecoin supply and news tone.
-  The news tone is scored by AI.
+  momentum, long/short sentiment, volatility and stablecoin supply. A fifth
+  factor, AI-scored news tone, is coming soon; signals without data are left out.
 - **Calendar:** one calendar for everyone, curated by the Kumami team:
   - macro releases (CPI, FOMC…), token unlocks, exchange listings and token
     sales / TGEs;
