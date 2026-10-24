@@ -28,19 +28,25 @@
 - Treat missing hourly blocks as incomplete history rather than zero flow.
 - Verify with unit tests plus a bounded dev soak before any production activation.
 
-### Phase 2 — shared browser live-price feed
+### Phase 2 — shared CoinGlass capacity and cache policy
+- Retain the existing per-process five-request guard, but add a cross-instance admission lease for the 70/minute CoinGlass budget before treating it as a global limit.
+- Reserve capacity by traffic class: collector first, interactive Plus second, Pro/detail reads last. Under pressure, return an explicit degraded/freshness state rather than holding user requests until server timeout.
+- Instrument cache age, hit/miss, queue wait, starts, completions, retries, and 429s. The cache must carry the upstream/source timestamp through to the API response.
+- Keep the existing Spot Pulse response targets initially (Plus 60 s, Pro 15 s), but disclose the slower underlying input freshness until deliberate budget-tested changes are approved.
+
+### Phase 3 — shared browser live-price feed
 - Replace per-component sockets with one shared per-tab Binance WebSocket manager.
 - Deduplicate symbols, reconnect safely, batch React updates (maximum once per second), record per-symbol `updatedAt`, and expose connection state.
 - Use Binance for only the live spot price and its matching 24h move. Keep CoinGlass for market rules, CVD, flows, and verdicts.
 - On disconnect/block, retain the last verified server payload and show its actual age instead of pretending it is live.
 
-### Phase 3 — approved price placements
+### Phase 4 — approved price placements
 1. Console regime-chip prices.
 2. Watchlist Plus prices.
 3. Spot Pulse: a distinct live spot-price line; its 4H/24H/7D rule-derived percentage and verdict remain server data.
 4. On-Chain selected-asset header — a new UI element, requiring a focused design check before it ships.
 
-### Phase 4 — freshness/cadence contract
+### Phase 5 — freshness/cadence contract
 - Standardize visible update labels using true payload/source timestamps:
   - daily: ETF flows;
   - eight-hour: funding where applicable;
@@ -48,7 +54,7 @@
   - `Updated n min ago`: server-derived payloads such as Spot Pulse.
 - Correct the Watchlist Plus “updated every minute” copy and Spot Pulse’s stale threshold behavior.
 
-### Phase 5 — threshold calibration
+### Phase 6 — threshold calibration
 - First collect 7 days of observed SOL/BNB/HYPE liquidation and smart-money distributions.
 - Keep raw low-severity events available for analysis.
 - Choose one explicit policy before changing UI behavior:
