@@ -1,6 +1,7 @@
 /**
- * Background collector — runs once per call of POST /api/v1/cron/collect, which
- * Cloud Scheduler hits every 60 s (Rachelle v1.15 Platform). Folds the live Flow
+ * Background collector — one server-side run per call of POST /api/v1/cron/collect.
+ * A scheduler may invoke it after a separately approved operational rollout; until
+ * then, the page-triggered fallback is not continuous. Folds the live Flow
  * Radar events into flow_events + flow_hourly (rules/collector.ts) and deletes
  * documents older than 7 days. Also records the daily tally (flow_daily) so the
  * existing 7-day / 3-day history no longer depends on someone opening a page.
@@ -81,67 +82,77 @@ export async function runCollector(
       60,
       () => getProvider().flowRadar("pro"),
     );
-    await recordFlowDay(events, now);
-
     const refs = events.map((e) =>
       db.collection("flow_events").doc(eventKey(e.id)),
     );
-    const snaps = refs.length ? await db.getAll(...refs) : [];
     const expireAt = (ts: string) =>
       Timestamp.fromMillis(Date.parse(ts) + RETENTION_MS);
 
-    let created = 0,
-      updated = 0;
-    const adds: { e: FlowEvent; add: number }[] = [];
-    const batch = db.batch();
-    events.forEach((e, i) => {
-      const prev = snaps[i]?.exists
-        ? (snaps[i].data() as StoredEvent & { plusAt?: number })
-        : undefined;
-      const f = foldEvent(prev, e);
-      const plusAt = plusVisibleAt(prev, e, now);
-      if (
-        prev &&
-        prev.amountUsd === f.amountUsd &&
-        prev.direction === e.direction &&
-        prev.plusAt === plusAt
-      )
-        return; // nothing new
-      if (prev) updated++;
-      else created++;
-      batch.set(
-        refs[i],
-        {
-          ...e,
-          amountUsd: f.amountUsd,
-          counted: f.counted,
-          lastSeen: Timestamp.fromMillis(now),
-          ...(prev ? {} : { firstSeen: Timestamp.fromMillis(now) }),
-          ...(plusAt !== undefined ? { plusAt } : {}),
-          expireAt: expireAt(e.ts),
-        },
-        { merge: true },
-      );
-      adds.push({ e, add: f.addToHourly });
-    });
+    // Event and hourly writes share the same transaction that re-checks ownership.
+    // If this run's lease expired and another run acquired it, Firestore retries the
+    // transaction and this run writes neither events nor hourly increments.
+    const write = await db.runTransaction(async (tx) => {
+      const meta = (await tx.get(metaRef)).data() as
+        CollectorLeaseMeta | undefined;
+      if (!ownsCollectorLease(meta, runId)) return null;
+      const snaps = refs.length
+        ? await Promise.all(refs.map((ref) => tx.get(ref)))
+        : [];
 
-    const deltas = hourlyDeltas(adds);
-    for (const d of deltas) {
-      batch.set(
-        db.collection("flow_hourly").doc(eventKey(d.key)),
-        {
-          hour: d.hour,
-          asset: d.asset,
-          bullishUsd: FieldValue.increment(d.bullishUsd),
-          bearishUsd: FieldValue.increment(d.bearishUsd),
-          expireAt: Timestamp.fromMillis(
-            Date.parse(`${d.hour}:00:00Z`) + RETENTION_MS,
-          ),
-        },
-        { merge: true },
-      );
-    }
-    if (created + updated + deltas.length > 0) await batch.commit();
+      let created = 0;
+      let updated = 0;
+      const adds: { e: FlowEvent; add: number }[] = [];
+      events.forEach((e, i) => {
+        const prev = snaps[i]?.exists
+          ? (snaps[i].data() as StoredEvent & { plusAt?: number })
+          : undefined;
+        const f = foldEvent(prev, e);
+        const plusAt = plusVisibleAt(prev, e, now);
+        if (
+          prev &&
+          prev.amountUsd === f.amountUsd &&
+          prev.direction === e.direction &&
+          prev.plusAt === plusAt
+        )
+          return;
+        if (prev) updated++;
+        else created++;
+        tx.set(
+          refs[i],
+          {
+            ...e,
+            amountUsd: f.amountUsd,
+            counted: f.counted,
+            lastSeen: Timestamp.fromMillis(now),
+            ...(prev ? {} : { firstSeen: Timestamp.fromMillis(now) }),
+            ...(plusAt !== undefined ? { plusAt } : {}),
+            expireAt: expireAt(e.ts),
+          },
+          { merge: true },
+        );
+        adds.push({ e, add: f.addToHourly });
+      });
+
+      const deltas = hourlyDeltas(adds);
+      for (const d of deltas) {
+        tx.set(
+          db.collection("flow_hourly").doc(eventKey(d.key)),
+          {
+            hour: d.hour,
+            asset: d.asset,
+            bullishUsd: FieldValue.increment(d.bullishUsd),
+            bearishUsd: FieldValue.increment(d.bearishUsd),
+            expireAt: Timestamp.fromMillis(
+              Date.parse(`${d.hour}:00:00Z`) + RETENTION_MS,
+            ),
+          },
+          { merge: true },
+        );
+      }
+      return { created, updated, hourly: deltas.length };
+    });
+    if (!write) return null;
+    await recordFlowDay(events, now);
 
     // 7-day retention (also set a Firestore TTL policy on `expireAt` — see docs/DATABASE.md).
     let deleted = 0;
@@ -160,9 +171,9 @@ export async function runCollector(
 
     const result = {
       events: events.length,
-      created,
-      updated,
-      hourly: deltas.length,
+      created: write.created,
+      updated: write.updated,
+      hourly: write.hourly,
       deleted,
       ms: Date.now() - t0,
     };

@@ -6,9 +6,9 @@
  * the last 24h of events whose `plusAt` is at least 15 minutes old, so the feed
  * keeps its history and is never empty after a quiet spell or a deploy.
  *
- * Who fills flow_events: the collector (Cloud Scheduler, every 60 s) and, as a
- * backup until it is switched on, the Console and Flow Radar pages — at most one
- * run per minute across all servers (runCollector skips if any run was that recent).
+ * Who fills flow_events: the collector when a separately approved scheduler is
+ * operating and, until then, the Console and Flow Radar pages. Page-triggered runs
+ * are opportunistic rather than continuous.
  */
 import "server-only";
 

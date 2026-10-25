@@ -50,10 +50,14 @@ export function lastSuccessfulCollection(
     | {
         lastSuccessAt?: unknown;
         lastRun?: unknown;
+        lastAttemptAt?: unknown;
       }
     | undefined,
 ): number | null {
   if (typeof meta?.lastSuccessAt === "number") return meta.lastSuccessAt;
+  // `lastRun` predates explicit success telemetry. Once a new-style attempt exists,
+  // only `lastSuccessAt` is trustworthy: the attempt may have failed.
+  if (typeof meta?.lastAttemptAt === "number") return null;
   return typeof meta?.lastRun === "number" ? meta.lastRun : null;
 }
 

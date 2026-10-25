@@ -80,6 +80,12 @@ describe("delayed feed freshness", () => {
     expect(lastSuccessfulCollection({ lastRun: now - MIN })).toBe(now - MIN);
     expect(
       lastSuccessfulCollection({
+        lastRun: now - MIN,
+        lastAttemptAt: now - MIN,
+      }),
+    ).toBeNull();
+    expect(
+      lastSuccessfulCollection({
         lastSuccessAt: now - 2 * MIN,
         lastRun: now - MIN,
       }),
