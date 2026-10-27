@@ -1,0 +1,17 @@
+{
+  "smoke": [
+    { "q": "What is the price of BTC right now?", "expect": ["\\$", "BTC|Bitcoin"] }
+  ],
+  "knowledge": [
+    { "q": "How much is Kumami Pro?", "expect": ["19\\.99", "199\\.99"] },
+    { "q": "Is Flow Radar real-time?", "expect": ["15 min", "Pro"] },
+    { "q": "What is Dry Powder on Kumami?", "expect": ["stablecoin"] },
+    { "q": "Which coins does Kumami Plus cover?", "expect": ["BTC|Bitcoin", "ETH|Ethereum", "SOL|Solana", "BNB", "HYPE|Hyperliquid"] },
+    { "q": "Can I pin USDT in my Kumami watchlist?", "expect": ["\\bno\\b|can't|cannot|not"] },
+    { "q": "How do Kumami referrals pay?", "expect": ["\\$1\\b", "\\$10\\b"] },
+    { "q": "How do I cancel my Kumami Pro subscription?", "expect": ["Profile", "Subscription"] },
+    { "q": "What does Quiet Distribution mean in Spot Pulse?", "expect": ["sell", "flat|sideways|not falling|holding"] },
+    { "q": "Does Kumami have a Security Scanner?", "expect": ["not yet|coming|later|not available|isn't|not live"] },
+    { "q": "What is Kumami's annual revenue?", "expect": ["don't|do not|not able|unable|no information|not have|can't|cannot|not available|not public"] }
+  ]
+}
