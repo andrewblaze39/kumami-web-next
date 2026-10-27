@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
-import { v1 } from '@/lib/billing/clientApi';
+import { ApiError, v1 } from '@/lib/billing/clientApi';
 
 export interface KumaChatMessage {
   role: 'user' | 'assistant';
@@ -127,13 +127,11 @@ export function useKumaChat(): UseKumaChatReturn {
     })
       .catch((err) => {
         console.error('[useKumaChat] send error:', err);
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'assistant',
-            content: 'Sorry, I could not process your message. Please try again.',
-          },
-        ]);
+        // Show the server's reason and code (e.g. "assistant_unavailable") so a failure can be traced.
+        const content = err instanceof ApiError
+          ? `${err.message} (${err.code} · ${err.status})`
+          : 'Sorry, I could not process your message. Please try again.';
+        setMessages((prev) => [...prev, { role: 'assistant', content }]);
       })
       .finally(() => setSending(false));
   }, [input, currentUser?.uid, sending]);
