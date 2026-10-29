@@ -23,7 +23,7 @@ There is **one product spec**: the shared Google Doc "Kumami Product Spec". Ever
 4. **Andrew shares the next build version** (e.g. v1.16). It is the website as built: Rachelle's changes that shipped lose their `(To be developed)` label, and anything not built yet keeps it, with a note why. Its Release notes say what was built from v1.15 and what else changed.
 5. Back to step 2.
 
-Numbering and naming (Andrew, 22 Oct 2026): the next build version is Rachelle's request version **+ 1** (her v1.15 → our v1.16), and the version number is always in the file name and the Google Doc name (`Kumami_World_Product_Spec_v1.16.docx` → "Kumami Product Spec v1.16"; rename the file with `git mv` when the version changes). Release notes per build version: **Part 1** a table — # · Rachelle asked · What we changed · How to verify · Notes · Evidence — one row per ask, the screenshots inside the table (`d.add_image()`), plus a linked evidence page with full-size shots; **Part 2** other website changes. The doc also keeps a **Roadmap / To be developed** section. Before a build version goes out, Andrew reviews Rachelle's asks one at a time.
+Numbering and naming (Andrew, 22 Oct 2026): the next build version is Rachelle's request version **+ 1** (her v1.15 → our v1.16), and the version number is always in the file name and the Google Doc name (`Kumami_World_Product_Spec_v1.18.docx` → "Kumami Product Spec v1.16"; rename the file with `git mv` when the version changes). Release notes per build version: **Part 1** a table — # · Rachelle asked · What we changed · How to verify · Notes · Evidence — one row per ask, the screenshots inside the table (`d.add_image()`), plus a linked evidence page with full-size shots; **Part 2** other website changes. The doc also keeps a **Roadmap / To be developed** section. Before a build version goes out, Andrew reviews Rachelle's asks one at a time.
 
 **Only Andrew releases `dev` → `main`** (production).
 
@@ -34,7 +34,7 @@ Numbering and naming (Andrew, 22 Oct 2026): the next build version is Rachelle's
 | Document | What it is | Who writes it |
 |---|---|---|
 | Google Doc **"Kumami Product Spec vX.Y"**, one file per version | The product spec. Build versions = the website as built. Request versions = build version + Rachelle's `(To be developed)` changes. | Build versions: Andrew (Claude prepares them). Request versions: Rachelle. |
-| `docs/Rachelle Product Specs/Kumami_World_Product_Spec_v1.16.docx` | Claude's working copy of the next build version. Each build version is published from it as a new Google Doc. | Claude, via skill `product-spec-doc-update` |
+| `docs/Rachelle Product Specs/Kumami_World_Product_Spec_v1.18.docx` | Claude's working copy of the next build version. Each build version is published from it as a new Google Doc. | Claude, via skill `product-spec-doc-update` |
 | `docs/Rachelle Product Specs/versions/` | A downloaded copy of each request version Rachelle shares (so the changes can be read and compared in the repo) | Claude |
 | `docs/plans/YYYY-MM-DD-<feature>.md` | The build plan for one change | Claude, via skill `product-spec-to-feature` |
 | `testing/<area>/<feature>/how-to-test.md` | Click-by-click test steps for Andrew | Claude, via skill `kumami-qa` |

@@ -54,7 +54,7 @@ The website and the Flutter app share it.
 | Path | Written by | Contents |
 |---|---|---|
 | `education_progress/{level}` | Owner (via `/api/education/progress` and the client) | Per-level completed sections and notes |
-| `pro/state` | Owner (Pro tabs) | Following and alerts, AI Portfolio holdings, Pro UI state |
+| `pro/state` | Owner (Pro tabs) | Following, AI Portfolio holdings, Pro UI state. Its `alerts` field is legacy: since v1.18 alerts live in `price_alerts/{uid}` (imported on first use) |
 | `chatrooms/{roomId}` | Server + Owner | `chatRoomId`, `name`, `icon`, `type`, `createdAt`, `updatedAt` |
 | `chatrooms/{roomId}/messages/{id}` | **Server** (`/api/v1/kuma/chat` = `role:'user'`; `/api/v1/kuma/callback` = `role:'assistant'`) | `role`, `message`, `timestamp`, optional `buttons` |
 | `watchlist/{id}` | Owner (Address Tracker) | Tracked wallets: `address`, `label`, `chains`, `minUsd`, `muteUntil` |
@@ -148,7 +148,7 @@ The owner can read their own rows.
 
 ## 4. Content (admin-authored)
 
-`status` is `published` or `draft`. Drafts are hidden from users.
+`status` is `published` or `draft`. Drafts are hidden from users. Since v1.18 the long text fields (summaries, descriptions, bodies, Kumami Insight, Kumami Research call / "what this means", airdrop and calendar descriptions, education blurb) may hold rich-text markers `**bold**` `*italic*` `__underline__` and `• ` bullet lines (`lib/richText.ts`); apps should render them or strip them for previews. Plain text stays valid.
 
 | Collection | Written by (admin page) | Read by | Key fields |
 |---|---|---|---|
@@ -164,6 +164,7 @@ The owner can read their own rows.
 | `alphaRoom` | `/admin/alpha-room` | Pro → Alpha Room | `message`, `role`, `timestamp`, `buttons` |
 | `pro_news`, `pro_research`, `pro_airdrops`, `pro_events`, `pro_calendar` | `/admin/pro-*` | Pro tabs, the shared Calendar | See Andrew's spec Pro §7, §10, §13–15. Pro-only reads (rules: `pro_*` wildcard) |
 | `pro_events/{id}/questions` | Pro users (ask, upvote) | Events | `text`, `votes`, `userId` |
+| `pro_calendar` (v1.18 fields) | `/admin/pro-calendar` | `/api/market/calendar` | `audience: { plus, pro }` — "Plus and Pro" `{true,true}` or "Pro only" `{false,true}`; missing on older docs = both. New docs have no `cat` (the Category control was removed); older docs keep theirs |
 | `pro_settings/calendar` | `/admin/pro-calendar` | `/api/market/calendar` | Feed switches |
 | `app_config/about_us`, `app_config/terms_and_conditions` | `/admin` | About, Terms | Page content (the Terms text is supplied by Andrew's team; `/terms` and `/world/terms` render it) |
 
@@ -176,18 +177,21 @@ The owner can read their own rows.
 | `market_cache/{key}` | `/api/market/*` routes | `{ value, updatedAt }`. Shared TTL cache of CoinGlass/CoinGecko responses, 2–30 minutes |
 | `flow_daily/{yyyy-mm-dd}` | `/api/market/flow-radar`, `/api/v1/cron/collect` | Daily Flow Radar tally per coin: event counts, `maxUsd`, and (from v1.15) `bullishUsd` / `bearishUsd` |
 | `flow_events/{eventKey}` | `/api/v1/cron/collect`, and `/api/market/console` + `/api/market/flow-radar` as a backup (one run per minute across servers) | One doc per Flow Radar event (the event fields + `counted`, `firstSeen`, `lastSeen`, `expireAt` = event time + 7 days, and `plusAt` (ms) on events Flow Radar Plus may show: 5 core coins or market-wide, HIGH/MED, the 4 Plus types). Key = event id (tx hash, coin+hour, exchange+token+hour). Flow Radar Plus and the Console preview read the last 24h with `plusAt` ≤ now − 15 min (the 15-minute delay, 22 Oct 2026; replaced `flow_snapshots`) |
+| `fear_greed_daily/{yyyy-mm-dd}` | `/api/v1/cron/collect` (v1.18) | `{ date, score, label, color, savedAt }` — Kumami's Fear & Greed score, once per UTC day; never written when the index is unavailable. The Fear & Greed chart shows it once 30 days exist ("Market index" until then) |
+| `price_alerts/{uid}` | `/api/v1/me/alerts`, `/api/v1/cron/collect` (v1.18) | `{ uid, active, alerts: AlertDef[], state: { [id]: AlertState }, skippedLegacy, updatedAt, checkedAt }` — a Pro user's price alerts (see API.md §7) |
 | `flow_meta/collector` | collector runs | `{ lastRun, since }` (ms): last run (cron or page) and the first run ever; page runs skip if any run was under 50 s ago |
 | `flow_hourly/{yyyy-mm-ddTHH}_{COIN}` | `/api/v1/cron/collect` | `{ hour, asset, bullishUsd, bearishUsd, expireAt }` — bullish/bearish $ per coin per hour (Dry Powder and neutral events excluded). Read by Watchlist Pro Section C / Spot Pulse Pro row 2 (`pickSectionC`) once 72h exist |
 | `watchlists/{uid}` | `/api/market/watchlist` | `{ symbols }` (Watchlist Pro pins) |
 | `alerts/{id}` | `/api/webhooks/alchemy` | Wallet activity alerts |
 | `whales/{id}` | Admin | Tracked whale wallets |
 
-Server-only: no Firestore rule allows clients to read or write the `flow_*` collections (Admin SDK only). Old `flow_snapshots` docs (the pre-22 Oct Plus delay) are no longer written or read and can be deleted. Retention: the collector deletes docs past `expireAt`; also add a Firestore **TTL policy** on `expireAt` for `flow_events` and `flow_hourly` (Console → Firestore → TTL) so nothing outlives 7 days if the collector stops.
+Server-only: no Firestore rule allows clients to read or write the `flow_*`, `fear_greed_daily` or `price_alerts` collections (Admin SDK only). Old `flow_snapshots` docs (the pre-22 Oct Plus delay) are no longer written or read and can be deleted. Retention: the collector deletes docs past `expireAt`; also add a Firestore **TTL policy** on `expireAt` for `flow_events` and `flow_hourly` (Console → Firestore → TTL) so nothing outlives 7 days if the collector stops.
 
 ## 6. Admin
 
 | Collection | Written by | Contents |
 |---|---|---|
+| `notifications/{id}` | `/api/v1/cron/collect` (price alerts, v1.18) | `{ userId, kind: 'price_alert', alertId, title, message, read, createdAt, timestamp }`. Users read / update their own (existing rule); the shell shows new ones as a toast + browser notification |
 | `admin_audit/{id}` | `/api/admin/subscription` | `type`, `action` (grant/remove), `months`, `targetUid`, `targetEmail`, `by`, `at` |
 
 ---

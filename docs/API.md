@@ -207,6 +207,13 @@ Request: `{ "message": "…", "chatRoomId": "kuma_dock" (optional), "source": "k
 ### `POST /kuma/callback?token=…` — n8n only
 n8n posts `{ userId, chatRoomId, aiResponse }` to the `callbackUrl` it was given. `token` is an HMAC (`KUMA_CALLBACK_SECRET`) scoped to that **one user and chat room**, valid for 15 minutes; anything else gets 401. This needed no n8n change: the workflow already calls back `body.callbackUrl`. If the user deleted their account in the meantime → `user_not_found` 404 and nothing is written.
 
+### `GET /me/alerts` · `PUT /me/alerts` — Pro user (v1.18)
+The caller's price alerts (Pro → Following & Alerts, CoinMarketCap-style). 401 signed out · 403 `pro_required` if not Pro · PUT 429 `rate_limited` (30 changes / min).
+- **GET** → `{ alerts: AlertDef[], state: { [id]: AlertState }, skippedLegacy }`. The first call imports alerts saved before v1.18 in `users/{uid}/pro/state` ("price changes by X%" → `move_pct`; sentiment alerts are not carried, counted in `skippedLegacy`).
+- **PUT** `{ alerts: AlertDef[], rearm?: number[] }` → same shape. Replaces the whole list (max 50; invalid alerts are dropped). Unchanged alerts keep their state; edited, resumed or `rearm` ones start fresh.
+- `AlertDef` = `{ id: number, symbol: "BTC", kind, value, frequency: "once" | "every", on: boolean }`; `kind` = `price_above` · `price_below` (value = USD) · `pct_up_24h` · `pct_down_24h` · `volume_up` (value = %) · `move_pct` (legacy). `AlertState` = `{ armed, baseline?, lastTriggeredAt?, lastValue?, count? }`.
+- Checked server-side every minute by `POST /cron/collect`. A trigger writes `notifications/{id}` `{ userId, kind: "price_alert", alertId, title, message, read: false, createdAt, timestamp }`; apps read the user's own notifications (existing rule). "Once" alerts are set `on: false` after firing.
+
 ---
 
 ## 8. Admin
@@ -217,9 +224,9 @@ n8n posts `{ userId, chatRoomId, aiResponse }` to the `callbackUrl` it was given
 | `POST /api/admin/subscription` (unversioned, web admin only) | superadmin | Grant or remove Pro manually. **Remove** also cancels the user's live Stripe subscription, so billing stops |
 
 ### `POST /cron/collect` — Cloud Scheduler only
-The background collector (spec v1.15 Platform). Header `x-cron-secret: <CRON_SECRET>` (constant-time compare); 401 without it, 503 `not_configured` when `CRON_SECRET` isn't set. Each call (every 60 s) builds the Flow Radar events (shared 60 s buffer cache, ~10 CoinGlass calls), upserts them into `flow_events` (one doc per event key: liquidations keep their peak, Dry Powder the latest net), adds the new bullish/bearish $ to `flow_hourly`, records `flow_daily`, and deletes docs past their 7-day `expireAt`. Response: `{ events, created, updated, hourly, deleted, ms }`. Each event Flow Radar Plus may show also gets `plusAt`; Plus and the Console preview are served stored events with `plusAt` at least 15 min old (last 24h). Until Cloud Scheduler is set up, the Console and Flow Radar routes trigger the same run themselves (at most once a minute across servers, tracked in `flow_meta/collector`), so the delay works either way; with the scheduler, history keeps filling when nobody is on the site.
+The background collector (spec v1.15 Platform). Header `x-cron-secret: <CRON_SECRET>` (constant-time compare); 401 without it, 503 `not_configured` when `CRON_SECRET` isn't set. Each call (every 60 s) builds the Flow Radar events (shared 60 s buffer cache, ~10 CoinGlass calls), upserts them into `flow_events` (one doc per event key: liquidations keep their peak, Dry Powder the latest net), adds the new bullish/bearish $ to `flow_hourly`, records `flow_daily`, and deletes docs past their 7-day `expireAt`. v1.18: the same call also saves Kumami's Fear & Greed score once per UTC day (`fear_greed_daily`) and checks every active price alert (`price_alerts`, one Binance 24h ticker call). Response: `{ events, created, updated, hourly, deleted, ms, fearGreedDay: "saved" | "exists" | "unavailable" | "error: …", alerts: { users, checked, fired, ms } }` (`{ skipped: true, … }` when another run holds the lease). Each event Flow Radar Plus may show also gets `plusAt`; Plus and the Console preview are served stored events with `plusAt` at least 15 min old (last 24h). Until Cloud Scheduler is set up, the Console and Flow Radar routes trigger the same run themselves (at most once a minute across servers, tracked in `flow_meta/collector`), so the delay works either way; with the scheduler, history keeps filling when nobody is on the site.
 
-Cloud Scheduler job (Andrew, once — project `kumami-6df47` for production, `kumami-dev` for dev):
+Cloud Scheduler job — live since 27 Oct 2026 on `kumami-dev` (`kumami-collector`, every minute, calling the dev website, which writes the shared Firestore). Command used:
 `gcloud scheduler jobs create http kumami-collector --schedule="* * * * *" --http-method=POST --uri="<APP_BASE_URL>/api/v1/cron/collect" --headers="x-cron-secret=<CRON_SECRET>" --attempt-deadline=50s --location=<region>`
 
 CoinGlass budget: every server call goes through one 70-per-minute window per instance (`lib/market/coinglass/rateWindow.ts`) with back-off on HTTP 429; pages read caches and never call CoinGlass directly.
@@ -228,7 +235,7 @@ CoinGlass budget: every server call goes through one 70-per-minute window per in
 
 ## 9. Other server routes (unversioned, website-internal)
 
-`/api/market/*` (console, onchain, flow-radar — since v1.20 its response also has `aiSentences: { [window]: { verdict, text } }`, Gemini rewrites of the band sentence; heatmap, intelligence, watchlist, calendar, fear-greed, spot-pulse), `/api/education/progress`, `/api/portfolio-scan`, `/api/wallet-data`, `/api/wallet-profile`, `/api/intents`, `/api/tracker/bootstrap`, `/api/coingecko/*`, `/api/webhooks/alchemy`. All use the same Bearer auth (except CoinGecko). See `docs/ARCHITECTURE.md` §4a. They'll move under `/api/v1` when the app needs them.
+`/api/market/calendar` takes `?view=pro` (v1.18): default = Calendar Plus for every account (no airdrops, token unlocks or "Pro only" events); `view=pro` = Calendar Pro, Pro accounts only (403 `pro_required`). `/api/market/*` (console, onchain, flow-radar — since v1.20 its response also has `aiSentences: { [window]: { verdict, text } }`, Gemini rewrites of the band sentence; heatmap, intelligence, watchlist, calendar, fear-greed, spot-pulse), `/api/education/progress`, `/api/portfolio-scan`, `/api/wallet-data`, `/api/wallet-profile`, `/api/intents`, `/api/tracker/bootstrap`, `/api/coingecko/*`, `/api/webhooks/alchemy`. All use the same Bearer auth (except CoinGecko). See `docs/ARCHITECTURE.md` §4a. They'll move under `/api/v1` when the app needs them.
 
 ## 10. What replaced the Firebase Functions
 

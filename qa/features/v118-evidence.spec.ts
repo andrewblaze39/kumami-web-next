@@ -17,13 +17,13 @@ import { admin, readPersonas } from '../personas';
 const DIR = path.join(__dirname, '..', '..', 'docs', 'qa', 'evidence', 'v1.18');
 type Shot = { item: string; file: string | null; caption: string };
 const manifest: Shot[] = (() => {
-  try { return JSON.parse(fs.readFileSync(path.join(DIR, 'manifest.json'), 'utf8')) as Shot[]; } catch { return []; }
+  try { return JSON.parse(fs.readFileSync(path.join(DIR, 'manifest-raw.json'), 'utf8')) as Shot[]; } catch { return []; }
 })();
 function record(s: Shot) {
   const i = manifest.findIndex((m) => (s.file ? m.file === s.file : m.item === s.item && m.file === null && m.caption === s.caption));
   if (i >= 0) manifest[i] = s; else manifest.push(s);
   fs.mkdirSync(DIR, { recursive: true });
-  fs.writeFileSync(path.join(DIR, 'manifest.json'), JSON.stringify(manifest, null, 2));
+  fs.writeFileSync(path.join(DIR, 'manifest-raw.json'), JSON.stringify(manifest, null, 2));
 }
 async function shot(item: string, name: string, target: Locator | Page, caption: string) {
   fs.mkdirSync(DIR, { recursive: true });

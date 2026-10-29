@@ -48,5 +48,6 @@ verified, following the `feature-test-tutorial` conventions.
 - [Events & Announcements](pro/events/how-to-test.md) — admin authors live/replay events at `/admin/pro-events`; they render on `/world/pro?tab=events` with realtime Q&A.
 
 ### User-state tabs (no admin authoring)
-- **Following & Alerts** (`/world/pro?tab=followhub`) — build an alert, follow items from other tabs; both persist per-user to `users/{uid}/pro/state`. Test: add an alert, reload → still there; follow an airdrop → it shows here.
+- **Following & Alerts** (`/world/pro?tab=followhub`) — v1.18: CoinMarketCap-style price alerts checked server-side every minute (stored in `price_alerts/{uid}` via `/api/v1/me/alerts`); follows still in `users/{uid}/pro/state`. Steps: [v1.18 how-to-test](release/v1.18/how-to-test.md) §6–7.
+- **v1.18 release** — [how to test every v1.18 change](release/v1.18/how-to-test.md) (calendar Plus / Pro, rich text, alerts, Rachelle's v1.17 asks).
 - **Daily Digest** (`/world/pro?tab=digest`) — live roll-up of the tabs above; publish content and confirm it appears in the matching digest section.

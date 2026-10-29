@@ -1,0 +1,92 @@
+[
+  {
+    "item": "A2",
+    "file": "a2-admin-calendar-form.jpg",
+    "caption": "Admin → Calendar: no Category field; \"Who sees this event\": Plus and Pro (default) or Pro only; the description box shows bold / italic / underline as you type."
+  },
+  {
+    "item": "A2",
+    "file": "a2-admin-calendar-list.jpg",
+    "caption": "Admin event list: each event shows \"Plus and Pro\" or \"Pro only\"."
+  },
+  {
+    "item": "A4",
+    "file": "a4-calendar-plus.jpg",
+    "caption": "Calendar Plus (Plus user): colour-coded month grid, legend, day panel, no filters. API returns 2 events; \"[TEST] Kumami AMA (Plus and Pro)\" shown; \"[TEST] Pro-only strategy call\" hidden; airdrop hidden."
+  },
+  {
+    "item": "A2",
+    "file": null,
+    "caption": "Calendar Pro API for a Plus user: HTTP 403 (expected 403)."
+  },
+  {
+    "item": "A2",
+    "file": "a2-calendar-pro.jpg",
+    "caption": "Calendar Pro (Pro user): same UI; \"[TEST] Pro-only strategy call\" shown with a PRO tag; airdrop \"[TEST] Lumen airdrop\" shown."
+  },
+  {
+    "item": "A6",
+    "file": "a6-calendar-pro-airdrop-day.jpg",
+    "caption": "Calendar Pro day panel for the airdrop claim day: purple \"Airdrop\" tag + PRO tag."
+  },
+  {
+    "item": "A2",
+    "file": "a2-calendar-pro-only-event.jpg",
+    "caption": "Day panel for the \"Pro only\" event: PRO tag; description keeps its formatting."
+  },
+  {
+    "item": "A6",
+    "file": null,
+    "caption": "Pro user on Calendar Plus: 0 airdrops (expected 0); Pro-only event hidden."
+  },
+  {
+    "item": "A2",
+    "file": "a2-pro-menu-calendar-pro.jpg",
+    "caption": "Pro menu → Tools has \"Calendar Pro\"."
+  },
+  {
+    "item": "A3",
+    "file": "a3-console-mini-calendar.jpg",
+    "caption": "Plus Market Console: mini month calendar (today highlighted, a coloured dot per event kind) with the next 3 events, instead of the \"next 7 days\" list."
+  },
+  {
+    "item": "A5",
+    "file": "a5-alerts-builder.jpg",
+    "caption": "Following & Alerts: CMC-style builder (coin · Price rises above / drops below / up % / down % (24h) / 24h volume up · value · Once / Every time) and the two alerts created."
+  },
+  {
+    "item": "A5",
+    "file": null,
+    "caption": "Collector runs: HTTP 200 then 200; second run checked 2 alerts, fired 1."
+  },
+  {
+    "item": "A5",
+    "file": "a5-alert-toast.jpg",
+    "caption": "In-app alert on the open page: \"🔔 Alert: BTC price rises above $1,000 BTC rose above $1,000 — now $81,414 See alerts ×\"."
+  },
+  {
+    "item": "A5",
+    "file": "a5-alerts-after-trigger.jpg",
+    "caption": "After the trigger: the BTC alert shows \"Triggered\" (Once → paused, Re-arm button) and \"Recent alerts\" lists it; the ETH alert keeps watching."
+  },
+  {
+    "item": "A5",
+    "file": null,
+    "caption": "GET /api/v1/me/alerts as a Plus user: HTTP 403 (expected 403 pro_required)."
+  },
+  {
+    "item": "A1",
+    "file": "a1-admin-editor.jpg",
+    "caption": "Admin text box: bold, italic and underline show as you type (toolbar B / I / U or Ctrl+B / I / U), no ** marks."
+  },
+  {
+    "item": "A1",
+    "file": null,
+    "caption": "Stored description: \"Claim opens **Friday** for *early* wallets, __check eligibility__\"."
+  },
+  {
+    "item": "A1",
+    "file": "a1-site-airdrop.jpg",
+    "caption": "Pro → Airdrops & Whitelist shows the same description with the bold / italic / underline."
+  }
+]
