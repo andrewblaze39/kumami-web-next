@@ -7,6 +7,7 @@ import {
 } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminPageTour, { proAdminTourSteps } from './AdminPageTour';
+import RichTextEditor from './RichTextEditor';
 
 /**
  * PublishKumamiResearch — admin authoring for the Pro dashboard's "Kumami
@@ -135,11 +136,11 @@ export default function PublishKumamiResearch() {
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">The call</label>
-          <textarea className={`${inputCls} h-28`} value={form.body} onChange={(e) => set('body', e.target.value)} required />
+          <RichTextEditor value={form.body} onChange={(v) => set('body', v)} rows={4} />
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">What this means for you</label>
-          <textarea className={`${inputCls} h-24`} value={form.forYou} onChange={(e) => set('forYou', e.target.value)} placeholder="How this relates to a typical user's holdings / watchlist." />
+          <RichTextEditor value={form.forYou} onChange={(v) => set('forYou', v)} rows={4} placeholder="How this relates to a typical user's holdings / watchlist." />
         </div>
         <div className="md:col-span-2 flex gap-3">
           <button type="submit" data-tour="admin-publish" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400">

@@ -7,6 +7,7 @@ import {
 } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminPageTour, { proAdminTourSteps } from './AdminPageTour';
+import RichTextEditor from './RichTextEditor';
 
 /**
  * PublishAirdrops — admin authoring for the Pro dashboard's "Airdrops &
@@ -132,7 +133,7 @@ export default function PublishAirdrops() {
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-          <textarea className={`${inputCls} h-20`} value={form.desc} onChange={(e) => set('desc', e.target.value)} required />
+          <RichTextEditor value={form.desc} onChange={(v) => set('desc', v)} rows={4} />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Deadline</label>

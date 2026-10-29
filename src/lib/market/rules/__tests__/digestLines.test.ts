@@ -78,9 +78,9 @@ describe('digestCalendarRows (Digest calendar section, fed by /api/market/calend
 });
 
 describe('DailyDigest calendar source', () => {
-  it('reads the tier-filtered /api/market/calendar route, never pro_calendar directly', () => {
+  it('reads Calendar Pro (/api/market/calendar?view=pro), never pro_calendar directly', () => {
     const src = readFileSync(path.resolve(__dirname, '../../../../components/world/pro/tabs/DailyDigest.tsx'), 'utf8');
     expect(src).not.toMatch(/['"`]pro_calendar['"`]/); // no Firestore read of the collection
-    expect(src).toContain("useMarketEndpoint<CalendarPayload>('/api/market/calendar')");
+    expect(src).toContain("useMarketEndpoint<CalendarPayload>('/api/market/calendar?view=pro')");
   });
 });

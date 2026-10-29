@@ -5,6 +5,8 @@ import { ChevronRight } from 'lucide-react';
 import { getBlogById, getLatestBlogs } from '@/lib/blogs';
 import GatedArticleBody from '@/components/world/news/GatedArticleBody';
 
+import { RichText } from '@/components/RichText';
+import { plainText } from '@/lib/richText';
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
@@ -94,7 +96,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const title = post.title ? `${post.title} — Kumami Blog` : fallbackTitle;
   const rawDesc =
-    post.summary ||
+    plainText(post.summary) ||
     (post.content1 || post.content || '')
       .replace(/[#*_>`~\[\]()!-]/g, '')
       .trim()
@@ -324,7 +326,7 @@ export default async function WorldBlogDetailPage({ params }: PageProps) {
                 fontStyle: 'italic',
               }}
             >
-              {post.summary}
+              <RichText text={post.summary} />
             </p>
           )}
 

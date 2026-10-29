@@ -13,7 +13,7 @@ const DROP = `${QA_PREFIX} Acme airdrop`;
 type Ev = { id: string; title: string; impact: string; description: string; link?: string; category?: string };
 
 const field = (scope: Page | Locator, label: string) =>
-  scope.locator(`xpath=.//div[label[normalize-space(.)="${label}"]]`).locator('input:not([type="checkbox"]), textarea, select').first();
+  scope.locator(`xpath=.//div[label[normalize-space(.)="${label}"]]`).locator('input:not([type="checkbox"]):not([type="radio"]), textarea, select, [contenteditable="true"]').first();
 
 const day = (offset: number) => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
 

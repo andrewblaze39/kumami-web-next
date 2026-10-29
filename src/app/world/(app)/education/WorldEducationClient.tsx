@@ -18,6 +18,7 @@ import type { ResearchArticle } from '@/lib/research';
 import { XIcon, DiscordIcon } from '@/components/icons/BrandIcons';
 import { glossaryTerms } from '@/data/glossaryData';
 
+import { plainText } from '@/lib/richText';
 // ---------- Research Section ----------
 
 interface ResearchCardProps {
@@ -82,7 +83,7 @@ function ResearchCard({ article }: ResearchCardProps) {
       <div className="w-edu-research-body">
         <span className="w-edu-research-cat">{article.category}</span>
         <h3 className="w-edu-research-title">{article.title}</h3>
-        <p className="w-edu-research-desc">{article.description}</p>
+        <p className="w-edu-research-desc">{plainText(article.description)}</p>
         <ResearchSocialLinks article={article} />
       </div>
     </div>

@@ -5,6 +5,8 @@ import { ChevronRight } from 'lucide-react';
 import { getResearchById, getPublishedResearch } from '@/lib/research';
 import GatedArticleBody from '@/components/world/news/GatedArticleBody';
 
+import { RichText } from '@/components/RichText';
+import { plainText } from '@/lib/richText';
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
@@ -93,7 +95,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const title = article.title ? `${article.title} — Kumami Research` : fallbackTitle;
-  const rawDesc = article.summary || article.description || fallbackDesc;
+  const rawDesc = plainText(article.summary || article.description || fallbackDesc);
   const description = rawDesc.length > 160 ? `${rawDesc.substring(0, 157)}...` : rawDesc;
 
   return {
@@ -311,7 +313,7 @@ export default async function WorldResearchDetailPage({ params }: PageProps) {
                 fontStyle: 'italic',
               }}
             >
-              {article.summary}
+              <RichText text={article.summary} />
             </p>
           )}
 

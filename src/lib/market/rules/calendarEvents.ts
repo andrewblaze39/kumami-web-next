@@ -199,6 +199,15 @@ export function audienceError(a: { plus: boolean; pro: boolean }): string | null
   return a.plus || a.pro ? null : 'Choose who sees this event: Plus or Pro (or both).';
 }
 
+/** The admin form's one control: "Plus and Pro" (both calendars) or "Pro only" (Calendar Pro). */
+export type AudienceChoice = 'both' | 'pro';
+export function audienceChoice(a: AdminCalendarDoc['audience']): AudienceChoice {
+  return audienceFormState(a).plus ? 'both' : 'pro';
+}
+export function audienceFromChoice(c: AudienceChoice): { plus: boolean; pro: boolean } {
+  return c === 'pro' ? { plus: false, pro: true } : { plus: true, pro: true };
+}
+
 /** The admin calendar form (PublishCalendar). `cat` is only set when editing a legacy doc that has one. */
 export type AdminCalendarForm = {
   t: string; date: string; time: string; imp: string; d: string; assets: string;
@@ -274,17 +283,29 @@ export function isAirdropEvent(e: Pick<CalendarEvent, 'id'>): boolean {
   return e.id.startsWith('airdrop-');
 }
 
-/** Market tier as resolved by gating.ts: 'free' is every signed-in non-Pro account (Kumami Plus). */
-type CalendarTier = 'free' | 'pro';
+/** Calendar Plus (/world/calendar) or Calendar Pro (Pro → Calendar Pro). */
+export type CalendarView = 'plus' | 'pro';
 
-/** Legacy events have no audience flag and remain visible to both tiers. */
-export function isCalendarEventVisibleToTier(event: Pick<CalendarEvent, 'id' | 'audience'>, tier: CalendarTier): boolean {
-  return event.audience?.[tier === 'pro' ? 'pro' : 'plus'] !== false;
+/**
+ * Pro-only on the calendar (Andrew, 29 Oct 2026): airdrop TGE / claim days, token unlocks,
+ * and team events the admin marked "Pro only". They show in Calendar Pro, never in Calendar Plus.
+ */
+export function isProOnlyEvent(e: Pick<CalendarEvent, 'id' | 'type' | 'audience'>): boolean {
+  return isAirdropEvent(e) || e.type === 'unlock' || e.audience?.plus === false;
 }
 
-/** The events one tier may see: the admin audience flags, and airdrops stay Pro-only whatever their flags say. */
-export function calendarEventsForTier<E extends Pick<CalendarEvent, 'id' | 'audience'>>(events: E[], tier: CalendarTier): E[] {
-  return events.filter((e) => isCalendarEventVisibleToTier(e, tier) && (tier === 'pro' || !isAirdropEvent(e)));
+/** Calendar Plus = everything that isn't Pro-only; Calendar Pro = Calendar Plus + the Pro-only events. */
+export function calendarEventsForView<E extends Pick<CalendarEvent, 'id' | 'type' | 'audience'>>(events: E[], view: CalendarView): E[] {
+  return view === 'pro' ? events.filter((e) => e.audience?.pro !== false) : events.filter((e) => !isProOnlyEvent(e));
+}
+
+/** Colour-coding kind for the calendar UIs. */
+export type CalendarKind = 'macro' | 'unlock' | 'airdrop' | 'team';
+export function calendarKind(e: Pick<CalendarEvent, 'id' | 'type'>): CalendarKind {
+  if (isAirdropEvent(e)) return 'airdrop';
+  if (e.type === 'unlock') return 'unlock';
+  if (e.type === 'macro') return 'macro';
+  return 'team';
 }
 
 /** The fixed Plus roster (Kumami Plus §7.3). */

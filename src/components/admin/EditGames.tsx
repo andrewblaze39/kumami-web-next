@@ -7,6 +7,7 @@ import { collection, getDocs, doc, updateDoc, deleteDoc, getDoc } from 'firebase
 import { getAuth } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { formatTimestamp } from './utils';
+import RichTextEditor from './RichTextEditor';
 
 interface GameArticle { id: string; title: string; genres: string[]; networks: string[]; platformTypes: string[]; tagline: string; summary: string; imageDetail1Url: string; portraitImageUrl: string; timestamp: { seconds: number } | null; [key: string]: unknown; }
 
@@ -67,9 +68,9 @@ export default function EditGames() {
               <div className="space-y-3">
                 <div><label className="block text-sm font-medium text-gray-700">Title</label><input type="text" name="title" value={String(formData.title || '')} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black" /></div>
                 <div><label className="block text-sm font-medium text-gray-700">Tagline</label><input type="text" name="tagline" value={String(formData.tagline || '')} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black" /></div>
-                <div><label className="block text-sm font-medium text-gray-700">Summary</label><textarea name="summary" value={String(formData.summary || '')} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black h-24" /></div>
-                <div><label className="block text-sm font-medium text-gray-700">Detail Content 1</label><textarea name="detailContent1" value={String(formData.detailContent1 || '')} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black h-32" /></div>
-                <div><label className="block text-sm font-medium text-gray-700">Detail Content 2</label><textarea name="detailContent2" value={String(formData.detailContent2 || '')} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black h-32" /></div>
+                <div><label className="block text-sm font-medium text-gray-700">Summary</label><RichTextEditor value={String(formData.summary || '')} onChange={(v) => setFormData((p) => ({ ...p, summary: v }))} rows={3} /></div>
+                <div><label className="block text-sm font-medium text-gray-700">Detail Content 1</label><RichTextEditor value={String(formData.detailContent1 || '')} onChange={(v) => setFormData((p) => ({ ...p, detailContent1: v }))} rows={5} /></div>
+                <div><label className="block text-sm font-medium text-gray-700">Detail Content 2</label><RichTextEditor value={String(formData.detailContent2 || '')} onChange={(v) => setFormData((p) => ({ ...p, detailContent2: v }))} rows={5} /></div>
                 {typeof formData.imageDetail1Url === "string" && formData.imageDetail1Url && <div><img src={formData.imageDetail1Url} alt="Current" className="max-h-32 rounded" /></div>}
                 <div><label className="block text-sm font-medium text-gray-700">Upload New Detail Image 1</label><input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'imageDetail1Url')} disabled={isUploading} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white" /></div>
                 <div><label className="block text-sm font-medium text-gray-700">Discord</label><input type="url" name="discordLink" value={String(formData.discordLink || '')} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black" /></div>

@@ -8,6 +8,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getAuth } from 'firebase/auth';
 import { formatTimestamp } from './utils';
 import { applyNewsOverlay } from './applyNewsOverlay';
+import RichTextEditor from './RichTextEditor';
 
 interface NewsArticle {
   id: string;
@@ -154,12 +155,12 @@ export default function EditNews() {
                 <div><label className="block text-sm font-medium text-gray-700">Title</label><input type="text" name="title" value={formData.title} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black" /></div>
                 <div><label className="block text-sm font-medium text-gray-700">Author</label><input type="text" name="author" value={formData.author} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black" /></div>
                 <div><label className="block text-sm font-medium text-gray-700">Category</label><select name="category" value={formData.category} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white"><option value="">Select</option>{CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
-                <div><label className="block text-sm font-medium text-gray-700">Summary</label><textarea name="summary" value={formData.summary} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black h-20" /></div>
+                <div><label className="block text-sm font-medium text-gray-700">Summary</label><RichTextEditor value={formData.summary} onChange={(v) => setFormData((p) => ({ ...p, summary: v }))} rows={3} /></div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Kumami Insight <span className="text-gray-400 font-normal">(optional — shown as a highlighted box on the article)</span></label>
-                  <textarea name="kumamiInsight" value={formData.kumamiInsight} onChange={handleChange} placeholder="e.g. This signals growing institutional confidence in Layer 2 scaling solutions..." className="w-full p-2 border border-[#96EDD6] rounded-md text-black h-24 focus:outline-none focus:ring-2 focus:ring-[#96EDD6]/50" />
+                  <RichTextEditor value={formData.kumamiInsight} onChange={(v) => setFormData((p) => ({ ...p, kumamiInsight: v }))} rows={3} placeholder="e.g. This signals growing institutional confidence in Layer 2 scaling solutions..." />
                 </div>
-                <div><label className="block text-sm font-medium text-gray-700">Content</label><textarea name="content" value={formData.content} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black h-32" /></div>
+                <div><label className="block text-sm font-medium text-gray-700">Content</label><RichTextEditor value={formData.content} onChange={(v) => setFormData((p) => ({ ...p, content: v }))} rows={5} /></div>
                 {formData.imageUrl && <div><img src={formData.imageUrl} alt="Current" className="max-h-32 rounded" /><p className="text-xs text-gray-500 mt-1">Current Image</p></div>}
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Upload New Image</label>

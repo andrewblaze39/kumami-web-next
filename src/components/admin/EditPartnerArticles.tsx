@@ -6,6 +6,7 @@ import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firesto
 import { getAuth } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { formatTimestamp } from './utils';
+import RichTextEditor from './RichTextEditor';
 
 const CATEGORIES = ['Web 3 Platform','Artificial Intelligence','Blockchain','DeFi','DePIN','Games','Gaming Guild','NFT','Memes','Exchanges','RWA','Education'];
 interface Article { id: string; title: string; author: string; category: string; description: string; discordLink: string; imageUrl: string; telegramLink: string; twitterLink: string; websiteLink: string; createdAt: { seconds: number } | null; [key: string]: unknown; }
@@ -41,7 +42,7 @@ export default function EditPartnerArticles() {
                 <div><label className="block text-sm font-medium text-gray-700">Title</label><input type="text" name="title" value={formData.title} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black" /></div>
                 <div><label className="block text-sm font-medium text-gray-700">Author</label><input type="text" name="author" value={formData.author} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black" /></div>
                 <div><label className="block text-sm font-medium text-gray-700">Category</label><select name="category" value={formData.category} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white">{CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
-                <div><label className="block text-sm font-medium text-gray-700">Description</label><textarea name="description" value={formData.description} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black h-20" /></div>
+                <div><label className="block text-sm font-medium text-gray-700">Description</label><RichTextEditor value={formData.description} onChange={(v) => setFormData((p) => ({ ...p, description: v }))} rows={3} /></div>
                 {formData.imageUrl && <div><img src={formData.imageUrl} alt="Current" className="max-h-32 rounded" /></div>}
                 <div><label className="block text-sm font-medium text-gray-700">Upload Image</label><input type="file" accept="image/*" onChange={handleImageUpload} disabled={isUploading} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white" /></div>
                 <div><label className="block text-sm font-medium text-gray-700">Website</label><input type="url" name="websiteLink" value={formData.websiteLink} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black" /></div>

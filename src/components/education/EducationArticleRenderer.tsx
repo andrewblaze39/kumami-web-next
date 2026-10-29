@@ -9,6 +9,7 @@ import { PHASES } from '@/data/educationPhases'
 import { resolveLevelNumber } from '@/lib/educationUtils'
 import { useEducationProgress } from '@/hooks/useEducationProgress'
 
+import { RichText } from '@/components/RichText';
 interface ArticleSectionContent {
   type: 'paragraph' | 'image' | 'youtube' | 'table'
   text?: string
@@ -284,7 +285,7 @@ export default function EducationArticleRenderer({
                 </div>
                 {article.blurb && (
                   <p style={{ color: 'var(--muted)', fontSize: 14.5, lineHeight: 1.6, marginTop: 8 }}>
-                    {article.blurb}
+                    <RichText text={article.blurb} />
                   </p>
                 )}
               </div>

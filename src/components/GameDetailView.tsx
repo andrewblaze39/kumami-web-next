@@ -7,6 +7,7 @@ import { Loader, Globe, Send, MessageSquare, Share2, Monitor, Smartphone, Gamepa
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
+import { richTextHtml } from '@/lib/richText'
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
@@ -52,28 +53,15 @@ interface Game {
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
+/** Game copy from the admin editor: bold / italic / underline (lib/richText, HTML-escaped) + "#" / "##" headings. */
 function formatContent(text: string | undefined): string {
   if (!text) return ''
-
-  // Replace newlines with <br> tags
-  let formatted = text.replace(/\n/g, '<br>')
-
-  // Replace *text* with <strong>text</strong> for bold
-  formatted = formatted.replace(/\*(.*?)\*/g, '<strong>$1</strong>')
-
-  // Replace _text_ with <em>text</em> for italics
-  formatted = formatted.replace(/_(.*?)_/g, '<em>$1</em>')
-
-  // Replace `text` with <code>text</code> for code
-  formatted = formatted.replace(/`(.*?)`/g, '<code>$1</code>')
-
-  // Replace ## text with <h2>text</h2> for headings
-  formatted = formatted.replace(/##\s(.*?)<br>/g, '<h2>$1</h2>')
-
-  // Replace # text with <h1>text</h1> for headings
-  formatted = formatted.replace(/#\s(.*?)<br>/g, '<h1>$1</h1>')
-
-  return formatted
+  return richTextHtml(text)
+    .split('<br>')
+    .map((line) => line.replace(/^##\s(.*)$/, '<h2>$1</h2>').replace(/^#\s(.*)$/, '<h1>$1</h1>'))
+    .join('<br>')
+    .replace(/<br>(<h[12]>)/g, '$1')
+    .replace(/(<\/h[12]>)<br>/g, '$1')
 }
 
 function toStringArray(value: string[] | string | undefined): string[] {

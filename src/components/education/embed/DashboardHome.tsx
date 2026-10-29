@@ -25,6 +25,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 
+import { plainText } from '@/lib/richText';
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface ArticleDoc {
@@ -479,7 +480,7 @@ function DashboardInner() {
                   </div>
                   <h3 className="edu-dash-lesson-title">{article.title}</h3>
                   {article.blurb && (
-                    <p className="edu-dash-lesson-blurb">{article.blurb}</p>
+                    <p className="edu-dash-lesson-blurb">{plainText(article.blurb)}</p>
                   )}
                   <div className="edu-dash-lesson-meta">
                     {sectionCount > 0 && (

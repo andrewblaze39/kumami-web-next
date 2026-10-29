@@ -6,6 +6,7 @@ import { XIcon, DiscordIcon } from '@/components/icons/BrandIcons'
 import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
+import { RichText } from '@/components/RichText';
 interface PartnerArticle {
   id: string
   title: string
@@ -234,7 +235,7 @@ export default function PartnerPortal() {
                   </div>
 
                   <h3 className="w-edu-research-title">{article.title}</h3>
-                  <p className="w-edu-research-desc">{article.description}</p>
+                  <p className="w-edu-research-desc"><RichText text={article.description} /></p>
 
                   {/* Social links */}
                   <div className="flex items-center gap-2 mt-2">

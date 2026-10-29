@@ -99,7 +99,7 @@ export function DailyDigest() {
 
   // Upcoming team calendar events, from the tier-filtered calendar route (audience flags +
   // Pro-only airdrops applied server-side) rather than reading pro_calendar directly.
-  const cal = useMarketEndpoint<CalendarPayload>('/api/market/calendar');
+  const cal = useMarketEndpoint<CalendarPayload>('/api/market/calendar?view=pro');
   const [openedAt] = useState(() => Date.now());
   const calendar: Row[] = cal.data ? digestCalendarRows(cal.data.events, openedAt) : [];
 

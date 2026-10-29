@@ -1,90 +1,25 @@
 'use client'
 
 import { useRef, useEffect, useCallback } from 'react'
+import { editorHtml as markdownToHtml, editorMarkdown as htmlToMarkdown } from '@/lib/richText'
 
 export interface RichTextEditorProps {
   value: string
   onChange: (value: string) => void
   placeholder?: string
   rows?: number
+  /** Accessible name for the editable area (admin forms label their fields). */
+  ariaLabel?: string
 }
 
-// Convert markdown-like text to HTML for display
-function markdownToHtml(text: string): string {
-  if (!text) return ''
-  // Escape HTML first but preserve our markers
-  let html = text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-
-  // Bold: **text**
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-  // Underline: __text__
-  html = html.replace(/__(.+?)__/g, '<u>$1</u>')
-  // Italic: *text* (after bold so ** is already consumed)
-  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>')
-  // Bullet points: lines starting with •
-  html = html.replace(/^•\s*(.*)$/gm, '<li>$1</li>')
-  // Newlines to <br>
-  html = html.replace(/\n/g, '<br>')
-  // Clean up <br> around <li>
-  html = html.replace(/<br>\s*(<li>)/g, '$1')
-  html = html.replace(/(<\/li>)\s*<br>/g, '$1')
-
-  return html
-}
-
-// Convert innerHTML back to markdown-like text
-function htmlToMarkdown(html: string): string {
-  if (!html) return ''
-
-  let text = html
-
-  // Normalize self-closing br tags
-  text = text.replace(/<br\s*\/?>/gi, '\n')
-
-  // Convert formatting tags
-  text = text.replace(/<strong[^>]*>([\s\S]*?)<\/strong>/gi, '**$1**')
-  text = text.replace(/<b[^>]*>([\s\S]*?)<\/b>/gi, '**$1**')
-  text = text.replace(/<u[^>]*>([\s\S]*?)<\/u>/gi, '__$1__')
-  text = text.replace(/<em[^>]*>([\s\S]*?)<\/em>/gi, '*$1*')
-  text = text.replace(/<i[^>]*>([\s\S]*?)<\/i>/gi, '*$1*')
-
-  // Convert list items
-  text = text.replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, '• $1\n')
-  // Remove ul/ol wrappers
-  text = text.replace(/<\/?ul[^>]*>/gi, '')
-  text = text.replace(/<\/?ol[^>]*>/gi, '')
-
-  // Remove <div> tags (replace block-level divs with newlines)
-  text = text.replace(/<div[^>]*>([\s\S]*?)<\/div>/gi, '$1\n')
-
-  // Remove remaining HTML tags
-  text = text.replace(/<[^>]+>/g, '')
-
-  // Decode HTML entities
-  text = text
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, ' ')
-
-  // Collapse 3+ consecutive newlines to 2
-  text = text.replace(/\n{3,}/g, '\n\n')
-  // Trim trailing newline
-  text = text.replace(/\n+$/, '')
-
-  return text
-}
+// Stored text ↔ editor HTML: src/lib/richText.ts (shared with the site's renderers).
 
 export default function RichTextEditor({
   value,
   onChange,
   placeholder,
   rows = 3,
+  ariaLabel,
 }: RichTextEditorProps) {
   const divRef = useRef<HTMLDivElement>(null)
   // Track whether the div is currently focused so we don't clobber the cursor
@@ -250,6 +185,9 @@ export default function RichTextEditor({
         ref={divRef}
         contentEditable
         suppressContentEditableWarning
+        role="textbox"
+        aria-multiline="true"
+        aria-label={ariaLabel ?? placeholder}
         onInput={handleInput}
         onKeyDown={handleKeyDown}
         onFocus={() => { isFocused.current = true }}

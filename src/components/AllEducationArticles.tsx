@@ -8,6 +8,7 @@ import { Clock, Search, ArrowLeft } from 'lucide-react'
 import { PHASES } from '@/data/educationPhases'
 import { resolveLevelNumber } from '@/lib/educationUtils'
 
+import { plainText } from '@/lib/richText';
 interface Article {
   id: string
   title: string
@@ -245,7 +246,7 @@ export default function AllEducationArticles() {
                         overflow: 'hidden',
                       }}
                     >
-                      {article.blurb}
+                      {plainText(article.blurb)}
                     </p>
                   )}
                   {article.minutes > 0 && (

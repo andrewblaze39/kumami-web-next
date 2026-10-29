@@ -5,9 +5,10 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
-import { formatSelection as fmtSel, getFormattedPreviewHtml } from './utils';
+import { getFormattedPreviewHtml } from './utils';
 import { applyNewsOverlay } from './applyNewsOverlay';
 import { notifyNewsPublished } from '@/lib/news/notifyPublished';
+import RichTextEditor from './RichTextEditor';
 
 const CATEGORIES = ['Tech', 'News', 'Market', 'Games', 'Wallet', 'Funding', 'Crypto', 'Memes', 'NFT'];
 
@@ -76,6 +77,7 @@ export default function PublishNews() {
 
   const saveArticle = async (status: 'draft' | 'published') => {
     if (!currentUser) { setMessage('Please sign in'); return; }
+    if (status === 'published' && !content.trim()) { setMessage('Content is required.'); return; }
     if (status === 'published' && isNewsDrafter) {
       setMessage('You do not have permission to publish. Please use Save as Draft.');
       return;
@@ -183,21 +185,11 @@ export default function PublishNews() {
             Kumami Insight{' '}
             <span className="text-gray-400 font-normal">(optional — shown as a highlighted callout on the article)</span>
           </label>
-          <textarea
-            className="w-full p-2 border border-[#96EDD6] rounded-md text-black h-24 focus:outline-none focus:ring-2 focus:ring-[#96EDD6]/50"
-            value={kumamiInsight}
-            onChange={(e) => setKumamiInsight(e.target.value)}
-            placeholder="e.g. This signals growing institutional confidence in Layer 2 scaling solutions..."
-          />
+          <RichTextEditor value={kumamiInsight} onChange={(v) => setKumamiInsight(v)} rows={3} placeholder="e.g. This signals growing institutional confidence in Layer 2 scaling solutions..." />
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
-          <div className="flex gap-1 mb-2">
-            <button type="button" onClick={() => fmtSel('news-content', content, 'bold', setContent)} className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-semibold hover:bg-gray-200">Bold</button>
-            <button type="button" onClick={() => fmtSel('news-content', content, 'italic', setContent)} className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs italic hover:bg-gray-200">Italic</button>
-            <button type="button" onClick={() => fmtSel('news-content', content, 'underline', setContent)} className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs underline hover:bg-gray-200">Underline</button>
-          </div>
-          <textarea id="news-content" className="w-full p-2 border border-gray-300 rounded-md text-black h-48" value={content} onChange={(e) => setContent(e.target.value)} required />
+          <RichTextEditor value={content} onChange={(v) => setContent(v)} rows={7} />
         </div>
         <div className="md:col-span-2 flex gap-3">
           <button type="button" onClick={() => saveArticle('draft')} disabled={loading} className="px-4 py-2 bg-gray-200 text-gray-900 rounded-md hover:bg-gray-300 disabled:opacity-50">

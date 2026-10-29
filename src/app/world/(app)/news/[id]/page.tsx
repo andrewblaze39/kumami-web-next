@@ -7,6 +7,8 @@ import { NewsRow } from '@/components/world/news/NewsList';
 import { AdvancedBadge, ProBadge } from '@/components/world/news/TierBadge';
 import GatedArticleBody from '@/components/world/news/GatedArticleBody';
 
+import { RichText } from '@/components/RichText';
+import { plainText } from '@/lib/richText';
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
@@ -95,10 +97,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const title = article.title ? `${article.title} — Kumami World` : fallbackTitle;
-  const rawDesc =
+  const rawDesc = plainText(
     article.summary ||
     article.excerpt ||
-    fallbackDesc;
+    fallbackDesc);
   const description =
     rawDesc.length > 160 ? `${rawDesc.substring(0, 157)}...` : rawDesc;
 
@@ -410,7 +412,7 @@ export default async function WorldNewsDetailPage({ params }: PageProps) {
                 fontStyle: 'italic',
               }}
             >
-              {article.summary}
+              <RichText text={article.summary} />
             </p>
           )}
 

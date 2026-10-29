@@ -3,6 +3,7 @@ import type { NewsArticle } from '@/lib/news';
 import { AdvancedBadge, ProBadge } from './TierBadge';
 import { formatRelativeTime, FALLBACK_THUMB_GRADIENT } from './NewsList';
 
+import { plainText } from '@/lib/richText';
 interface NewsHeroProps {
   article: NewsArticle;
 }
@@ -34,7 +35,7 @@ export default function NewsHero({ article }: NewsHeroProps) {
 
       <div className="w-np-lead-body">
         {(article.excerpt || article.summary) && (
-          <p className="w-np-lead-excerpt">{article.excerpt || article.summary}</p>
+          <p className="w-np-lead-excerpt">{plainText(article.excerpt || article.summary)}</p>
         )}
         <div className="w-np-meta">
           {article.category && (

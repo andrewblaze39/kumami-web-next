@@ -6,6 +6,7 @@ import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { ProShellHead } from './shared';
 
+import { RichText } from '@/components/RichText';
 const SENT_LABEL: Record<string, string> = { bull: 'Bullish', bear: 'Bearish', neutral: 'Neutral' };
 const SENT_COLOR: Record<string, string> = { bull: 'var(--bull)', bear: 'var(--bear)', neutral: 'var(--muted-2)' };
 
@@ -84,7 +85,7 @@ export function RealTimeNews() {
                   <span className="rtn-dot" style={{ background: SENT_COLOR[n.sentiment] }} />
                   <span className="t">{n.title}</span>
                 </h3>
-                {n.summary && <p className="rtn-sum">{n.summary}</p>}
+                {n.summary && <p className="rtn-sum"><RichText text={n.summary} /></p>}
                 <div className="rtn-tags">
                   {(n.tags || []).map((t) => (
                     <span className="oc-tag amber" key={t}>{t}</span>

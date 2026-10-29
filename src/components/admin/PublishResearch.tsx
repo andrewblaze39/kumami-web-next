@@ -6,6 +6,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { generateId } from './utils';
+import RichTextEditor from './RichTextEditor';
 
 const CATEGORIES = ['Web 3 Platform','Artificial Intelligence','Blockchain','DeFi','DePIN','Games','Gaming Guild','NFT','Memes','Exchanges','RWA','Education'];
 
@@ -47,6 +48,7 @@ export default function PublishResearch() {
 
   const saveContent = async (status: 'published' | 'draft') => {
     if (!currentUser) { setMessage('Please sign in'); return; }
+    if (status === 'published' && (!description.trim() || !content1.trim())) { setMessage('Short description and content section 1 are required.'); return; }
     setLoading(true);
     try {
       if (!imageFile) throw new Error('Please select an image');
@@ -79,14 +81,14 @@ export default function PublishResearch() {
           <input type="file" accept="image/*" onChange={(e) => handleImageChange(e, setImageFile, setImagePreview)} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white" required />
           {imagePreview && <img src={imagePreview} alt="Preview" className="mt-2 max-h-32 rounded" />}
         </div>
-        <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Short Description</label><textarea className="w-full p-2 border border-gray-300 rounded-md text-black h-20" value={description} onChange={(e) => setDescription(e.target.value)} required /></div>
-        <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Content Section 1</label><textarea className="w-full p-2 border border-gray-300 rounded-md text-black h-32" value={content1} onChange={(e) => setContent1(e.target.value)} required /></div>
+        <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Short Description</label><RichTextEditor value={description} onChange={(v) => setDescription(v)} rows={3} /></div>
+        <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Content Section 1</label><RichTextEditor value={content1} onChange={(v) => setContent1(v)} rows={5} /></div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Detail Image 2 (Optional)</label>
           <input type="file" accept="image/*" onChange={(e) => handleImageChange(e, setDetailImageFile, setDetailImagePreview)} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white" />
           {detailImagePreview && <img src={detailImagePreview} alt="Detail preview" className="mt-2 max-h-32 rounded" />}
         </div>
-        <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Content Section 2</label><textarea className="w-full p-2 border border-gray-300 rounded-md text-black h-32" value={content2} onChange={(e) => setContent2(e.target.value)} /></div>
+        <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Content Section 2</label><RichTextEditor value={content2} onChange={(v) => setContent2(v)} rows={5} /></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1">Website Link (Optional)</label><input type="url" className="w-full p-2 border border-gray-300 rounded-md text-black" value={websiteLink} onChange={(e) => setWebsiteLink(e.target.value)} placeholder="Leave empty to hide" /></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1">Twitter Link (Optional)</label><input type="url" className="w-full p-2 border border-gray-300 rounded-md text-black" value={twitterLink} onChange={(e) => setTwitterLink(e.target.value)} placeholder="Leave empty to hide" /></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1">Telegram Link (Optional)</label><input type="url" className="w-full p-2 border border-gray-300 rounded-md text-black" value={telegramLink} onChange={(e) => setTelegramLink(e.target.value)} placeholder="Leave empty to hide" /></div>

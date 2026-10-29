@@ -3,16 +3,19 @@ import {
   adminCategoryToType,
   ADMIN_CATEGORIES,
   adminCalendarFields,
+  audienceChoice,
+  audienceFromChoice,
+  calendarEventsForView,
+  calendarKind,
+  isProOnlyEvent,
   audienceError,
   audienceFormState,
   DEFAULT_AUDIENCE,
   adminToEvent,
   airdropToEvent,
   isAirdropEvent,
-  isCalendarEventVisibleToTier,
   missingTokenSaleFields,
   badgeCountdown,
-  calendarEventsForTier,
   consoleBadgeEvents,
   isAttentionEligible,
   macroToEvent,
@@ -138,49 +141,6 @@ describe('adminToEvent audience (Plus / Pro flags)', () => {
   it('keeps the official link alongside the audience', () => {
     const e = adminToEvent('a', { ...doc, link: 'https://example.org/sale', audience: { plus: false, pro: true } })!;
     expect(e.link).toBe('https://example.org/sale');
-  });
-});
-
-describe('calendar audience visibility', () => {
-  const event = { id: 'team-event', type: 'protocol' as const, title: 'Event', ts: '2026-11-03T12:00:00.000Z', impact: 'MED' as const, assets: [], description: '', source: 'kumami' as const };
-
-  it('keeps legacy events visible to both tiers (free = Plus)', () => {
-    expect(isCalendarEventVisibleToTier(event, 'free')).toBe(true);
-    expect(isCalendarEventVisibleToTier(event, 'pro')).toBe(true);
-  });
-
-  it('respects each audience flag independently', () => {
-    const plusOnly = { ...event, audience: { plus: true, pro: false } };
-    const proOnly = { ...event, audience: { plus: false, pro: true } };
-    expect(isCalendarEventVisibleToTier(plusOnly, 'free')).toBe(true);
-    expect(isCalendarEventVisibleToTier(plusOnly, 'pro')).toBe(false);
-    expect(isCalendarEventVisibleToTier(proOnly, 'free')).toBe(false);
-    expect(isCalendarEventVisibleToTier(proOnly, 'pro')).toBe(true);
-  });
-});
-
-describe('calendarEventsForTier', () => {
-  const base = { type: 'protocol' as const, title: 'E', ts: '2026-11-03T12:00:00.000Z', impact: 'MED' as const, assets: [], description: '', source: 'kumami' as const };
-  const events = [
-    { ...base, id: 'legacy' },
-    { ...base, id: 'plus-only', audience: { plus: true, pro: false } },
-    { ...base, id: 'pro-only', audience: { plus: false, pro: true } },
-    { ...base, id: 'airdrop-x' },
-    { ...base, id: 'unlock-ARB-1', type: 'unlock' as const, source: 'coinglass' as const },
-  ];
-
-  it('Plus (free tier) gets legacy + Plus events and unlocks, never airdrops or Pro-only events', () => {
-    expect(calendarEventsForTier(events, 'free').map((e) => e.id)).toEqual(['legacy', 'plus-only', 'unlock-ARB-1']);
-  });
-
-  it('Pro gets legacy + Pro events, airdrops and unlocks, but not Plus-only events', () => {
-    expect(calendarEventsForTier(events, 'pro').map((e) => e.id)).toEqual(['legacy', 'pro-only', 'airdrop-x', 'unlock-ARB-1']);
-  });
-
-  it('an airdrop flagged for Plus is still Pro-only', () => {
-    const drop = { ...base, id: 'airdrop-y', audience: { plus: true, pro: true } };
-    expect(calendarEventsForTier([drop], 'free')).toEqual([]);
-    expect(calendarEventsForTier([drop], 'pro')).toHaveLength(1);
   });
 });
 
@@ -310,5 +270,56 @@ describe('admin calendar form (audience switches, no category)', () => {
   it('a stored doc round-trips through adminToEvent with its audience', () => {
     const out = adminCalendarFields({ ...form, audience: { plus: true, pro: false } });
     expect(adminToEvent('x', { ...out, status: 'published' })!.audience).toEqual({ plus: true, pro: false });
+  });
+});
+
+describe('Calendar Plus vs Calendar Pro (calendarEventsForView)', () => {
+  const base = { type: 'protocol' as const, title: 'E', ts: '2026-11-03T12:00:00.000Z', impact: 'MED' as const, assets: [], description: '', source: 'kumami' as const };
+  const events = [
+    { ...base, id: 'kumami-legacy' },
+    { ...base, id: 'kumami-both', audience: { plus: true, pro: true } },
+    { ...base, id: 'kumami-pro', audience: { plus: false, pro: true } },
+    { ...base, id: 'kumami-unlock', type: 'unlock' as const },
+    { ...base, id: 'macro-cpi', type: 'macro' as const, source: 'coinglass' as const },
+    { ...base, id: 'unlock-ARB-1', type: 'unlock' as const, source: 'coinglass' as const },
+    { ...base, id: 'airdrop-x' },
+  ];
+
+  it('Calendar Plus: team events for Plus and macro events; no Pro-only events, airdrops or token unlocks', () => {
+    expect(calendarEventsForView(events, 'plus').map((e) => e.id)).toEqual(['kumami-legacy', 'kumami-both', 'macro-cpi']);
+  });
+
+  it('Calendar Pro: everything in Calendar Plus plus Pro-only events, token unlocks and airdrops', () => {
+    expect(calendarEventsForView(events, 'pro').map((e) => e.id)).toEqual(events.map((e) => e.id));
+  });
+
+  it('an airdrop or an unlock stays Pro-only even if flagged for Plus', () => {
+    expect(isProOnlyEvent({ ...base, id: 'airdrop-y', audience: { plus: true, pro: true } })).toBe(true);
+    expect(isProOnlyEvent({ ...base, id: 'kumami-u', type: 'unlock', audience: { plus: true, pro: true } })).toBe(true);
+    expect(isProOnlyEvent({ ...base, id: 'kumami-legacy' })).toBe(false);
+  });
+});
+
+describe('calendarKind (colour coding)', () => {
+  const base = { type: 'protocol' as const, title: 'E', ts: '2026-11-03T12:00:00.000Z', impact: 'MED' as const, assets: [], description: '', source: 'kumami' as const };
+  it('names each event kind', () => {
+    expect(calendarKind({ ...base, id: 'airdrop-1' })).toBe('airdrop');
+    expect(calendarKind({ ...base, id: 'u', type: 'unlock' })).toBe('unlock');
+    expect(calendarKind({ id: 'm', type: 'macro' })).toBe('macro');
+    expect(calendarKind({ ...base, id: 'kumami-1' })).toBe('team');
+  });
+});
+
+describe('admin audience choice (Plus and Pro / Pro only)', () => {
+  it('legacy docs and both-flagged docs load as "Plus and Pro"', () => {
+    expect(audienceChoice(undefined)).toBe('both');
+    expect(audienceChoice({ plus: true, pro: true })).toBe('both');
+  });
+  it('a Pro-only doc loads as "Pro only"', () => {
+    expect(audienceChoice({ plus: false, pro: true })).toBe('pro');
+  });
+  it('a choice maps to the stored flags', () => {
+    expect(audienceFromChoice('both')).toEqual({ plus: true, pro: true });
+    expect(audienceFromChoice('pro')).toEqual({ plus: false, pro: true });
   });
 });

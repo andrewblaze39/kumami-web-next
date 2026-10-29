@@ -6,6 +6,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { generateId } from './utils';
+import RichTextEditor from './RichTextEditor';
 
 const CATEGORIES = ['Web 3 Platform','Artificial Intelligence','Blockchain','DeFi','DePIN','Games','Gaming Guild','NFT','Memes','Exchanges','RWA','Education'];
 
@@ -24,6 +25,7 @@ export default function PublishPartner() {
 
   const saveContent = async (status: 'published' | 'draft') => {
     if (!currentUser) { setMessage('Please sign in'); return; }
+    if (status === 'published' && !description.trim()) { setMessage('Description is required.'); return; }
     setLoading(true);
     try {
       if (!imageFile) throw new Error('Please select an image');
@@ -43,7 +45,7 @@ export default function PublishPartner() {
         <div><label className="block text-sm font-medium text-gray-700 mb-1">Author</label><input type="text" className="w-full p-2 border border-gray-300 rounded-md text-black" value={author} onChange={(e) => setAuthor(e.target.value)} /></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1">Category</label><select className="w-full p-2 border border-gray-300 rounded-md text-black bg-white" value={category} onChange={(e) => setCategory(e.target.value)}>{CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1">Partner Image</label><input type="file" accept="image/*" onChange={handleImageChange} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white" required />{imagePreview && <img src={imagePreview} alt="Preview" className="mt-2 max-h-32 rounded" />}</div>
-        <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Description</label><textarea className="w-full p-2 border border-gray-300 rounded-md text-black h-24" value={description} onChange={(e) => setDescription(e.target.value)} required /></div>
+        <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Description</label><RichTextEditor value={description} onChange={(v) => setDescription(v)} rows={3} /></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1">Website</label><input type="url" className="w-full p-2 border border-gray-300 rounded-md text-black" value={websiteLink} onChange={(e) => setWebsiteLink(e.target.value)} /></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1">Twitter</label><input type="url" className="w-full p-2 border border-gray-300 rounded-md text-black" value={twitterLink} onChange={(e) => setTwitterLink(e.target.value)} /></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1">Telegram</label><input type="url" className="w-full p-2 border border-gray-300 rounded-md text-black" value={telegramLink} onChange={(e) => setTelegramLink(e.target.value)} /></div>

@@ -29,7 +29,7 @@ async function as<T>(browser: Browser, role: Role, fn: (page: Page) => Promise<T
 
 /** Admin form fields are "label + control" pairs without for/id — find the control by its label text. */
 const field = (scope: Page | Locator, label: string) =>
-  scope.locator(`xpath=.//div[label[normalize-space(.)="${label}"]]`).locator('input:not([type="checkbox"]), textarea, select').first();
+  scope.locator(`xpath=.//div[label[normalize-space(.)="${label}"]]`).locator('input:not([type="checkbox"]):not([type="radio"]), textarea, select, [contenteditable="true"]').first();
 
 const adminRow = (page: Page, text: string) => page.locator('div.border').filter({ hasText: text }).first();
 

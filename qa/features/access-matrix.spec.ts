@@ -218,7 +218,7 @@ test.describe('Cross-check — QA3 publishes Pro research', () => {
       await form.locator('input').nth(0).fill(title);
       await form.locator('input').nth(1).fill('[TEST] QA analyst');
       await form.locator('input').nth(2).fill('BTC');
-      await form.locator('textarea').nth(0).fill('[TEST] Temporary access-check call — deleted automatically.');
+      await form.locator('[contenteditable="true"], textarea').nth(0).fill('[TEST] Temporary access-check call — deleted automatically.');
       await page.getByRole('button', { name: /^Publish$/ }).click();
       await expect(page.getByText('Research call published!')).toBeVisible();
     });

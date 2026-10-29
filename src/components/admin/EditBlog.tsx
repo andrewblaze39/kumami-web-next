@@ -7,6 +7,7 @@ import { collection, getDocs, doc, updateDoc, deleteDoc, getDoc } from 'firebase
 import { getAuth } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { formatTimestamp } from './utils';
+import RichTextEditor from './RichTextEditor';
 
 interface BlogArticle { id: string; title: string; author: string; content1: string; content2: string; content: string; readTime: string | number; thumbnailImageUrl: string; detailImage1Url: string; detailImage2Url: string; imageUrl: string; likes: number; summary: string; timestamp: { seconds: number } | null; [key: string]: unknown; }
 
@@ -66,11 +67,11 @@ export default function EditBlog() {
             {editingId === article.id ? (
               <div className="space-y-3">
                 <div><label className="block text-sm font-medium text-gray-700">Title</label><input type="text" name="title" value={formData.title} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black" /></div>
-                <div><label className="block text-sm font-medium text-gray-700">Summary</label><textarea name="summary" value={formData.summary} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black h-20" /></div>
+                <div><label className="block text-sm font-medium text-gray-700">Summary</label><RichTextEditor value={formData.summary} onChange={(v) => setFormData((p) => ({ ...p, summary: v }))} rows={3} /></div>
                 <div><label className="block text-sm font-medium text-gray-700">Read Time</label><input type="number" name="readTime" value={formData.readTime} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black" /></div>
                 <div><label className="block text-sm font-medium text-gray-700">Upload Thumbnail</label><input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'thumbnailImageUrl')} disabled={isUploading} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white" /></div>
-                <div><label className="block text-sm font-medium text-gray-700">Content 1</label><textarea name="content1" value={formData.content1} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black h-32" /></div>
-                <div><label className="block text-sm font-medium text-gray-700">Content 2</label><textarea name="content2" value={formData.content2} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black h-32" /></div>
+                <div><label className="block text-sm font-medium text-gray-700">Content 1</label><RichTextEditor value={formData.content1} onChange={(v) => setFormData((p) => ({ ...p, content1: v }))} rows={5} /></div>
+                <div><label className="block text-sm font-medium text-gray-700">Content 2</label><RichTextEditor value={formData.content2} onChange={(v) => setFormData((p) => ({ ...p, content2: v }))} rows={5} /></div>
                 <div><label className="block text-sm font-medium text-gray-700">Created At</label><input type="text" value={formatTimestamp(formData.timestamp as Parameters<typeof formatTimestamp>[0])} disabled className="w-full p-2 border border-gray-300 rounded-md text-gray-500 bg-gray-50" /></div>
                 <div className="flex gap-2">
                   <button onClick={() => handleDelete(article.id)} className="px-4 py-2 bg-red-600 text-white rounded-md text-sm">Delete</button>

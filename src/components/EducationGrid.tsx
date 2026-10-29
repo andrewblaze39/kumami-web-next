@@ -10,6 +10,7 @@ import { PHASES } from '@/data/educationPhases'
 import { resolveLevelNumber, getLevelColor } from '@/lib/educationUtils'
 import type { EducationArticle } from '@/types/education'
 
+import { plainText } from '@/lib/richText';
 // ── Design tokens ─────────────────────────────────────────────────────────
 const T = {
   bgGradient: 'linear-gradient(160deg, #0A1A1C 0%, #0D2224 30%, #102425 65%, #0e1d1f 100%)',
@@ -340,7 +341,7 @@ function LessonCard({ article, i }: { article: EducationArticle; i: number }) {
         {article.blurb ? (
           <div style={{
             fontSize: 12, color: T.textDim, lineHeight: 1.45, marginBottom: 10,
-          }}>{article.blurb}</div>
+          }}>{plainText(article.blurb)}</div>
         ) : null}
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <span style={{

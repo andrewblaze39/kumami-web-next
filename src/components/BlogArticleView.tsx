@@ -15,6 +15,8 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
+import { RichText } from '@/components/RichText';
+import { plainText } from '@/lib/richText';
 // ---------- Types ----------
 
 interface FirestoreTimestampLike {
@@ -365,7 +367,7 @@ export default function BlogArticleView({ articleId }: Props) {
             {/* Summary (if present) */}
             {article.summary && (
               <p className="text-lg text-gray-300 leading-relaxed mb-8 italic border-l-2 border-[#96EDD6] pl-4">
-                {article.summary}
+                <RichText text={article.summary} />
               </p>
             )}
 
@@ -445,7 +447,7 @@ export default function BlogArticleView({ articleId }: Props) {
                         </h3>
                         {item.summary && (
                           <p className="text-xs md:text-sm text-gray-400 line-clamp-2">
-                            {item.summary}
+                            {plainText(item.summary)}
                           </p>
                         )}
                       </div>

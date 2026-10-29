@@ -6,6 +6,7 @@ import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firesto
 import { getAuth } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { formatTimestamp } from './utils';
+import RichTextEditor from './RichTextEditor';
 
 const CATEGORIES = ['Web 3 Platform','Artificial Intelligence','Blockchain','DeFi','DePIN','Games','Gaming Guild','NFT','Memes','Exchanges','RWA','Education'];
 
@@ -64,9 +65,9 @@ export default function EditResearch() {
                 <div><label className="block text-sm font-medium text-gray-700">Title</label><input type="text" name="title" value={formData.title} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black" /></div>
                 <div><label className="block text-sm font-medium text-gray-700">Author</label><input type="text" name="author" value={formData.author} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black" /></div>
                 <div><label className="block text-sm font-medium text-gray-700">Category</label><select name="category" value={formData.category} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white">{CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
-                <div><label className="block text-sm font-medium text-gray-700">Description</label><textarea name="description" value={formData.description} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black h-20" /></div>
-                <div><label className="block text-sm font-medium text-gray-700">Content 1</label><textarea name="content1" value={formData.content1} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black h-32" /></div>
-                <div><label className="block text-sm font-medium text-gray-700">Content 2</label><textarea name="content2" value={formData.content2} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black h-32" /></div>
+                <div><label className="block text-sm font-medium text-gray-700">Description</label><RichTextEditor value={formData.description} onChange={(v) => setFormData((p) => ({ ...p, description: v }))} rows={3} /></div>
+                <div><label className="block text-sm font-medium text-gray-700">Content 1</label><RichTextEditor value={formData.content1} onChange={(v) => setFormData((p) => ({ ...p, content1: v }))} rows={5} /></div>
+                <div><label className="block text-sm font-medium text-gray-700">Content 2</label><RichTextEditor value={formData.content2} onChange={(v) => setFormData((p) => ({ ...p, content2: v }))} rows={5} /></div>
                 {formData.imageUrl && <div><img src={formData.imageUrl} alt="Current" className="max-h-32 rounded" /><p className="text-xs text-gray-500">Current Main Image</p></div>}
                 <div><label className="block text-sm font-medium text-gray-700">Upload New Main Image</label><input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'imageUrl')} disabled={isUploading} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white" /></div>
                 {formData.detailImageUrl && <div><img src={formData.detailImageUrl} alt="Detail" className="max-h-32 rounded" /><p className="text-xs text-gray-500">Current Detail Image</p></div>}

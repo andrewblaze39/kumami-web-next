@@ -431,13 +431,7 @@ export default function EditEducation() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Blurb</label>
-                    <textarea
-                      value={formData.blurb}
-                      onChange={e => setFormData(p => ({ ...p, blurb: e.target.value }))}
-                      className="w-full p-2 border border-gray-300 rounded-md text-black"
-                      rows={2}
-                      placeholder="Short summary for cards..."
-                    />
+                    <RichTextEditor value={formData.blurb} onChange={(v) => setFormData(p => ({ ...p, blurb: v }))} rows={4} placeholder="Short summary for cards..." />
                   </div>
 
                   <div>

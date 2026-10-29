@@ -6,6 +6,7 @@ import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { ProShellHead } from './shared';
 
+import { RichText } from '@/components/RichText';
 interface ResearchCall {
   id: string;
   name: string;
@@ -67,11 +68,11 @@ export function KumamiResearch() {
                 {k.pos} {k.asset}
               </span>
             </div>
-            <p className="ma-body">{k.body}</p>
+            <p className="ma-body"><RichText text={k.body} /></p>
             {k.forYou && (
               <div className="ma-premium">
                 <b>What this means for you</b>
-                {k.forYou}
+                <RichText text={k.forYou} />
               </div>
             )}
           </div>

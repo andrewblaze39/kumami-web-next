@@ -7,6 +7,7 @@ import { db } from '@/lib/firebase';
 import { useProState } from '../ProState';
 import { ProShellHead } from './shared';
 
+import { RichText } from '@/components/RichText';
 interface ChecklistRow { t: string; ok: boolean }
 interface Airdrop {
   id: string;
@@ -62,7 +63,7 @@ export function Airdrops() {
     return (
       <>
         <ProShellHead eyebrow="Tools" icon={<Sparkles size={24} />} title={selected.name}>
-          {selected.desc}
+          <RichText text={selected.desc} />
         </ProShellHead>
         <button className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }} onClick={() => setSelId(null)}>
           <ArrowLeft size={15} /> Back to list
@@ -136,7 +137,7 @@ export function Airdrops() {
                 <span className={`ad-elig ${a.elig}`}>{ELIG_LABEL[a.elig]}</span>
               </div>
               <h3>{a.name}</h3>
-              <p>{a.desc}</p>
+              <p><RichText text={a.desc} /></p>
               <div className="ad-foot">
                 <span className="cd">{a.deadline || '—'}</span>
                 <span className="val">{a.val || '—'}</span>

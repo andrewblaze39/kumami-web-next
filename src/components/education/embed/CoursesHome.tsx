@@ -28,6 +28,7 @@ import { PHASES } from '@/data/educationPhases'
 import type { EducationArticle } from '@/types/education'
 import { useEducationProgress } from '@/hooks/useEducationProgress'
 
+import { plainText } from '@/lib/richText';
 // Fetch published articles for a level, keyed by chapterIndex
 async function fetchArticlesForLevel(levelNum: number): Promise<Map<number, EducationArticle>> {
   try {
@@ -275,7 +276,7 @@ export default function CoursesHome() {
                       <>
                         {article.blurb && (
                           <p style={{ fontSize: 13.5, color: 'var(--muted)', lineHeight: 1.6, margin: '0 0 12px' }}>
-                            {article.blurb}
+                            {plainText(article.blurb)}
                           </p>
                         )}
 

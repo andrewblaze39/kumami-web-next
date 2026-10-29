@@ -8,6 +8,7 @@ import {
 } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminPageTour, { proAdminTourSteps } from './AdminPageTour';
+import RichTextEditor from './RichTextEditor';
 import {
   adminCalendarFields, audienceError, audienceFormState, DEFAULT_AUDIENCE, missingTokenSaleFields, parseAdminWhen, TOKEN_SALE,
   type AdminCalendarForm,
@@ -291,7 +292,7 @@ export default function PublishCalendar() {
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-          <textarea className={`${inputCls} h-20`} value={form.d} onChange={(e) => set('d', e.target.value)} />
+          <RichTextEditor value={form.d} onChange={(v) => set('d', v)} rows={4} />
         </div>
         <div className="md:col-span-2 flex gap-3">
           <button type="submit" data-tour="admin-publish" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400">

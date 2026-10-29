@@ -131,7 +131,7 @@ test.describe('Calendar — admin round trip (QA3 admin authors, QA1 free user v
     await form.locator('input[type="time"]').fill(opts.time ?? time);
     await form.locator('select').nth(0).selectOption(opts.impact ?? 'high');
     await form.getByPlaceholder(/BTC, ETH/).fill('eth');
-    await form.locator('textarea').fill('Temporary round-trip event — deleted automatically.');
+    await form.locator('[contenteditable="true"]').first().fill('Temporary round-trip event — deleted automatically.');
   }
 
   async function calendarHas(page: Page, text: string) {

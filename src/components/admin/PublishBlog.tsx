@@ -5,7 +5,8 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
-import { formatSelection as fmtSel, getFormattedPreviewHtml } from './utils';
+import { getFormattedPreviewHtml } from './utils';
+import RichTextEditor from './RichTextEditor';
 
 export default function PublishBlog() {
   const [title, setTitle] = useState('');
@@ -35,6 +36,7 @@ export default function PublishBlog() {
 
   const saveArticle = async (status: 'draft' | 'published') => {
     if (!currentUser) { setMessage('Please sign in'); return; }
+    if (status === 'published' && !content1.trim()) { setMessage('Content section 1 is required.'); return; }
     setLoading(true);
     try {
       let thumbUrl = ''; let detailUrl: string | null = null;
@@ -59,12 +61,12 @@ export default function PublishBlog() {
         <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Summary</label><input type="text" className="w-full p-2 border border-gray-300 rounded-md text-black" value={summary} onChange={(e) => setSummary(e.target.value)} required /></div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Content Section 1</label>
-          <div className="flex gap-1 mb-1"><button type="button" onClick={() => fmtSel('blog-c1', content1, 'bold', setContent1)} className="px-2 py-1 bg-gray-100 text-xs rounded font-semibold">Bold</button><button type="button" onClick={() => fmtSel('blog-c1', content1, 'italic', setContent1)} className="px-2 py-1 bg-gray-100 text-xs rounded italic">Italic</button></div>
-          <textarea id="blog-c1" className="w-full p-2 border border-gray-300 rounded-md text-black h-32" value={content1} onChange={(e) => setContent1(e.target.value)} required />
+          
+          <RichTextEditor value={content1} onChange={(v) => setContent1(v)} rows={5} />
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Content Section 2</label>
-          <textarea className="w-full p-2 border border-gray-300 rounded-md text-black h-32" value={content2} onChange={(e) => setContent2(e.target.value)} />
+          <RichTextEditor value={content2} onChange={(v) => setContent2(v)} rows={5} />
         </div>
         <div className="md:col-span-2 flex gap-3">
           <button type="button" onClick={() => saveArticle('draft')} disabled={loading} className="px-4 py-2 bg-gray-200 text-gray-900 rounded-md hover:bg-gray-300">{loading ? 'Saving...' : 'Save as Draft'}</button>

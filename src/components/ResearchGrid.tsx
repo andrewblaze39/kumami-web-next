@@ -13,6 +13,7 @@ import {
 import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
+import { plainText } from '@/lib/richText';
 interface ResearchArticle {
   id: string
   title: string
@@ -213,7 +214,7 @@ export default function ResearchGrid() {
 
     const desc = (
       <p className="m-0 text-white/[0.78] text-[0.9rem] leading-[1.5] line-clamp-3">
-        {article.description}
+        {plainText(article.description)}
       </p>
     )
 
