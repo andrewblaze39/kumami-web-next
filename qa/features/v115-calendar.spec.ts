@@ -10,7 +10,7 @@ import { admin } from '../personas';
 const SALE = `${QA_PREFIX} Acme token sale`;
 const LOW = `${QA_PREFIX} Low impact note`;
 const DROP = `${QA_PREFIX} Acme airdrop`;
-type Ev = { id: string; title: string; impact: string; description: string; link?: string; category?: string };
+type Ev = { id: string; title: string; ts: string; impact: string; description: string; link?: string; category?: string };
 
 const field = (scope: Page | Locator, label: string) =>
   scope.locator(`xpath=.//div[label[normalize-space(.)="${label}"]]`).locator('input:not([type="checkbox"]):not([type="radio"]), textarea, select, [contenteditable="true"]').first();
@@ -92,14 +92,18 @@ test.skip('Plus user: token sale with venue, raise and link; no airdrops (Pro-on
   await ctx.close();
 });
 
-test('Pro user: the airdrop claim day shows on the Calendar', async ({ browser }, info) => {
+// v1.18 (Andrew, 29 Oct 2026): airdrop claim days show in Calendar Pro only, never in Calendar Plus.
+test('Pro user: the airdrop claim day shows in Calendar Pro (not Calendar Plus)', async ({ browser }, info) => {
   const ctx = await browser.newContext({ storageState: AUTH.pro });
   const page = await ctx.newPage();
   const g = guard(page);
-  await openPage(page, '/world/calendar');
-  const { body } = await apiAsUser<{ events: Ev[] }>(page, '/api/market/calendar');
+  const plus = await (async () => { await openPage(page, '/world/calendar'); return (await apiAsUser<{ events: Ev[] }>(page, '/api/market/calendar')).body; })();
+  expect(plus.events.some((e) => e.title.startsWith(DROP)), 'airdrop leaked into Calendar Plus').toBe(false);
+  await openPage(page, '/world/pro?tab=calendar');
+  const { body } = await apiAsUser<{ events: Ev[] }>(page, '/api/market/calendar?view=pro');
   const drop = body.events.find((e) => e.title.startsWith(DROP));
   expect(drop).toMatchObject({ impact: 'MED', category: 'Airdrop TGE / claim' });
+  if (new Date(drop!.ts).getMonth() !== new Date().getMonth()) await page.getByRole('button', { name: 'Next month' }).click();
   await expect(page.locator('.w-cal-cell-event').filter({ hasText: DROP })).toBeVisible();
   await snap(page, info, 'v115-calendar-pro');
   g.assertClean();

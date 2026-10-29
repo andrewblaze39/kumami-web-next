@@ -84,14 +84,11 @@ test.describe('Calendar — CoinGlass feeds: OFF by default, admin switches (QA3
     await dismissPopupIfAny(page);
     await expectSaneText(page);
     await expect(chips(page).first()).toBeVisible();
-    // v1.15 Plus §5: HIGH + MED are on by default, LOW is off — no LOW chip shows yet.
-    const defaults = await chips(page).evaluateAll((els) => els.map((e) => e.getAttribute('title') ?? ''));
-    for (const t of defaults) expect(t).not.toMatch(/, LOW\)/);
-    await page.getByRole('button', { name: 'MED', exact: true }).click();
-    const highTitles = await chips(page).evaluateAll((els) => els.map((e) => e.getAttribute('title') ?? ''));
-    expect(highTitles.length).toBeGreaterThan(0);
-    for (const t of highTitles) expect(t).toMatch(/, HIGH\)/);
-    await snap(page, info, 'calendar-macro-on-high-only');
+    // v1.18: no category / asset / impact filters any more; macro events are colour-coded "Macro".
+    await expect(page.getByRole('button', { name: 'MED', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Token Unlocks', exact: true })).toHaveCount(0);
+    expect(await chips(page).evaluateAll((els) => els.filter((e) => e.getAttribute('data-kind') === 'macro').length)).toBeGreaterThan(0);
+    await snap(page, info, 'calendar-macro-on');
     const label = page.locator('.w-cal-month-label');
     const start = await label.innerText();
     await page.getByRole('button', { name: 'Next month' }).click();
@@ -158,7 +155,7 @@ test.describe('Calendar — admin round trip (QA3 admin authors, QA1 free user v
     await ctx.close();
   });
 
-  test('Plus user sees the published event (★, first in its day) but not the draft', async ({ browser }, info) => {
+  test('Plus user sees the published event (Kumami colour, first in its day) but not the draft', async ({ browser }, info) => {
     const ctx = await browser.newContext({ storageState: AUTH.plus });
     const page = await ctx.newPage();
     // The HIGH event is within 24h and involves ETH → the D-1 popup must show it.
@@ -167,8 +164,10 @@ test.describe('Calendar — admin round trip (QA3 admin authors, QA1 free user v
     await snap(page, info, 'calendar-d1-popup');
     expect(await calendarHas(page, title)).toBe(1);
     const chip = chips(page).filter({ hasText: title });
-    await expect(chip).toContainText('★');
-    await expect(chip).toHaveAttribute('title', /Project · Kumami, HIGH/);
+    // v1.18: team events are colour-coded "Kumami" (no ★); HIGH events start with "!".
+    await expect(chip).toHaveAttribute('data-kind', 'team');
+    await expect(chip).toHaveAttribute('title', /· Kumami · HIGH/);
+    await expect(chip).toContainText('!');
     expect(await calendarHas(page, draftTitle)).toBe(0);
 
     // Console's "Needs your attention today" popup lists it too.

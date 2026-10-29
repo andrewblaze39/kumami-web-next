@@ -207,7 +207,7 @@ export function CalendarView({ view }: { view: 'plus' | 'pro' }) {
       )}
 
       {popupEvent && (
-        <div className="w-cal-d1-overlay" role="dialog" aria-modal="true" aria-label="High-impact event soon">
+        <div className="w-cal-d1-overlay" role="dialog" aria-modal="true" aria-label="High-impact event tomorrow">
           <div className="w-cal-d1-modal">
             <div className="w-cal-d1-head">📅 High-impact event soon</div>
             <div className="w-cal-d1-title">{popupEvent.title}</div>

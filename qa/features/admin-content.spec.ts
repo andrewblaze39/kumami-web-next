@@ -550,16 +550,18 @@ test.describe('Calendar — team events', () => {
   });
 
   for (const role of ['pro', 'plus'] as const) {
-    test(`${role === 'pro' ? 'qa2' : 'qa1'} sees both on the Calendar (★ Kumami event, impact, details), not the draft`, async ({ browser }, info) => {
+    test(`${role === 'pro' ? 'qa2' : 'qa1'} sees both on the Calendar (Kumami colour, impact, details), not the draft`, async ({ browser }, info) => {
       await as(browser, role, async (page) => {
+        // v1.18: team events are colour-coded "Kumami" (no ★); HIGH starts with "!"; the day panel shows details.
         const high = await calendarChip(page, CAL_HIGH);
         await expect(high).toHaveCount(1);
-        await expect(high).toContainText('★');
-        await expect(high).toHaveAttribute('title', /Project · Kumami, HIGH/);
+        await expect(high).toHaveAttribute('data-kind', 'team');
+        await expect(high).toHaveAttribute('title', /· Kumami · HIGH/);
+        await expect(high).toContainText('!');
         const med = await calendarChip(page, CAL_MED);
         await expect(med).toHaveCount(1);
-        await expect(med).toContainText('★');
-        await expect(med).toHaveAttribute('title', /On-chain · Kumami, MED/);
+        await expect(med).toHaveAttribute('data-kind', 'team');
+        await expect(med).toHaveAttribute('title', /· Kumami · MED/);
         expect(await (await calendarChip(page, CAL_DRAFT)).count()).toBe(0);
         await high.click();
         await expect(page.getByText(CAL_HIGH.d).first()).toBeVisible();
@@ -660,9 +662,9 @@ test.describe('Daily Pro Digest', () => {
       await expect(page.getByText(CAL_DRAFT.t)).toHaveCount(0);
       await expectSaneText(page);
       await snap(page, info, 'admin-content-digest-qa2');
-      // Each section's link opens its tab (Calendar → the shared Calendar page).
+      // Each section's link opens its tab (v1.18: Calendar → Calendar Pro).
       await section('Calendar').getByRole('link').click();
-      await expect(page).toHaveURL(/\/world\/calendar/, { timeout: 30_000 });
+      await expect(page).toHaveURL(/\/world\/(pro\?tab=calendar|calendar)/, { timeout: 30_000 });
       g.assertClean();
     });
     await expectLockedForFree(browser, 'digest');
