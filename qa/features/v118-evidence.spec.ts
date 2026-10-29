@@ -234,7 +234,17 @@ test.describe('rachelle', () => {
     await page.getByRole('button', { name: '1H', exact: true }).click().catch(() => {});
     await page.waitForTimeout(1500);
     const feed = page.locator('[data-tour="fr-feed"]');
-    await shot('R05', 'flow-radar-1h', feed, `Flow Radar Plus, 1H window: "${(await feed.innerText().catch(() => '')).replace(/\s+/g, ' ').slice(0, 160)}".`);
+    await shot('R05', 'flow-radar-1h-live', feed, `Flow Radar Plus, 1H window, live data: "${(await feed.innerText().catch(() => '')).replace(/\s+/g, ' ').slice(0, 120)}".`);
+    // A quiet market can't be ordered up: replay the real response with no events to show the empty state.
+    await page.route('**/api/market/flow-radar**', async (route) => {
+      const res = await route.fetch();
+      const json = await res.json();
+      await route.fulfill({ response: res, json: { ...json, events: [], delayedAsOf: json.delayedAsOf ?? Date.now() } });
+    });
+    await openPage(page, '/world/flow-radar');
+    await page.getByRole('button', { name: '1H', exact: true }).click().catch(() => {});
+    await page.waitForTimeout(1000);
+    await shot('R05', 'flow-radar-quiet', feed, `Flow Radar Plus with no HIGH/MED events in the window (real response replayed without events): "${(await feed.innerText().catch(() => '')).replace(/\s+/g, ' ').slice(0, 120)}".`);
     await ctx.close();
   });
 

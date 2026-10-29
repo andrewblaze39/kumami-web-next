@@ -8214,3 +8214,8 @@
 .world-root .w-alert-toast-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
 .world-root .w-alert-toast-actions a { color: var(--accent); font-weight: 700; }
 .world-root .w-alert-toast-actions button { background: none; border: 0; color: var(--muted); font-size: 18px; cursor: pointer; line-height: 1; }
+
+/* v1.18: the Console Fear & Greed label takes the index colour (Fear red, Greed green), like the number */
+.world-root .w-mc-fearval span.w-bull { color: var(--bull); }
+.world-root .w-mc-fearval span.w-bear { color: var(--bear); }
+.world-root .w-mc-fearval span.w-muted { color: var(--muted); }
