@@ -63,5 +63,30 @@
     "item": "A3",
     "file": "a3-console-mini-calendar.jpg",
     "caption": "Plus Market Console: mini month calendar (today highlighted, a coloured dot per event kind) with the next 3 events, instead of the \"next 7 days\" list."
+  },
+  {
+    "item": "A5",
+    "file": "a5-alerts-builder.jpg",
+    "caption": "Following & Alerts: CMC-style builder (coin · Price rises above / drops below / up % / down % (24h) / 24h volume up · value · Once / Every time) and the two alerts created."
+  },
+  {
+    "item": "A5",
+    "file": null,
+    "caption": "Collector runs: HTTP 200 then 200; second run checked 2 alerts, fired 1."
+  },
+  {
+    "item": "A5",
+    "file": "a5-alert-toast.jpg",
+    "caption": "In-app alert on the open page: \"🔔 Alert: BTC price rises above $1,000 BTC rose above $1,000 — now $81,414 See alerts ×\"."
+  },
+  {
+    "item": "A5",
+    "file": "a5-alerts-after-trigger.jpg",
+    "caption": "After the trigger: the BTC alert shows \"Triggered\" (Once → paused, Re-arm button) and \"Recent alerts\" lists it; the ETH alert keeps watching."
+  },
+  {
+    "item": "A5",
+    "file": null,
+    "caption": "GET /api/v1/me/alerts as a Plus user: HTTP 403 (expected 403 pro_required)."
   }
 ]

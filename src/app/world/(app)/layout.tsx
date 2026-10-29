@@ -8,6 +8,7 @@ import { WorldModeProvider, useWorldMode } from '@/contexts/WorldModeContext';
 import Sidebar from '@/components/world/shell/Sidebar';
 import Topbar from '@/components/world/shell/Topbar';
 import KumaDock from '@/components/world/kuma/KumaDock';
+import AlertNotifier from '@/components/world/pro/AlertNotifier';
 import ShellLegalFooter from '@/components/legal/ShellLegalFooter';
 
 // Inner layout that has access to WorldModeContext
@@ -72,6 +73,9 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
       >
         <KumaDock />
       </aside>
+
+      {/* Price alerts the collector just triggered (Pro Following & Alerts) — toast + browser notification */}
+      <AlertNotifier />
 
       {/* Mobile bottom tab bar — CSS-only hidden above 760px, see world.css */}
     </div>

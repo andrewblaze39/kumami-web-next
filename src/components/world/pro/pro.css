@@ -230,3 +230,18 @@
   .ad-grid{grid-template-columns:1fr}
   .tg-msg{max-width:100%}
 }
+
+/* v1.18 Following & Alerts (CMC-style builder + list) */
+.w-pro-root .fa-builder { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.w-pro-root .fa-builder label { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 700; color: var(--muted); }
+.w-pro-root .fa-builder input.rtn-drop { width: 140px; }
+.w-pro-root .fa-hint { font-size: 11.5px; color: var(--muted-2); margin-top: 10px; line-height: 1.5; }
+.w-pro-root .fa-error { font-size: 12px; color: #ff6b81; margin-top: 8px; }
+.w-pro-root .fa-section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 13px; font-weight: 800; margin: 0 0 10px; }
+.w-pro-root .fa-perm { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; color: var(--muted); }
+.w-pro-root .fa-perm.on { color: var(--accent, #00c2c7); }
+.w-pro-root .fa-row { align-items: center; flex-wrap: wrap; gap: 8px; }
+.w-pro-root .fa-row .l { display: flex; flex-direction: column; gap: 2px; min-width: 220px; }
+.w-pro-root .fa-sub { font-size: 11.5px; color: var(--muted-2); font-weight: 500; }
+.w-pro-root .fa-actions { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+.w-pro-root .fa-actions .followbtn { padding: 4px 8px; }

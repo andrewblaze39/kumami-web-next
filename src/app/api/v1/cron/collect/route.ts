@@ -8,6 +8,7 @@ import { fail, handler, ok } from '@/lib/api/v1';
 import { secretMatches } from '@/lib/api/cronSecret';
 import { runCollector } from '@/lib/market/collector';
 import { recordFearGreedDay } from '@/lib/market/fearGreedDaily';
+import { runPriceAlerts } from '@/lib/pro/alertRunner';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -19,5 +20,7 @@ export const POST = handler('cron/collect', async (req: Request) => {
   const collector = await runCollector();
   // Once a UTC day: save Kumami's Fear & Greed score (v1.17 Plus §4). Never fails the run.
   const fearGreedDay = await recordFearGreedDay().catch((e) => `error: ${e instanceof Error ? e.message : 'unknown'}`);
-  return ok({ ...(collector ?? { skipped: true }), fearGreedDay });
+  // Every run: check Pro users' price alerts (v1.18 Following & Alerts). Never fails the run.
+  const alerts = await runPriceAlerts().catch((e) => ({ error: e instanceof Error ? e.message : 'unknown' }));
+  return ok({ ...(collector ?? { skipped: true }), fearGreedDay, alerts });
 });
