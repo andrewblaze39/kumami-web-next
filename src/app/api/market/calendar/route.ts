@@ -3,7 +3,9 @@
  *
  * Returns the CalendarPayload (macro events + token unlocks + admin-authored
  * team events) for the shared /world/calendar page, the Console Calendar
- * preview and the "Needs your attention" popup. Same payload for every tier.
+ * preview and the "Needs your attention" popup, filtered per tier:
+ *   - admin events carry optional audience flags (Plus / Pro, set independently);
+ *     legacy events without them are shown to both.
  *
  * Airdrop TGE / claim entries come from the Pro-only Airdrops & Whitelist tool, so
  * they're stripped for non-Pro accounts (Andrew, 21 Oct 2026: Pro-only until
@@ -17,7 +19,7 @@
 import { NextResponse } from 'next/server';
 import { authenticate } from '@/lib/market/api-helpers';
 import { getProvider } from '@/lib/market/provider';
-import { isAirdropEvent } from '@/lib/market/rules/calendarEvents';
+import { calendarEventsForTier } from '@/lib/market/rules/calendarEvents';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -27,6 +29,5 @@ export async function GET(request: Request) {
   if (auth instanceof NextResponse) return auth;
 
   const payload = await getProvider().calendar();
-  if (auth.tier === 'pro') return NextResponse.json(payload);
-  return NextResponse.json({ ...payload, events: payload.events.filter((e) => !isAirdropEvent(e)) });
+  return NextResponse.json({ ...payload, events: calendarEventsForTier(payload.events, auth.tier) });
 }

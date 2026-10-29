@@ -160,6 +160,8 @@ export type CalendarEvent = {
   category?: string;
   /** Official link (Token sale / TGE events). */
   link?: string;
+  /** Admin-selected availability. Missing on legacy records means visible to both Plus and Pro. */
+  audience?: { plus: boolean; pro: boolean };
 };
 
 /** Full payload for the shared /world/calendar page (Plus and Pro). */

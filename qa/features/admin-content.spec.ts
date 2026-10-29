@@ -523,7 +523,6 @@ test.describe('Calendar — team events', () => {
     await field(page, 'Date').fill(c.date);
     await field(page, 'Time in UTC (optional — blank = all day)').fill(c.time);
     await field(page, 'Impact').selectOption(c.imp);
-    await field(page, 'Category').selectOption(c.cat);
     await field(page, 'Affected assets (optional)').fill(c.assets);
     await field(page, 'Description').fill(c.d);
   }

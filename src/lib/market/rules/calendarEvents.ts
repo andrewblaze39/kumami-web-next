@@ -50,6 +50,7 @@ export type AdminCalendarDoc = {
   link?: string;         // Token sale / TGE: official link
   assets?: string;       // comma-separated tickers, optional
   status?: string;       // only 'published' docs are ever passed in
+  audience?: { plus?: boolean; pro?: boolean };
 };
 
 /** Unlocks smaller than this market cap are noise for a 5-asset product. */
@@ -176,6 +177,44 @@ export function missingTokenSaleFields(doc: AdminCalendarDoc): string[] {
   return miss;
 }
 
+/**
+ * Admin audience switches (Plus / Pro, independent). A doc with no boolean flag is a
+ * legacy doc: no audience, so it shows to both. A missing flag inside a partial one counts as on.
+ */
+export function parseAdminAudience(a: AdminCalendarDoc['audience']): CalendarEvent['audience'] {
+  if (!a || (typeof a.plus !== 'boolean' && typeof a.pro !== 'boolean')) return undefined;
+  return { plus: a.plus !== false, pro: a.pro !== false };
+}
+
+/** New admin events are shown to both tiers until the admin switches one off. */
+export const DEFAULT_AUDIENCE = { plus: true, pro: true } as const;
+
+/** The admin form's switches for an existing doc: legacy docs (no audience) load as both on. */
+export function audienceFormState(a: AdminCalendarDoc['audience']): { plus: boolean; pro: boolean } {
+  return parseAdminAudience(a) ?? { ...DEFAULT_AUDIENCE };
+}
+
+/** At least one tier must see the event; null when the switches are valid. */
+export function audienceError(a: { plus: boolean; pro: boolean }): string | null {
+  return a.plus || a.pro ? null : 'Choose who sees this event: Plus or Pro (or both).';
+}
+
+/** The admin calendar form (PublishCalendar). `cat` is only set when editing a legacy doc that has one. */
+export type AdminCalendarForm = {
+  t: string; date: string; time: string; imp: string; d: string; assets: string;
+  venue: string; raise: string; link: string; cat?: string;
+  audience: { plus: boolean; pro: boolean };
+};
+
+/**
+ * The fields PublishCalendar writes to pro_calendar. The category control is gone (calendar PRD,
+ * 28 Oct 2026), so new docs carry no `cat`; a legacy doc's `cat` is kept on edit so it renders as before.
+ */
+export function adminCalendarFields(form: AdminCalendarForm): Omit<AdminCalendarDoc, 'status'> & { audience: { plus: boolean; pro: boolean } } {
+  const { cat, audience, ...rest } = form;
+  return { ...rest, ...(cat?.trim() ? { cat } : {}), audience: { plus: audience.plus, pro: audience.pro } };
+}
+
 /** Returns null for docs without a title or a valid date (never rendered half-broken). */
 export function adminToEvent(id: string, doc: AdminCalendarDoc): CalendarEvent | null {
   const title = (doc.t ?? '').trim();
@@ -197,6 +236,7 @@ export function adminToEvent(id: string, doc: AdminCalendarDoc): CalendarEvent |
       doc.raise?.trim() ? `Raise / FDV: ${doc.raise.trim()}` : '',
     ].filter(Boolean).join(' · '),
     source: 'kumami',
+    audience: parseAdminAudience(doc.audience),
     category: doc.cat?.trim() || undefined,
     ...(/^https?:\/\//i.test(doc.link?.trim() ?? '') ? { link: doc.link!.trim() } : {}),
   };
@@ -232,6 +272,19 @@ export function airdropToEvent(id: string, doc: AirdropDoc): CalendarEvent | nul
 /** Airdrop entries are Pro content: the Calendar route hides them from Plus. */
 export function isAirdropEvent(e: Pick<CalendarEvent, 'id'>): boolean {
   return e.id.startsWith('airdrop-');
+}
+
+/** Market tier as resolved by gating.ts: 'free' is every signed-in non-Pro account (Kumami Plus). */
+type CalendarTier = 'free' | 'pro';
+
+/** Legacy events have no audience flag and remain visible to both tiers. */
+export function isCalendarEventVisibleToTier(event: Pick<CalendarEvent, 'id' | 'audience'>, tier: CalendarTier): boolean {
+  return event.audience?.[tier === 'pro' ? 'pro' : 'plus'] !== false;
+}
+
+/** The events one tier may see: the admin audience flags, and airdrops stay Pro-only whatever their flags say. */
+export function calendarEventsForTier<E extends Pick<CalendarEvent, 'id' | 'audience'>>(events: E[], tier: CalendarTier): E[] {
+  return events.filter((e) => isCalendarEventVisibleToTier(e, tier) && (tier === 'pro' || !isAirdropEvent(e)));
 }
 
 /** The fixed Plus roster (Kumami Plus §7.3). */

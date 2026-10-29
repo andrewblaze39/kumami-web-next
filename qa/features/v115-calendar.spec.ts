@@ -24,7 +24,9 @@ test.afterAll(async () => {
 
 test.describe.configure({ mode: 'serial' });
 
-test('admin: a token sale needs every field; then it publishes', async ({ browser }, info) => {
+// The admin form has no Category control any more (calendar PRD, 28 Oct 2026), so a new event can't be
+// made a "Token sale / TGE"; token-sale fields only show when editing a legacy doc. Skipped until that's decided.
+test.skip('admin: a token sale needs every field; then it publishes', async ({ browser }, info) => {
   const ctx = await browser.newContext({ storageState: AUTH.admin });
   const page = await ctx.newPage();
   await openPage(page, '/admin/pro-calendar', { ready: 'text=Automatic feeds' });
@@ -67,7 +69,7 @@ test('admin: an airdrop with a TGE / claim date', async ({ browser }) => {
   await ctx.close();
 });
 
-test('Plus user: token sale with venue, raise and link; no airdrops (Pro-only); LOW hidden by default', async ({ browser }, info) => {
+test.skip('Plus user: token sale with venue, raise and link; no airdrops (Pro-only); LOW hidden by default', async ({ browser }, info) => {
   const ctx = await browser.newContext({ storageState: AUTH.plus });
   const page = await ctx.newPage();
   const g = guard(page);

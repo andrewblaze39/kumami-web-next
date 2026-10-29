@@ -8,7 +8,10 @@ import {
 } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminPageTour, { proAdminTourSteps } from './AdminPageTour';
-import { ADMIN_CATEGORIES, missingTokenSaleFields, parseAdminWhen, TOKEN_SALE } from '@/lib/market/rules/calendarEvents';
+import {
+  adminCalendarFields, audienceError, audienceFormState, DEFAULT_AUDIENCE, missingTokenSaleFields, parseAdminWhen, TOKEN_SALE,
+  type AdminCalendarForm,
+} from '@/lib/market/rules/calendarEvents';
 
 /**
  * PublishCalendar — admin authoring for the shared Calendar (/world/calendar,
@@ -18,17 +21,19 @@ import { ADMIN_CATEGORIES, missingTokenSaleFields, parseAdminWhen, TOKEN_SALE } 
  * on the user's next load. Writes to `pro_calendar` (covered by the pro_*
  * wildcard rule — the collection name is historical).
  *
- * Fields: date `YYYY-MM-DD`; time `HH:MM` in UTC (blank = all-day); category
- * Macro / Token unlock map to those calendar types, everything else shows
- * under "Protocol & other"; assets = comma-separated tickers (blank macro
- * events count as market-wide/BTC). HIGH-impact events trigger the
- * "high-impact event soon" popups for every user in the 24h before.
+ * Fields: date `YYYY-MM-DD`; time `HH:MM` in UTC (blank = all-day); assets =
+ * comma-separated tickers; audience = who sees it ({ plus, pro }, at least one
+ * on; new events default to both). There is no category control any more
+ * (calendar PRD, 28 Oct 2026): new events show under "Protocol & other", and a
+ * legacy doc keeps its stored `cat` (Macro / Token unlock / Token sale) on edit.
+ * Legacy docs without `audience` are shown to both tiers and load as both on.
+ * HIGH-impact events trigger the "high-impact event soon" popups in the 24h
+ * before, for the tiers that can see them.
  */
 
 const IMPS = ['high', 'med', 'low'] as const;
 type Imp = (typeof IMPS)[number];
 const IMP_LABEL: Record<Imp, string> = { high: 'High impact', med: 'Medium', low: 'Low' };
-const CATS = ADMIN_CATEGORIES;
 
 /** Importance guide for the team (Rachelle v1.15 Plus §5). */
 const IMPORTANCE_GUIDE: { imp: string; text: string }[] = [
@@ -51,16 +56,33 @@ interface CalDoc {
   date: string; // YYYY-MM-DD
   time: string;
   imp: Imp;
-  cat: string;
+  cat?: string; // legacy docs only
   d: string;
   assets?: string;
   venue?: string;
   raise?: string;
   link?: string;
+  audience?: { plus?: boolean; pro?: boolean };
   status: 'published' | 'draft';
 }
 
-const EMPTY = { t: '', date: '', time: '', imp: 'med' as Imp, cat: 'Macro', d: '', assets: '', venue: '', raise: '', link: '' };
+type Form = AdminCalendarForm & { imp: Imp };
+const EMPTY: Form = { t: '', date: '', time: '', imp: 'med', d: '', assets: '', venue: '', raise: '', link: '', audience: { ...DEFAULT_AUDIENCE } };
+
+/** One audience switch (Plus or Pro). */
+function AudienceSwitch({ label, on, onChange }: { label: string; on: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="flex items-center gap-2 text-sm text-gray-900 cursor-pointer select-none">
+      <input type="checkbox" className="h-4 w-4" checked={on} onChange={(e) => onChange(e.target.checked)} aria-label={`Show to ${label}`} />
+      {label}
+    </label>
+  );
+}
+
+function audienceLabel(a: CalDoc['audience']): string {
+  const s = audienceFormState(a);
+  return s.plus && s.pro ? 'Plus + Pro' : s.plus ? 'Plus only' : 'Pro only';
+}
 
 /** pro_settings/calendar — automatic CoinGlass feeds on the Calendar (both OFF by default). */
 type FeedSettings = { macroFeed?: boolean; unlockFeed?: boolean; updatedBy?: string; updatedAt?: Timestamp };
@@ -108,7 +130,7 @@ export default function PublishCalendar() {
       setMessage('Error: ' + (err instanceof Error ? err.message : 'Unknown error'));
     } finally { setFeedBusy(false); }
   };
-  const [form, setForm] = useState(EMPTY);
+  const [form, setForm] = useState<Form>(EMPTY);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [items, setItems] = useState<CalDoc[]>([]);
   const [loading, setLoading] = useState(false);
@@ -120,21 +142,24 @@ export default function PublishCalendar() {
     return () => unsub();
   }, []);
 
-  const set = <K extends keyof typeof EMPTY>(k: K, v: (typeof EMPTY)[K]) => setForm((f) => ({ ...f, [k]: v }));
+  const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
+  const setAudience = (tier: 'plus' | 'pro', v: boolean) => setForm((f) => ({ ...f, audience: { ...f.audience, [tier]: v } }));
   const resetForm = () => { setForm(EMPTY); setEditingId(null); };
 
   const save = async (status: 'published' | 'draft') => {
     if (!currentUser) { setMessage('Please sign in'); return; }
     if (!form.t.trim() || !form.date) { setMessage('Title and date are required.'); return; }
+    const noAudience = audienceError(form.audience);
+    if (noAudience) { setMessage(noAudience); return; }
     const missing = status === 'published' ? missingTokenSaleFields(form) : [];
     if (missing.length) { setMessage(`A token sale needs: ${missing.join(', ')}.`); return; }
     setLoading(true);
     try {
       if (editingId) {
-        await updateDoc(doc(db, 'pro_calendar', editingId), { ...form, status, updatedAt: serverTimestamp() });
+        await updateDoc(doc(db, 'pro_calendar', editingId), { ...adminCalendarFields(form), status, updatedAt: serverTimestamp() });
         setMessage('Event updated.');
       } else {
-        await addDoc(collection(db, 'pro_calendar'), { ...form, status, createdAt: serverTimestamp(), createdBy: currentUser.uid });
+        await addDoc(collection(db, 'pro_calendar'), { ...adminCalendarFields(form), status, createdAt: serverTimestamp(), createdBy: currentUser.uid });
         setMessage(status === 'published' ? 'Event published!' : 'Draft saved.');
       }
       resetForm();
@@ -147,8 +172,10 @@ export default function PublishCalendar() {
     setEditingId(item.id);
     setForm({
       t: item.t, date: item.date, time: toPickerTime(item.date, item.time), imp: item.imp,
-      cat: item.cat, d: item.d, assets: item.assets ?? '',
+      d: item.d, assets: item.assets ?? '',
       venue: item.venue ?? '', raise: item.raise ?? '', link: item.link ?? '',
+      ...(item.cat ? { cat: item.cat } : {}),
+      audience: audienceFormState(item.audience),
     });
     setMessage('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -172,8 +199,9 @@ export default function PublishCalendar() {
       <div className="flex justify-end mb-2"><AdminPageTour steps={proAdminTourSteps('Calendar', '/world/calendar')} /></div>
       <h2 className="text-2xl font-bold text-gray-900 mb-1">Calendar</h2>
       <p className="text-gray-600 mb-6 text-sm">
-        Events you publish here appear on the Calendar for every Plus and Pro user, alongside the automatic macro
-        and token-unlock feed. Drafts stay hidden. High-impact events trigger a reminder popup 24h before.
+        Events you publish here appear on the Calendar for the users you choose (Plus, Pro or both), next to the
+        automatic macro and token-unlock events when those feeds are switched on below. Drafts stay hidden.
+        High-impact events trigger a reminder popup 24h before.
       </p>
 
       <section data-tour="admin-feeds" className="mb-8">
@@ -219,12 +247,16 @@ export default function PublishCalendar() {
             {IMPS.map((i) => <option key={i} value={i}>{IMP_LABEL[i]}</option>)}
           </select>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-          <select className={`${inputCls} bg-white`} value={form.cat} onChange={(e) => set('cat', e.target.value)}>
-            {CATS.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
+        <fieldset data-tour="admin-audience">
+          <legend className="block text-sm font-medium text-gray-700 mb-1">Who sees this event</legend>
+          <div className="flex gap-6 p-2">
+            <AudienceSwitch label="Plus" on={form.audience.plus} onChange={(v) => setAudience('plus', v)} />
+            <AudienceSwitch label="Pro" on={form.audience.pro} onChange={(v) => setAudience('pro', v)} />
+          </div>
+          <p className={`text-xs mt-1 ${audienceError(form.audience) ? 'text-red-600' : 'text-gray-500'}`}>
+            {audienceError(form.audience) ?? 'At least one is required. New events start with both on.'}
+          </p>
+        </fieldset>
         <details className="md:col-span-2 text-sm text-gray-700 border border-gray-200 rounded-md p-3">
           <summary className="cursor-pointer font-medium text-gray-900">Which impact should I pick?</summary>
           <ul className="mt-2 space-y-1">
@@ -283,7 +315,8 @@ export default function PublishCalendar() {
                 <span className="font-semibold text-gray-900">{item.t}</span>
                 <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">{item.date}{item.time ? ` · ${item.time}${/^\d{2}:\d{2}$/.test(item.time) ? ' UTC' : ''}` : ' · all day'}</span>
                 <span className="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-700">{IMP_LABEL[item.imp]}</span>
-                <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">{item.cat}</span>
+                <span className="text-xs px-2 py-0.5 rounded bg-purple-50 text-purple-700">{audienceLabel(item.audience)}</span>
+                {item.cat && <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">{item.cat}</span>}
                 {item.assets && <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">{item.assets}</span>}
                 <span className={`text-xs px-2 py-0.5 rounded ${item.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{item.status}</span>
               </div>

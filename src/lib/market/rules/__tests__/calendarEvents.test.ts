@@ -2,11 +2,17 @@ import { describe, it, expect } from 'vitest';
 import {
   adminCategoryToType,
   ADMIN_CATEGORIES,
+  adminCalendarFields,
+  audienceError,
+  audienceFormState,
+  DEFAULT_AUDIENCE,
   adminToEvent,
   airdropToEvent,
   isAirdropEvent,
+  isCalendarEventVisibleToTier,
   missingTokenSaleFields,
   badgeCountdown,
+  calendarEventsForTier,
   consoleBadgeEvents,
   isAttentionEligible,
   macroToEvent,
@@ -108,6 +114,76 @@ describe('adminToEvent', () => {
   });
 });
 
+describe('adminToEvent audience (Plus / Pro flags)', () => {
+  const doc = { t: 'AMA', date: '2026-11-03', time: '12:00', imp: 'med', status: 'published' };
+
+  it('leaves legacy docs without an audience field unflagged (visible to both)', () => {
+    expect(adminToEvent('a', doc)!.audience).toBeUndefined();
+  });
+
+  it('keeps each flag independently', () => {
+    expect(adminToEvent('a', { ...doc, audience: { plus: true, pro: false } })!.audience).toEqual({ plus: true, pro: false });
+    expect(adminToEvent('a', { ...doc, audience: { plus: false, pro: true } })!.audience).toEqual({ plus: false, pro: true });
+    expect(adminToEvent('a', { ...doc, audience: { plus: true, pro: true } })!.audience).toEqual({ plus: true, pro: true });
+  });
+
+  it('treats a missing flag inside a partial audience as enabled', () => {
+    expect(adminToEvent('a', { ...doc, audience: { pro: false } })!.audience).toEqual({ plus: true, pro: false });
+  });
+
+  it('ignores a malformed audience (non-boolean flags) and treats the doc as legacy', () => {
+    expect(adminToEvent('a', { ...doc, audience: { plus: 'yes', pro: 1 } as never })!.audience).toBeUndefined();
+  });
+
+  it('keeps the official link alongside the audience', () => {
+    const e = adminToEvent('a', { ...doc, link: 'https://example.org/sale', audience: { plus: false, pro: true } })!;
+    expect(e.link).toBe('https://example.org/sale');
+  });
+});
+
+describe('calendar audience visibility', () => {
+  const event = { id: 'team-event', type: 'protocol' as const, title: 'Event', ts: '2026-11-03T12:00:00.000Z', impact: 'MED' as const, assets: [], description: '', source: 'kumami' as const };
+
+  it('keeps legacy events visible to both tiers (free = Plus)', () => {
+    expect(isCalendarEventVisibleToTier(event, 'free')).toBe(true);
+    expect(isCalendarEventVisibleToTier(event, 'pro')).toBe(true);
+  });
+
+  it('respects each audience flag independently', () => {
+    const plusOnly = { ...event, audience: { plus: true, pro: false } };
+    const proOnly = { ...event, audience: { plus: false, pro: true } };
+    expect(isCalendarEventVisibleToTier(plusOnly, 'free')).toBe(true);
+    expect(isCalendarEventVisibleToTier(plusOnly, 'pro')).toBe(false);
+    expect(isCalendarEventVisibleToTier(proOnly, 'free')).toBe(false);
+    expect(isCalendarEventVisibleToTier(proOnly, 'pro')).toBe(true);
+  });
+});
+
+describe('calendarEventsForTier', () => {
+  const base = { type: 'protocol' as const, title: 'E', ts: '2026-11-03T12:00:00.000Z', impact: 'MED' as const, assets: [], description: '', source: 'kumami' as const };
+  const events = [
+    { ...base, id: 'legacy' },
+    { ...base, id: 'plus-only', audience: { plus: true, pro: false } },
+    { ...base, id: 'pro-only', audience: { plus: false, pro: true } },
+    { ...base, id: 'airdrop-x' },
+    { ...base, id: 'unlock-ARB-1', type: 'unlock' as const, source: 'coinglass' as const },
+  ];
+
+  it('Plus (free tier) gets legacy + Plus events and unlocks, never airdrops or Pro-only events', () => {
+    expect(calendarEventsForTier(events, 'free').map((e) => e.id)).toEqual(['legacy', 'plus-only', 'unlock-ARB-1']);
+  });
+
+  it('Pro gets legacy + Pro events, airdrops and unlocks, but not Plus-only events', () => {
+    expect(calendarEventsForTier(events, 'pro').map((e) => e.id)).toEqual(['legacy', 'pro-only', 'airdrop-x', 'unlock-ARB-1']);
+  });
+
+  it('an airdrop flagged for Plus is still Pro-only', () => {
+    const drop = { ...base, id: 'airdrop-y', audience: { plus: true, pro: true } };
+    expect(calendarEventsForTier([drop], 'free')).toEqual([]);
+    expect(calendarEventsForTier([drop], 'pro')).toHaveLength(1);
+  });
+});
+
 describe('isAttentionEligible (popups + badge, v1.15 Plus §5: team-added HIGH only)', () => {
   const ev = (over: object) => ({
     id: '1', type: 'unlock' as const, title: 't', ts: '2026-10-10T00:00:00Z', impact: 'HIGH' as const,
@@ -192,5 +268,47 @@ describe('v1.15 Plus §5 — Listing, Token sale / TGE, airdrop TGE dates', () =
     expect(airdropToEvent('a2', { name: 'NoDate', desc: '' })).toBeNull();
     expect(isAirdropEvent(e!)).toBe(true);
     expect(isAirdropEvent({ id: 'admin-x' })).toBe(false);
+  });
+});
+
+describe('admin calendar form (audience switches, no category)', () => {
+  const form = { t: ' AMA ', date: '2026-11-03', time: '12:00', imp: 'med', d: 'Live AMA', assets: 'ETH', venue: '', raise: '', link: '' };
+
+  it('new events default to both Plus and Pro', () => {
+    expect(DEFAULT_AUDIENCE).toEqual({ plus: true, pro: true });
+  });
+
+  it('editing a legacy doc (no audience) loads it as both on', () => {
+    expect(audienceFormState(undefined)).toEqual({ plus: true, pro: true });
+    expect(audienceFormState({ plus: 'yes', pro: 1 } as never)).toEqual({ plus: true, pro: true });
+  });
+
+  it('editing a flagged doc loads its flags', () => {
+    expect(audienceFormState({ plus: false, pro: true })).toEqual({ plus: false, pro: true });
+    expect(audienceFormState({ plus: true, pro: false })).toEqual({ plus: true, pro: false });
+  });
+
+  it('requires at least one audience', () => {
+    expect(audienceError({ plus: false, pro: false })).toMatch(/Plus or Pro/);
+    expect(audienceError({ plus: true, pro: false })).toBeNull();
+    expect(audienceError({ plus: false, pro: true })).toBeNull();
+  });
+
+  it('the stored doc always carries the audience and no category for a new event', () => {
+    const out = adminCalendarFields({ ...form, audience: { plus: false, pro: true } });
+    expect(out.audience).toEqual({ plus: false, pro: true });
+    expect(out).not.toHaveProperty('cat');
+    expect(out.t).toBe(' AMA ');
+  });
+
+  it('keeps a legacy category on edit so the event renders as before', () => {
+    const out = adminCalendarFields({ ...form, cat: 'Macro', audience: { plus: true, pro: true } });
+    expect(out.cat).toBe('Macro');
+    expect(adminToEvent('x', { ...out, status: 'published' })!.type).toBe('macro');
+  });
+
+  it('a stored doc round-trips through adminToEvent with its audience', () => {
+    const out = adminCalendarFields({ ...form, audience: { plus: true, pro: false } });
+    expect(adminToEvent('x', { ...out, status: 'published' })!.audience).toEqual({ plus: true, pro: false });
   });
 });

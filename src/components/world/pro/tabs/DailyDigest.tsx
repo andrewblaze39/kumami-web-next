@@ -7,8 +7,8 @@ import { collection, onSnapshot, query, where, orderBy, limit } from 'firebase/f
 import { db } from '@/lib/firebase';
 import { ProShellHead } from './shared';
 import { useMarketEndpoint } from '@/components/world/panels/useMarketEndpoint';
-import type { FearGreedPayload, FlowRadarPayload, WatchlistApiResponse } from '@/lib/market/contracts';
-import { digestUsd, topSmartMoneyOpens } from '@/lib/market/rules/digestLines';
+import type { CalendarPayload, FearGreedPayload, FlowRadarPayload, WatchlistApiResponse } from '@/lib/market/contracts';
+import { digestCalendarRows, digestUsd, topSmartMoneyOpens } from '@/lib/market/rules/digestLines';
 
 interface Row { id: string; label: string; meta?: string }
 
@@ -97,22 +97,11 @@ export function DailyDigest() {
   const news = usePublished('pro_news', (id, d) => ({ id, label: d.title as string }));
   const airdrops = usePublished('pro_airdrops', (id, d) => ({ id, label: d.name as string, meta: (d.deadline as string) || undefined }));
 
-  // Upcoming calendar events (client-filtered to today+).
-  const [calendar, setCalendar] = useState<Row[]>([]);
-  useEffect(() => {
-    const q = query(collection(db, 'pro_calendar'), where('status', '==', 'published'));
-    const unsub = onSnapshot(q, (snap) => {
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const rows = snap.docs
-        .map((d) => ({ id: d.id, t: '', date: '', ...d.data() } as { id: string; t: string; date: string }))
-        .filter((e) => typeof e.date === 'string' && e.date !== '' && new Date(e.date) >= today)
-        .sort((a, b) => a.date.localeCompare(b.date))
-        .slice(0, 3)
-        .map((e) => ({ id: e.id, label: e.t, meta: e.date }));
-      setCalendar(rows);
-    }, () => setCalendar([]));
-    return () => unsub();
-  }, []);
+  // Upcoming team calendar events, from the tier-filtered calendar route (audience flags +
+  // Pro-only airdrops applied server-side) rather than reading pro_calendar directly.
+  const cal = useMarketEndpoint<CalendarPayload>('/api/market/calendar');
+  const [openedAt] = useState(() => Date.now());
+  const calendar: Row[] = cal.data ? digestCalendarRows(cal.data.events, openedAt) : [];
 
   // Latest alpha (alphaRoom).
   const [alpha, setAlpha] = useState<Row[]>([]);
