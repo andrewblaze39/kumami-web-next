@@ -6,6 +6,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { getFormattedPreviewHtml } from './utils';
+import { RichText } from '@/components/RichText';
 import { applyNewsOverlay } from './applyNewsOverlay';
 import { notifyNewsPublished } from '@/lib/news/notifyPublished';
 import RichTextEditor from './RichTextEditor';
@@ -185,11 +186,11 @@ export default function PublishNews() {
             Kumami Insight{' '}
             <span className="text-gray-400 font-normal">(optional — shown as a highlighted callout on the article)</span>
           </label>
-          <RichTextEditor value={kumamiInsight} onChange={(v) => setKumamiInsight(v)} rows={3} placeholder="e.g. This signals growing institutional confidence in Layer 2 scaling solutions..." />
+          <RichTextEditor ariaLabel="Kumami Insight" value={kumamiInsight} onChange={(v) => setKumamiInsight(v)} rows={3} placeholder="e.g. This signals growing institutional confidence in Layer 2 scaling solutions..." />
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
-          <RichTextEditor value={content} onChange={(v) => setContent(v)} rows={7} />
+          <RichTextEditor ariaLabel="Content" value={content} onChange={(v) => setContent(v)} rows={7} />
         </div>
         <div className="md:col-span-2 flex gap-3">
           <button type="button" onClick={() => saveArticle('draft')} disabled={loading} className="px-4 py-2 bg-gray-200 text-gray-900 rounded-md hover:bg-gray-300 disabled:opacity-50">
@@ -216,10 +217,10 @@ export default function PublishNews() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#96EDD6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3" fill="#96EDD6" stroke="none"/></svg>
                 <span className="text-xs font-black uppercase tracking-widest" style={{ color: '#96EDD6' }}>Kumami Insight</span>
               </div>
-              <p className="px-4 py-3 text-sm text-gray-800 m-0">{kumamiInsight}</p>
+              <p className="px-4 py-3 text-sm text-gray-800 m-0"><RichText text={kumamiInsight} /></p>
             </div>
           )}
-          {summary && <p className="mt-4 text-gray-700 italic">{summary}</p>}
+          {summary && <p className="mt-4 text-gray-700 italic"><RichText text={summary} /></p>}
           {content ? (
             <div className="mt-4 text-gray-800 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: getFormattedPreviewHtml(content) }} />
           ) : (

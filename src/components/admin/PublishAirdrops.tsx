@@ -133,7 +133,7 @@ export default function PublishAirdrops() {
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-          <RichTextEditor value={form.desc} onChange={(v) => set('desc', v)} rows={4} />
+          <RichTextEditor ariaLabel="Description" value={form.desc} onChange={(v) => set('desc', v)} rows={4} />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Deadline</label>

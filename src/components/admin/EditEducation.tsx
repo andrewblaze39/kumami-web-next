@@ -431,7 +431,7 @@ export default function EditEducation() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Blurb</label>
-                    <RichTextEditor value={formData.blurb} onChange={(v) => setFormData(p => ({ ...p, blurb: v }))} rows={4} placeholder="Short summary for cards..." />
+                    <RichTextEditor ariaLabel="Blurb" value={formData.blurb} onChange={(v) => setFormData(p => ({ ...p, blurb: v }))} rows={4} placeholder="Short summary for cards..." />
                   </div>
 
                   <div>

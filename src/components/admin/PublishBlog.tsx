@@ -62,11 +62,11 @@ export default function PublishBlog() {
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Content Section 1</label>
           
-          <RichTextEditor value={content1} onChange={(v) => setContent1(v)} rows={5} />
+          <RichTextEditor ariaLabel="Content Section 1" value={content1} onChange={(v) => setContent1(v)} rows={5} />
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Content Section 2</label>
-          <RichTextEditor value={content2} onChange={(v) => setContent2(v)} rows={5} />
+          <RichTextEditor ariaLabel="Content Section 2" value={content2} onChange={(v) => setContent2(v)} rows={5} />
         </div>
         <div className="md:col-span-2 flex gap-3">
           <button type="button" onClick={() => saveArticle('draft')} disabled={loading} className="px-4 py-2 bg-gray-200 text-gray-900 rounded-md hover:bg-gray-300">{loading ? 'Saving...' : 'Save as Draft'}</button>

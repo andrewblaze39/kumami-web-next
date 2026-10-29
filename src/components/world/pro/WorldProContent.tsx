@@ -13,10 +13,8 @@
  *     (Flow Radar Pro, Watchlist Pro, Spot Pulse Pro) — complete and
  *     real-time; the Plus pages render the cut-down Plus versions of the same
  *     components (Andrew's spec v1.6).
- *   - calendar: redirects to the single shared Calendar at /world/calendar
- *     (live feed + admin-authored pro_calendar events merged server-side), so
- *     Plus and Pro never show two different calendars. Kept as a tab key only
- *     so old ?tab=calendar links (Daily Digest, bookmarks) still land there.
+ *   - calendar: Calendar Pro (v1.18) — the same month calendar as /world/calendar,
+ *     plus "Pro only" team events, airdrop TGE / claim days and token unlocks.
  *   - Group B (data source still being wired — ComingSoon card): scanner.
  *   - Existing components re-slotted: portfolio, alpha, market, kumaai, marketcap.
  *   - addresstracker: new standalone wallet-lookup page (Kumami Pro §4) — see
@@ -29,8 +27,8 @@
  * own Plus tab, no Pro-specific version was ever built).
  */
 
-import { Suspense, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Shield, Compass } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProductTour, { type TourStep } from '@/components/world/ProductTour';
@@ -39,6 +37,7 @@ import { ProStateProvider } from './ProState';
 import { ComingSoon } from './tabs/ComingSoon';
 import { DailyDigest } from './tabs/DailyDigest';
 import { FollowingAlerts } from './tabs/FollowingAlerts';
+import { CalendarView } from '@/components/world/calendar/CalendarView';
 import { Airdrops } from './tabs/Airdrops';
 import { RealTimeNews } from './tabs/RealTimeNews';
 import { KumamiResearch } from './tabs/KumamiResearch';
@@ -66,14 +65,6 @@ function isTabKey(v: string | null): v is TabKey {
   return TAB_KEYS.some((k) => k === v);
 }
 
-/** Old ?tab=calendar links → the one shared Calendar page. */
-function CalendarRedirect() {
-  const router = useRouter();
-  useEffect(() => {
-    router.replace('/world/calendar');
-  }, [router]);
-  return <div className="w-courses-loading">Opening Calendar…</div>;
-}
 
 function TabContent({ active }: { active: TabKey }) {
   switch (active) {
@@ -88,7 +79,7 @@ function TabContent({ active }: { active: TabKey }) {
     case 'research':
       return <KumamiResearch />;
     case 'calendar':
-      return <CalendarRedirect />;
+      return <CalendarView view="pro" />;
     case 'events':
       return <Events />;
 
@@ -208,7 +199,7 @@ const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
     { title: 'What each call shows', body: 'Every card states a position (long/short/neutral) and asset, when it was made, the reasoning, and a “What this means for you” read.' },
   ],
   calendar: [
-    { title: 'Calendar', body: 'The Calendar lives on its own page, shared by Plus and Pro — macro events, token unlocks and events added by the Kumami team.' },
+    { title: 'Calendar Pro', body: 'The same month calendar as the Plus Calendar, plus events only for Pro members, airdrop claim days and token unlocks. Click a day to see its events.' },
   ],
   events: [
     { selector: HEAD, title: 'Events & Announcements', body: 'Discover events and join live Q&As with project teams.' },

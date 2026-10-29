@@ -1,0 +1,67 @@
+[
+  {
+    "item": "A2",
+    "file": null,
+    "caption": "Admin → Calendar: no Category field; \"Who sees this event\": Plus and Pro (default) or Pro only; the description box shows bold / italic / underline as you type. — screenshot failed: Error: locator.waitFor: Target page, context or browser has been closed"
+  },
+  {
+    "item": "A2",
+    "file": null,
+    "caption": "Admin event list: each event shows \"Plus and Pro\" or \"Pro only\". — screenshot failed: Error: locator.waitFor: Target page, context or browser has been closed"
+  },
+  {
+    "item": "A2",
+    "file": "a2-admin-calendar-form.jpg",
+    "caption": "Admin → Calendar: no Category field; \"Who sees this event\": Plus and Pro (default) or Pro only; the description box shows bold / italic / underline as you type."
+  },
+  {
+    "item": "A2",
+    "file": "a2-admin-calendar-list.jpg",
+    "caption": "Admin event list: each event shows \"Plus and Pro\" or \"Pro only\"."
+  },
+  {
+    "item": "A4",
+    "file": "a4-calendar-plus.jpg",
+    "caption": "Calendar Plus (Plus user): colour-coded month grid, legend, day panel, no filters. API returns 2 events; \"[TEST] Kumami AMA (Plus and Pro)\" shown; \"[TEST] Pro-only strategy call\" hidden; airdrop hidden."
+  },
+  {
+    "item": "R01",
+    "file": "r01-calendar-plus-no-airdrops.jpg",
+    "caption": "Calendar Plus has no airdrop claim days (0 airdrop events in the response)."
+  },
+  {
+    "item": "A2",
+    "file": null,
+    "caption": "Calendar Pro API for a Plus user: HTTP 403 (expected 403)."
+  },
+  {
+    "item": "A2",
+    "file": "a2-calendar-pro.jpg",
+    "caption": "Calendar Pro (Pro user): same UI; \"[TEST] Pro-only strategy call\" shown with a PRO tag; airdrop \"[TEST] Lumen airdrop\" shown."
+  },
+  {
+    "item": "A6",
+    "file": "a6-calendar-pro-airdrop-day.jpg",
+    "caption": "Calendar Pro day panel for the airdrop claim day: purple \"Airdrop\" tag + PRO tag."
+  },
+  {
+    "item": "A2",
+    "file": "a2-calendar-pro-only-event.jpg",
+    "caption": "Day panel for the \"Pro only\" event: PRO tag; description keeps its formatting."
+  },
+  {
+    "item": "A6",
+    "file": null,
+    "caption": "Pro user on Calendar Plus: 0 airdrops (expected 0); Pro-only event hidden."
+  },
+  {
+    "item": "A2",
+    "file": "a2-pro-menu-calendar-pro.jpg",
+    "caption": "Pro menu → Tools has \"Calendar Pro\"."
+  },
+  {
+    "item": "A3",
+    "file": "a3-console-mini-calendar.jpg",
+    "caption": "Plus Market Console: mini month calendar (today highlighted, a coloured dot per event kind) with the next 3 events, instead of the \"next 7 days\" list."
+  }
+]

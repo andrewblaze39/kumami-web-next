@@ -1,140 +1,92 @@
 'use client';
 
 /**
- * Console's Calendar preview panel — replaces the old Intelligence preview
- * slot per Rachelle's latest Console mockup. Renders a day-by-day agenda for
- * the next 7 calendar days (today included), matching the mockup's grouped
- * layout rather than a flat "next N events" list.
+ * Console mini calendar (v1.18, Andrew 29 Oct 2026: "show a mini version instead of next 7 days").
+ * A compact month grid of Calendar Plus: today highlighted, one coloured dot per event kind on
+ * each day (same colours as the Calendar page), the next 3 upcoming events below, and a link
+ * to the full Calendar. Reads /api/market/calendar (Calendar Plus) like the Calendar page.
  */
 
 import Link from 'next/link';
-import type { CalendarEvent, CalendarPayload } from '@/lib/market/contracts';
+import { useMemo, useState } from 'react';
+import type { CalendarPayload } from '@/lib/market/contracts';
 import { useMarketEndpoint } from './useMarketEndpoint';
 import { WIcon } from './console-ui';
+import { KIND_COLOR, KIND_LABEL, addMonths, kindOf, monthGrid, startOfMonth } from '@/components/world/calendar/calendarUi';
+import type { CalendarKind } from '@/lib/market/rules/calendarEvents';
 
-const CATEGORY_LABEL: Record<CalendarEvent['type'], string> = {
-  macro: 'Macro',
-  unlock: 'On-chain',
-  protocol: 'Protocol',
-};
-
-const DAY_MS = 24 * 3_600_000;
-const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-function startOfDay(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-}
-
-function formatTime(ts: string): string {
-  return new Date(ts).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-}
-
-type DayBucket = { key: string; label: string; dateNum: number; events: CalendarEvent[] };
-
-/** With the feed's forward window there can be ~30 macro prints a day — the
- *  agenda shows the most relevant few: team events, then HIGH → LOW, then time. */
-const MAX_ROWS_PER_DAY = 3;
-const IMPACT_RANK: Record<CalendarEvent['impact'], number> = { HIGH: 0, MED: 1, LOW: 2 };
-function agendaOrder(a: CalendarEvent, b: CalendarEvent): number {
-  const k = Number(b.source === 'kumami') - Number(a.source === 'kumami');
-  if (k !== 0) return k;
-  const i = IMPACT_RANK[a.impact] - IMPACT_RANK[b.impact];
-  return i !== 0 ? i : Date.parse(a.ts) - Date.parse(b.ts);
-}
+const WD = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 export default function CalendarPreview() {
   const { status, data } = useMarketEndpoint<CalendarPayload>('/api/market/calendar');
-  const loading = status === 'loading';
+  const [month, setMonth] = useState(() => startOfMonth(new Date()));
+  const [openedAt] = useState(() => Date.now());
+  const events = useMemo(() => data?.events ?? [], [data]);
+  const grid = useMemo(() => monthGrid(month, events), [month, events]);
+  const inMonth = grid.filter((c) => c.inMonth).reduce((n, c) => n + c.events.length, 0);
 
-  const today = startOfDay(new Date());
-  const days: DayBucket[] = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(today.getTime() + i * DAY_MS);
-    return {
-      key: d.toDateString(),
-      label: i === 0 ? 'Today' : WEEKDAY_SHORT[d.getDay()],
-      dateNum: d.getDate(),
-      events: [],
-    };
-  });
-  const byKey = new Map(days.map((d) => [d.key, d]));
-
-  const windowEnd = today.getTime() + 7 * DAY_MS;
-  let totalEvents = 0;
-  let highImpact = 0;
-  for (const event of data?.events ?? []) {
-    const ts = Date.parse(event.ts);
-    if (ts < today.getTime() || ts >= windowEnd) continue;
-    const bucket = byKey.get(startOfDay(new Date(ts)).toDateString());
-    if (!bucket) continue;
-    bucket.events.push(event);
-    totalEvents += 1;
-    if (event.impact === 'HIGH') highImpact += 1;
-  }
-  for (const d of days) d.events.sort(agendaOrder);
+  const upcoming = useMemo(
+    () => events.filter((e) => Date.parse(e.ts) > openedAt).sort((a, b) => Date.parse(a.ts) - Date.parse(b.ts)).slice(0, 3),
+    [events, openedAt],
+  );
 
   return (
     <section className="w-apanel" aria-label="Calendar" data-tour="calendar-preview">
       <div className="w-apanel-h">
         <span className="w-ttl">
-          <span className="w-ic"><WIcon name="doc" /></span>
-          {' '}Calendar{' '}
-          <span
-            className="w-oc-q"
-            tabIndex={0}
-            title="Macro prints, token unlocks and Kumami team events landing this week, day by day (top 3 per day)."
-          >
-            ?
-          </span>
+          <span className="w-ic"><WIcon name="clock" /></span>{' '}Calendar{' '}
+          <span className="w-oc-q" tabIndex={0} title="This month at a glance: a coloured dot for each kind of event on a day. Open the Calendar for details.">?</span>
         </span>
-        <span className="w-sub">
-          {loading ? 'This week' : `This week · ${totalEvents} event${totalEvents === 1 ? '' : 's'}${highImpact > 0 ? ` · ${highImpact} high impact` : ''}`}
-        </span>
+        <span className="w-sub">{status === 'loading' ? 'This month' : `${inMonth} event${inMonth === 1 ? '' : 's'} this month`}</span>
       </div>
 
-      {loading ? (
-        <div className="w-apanel-b">
-          <div className="w-panel-skeleton w-panel-skeleton-list" aria-busy="true" />
-        </div>
+      {status === 'loading' ? (
+        <div className="w-apanel-b"><div className="w-panel-skeleton w-panel-skeleton-list" aria-busy="true" /></div>
       ) : !data ? (
-        <div className="w-apanel-b">
-          <p className="w-panel-empty">Couldn&apos;t load the calendar right now.</p>
-        </div>
+        <div className="w-apanel-b"><p className="w-panel-empty">Couldn&apos;t load the calendar right now.</p></div>
       ) : (
-        <div className="w-cal-agenda" aria-label="This week's calendar">
-          {days.map((day) => (
-            <div key={day.key} className="w-cal-agenda-day">
-              <div className="w-cal-agenda-daylbl">
-                <span>{day.label}</span>
-                <span className="w-cal-agenda-daynum">{day.dateNum}</span>
+        <div className="w-mcal">
+          <div className="w-mcal-head">
+            <button type="button" aria-label="Previous month" onClick={() => setMonth((m) => addMonths(m, -1))}>‹</button>
+            <b>{month.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</b>
+            <button type="button" aria-label="Next month" onClick={() => setMonth((m) => addMonths(m, 1))}>›</button>
+          </div>
+          <div className="w-mcal-grid" role="grid" aria-label="Month">
+            {WD.map((d, i) => <span key={i} className="w-mcal-wd">{d}</span>)}
+            {grid.map((c) => {
+              const kinds = [...new Set(c.events.map(kindOf))] as CalendarKind[];
+              return (
+                <span
+                  key={c.key}
+                  className={`w-mcal-day${c.inMonth ? '' : ' out'}${c.isToday ? ' today' : ''}`}
+                  title={c.events.length ? c.events.map((e) => `${e.title} (${KIND_LABEL[kindOf(e)]})`).join('\n') : undefined}
+                  aria-label={`${c.date.getDate()}: ${c.events.length} event${c.events.length === 1 ? '' : 's'}`}
+                >
+                  <span className="w-mcal-num">{c.date.getDate()}</span>
+                  <span className="w-mcal-dots">{kinds.slice(0, 3).map((k) => <i key={k} style={{ background: KIND_COLOR[k] }} />)}</span>
+                </span>
+              );
+            })}
+          </div>
+          <div className="w-mcal-up" aria-label="Coming up">
+            {upcoming.length === 0 ? (
+              <span className="w-panel-empty">No upcoming events yet.</span>
+            ) : upcoming.map((e) => (
+              <div key={e.id} className="w-mcal-up-row">
+                <i style={{ background: KIND_COLOR[kindOf(e)] }} aria-hidden />
+                <span className="w-mcal-up-when">
+                  {new Date(e.ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric', ...(e.allDay ? { timeZone: 'UTC' } : {}) })}
+                </span>
+                <span className="w-mcal-up-title" title={e.title}>{e.title}</span>
               </div>
-              {day.events.length === 0 ? (
-                <div className="w-cal-agenda-empty">No scheduled events</div>
-              ) : (
-                <div className="w-cal-agenda-rows">
-                  {day.events.slice(0, MAX_ROWS_PER_DAY).map((event) => (
-                    <div key={event.id} className="w-cal-agenda-row">
-                      <span className="w-cal-agenda-time">
-                        {event.allDay ? 'All day' : formatTime(event.ts)}
-                      </span>
-                      <span className="w-cal-agenda-title">{event.source === 'kumami' ? '★ ' : ''}{event.title}</span>
-                      <span className="w-cal-agenda-cat">{CATEGORY_LABEL[event.type]}</span>
-                    </div>
-                  ))}
-                  {day.events.length > MAX_ROWS_PER_DAY && (
-                    <div className="w-cal-agenda-empty">+{day.events.length - MAX_ROWS_PER_DAY} more</div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
       <div className="w-apanel-foot">
-        <span className="w-fmeta">Next 7 days</span>
-        <Link href="/world/calendar">
-          Open Calendar <WIcon name="arrowR" />
-        </Link>
+        <span className="w-fmeta">This month</span>
+        <Link href="/world/calendar">Open Calendar <WIcon name="arrowR" /></Link>
       </div>
     </section>
   );

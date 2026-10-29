@@ -361,7 +361,7 @@ export default function PublishEducation() {
             {/* Blurb */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Blurb (1–2 sentence summary for cards)</label>
-              <RichTextEditor value={blurb} onChange={(v) => setBlurb(v)} rows={4} placeholder="Short summary shown on lesson cards..." />
+              <RichTextEditor ariaLabel="Blurb (1–2 sentence summary for cards)" value={blurb} onChange={(v) => setBlurb(v)} rows={4} placeholder="Short summary shown on lesson cards..." />
             </div>
 
             {/* Description */}

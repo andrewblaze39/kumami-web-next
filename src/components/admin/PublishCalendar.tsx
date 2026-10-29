@@ -10,24 +10,26 @@ import { useAuth } from '@/contexts/AuthContext';
 import AdminPageTour, { proAdminTourSteps } from './AdminPageTour';
 import RichTextEditor from './RichTextEditor';
 import {
-  adminCalendarFields, audienceError, audienceFormState, DEFAULT_AUDIENCE, missingTokenSaleFields, parseAdminWhen, TOKEN_SALE,
+  adminCalendarFields, audienceChoice, audienceError, audienceFromChoice, DEFAULT_AUDIENCE, missingTokenSaleFields, parseAdminWhen, TOKEN_SALE,
+  type AudienceChoice,
   type AdminCalendarForm,
 } from '@/lib/market/rules/calendarEvents';
 
 /**
- * PublishCalendar — admin authoring for the shared Calendar (/world/calendar,
- * seen by Plus AND Pro). Published entries are merged server-side with the
- * market-data feed (macro prints + token unlocks) — see
+ * PublishCalendar — admin authoring for Calendar Plus (/world/calendar) and
+ * Calendar Pro (Pro → Calendar Pro). Published entries are merged server-side
+ * with published airdrop TGE / claim days (Calendar Pro only) and, when switched
+ * on below, the market-data feeds (macro prints; token unlocks = Calendar Pro) — see
  * lib/market/live/calendarPage.ts. Drafts never show; edits and deletes show
  * on the user's next load. Writes to `pro_calendar` (covered by the pro_*
  * wildcard rule — the collection name is historical).
  *
  * Fields: date `YYYY-MM-DD`; time `HH:MM` in UTC (blank = all-day); assets =
- * comma-separated tickers; audience = who sees it ({ plus, pro }, at least one
- * on; new events default to both). There is no category control any more
+ * comma-separated tickers; audience = "Plus and Pro" ({ plus: true, pro: true },
+ * the default) or "Pro only" ({ plus: false, pro: true }). There is no category control any more
  * (calendar PRD, 28 Oct 2026): new events show under "Protocol & other", and a
  * legacy doc keeps its stored `cat` (Macro / Token unlock / Token sale) on edit.
- * Legacy docs without `audience` are shown to both tiers and load as both on.
+ * Legacy docs without `audience` show in both calendars and load as "Plus and Pro".
  * HIGH-impact events trigger the "high-impact event soon" popups in the 24h
  * before, for the tiers that can see them.
  */
@@ -70,19 +72,14 @@ interface CalDoc {
 type Form = AdminCalendarForm & { imp: Imp };
 const EMPTY: Form = { t: '', date: '', time: '', imp: 'med', d: '', assets: '', venue: '', raise: '', link: '', audience: { ...DEFAULT_AUDIENCE } };
 
-/** One audience switch (Plus or Pro). */
-function AudienceSwitch({ label, on, onChange }: { label: string; on: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <label className="flex items-center gap-2 text-sm text-gray-900 cursor-pointer select-none">
-      <input type="checkbox" className="h-4 w-4" checked={on} onChange={(e) => onChange(e.target.checked)} aria-label={`Show to ${label}`} />
-      {label}
-    </label>
-  );
-}
+/** "Who sees it" (Andrew, 29 Oct 2026): Calendar Plus shows only "Plus and Pro" events; Calendar Pro shows both kinds. */
+const AUDIENCE_OPTIONS: { value: AudienceChoice; label: string; help: string }[] = [
+  { value: 'both', label: 'Plus and Pro', help: 'Shows in Calendar Plus and Calendar Pro.' },
+  { value: 'pro', label: 'Pro only', help: 'Shows only in Calendar Pro (Pro users).' },
+];
 
 function audienceLabel(a: CalDoc['audience']): string {
-  const s = audienceFormState(a);
-  return s.plus && s.pro ? 'Plus + Pro' : s.plus ? 'Plus only' : 'Pro only';
+  return audienceChoice(a) === 'pro' ? 'Pro only' : 'Plus and Pro';
 }
 
 /** pro_settings/calendar — automatic CoinGlass feeds on the Calendar (both OFF by default). */
@@ -144,7 +141,7 @@ export default function PublishCalendar() {
   }, []);
 
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
-  const setAudience = (tier: 'plus' | 'pro', v: boolean) => setForm((f) => ({ ...f, audience: { ...f.audience, [tier]: v } }));
+  const setAudience = (c: AudienceChoice) => setForm((f) => ({ ...f, audience: audienceFromChoice(c) }));
   const resetForm = () => { setForm(EMPTY); setEditingId(null); };
 
   const save = async (status: 'published' | 'draft') => {
@@ -176,7 +173,7 @@ export default function PublishCalendar() {
       d: item.d, assets: item.assets ?? '',
       venue: item.venue ?? '', raise: item.raise ?? '', link: item.link ?? '',
       ...(item.cat ? { cat: item.cat } : {}),
-      audience: audienceFormState(item.audience),
+      audience: audienceFromChoice(audienceChoice(item.audience)),
     });
     setMessage('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -200,9 +197,10 @@ export default function PublishCalendar() {
       <div className="flex justify-end mb-2"><AdminPageTour steps={proAdminTourSteps('Calendar', '/world/calendar')} /></div>
       <h2 className="text-2xl font-bold text-gray-900 mb-1">Calendar</h2>
       <p className="text-gray-600 mb-6 text-sm">
-        Events you publish here appear on the Calendar for the users you choose (Plus, Pro or both), next to the
-        automatic macro and token-unlock events when those feeds are switched on below. Drafts stay hidden.
-        High-impact events trigger a reminder popup 24h before.
+        Events you publish here appear in Calendar Plus and Calendar Pro, or only in Calendar Pro if you pick
+        &ldquo;Pro only&rdquo;. Airdrop claim days (from Airdrops &amp; Whitelist) show only in Calendar Pro. The automatic
+        macro and token-unlock feeds below add events only when switched on. Drafts stay hidden. High-impact
+        events trigger a reminder popup 24h before.
       </p>
 
       <section data-tour="admin-feeds" className="mb-8">
@@ -250,13 +248,20 @@ export default function PublishCalendar() {
         </div>
         <fieldset data-tour="admin-audience">
           <legend className="block text-sm font-medium text-gray-700 mb-1">Who sees this event</legend>
-          <div className="flex gap-6 p-2">
-            <AudienceSwitch label="Plus" on={form.audience.plus} onChange={(v) => setAudience('plus', v)} />
-            <AudienceSwitch label="Pro" on={form.audience.pro} onChange={(v) => setAudience('pro', v)} />
+          <div className="flex flex-col gap-1 p-1">
+            {AUDIENCE_OPTIONS.map((o) => (
+              <label key={o.value} className="flex items-start gap-2 text-sm text-gray-900 cursor-pointer select-none">
+                <input
+                  type="radio"
+                  name="audience"
+                  className="mt-1 h-4 w-4"
+                  checked={(form.audience.plus ? 'both' : 'pro') === o.value}
+                  onChange={() => setAudience(o.value)}
+                />
+                <span><b>{o.label}</b> <span className="text-xs text-gray-500">{o.help}</span></span>
+              </label>
+            ))}
           </div>
-          <p className={`text-xs mt-1 ${audienceError(form.audience) ? 'text-red-600' : 'text-gray-500'}`}>
-            {audienceError(form.audience) ?? 'At least one is required. New events start with both on.'}
-          </p>
         </fieldset>
         <details className="md:col-span-2 text-sm text-gray-700 border border-gray-200 rounded-md p-3">
           <summary className="cursor-pointer font-medium text-gray-900">Which impact should I pick?</summary>
@@ -287,12 +292,12 @@ export default function PublishCalendar() {
             className={inputCls}
             value={form.assets}
             onChange={(e) => set('assets', e.target.value)}
-            placeholder="e.g. BTC, ETH — powers the asset filter; blank Macro events count as market-wide"
+            placeholder="e.g. BTC, ETH — shown as “Affects” on the event; leave blank for market-wide"
           />
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-          <RichTextEditor value={form.d} onChange={(v) => set('d', v)} rows={4} />
+          <RichTextEditor ariaLabel="Description" value={form.d} onChange={(v) => set('d', v)} rows={4} />
         </div>
         <div className="md:col-span-2 flex gap-3">
           <button type="submit" data-tour="admin-publish" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400">

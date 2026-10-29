@@ -194,8 +194,8 @@ const ADV_NAV: NavGroup[] = [
 // Plus tools. Since 10 Oct 2026 each workspace shows only its own tier, so Pro
 // users open them by switching to the Plus workspace; the Pro-only depth on
 // those pages (Flow Radar Pro, Watchlist Pro) follows the ACCOUNT, not the
-// workspace, so it's still there. (Calendar is one shared page for Plus and
-// Pro — admin events from /admin/pro-calendar are merged into it.)
+// workspace, so it's still there. Calendar Pro (v1.18) is a Pro item: the same
+// calendar UI with the Pro-only events (airdrops, unlocks, "Pro only" team events).
 const PRO_NAV: NavGroup[] = [
   {
     grp: 'pro-top',
@@ -225,6 +225,7 @@ const PRO_NAV: NavGroup[] = [
       { k: 'scanner', label: 'Security Scanner', href: '/world/pro?tab=scanner', icon: Icons.shield },
       { k: 'marketcap', label: 'Market Cap Comparison', href: '/world/pro?tab=marketcap', icon: Icons.layers },
       { k: 'airdrops', label: 'Airdrops & Whitelist', href: '/world/pro?tab=airdrops', icon: Icons.spark },
+      { k: 'calendar', label: 'Calendar Pro', href: '/world/pro?tab=calendar', icon: Icons.clock },
     ],
   },
   {

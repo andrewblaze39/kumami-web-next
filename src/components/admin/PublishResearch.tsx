@@ -81,14 +81,14 @@ export default function PublishResearch() {
           <input type="file" accept="image/*" onChange={(e) => handleImageChange(e, setImageFile, setImagePreview)} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white" required />
           {imagePreview && <img src={imagePreview} alt="Preview" className="mt-2 max-h-32 rounded" />}
         </div>
-        <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Short Description</label><RichTextEditor value={description} onChange={(v) => setDescription(v)} rows={3} /></div>
-        <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Content Section 1</label><RichTextEditor value={content1} onChange={(v) => setContent1(v)} rows={5} /></div>
+        <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Short Description</label><RichTextEditor ariaLabel="Short Description" value={description} onChange={(v) => setDescription(v)} rows={3} /></div>
+        <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Content Section 1</label><RichTextEditor ariaLabel="Content Section 1" value={content1} onChange={(v) => setContent1(v)} rows={5} /></div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Detail Image 2 (Optional)</label>
           <input type="file" accept="image/*" onChange={(e) => handleImageChange(e, setDetailImageFile, setDetailImagePreview)} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white" />
           {detailImagePreview && <img src={detailImagePreview} alt="Detail preview" className="mt-2 max-h-32 rounded" />}
         </div>
-        <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Content Section 2</label><RichTextEditor value={content2} onChange={(v) => setContent2(v)} rows={5} /></div>
+        <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Content Section 2</label><RichTextEditor ariaLabel="Content Section 2" value={content2} onChange={(v) => setContent2(v)} rows={5} /></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1">Website Link (Optional)</label><input type="url" className="w-full p-2 border border-gray-300 rounded-md text-black" value={websiteLink} onChange={(e) => setWebsiteLink(e.target.value)} placeholder="Leave empty to hide" /></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1">Twitter Link (Optional)</label><input type="url" className="w-full p-2 border border-gray-300 rounded-md text-black" value={twitterLink} onChange={(e) => setTwitterLink(e.target.value)} placeholder="Leave empty to hide" /></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1">Telegram Link (Optional)</label><input type="url" className="w-full p-2 border border-gray-300 rounded-md text-black" value={telegramLink} onChange={(e) => setTelegramLink(e.target.value)} placeholder="Leave empty to hide" /></div>

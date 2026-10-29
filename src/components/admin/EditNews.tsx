@@ -155,12 +155,12 @@ export default function EditNews() {
                 <div><label className="block text-sm font-medium text-gray-700">Title</label><input type="text" name="title" value={formData.title} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black" /></div>
                 <div><label className="block text-sm font-medium text-gray-700">Author</label><input type="text" name="author" value={formData.author} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black" /></div>
                 <div><label className="block text-sm font-medium text-gray-700">Category</label><select name="category" value={formData.category} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-md text-black bg-white"><option value="">Select</option>{CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
-                <div><label className="block text-sm font-medium text-gray-700">Summary</label><RichTextEditor value={formData.summary} onChange={(v) => setFormData((p) => ({ ...p, summary: v }))} rows={3} /></div>
+                <div><label className="block text-sm font-medium text-gray-700">Summary</label><RichTextEditor ariaLabel="Summary" value={formData.summary} onChange={(v) => setFormData((p) => ({ ...p, summary: v }))} rows={3} /></div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Kumami Insight <span className="text-gray-400 font-normal">(optional — shown as a highlighted box on the article)</span></label>
-                  <RichTextEditor value={formData.kumamiInsight} onChange={(v) => setFormData((p) => ({ ...p, kumamiInsight: v }))} rows={3} placeholder="e.g. This signals growing institutional confidence in Layer 2 scaling solutions..." />
+                  <RichTextEditor ariaLabel="Kumami Insight" value={formData.kumamiInsight} onChange={(v) => setFormData((p) => ({ ...p, kumamiInsight: v }))} rows={3} placeholder="e.g. This signals growing institutional confidence in Layer 2 scaling solutions..." />
                 </div>
-                <div><label className="block text-sm font-medium text-gray-700">Content</label><RichTextEditor value={formData.content} onChange={(v) => setFormData((p) => ({ ...p, content: v }))} rows={5} /></div>
+                <div><label className="block text-sm font-medium text-gray-700">Content</label><RichTextEditor ariaLabel="Content" value={formData.content} onChange={(v) => setFormData((p) => ({ ...p, content: v }))} rows={5} /></div>
                 {formData.imageUrl && <div><img src={formData.imageUrl} alt="Current" className="max-h-32 rounded" /><p className="text-xs text-gray-500 mt-1">Current Image</p></div>}
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Upload New Image</label>

@@ -136,11 +136,11 @@ export default function PublishKumamiResearch() {
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">The call</label>
-          <RichTextEditor value={form.body} onChange={(v) => set('body', v)} rows={4} />
+          <RichTextEditor ariaLabel="The call" value={form.body} onChange={(v) => set('body', v)} rows={4} />
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">What this means for you</label>
-          <RichTextEditor value={form.forYou} onChange={(v) => set('forYou', v)} rows={4} placeholder="How this relates to a typical user's holdings / watchlist." />
+          <RichTextEditor ariaLabel="What this means for you" value={form.forYou} onChange={(v) => set('forYou', v)} rows={4} placeholder="How this relates to a typical user's holdings / watchlist." />
         </div>
         <div className="md:col-span-2 flex gap-3">
           <button type="submit" data-tour="admin-publish" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400">
