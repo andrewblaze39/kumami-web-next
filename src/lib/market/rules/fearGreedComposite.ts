@@ -105,14 +105,14 @@ const WEIGHTS: Record<keyof SubMetricScores, number> = {
   newsTone: 0.15,
 };
 
-// Industry convention (matches the standard Crypto Fear & Greed Index):
-// greed reads green (bullish sentiment), fear reads red (bearish sentiment) —
-// NOT a contrarian mapping. This previously had the two swapped.
+// The ONE Fear & Greed classification (Rachelle v1.17 Plus §4), used by the Console tile and
+// regime, the Fear & Greed page and the Daily Digest: 0–24 Extreme Fear · 25–45 Fear ·
+// 46–55 Neutral · 56–74 Greed · 75–100 Extreme Greed. Fear = red, Greed = green.
 export function classifyComposite(score: number): { label: string; color: Verdict['color'] } {
   if (score >= 75) return { label: 'Extreme Greed', color: 'green' };
   if (score >= 56) return { label: 'Greed', color: 'grey-green' };
   if (score >= 46) return { label: 'Neutral', color: 'grey' };
-  if (score >= 25) return { label: 'Fear', color: 'amber' };
+  if (score >= 25) return { label: 'Fear', color: 'grey-red' };
   return { label: 'Extreme Fear', color: 'red' };
 }
 

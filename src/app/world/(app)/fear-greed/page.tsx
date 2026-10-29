@@ -14,14 +14,15 @@ import { WIcon } from '@/components/world/panels/console-ui';
 import { formatUsd } from '@/components/world/panels/format';
 import { scaleX, scaleY, buildSmoothPath, buildAreaPath, type Domain } from '@/components/world/panels/chart-utils';
 
-/** Fixed score bands, top to bottom — index score is always 0-100, so the
- *  chart's colour bands are fixed thresholds, never a data-dependent range. */
+/** Fixed score bands, top to bottom — the one classification (Rachelle v1.17 Plus §4):
+ *  0–24 Extreme Fear · 25–45 Fear · 46–55 Neutral · 56–74 Greed · 75–100 Extreme Greed.
+ *  Fear = red, Greed = green. from/to are the drawn edges; range is the label. */
 const BANDS = [
-  { from: 76, to: 100, label: 'EXTREME GREED', display: 'Extreme Greed', color: '#46e3a0' },
-  { from: 56, to: 76, label: 'GREED', display: 'Greed', color: '#8fd6b4' },
-  { from: 44, to: 56, label: 'NEUTRAL', display: 'Neutral', color: '#8ea69c' },
-  { from: 24, to: 44, label: 'FEAR', display: 'Fear', color: '#f0cd7e' },
-  { from: 0, to: 24, label: 'EXTREME FEAR', display: 'Extreme Fear', color: '#ff6b81' },
+  { from: 75, to: 100, range: '75–100', label: 'EXTREME GREED', display: 'Extreme Greed', color: '#46e3a0' },
+  { from: 56, to: 75, range: '56–74', label: 'GREED', display: 'Greed', color: '#8fd6b4' },
+  { from: 46, to: 56, range: '46–55', label: 'NEUTRAL', display: 'Neutral', color: '#8ea69c' },
+  { from: 25, to: 46, range: '25–45', label: 'FEAR', display: 'Fear', color: '#ff9aa8' },
+  { from: 0, to: 25, range: '0–24', label: 'EXTREME FEAR', display: 'Extreme Fear', color: '#ff6b81' },
 ];
 const SCORE_DOMAIN: Domain = { min: 0, max: 100 };
 
@@ -214,8 +215,12 @@ export default function FearGreedPage() {
       <section className="w-apanel w-fg-chart-panel" aria-label="Fear & Greed history">
         <div className="w-apanel-h">
           <div>
-            <span className="w-ttl">Crypto Fear &amp; Greed Index</span>
-            <div className="w-sub">Index history over the selected range</div>
+            <span className="w-ttl">{data?.historySource === 'kumami' ? 'Kumami Fear & Greed history' : 'Market index'}</span>
+            <div className="w-sub">
+              {data?.historySource === 'kumami'
+                ? 'Kumami’s own daily score over the selected range'
+                : `Market-wide index over the selected range · Kumami’s own history replaces it after 30 days (${data?.ownHistoryDays ?? 0}/30 saved)`}
+            </div>
           </div>
           <div className="w-flow-radar-timeframe">
             {RANGES.map((r) => (
@@ -265,7 +270,7 @@ export default function FearGreedPage() {
                     opacity={0.08}
                   />
                 ))}
-                {[24, 44, 56, 76].map((band) => (
+                {[25, 46, 56, 75].map((band) => (
                   <line
                     key={band}
                     x1={0}
@@ -292,7 +297,7 @@ export default function FearGreedPage() {
         </div>
         <div className="w-fg-band-legend">
           {BANDS.map((b) => (
-            <span key={b.label}><i style={{ background: b.color }} /> {b.display} · {b.from}–{b.to}</span>
+            <span key={b.label}><i style={{ background: b.color }} /> {b.display} · {b.range}</span>
           ))}
         </div>
       </section>

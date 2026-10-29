@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeRegime, scoreEtfFlow, scoreOiVsPrice, type RegimeInputs } from '../regime';
+import { computeRegime, confidenceVerdict, scoreEtfFlow, scoreOiVsPrice, type RegimeInputs } from '../regime';
 
 // Kumami Plus §1.1 "Global Regime — Rule Engine" (Rachelle's Kumami Website (6)):
 // 4 inputs, normalized (sum / active-signal-count) → verdict band. Long/Short bias is
@@ -10,7 +10,7 @@ import { computeRegime, scoreEtfFlow, scoreOiVsPrice, type RegimeInputs } from '
 // ETF Flow (7D cumulative): > +$100M → +1, ±$100M → 0, < -$100M → -1
 // Funding Rate: > +0.1% → -1, ±0.05% → 0, < -0.05% → +1
 // OI vs Price: up+up → +1, up+flat → 0, up+down → -1, down+anything → 0
-// Confidence: share of ACTIVE signals agreeing with the winning direction; HYPE capped at 0.7 (§1.3)
+// Confidence: share of ACTIVE signals agreeing with the winning direction (no per-coin cap since v1.17)
 //
 // Verdict bands (normalized score = sum / count of non-zero signals):
 //   >= 0.6            → Strongly Bullish
@@ -171,9 +171,46 @@ describe('computeRegime — confidence (share of ACTIVE signals)', () => {
     expect(computeRegime(base).confidence).toBe(0);
   });
 
-  it('is capped by maxConfidence (HYPE: 0.7)', () => {
+  it('has no per-coin cap any more (v1.17: the HYPE 0.70 cap is replaced by the signal-count rule)', () => {
     const all = { fearGreed: 30, etfFlowScore: 1 as const, fundingRate: -0.08, oiVsPriceScore: 1 as const };
-    expect(computeRegime({ ...all, maxConfidence: 0.7 }).confidence).toBe(0.7);
-    expect(computeRegime({ ...all, fundingRate: 0.15, oiVsPriceScore: 0, maxConfidence: 0.7 }).confidence).toBeCloseTo(2 / 3);
+    expect(computeRegime(all).confidence).toBe(1);
+  });
+});
+
+// Rachelle v1.17 Plus §1: one confidence rule for the Global Regime and every coin chip.
+//   0 active signals     → "Neutral · Low Signal"
+//   1–2 active signals   → "Leaning Bullish / Bearish" at most ("Neutral · Low Signal" under 0.60)
+//   3–4 active signals   → ≥ 0.75 full verdict · 0.60–0.75 "Leaning …" · < 0.60 "Neutral · Low Signal"
+describe('confidenceVerdict (v1.17 one confidence rule)', () => {
+  const v = (i: RegimeInputs) => confidenceVerdict(computeRegime(i)).label;
+
+  it('0 active signals → Neutral · Low Signal', () => {
+    expect(v(base)).toBe('Neutral · Low Signal');
+  });
+
+  it('1 agreeing signal (100% confidence) is only "Leaning", never the full verdict', () => {
+    expect(v({ ...base, etfFlowScore: 1 })).toBe('Leaning Bullish');
+    expect(v({ ...base, fundingRate: 0.15 })).toBe('Leaning Bearish');
+  });
+
+  it('2 of 2 agreeing → Leaning; 1 of 2 (0.50) → Neutral · Low Signal', () => {
+    expect(v({ ...base, etfFlowScore: 1, oiVsPriceScore: 1 })).toBe('Leaning Bullish');
+    expect(v({ ...base, fearGreed: 10, etfFlowScore: -1 })).toBe('Neutral · Low Signal');
+  });
+
+  it('3–4 signals use the normal floors', () => {
+    expect(v({ fearGreed: 30, etfFlowScore: 1, fundingRate: -0.08, oiVsPriceScore: 1 })).toBe('Strongly Bullish'); // 4/4
+    expect(v({ fearGreed: 30, etfFlowScore: 1, fundingRate: -0.08, oiVsPriceScore: -1 })).toBe('Cautiously Bullish'); // 3/4 = 0.75
+    expect(v({ fearGreed: 30, etfFlowScore: 1, fundingRate: 0.15, oiVsPriceScore: 0 })).toBe('Leaning Bullish'); // 2/3 ≈ 0.67
+  });
+
+  it('opposing signals that cancel out read Neutral', () => {
+    expect(v({ ...base, etfFlowScore: 1, oiVsPriceScore: -1 })).toBe('Neutral');
+  });
+
+  it('colours: full verdicts keep theirs, Leaning is grey-green / grey-red, Low Signal is grey', () => {
+    expect(confidenceVerdict(computeRegime({ ...base, etfFlowScore: 1 })).color).toBe('grey-green');
+    expect(confidenceVerdict(computeRegime({ ...base, fundingRate: 0.15 })).color).toBe('grey-red');
+    expect(confidenceVerdict(computeRegime(base)).color).toBe('grey');
   });
 });

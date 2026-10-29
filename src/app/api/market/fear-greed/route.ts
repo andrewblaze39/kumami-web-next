@@ -12,8 +12,7 @@
 
 import { NextResponse } from 'next/server';
 import { authenticate } from '@/lib/market/api-helpers';
-import { getProvider } from '@/lib/market/provider';
-import { getCachedFresh } from '@/lib/market/cache';
+import { getFearGreedIndex } from '@/lib/market/fearGreedIndex';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -22,6 +21,6 @@ export async function GET(request: Request) {
   const auth = await authenticate(request);
   if (auth instanceof NextResponse) return auth;
 
-  const payload = await getCachedFresh('market:v2:fear-greed', 300, () => getProvider().fearGreed());
+  const payload = await getFearGreedIndex();
   return NextResponse.json(payload);
 }

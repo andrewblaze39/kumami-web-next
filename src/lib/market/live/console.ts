@@ -11,12 +11,13 @@
  */
 
 import type { ConsolePayload, Verdict } from '../contracts';
-import { computeRegime, classifyFearGreed, scoreEtfFlow, scoreOiVsPrice } from '../rules/regime';
+import { computeRegime, classifyFearGreed, confidenceVerdict, scoreEtfFlow, scoreOiVsPrice } from '../rules/regime';
 import {
-  fearGreed, etfFlow, globalLongShort, liqCoinList, liqAggHistory,
+  etfFlow, globalLongShort, liqCoinList, liqAggHistory,
   fundingOiWeight, oiAggHistory, pairsMarkets,
 } from './cg-endpoints';
 import { btcDominance } from './coingecko';
+import { getFearGreedIndex } from '../fearGreedIndex';
 import {
   primaryPair, ohlcToSeries, classifyDir, latestClose, nowIso, type Dir,
 } from './helpers';
@@ -26,28 +27,6 @@ function toRegime(label: string): 'Bullish' | 'Neutral' | 'Bearish' {
   if (label.includes('Bullish')) return 'Bullish';
   if (label.includes('Bearish')) return 'Bearish';
   return 'Neutral';
-}
-
-/**
- * Confidence floor for the per-asset chip regime. Below 0.60 a directional read
- * is little better than a coin-flip, so it degrades to Neutral.
- */
-function floorRegime(regime: 'Bullish' | 'Neutral' | 'Bearish', conf: number): 'Bullish' | 'Neutral' | 'Bearish' {
-  return conf < 0.6 ? 'Neutral' : regime;
-}
-
-/**
- * Global-regime display verdict with a confidence floor:
- *   < 0.60      → "Neutral · Low Signal"
- *   0.60–0.75   → "Leaning Bullish/Bearish"
- *   ≥ 0.75      → the full engine verdict (Strongly / Cautiously …)
- */
-function floorGlobalVerdict(v: Verdict, conf: number): Verdict {
-  const dir = v.label.includes('Bullish') ? 'Bullish' : v.label.includes('Bearish') ? 'Bearish' : 'Neutral';
-  if (dir === 'Neutral') return { label: 'Neutral', color: 'grey' };
-  if (conf < 0.6) return { label: 'Neutral · Low Signal', color: 'grey' };
-  if (conf < 0.75) return { label: `Leaning ${dir}`, color: dir === 'Bullish' ? 'grey-green' : 'grey-red' };
-  return v;
 }
 
 /** Full regime for a perp asset (BTC/ETH/SOL/BNB/HYPE). Long/Short bias is NOT
@@ -75,9 +54,9 @@ async function assetRegime(asset: string, etfScore: -1 | 0 | 1, fg: number) {
     etfFlowScore: etfScore,
     fundingRate: fundingPct,
     oiVsPriceScore,
-    // HYPE has fewer reliable signals (Plus §1.3)
-    maxConfidence: asset === 'HYPE' ? 0.7 : 1,
   });
+  // One confidence rule for every coin and the Global Regime (Rachelle v1.17 Plus §1).
+  const shown = confidenceVerdict(r);
   const conf = r.confidence;
 
   // #7 diagnostic — set MARKET_DEBUG=1 to log each asset's signal breakdown.
@@ -96,17 +75,20 @@ async function assetRegime(asset: string, etfScore: -1 | 0 | 1, fg: number) {
     asset,
     price: price !== null ? Number(price.toFixed(price >= 100 ? 2 : 4)) : null,
     change24h: change24h !== null ? Number(change24h.toFixed(2)) : null,
-    regime: floorRegime(toRegime(r.verdict.label), conf),
+    regime: toRegime(shown.label),
+    label: shown.label,
+    color: shown.color,
     confidence: Number(conf.toFixed(2)),
     // Raw engine outputs — used to derive the Global Regime tile, not shown per-chip.
     verdict: r.verdict,
-    rawConf: conf,
+    shown,
   };
 }
 
 export async function makeConsolePayloadLive(): Promise<ConsolePayload> {
   const [fg, btcEtf, ethEtf, glsBtc, liqCoin, liqAggBtc, flowEvents, dominance] = await Promise.all([
-    fearGreed().catch(() => null),
+    // Kumami's own index, the same cached payload as the Fear & Greed page (v1.17 Plus §1 / §4).
+    getFearGreedIndex().catch(() => null),
     etfFlow('bitcoin').catch(() => null),
     etfFlow('ethereum').catch(() => null),
     globalLongShort('BTCUSDT', '1h').catch(() => null),
@@ -119,8 +101,8 @@ export async function makeConsolePayloadLive(): Promise<ConsolePayload> {
   // fgValue feeds the regime-scoring composite below, so it needs a neutral
   // numeric default even on failure — but that default must NEVER reach the
   // UI as if it were a real reading, so fearGreed on the payload stays null.
-  const fgValue = fg?.data_list?.length ? fg.data_list[fg.data_list.length - 1] : 50;
-  const fgFailed = !fg?.data_list?.length;
+  const fgFailed = !fg || fg.composite.unavailable === true;
+  const fgValue = fgFailed ? 50 : Math.round(fg.composite.score);
   const fgClass = classifyFearGreed(fgValue);
 
   // ETF 7d flow + prev-7d comparison — null (not a fetch-empty 0) when the fetch failed.
@@ -161,7 +143,7 @@ export async function makeConsolePayloadLive(): Promise<ConsolePayload> {
   // Keep only the 5 contract fields per chip (drop the raw verdict/rawConf helpers).
   type Chip = ConsolePayload['regimeChips'][number];
   const chip = (x: typeof btc, asset: Chip['asset']): Chip => ({
-    asset, price: x.price, change24h: x.change24h, regime: x.regime, confidence: x.confidence,
+    asset, price: x.price, change24h: x.change24h, regime: x.regime, label: x.label, color: x.color, confidence: x.confidence,
   });
   const regimeChips: ConsolePayload['regimeChips'] = [
     chip(btc, 'BTC'), chip(eth, 'ETH'), chip(sol, 'SOL'), chip(bnb, 'BNB'), chip(hype, 'HYPE'),
@@ -169,7 +151,7 @@ export async function makeConsolePayloadLive(): Promise<ConsolePayload> {
 
   // Global Regime = the regime engine's verdict (BTC as the market proxy), with a
   // confidence floor — NOT the Fear & Greed label (that stays on the sentiment bar).
-  const globalVerdict = floorGlobalVerdict(btc.verdict, btc.rawConf);
+  const globalVerdict = btc.shown;
 
   // Market-conditions tags — skip bias-derived tags entirely when the fetch failed.
   const tags: Verdict[] = [];

@@ -25,6 +25,8 @@ import { fearGreed, globalLongShort, stablecoinMcap, priceHistory } from './cg-e
 import { pairSymbol } from './helpers';
 import { makeIntelligencePayloadLive } from './intel';
 import { aiEnabled, aiHeadlineTones } from '../llm/gemini';
+import { chooseFearGreedHistory } from '../rules/fearGreedHistory';
+import { readFearGreedDays } from '../fearGreedDaily';
 
 const BASKET: { asset: string; weight: number }[] = [
   { asset: 'BTC', weight: 0.50 },
@@ -155,11 +157,13 @@ export async function makeFearGreedPayloadLive(): Promise<FearGreedPayload> {
     unavailable: !momentumAvg.hasAny && !longAvg.hasAny && !volAvg.hasAny && stableFailed && newsUnavailable,
   };
 
-  // --- Historical chart: raw index history as a proxy trend line -----------
-  const fgSeries = (rawFg?.data_list ?? []).map((v, i) => ({
+  // --- Historical chart: Kumami's own saved scores once 30 days exist, else the market index
+  // (labelled "Market index", Rachelle v1.17 Plus §4).
+  const marketSeries = (rawFg?.data_list ?? []).map((v, i) => ({
     t: (rawFg?.time_list?.[i] ?? 0) * 1000,
     v: Number(v),
   })).filter((p) => p.t > 0);
+  const chart = chooseFearGreedHistory(await readFearGreedDays().catch(() => []), marketSeries);
 
   return {
     composite,
@@ -201,7 +205,9 @@ export async function makeFearGreedPayloadLive(): Promise<FearGreedPayload> {
         unavailable: newsUnavailable,
       },
     },
-    history: fgSeries,
+    history: chart.history,
+    historySource: chart.source,
+    ownHistoryDays: chart.ownDays,
     updatedAt: new Date().toISOString(),
   };
 }

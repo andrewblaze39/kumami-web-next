@@ -44,11 +44,12 @@ export default function RegimeChips({ chips, loading }: Props) {
             key={chip.asset}
             className="w-regime-chip"
             style={{ '--rc': REGIME_RC[chip.regime] ?? '#f0b65e' } as CSSProperties}
+            data-color={chip.color}
             role="listitem"
             aria-label={
               chip.price !== null && chip.change24h !== null
-                ? `${chip.asset}: ${chip.regime}, price $${formatPrice(chip.price)}, 24h ${formatChange(chip.change24h)}, confidence ${chip.confidence.toFixed(2)}`
-                : `${chip.asset}: ${chip.regime}, price data unavailable`
+                ? `${chip.asset}: ${chip.label ?? chip.regime}, price $${formatPrice(chip.price)}, 24h ${formatChange(chip.change24h)}, confidence ${chip.confidence.toFixed(2)}`
+                : `${chip.asset}: ${chip.label ?? chip.regime}, price data unavailable`
             }
           >
             <div className="w-rc-top">
@@ -67,7 +68,8 @@ export default function RegimeChips({ chips, loading }: Props) {
                 <span className="w-chg w-muted">—</span>
               )}
             </div>
-            <div className="w-reg-lbl">{chip.regime}</div>
+            {/* v1.18: same confidence rule as the Global Regime (Plus §1) — "Leaning …" / "Neutral · Low Signal" */}
+            <div className="w-reg-lbl">{chip.label ?? chip.regime}</div>
             <div className="w-reg-conf">
               {chip.price !== null
                 ? <>Conf {chip.confidence.toFixed(2)} · ${formatPrice(chip.price)}</>

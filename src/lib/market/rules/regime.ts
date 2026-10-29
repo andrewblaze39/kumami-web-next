@@ -26,10 +26,13 @@
  *     rather than diluting the band thresholds with dead weight.
  *   - Confidence = share of the ACTIVE (non-zero) signals that agree with the winning
  *     direction (Plus §1.1). If no signal is active, confidence = 0.
- *   - maxConfidence caps it per asset: HYPE has fewer reliable signals, so 0.7 (§1.3).
+ *   - No per-coin cap (v1.17 removed the HYPE 0.70 cap). Instead one rule for the Global
+ *     Regime and every coin chip (confidenceVerdict): 0 active signals → "Neutral · Low Signal";
+ *     1–2 active → "Leaning …" at most; 3–4 active → the normal 0.60 / 0.75 floors.
  */
 
 import type { Verdict } from '../contracts';
+import { classifyComposite } from './fearGreedComposite';
 
 export type RegimeInputs = {
   /** Fear & Greed index value, 0–100 */
@@ -45,8 +48,6 @@ export type RegimeInputs = {
    *   0 = all other combinations
    */
   oiVsPriceScore: -1 | 0 | 1;
-  /** Upper bound for confidence (HYPE: 0.7). Default 1. */
-  maxConfidence?: number;
 };
 
 export type RegimeComponents = {
@@ -125,27 +126,15 @@ function computeConfidence(components: RegimeComponents, score: number): number 
 // Fear & Greed display classification (for ConsolePayload server fields)
 // ---------------------------------------------------------------------------
 
-export type FearGreedClassification = {
-  label: string;
-  /** CSS color token name used by the design system bar fill. */
-  color: 'green' | 'lime' | 'grey' | 'amber' | 'red';
-};
+export type FearGreedClassification = { label: string; color: Verdict['color'] };
 
 /**
- * Classify a Fear & Greed index value (0–100) into a display label and color.
- * Thresholds match the original MarketConditions.tsx client-side logic.
- * >=75 → Extreme Greed / red
- * >=60 → Greed / amber
- * >=40 → Neutral / grey
- * >=25 → Fear / lime
- *  <25 → Extreme Fear / green  (contrarian: green = good signal)
+ * Console Fear & Greed label and colour = the one classification of the Fear & Greed page
+ * (Rachelle v1.17 Plus §4). The older Console cut-offs (Greed from 60, Neutral 40–59) and
+ * reversed colours were removed in v1.18.
  */
 export function classifyFearGreed(value: number): FearGreedClassification {
-  if (value >= 75) return { label: 'Extreme Greed', color: 'red' };
-  if (value >= 60) return { label: 'Greed',         color: 'amber' };
-  if (value >= 40) return { label: 'Neutral',        color: 'grey' };
-  if (value >= 25) return { label: 'Fear',           color: 'lime' };
-  return             { label: 'Extreme Fear',      color: 'green' };
+  return classifyComposite(value);
 }
 
 export function computeRegime(inputs: RegimeInputs): RegimeResult {
@@ -161,7 +150,31 @@ export function computeRegime(inputs: RegimeInputs): RegimeResult {
   const activeSignals = values.filter(v => v !== 0).length;
   const normalizedScore = activeSignals > 0 ? score / activeSignals : 0;
   const verdict = verdictFromNormalizedScore(normalizedScore);
-  const confidence = Math.min(computeConfidence(components, score), inputs.maxConfidence ?? 1);
+  const confidence = computeConfidence(components, score);
 
   return { verdict, confidence, score, normalizedScore, components };
+}
+
+/** Confidence floors (Plus §1): ≥ 0.75 full verdict, 0.60–0.75 "Leaning …", below 0.60 "Neutral · Low Signal". */
+export const FULL_VERDICT_CONF = 0.75;
+export const LEANING_CONF = 0.6;
+
+/**
+ * The label shown for a regime result — the Global Regime tile and every coin chip use this
+ * one rule (Rachelle v1.17 Plus §1, replacing the HYPE-only cap):
+ *   - 0 active signals → "Neutral · Low Signal"
+ *   - 1–2 active signals → "Leaning Bullish / Bearish" at most ("Neutral · Low Signal" under 0.60);
+ *     two agreeing signals read as 100% on thin evidence, so never the full verdict
+ *   - 3–4 active signals → the normal floors above
+ * Opposing signals that cancel out (Neutral engine verdict) read "Neutral".
+ */
+export function confidenceVerdict(r: Pick<RegimeResult, 'verdict' | 'confidence' | 'components'>): Verdict {
+  const active = (Object.values(r.components) as number[]).filter((v) => v !== 0).length;
+  if (active === 0) return { label: 'Neutral · Low Signal', color: 'grey' };
+  const dir = r.verdict.label.includes('Bullish') ? 'Bullish' : r.verdict.label.includes('Bearish') ? 'Bearish' : 'Neutral';
+  if (dir === 'Neutral') return { label: 'Neutral', color: 'grey' };
+  if (r.confidence < LEANING_CONF) return { label: 'Neutral · Low Signal', color: 'grey' };
+  const leaning: Verdict = { label: `Leaning ${dir}`, color: dir === 'Bullish' ? 'grey-green' : 'grey-red' };
+  if (active <= 2 || r.confidence < FULL_VERDICT_CONF) return leaning;
+  return r.verdict;
 }

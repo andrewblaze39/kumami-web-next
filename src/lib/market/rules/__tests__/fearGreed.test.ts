@@ -1,83 +1,40 @@
 import { describe, it, expect } from 'vitest';
 import { classifyFearGreed } from '../regime';
+import { classifyComposite } from '../fearGreedComposite';
 
 /**
- * Unit tests for classifyFearGreed.
- * Thresholds (matching original MarketConditions.tsx client logic):
- *   >= 75 → "Extreme Greed" / red
- *   >= 60 → "Greed"         / amber
- *   >= 40 → "Neutral"       / grey
- *   >= 25 → "Fear"          / lime
- *    < 25 → "Extreme Fear"  / green
+ * Rachelle v1.17 Plus §4: one Fear & Greed index and ONE set of labels and colours everywhere
+ * (Console tile, Console regime, Fear & Greed page, Daily Digest):
+ *   0–24 Extreme Fear · 25–45 Fear · 46–55 Neutral · 56–74 Greed · 75–100 Extreme Greed
+ *   Fear = red, Greed = green. The Console's older cut-offs (Greed from 60, Neutral 40–59)
+ *   and its reversed colours are gone.
  */
-describe('classifyFearGreed — labels', () => {
-  it('returns "Extreme Greed" at 75 (boundary)', () => {
-    expect(classifyFearGreed(75).label).toBe('Extreme Greed');
+describe('one Fear & Greed classification (v1.17)', () => {
+  it.each([
+    [0, 'Extreme Fear'], [24, 'Extreme Fear'],
+    [25, 'Fear'], [45, 'Fear'],
+    [46, 'Neutral'], [55, 'Neutral'],
+    [56, 'Greed'], [74, 'Greed'],
+    [75, 'Extreme Greed'], [100, 'Extreme Greed'],
+  ])('%i → %s', (v, label) => {
+    expect(classifyComposite(v).label).toBe(label);
+    expect(classifyFearGreed(v).label).toBe(label);
   });
 
-  it('returns "Extreme Greed" above 75', () => {
-    expect(classifyFearGreed(90).label).toBe('Extreme Greed');
+  it('fear reads red, greed reads green, neutral grey', () => {
+    expect(classifyComposite(10).color).toBe('red');
+    expect(classifyComposite(35).color).toBe('grey-red');
+    expect(classifyComposite(50).color).toBe('grey');
+    expect(classifyComposite(65).color).toBe('grey-green');
+    expect(classifyComposite(90).color).toBe('green');
   });
 
-  it('returns "Extreme Greed" at 100', () => {
-    expect(classifyFearGreed(100).label).toBe('Extreme Greed');
+  it('the Console classification is the same function for every value 0–100', () => {
+    for (let v = 0; v <= 100; v++) expect(classifyFearGreed(v)).toEqual(classifyComposite(v));
   });
 
-  it('returns "Greed" at 60 (boundary)', () => {
-    expect(classifyFearGreed(60).label).toBe('Greed');
-  });
-
-  it('returns "Greed" just below 75', () => {
-    expect(classifyFearGreed(74).label).toBe('Greed');
-  });
-
-  it('returns "Neutral" at 40 (boundary)', () => {
-    expect(classifyFearGreed(40).label).toBe('Neutral');
-  });
-
-  it('returns "Neutral" just below 60', () => {
-    expect(classifyFearGreed(59).label).toBe('Neutral');
-  });
-
-  it('returns "Fear" at 25 (boundary)', () => {
-    expect(classifyFearGreed(25).label).toBe('Fear');
-  });
-
-  it('returns "Fear" just below 40', () => {
-    expect(classifyFearGreed(39).label).toBe('Fear');
-  });
-
-  it('returns "Extreme Fear" just below 25', () => {
-    expect(classifyFearGreed(24).label).toBe('Extreme Fear');
-  });
-
-  it('returns "Extreme Fear" at 0', () => {
-    expect(classifyFearGreed(0).label).toBe('Extreme Fear');
-  });
-});
-
-describe('classifyFearGreed — colors', () => {
-  it('returns red at 75', () => {
-    expect(classifyFearGreed(75).color).toBe('red');
-  });
-
-  it('returns amber at 60', () => {
-    expect(classifyFearGreed(60).color).toBe('amber');
-  });
-
-  it('returns grey at 40', () => {
-    expect(classifyFearGreed(40).color).toBe('grey');
-  });
-
-  it('returns lime at 25', () => {
-    expect(classifyFearGreed(25).color).toBe('lime');
-  });
-
-  it('returns green at 24 (just below Fear threshold)', () => {
-    expect(classifyFearGreed(24).color).toBe('green');
-  });
-
-  it('returns green at 0', () => {
-    expect(classifyFearGreed(0).color).toBe('green');
+  it('the old Console cut-offs are gone (60 is Greed, 40 is Fear, 59 is Greed)', () => {
+    expect(classifyFearGreed(40).label).toBe('Fear');
+    expect(classifyFearGreed(59).label).toBe('Greed');
   });
 });

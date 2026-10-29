@@ -31,12 +31,12 @@ export type ConsolePayload = {
   marketConditions: PanelVerdict & {
     /** AI sentence state: 'ok' (interpretation is AI text), 'off' (AI not switched on — "coming soon"), 'unavailable' (this call failed). */
     aiStatus?: 'ok' | 'off' | 'unavailable';
-    /** null when the Fear & Greed fetch failed — render "No data", never a fake midpoint. */
+    /** Kumami's Fear & Greed index (same number as the Fear & Greed page); null when unavailable — render "No data", never a fake midpoint. */
     fearGreed: number | null;
     /** Server-derived label for the Fear & Greed value (e.g. "Extreme Greed"). */
     fearGreedLabel: string;
-    /** Server-derived color token for the Fear & Greed bar fill. */
-    fearGreedColor: 'green' | 'lime' | 'grey' | 'amber' | 'red';
+    /** Same colour as the Fear & Greed page (v1.17: Fear = red, Greed = green). */
+    fearGreedColor: Verdict['color'];
     tiles: {
       /** null when the ETF flow fetch failed. */
       etfFlow7d: { usd: number; pctVsPrev: number } | null;
@@ -54,7 +54,11 @@ export type ConsolePayload = {
     /** null when the price fetch failed for this asset — render "No data", never $0. */
     price: number | null;
     change24h: number | null;
+    /** Direction after the confidence rule: Neutral whenever the label is Neutral / Low Signal. */
     regime: 'Bullish' | 'Neutral' | 'Bearish';
+    /** v1.18: the label shown (Plus §1 one confidence rule), e.g. "Leaning Bullish", "Neutral · Low Signal". */
+    label: string;
+    color: Verdict['color'];
     confidence: number;
   }[];
   /** Last 6 flow events */
@@ -137,8 +141,12 @@ export type FearGreedPayload = {
     marketComposition: FearGreedSubMetric;
     newsTone: FearGreedSubMetric;
   };
-  /** Raw index history (proxy trend line) — { t: ms epoch, v: 0-100 }. */
+  /** Chart series — { t: ms epoch, v: 0-100 }: Kumami's saved daily scores once 30 days exist, else the market index. */
   history: Series;
+  /** v1.18: 'kumami' = Kumami's own saved scores; 'market' = the market index, labelled "Market index" (Plus §4). */
+  historySource?: 'kumami' | 'market';
+  /** Days of Kumami's own score saved so far. */
+  ownHistoryDays?: number;
   updatedAt: string;
 };
 

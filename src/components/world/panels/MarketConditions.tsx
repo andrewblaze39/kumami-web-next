@@ -68,8 +68,8 @@ export default function MarketConditions({ data }: Props) {
           <div className="w-mc-fearval">
             {fearGreed !== null ? (
               <>
-                <b>{fearGreed}</b>
-                <span>{fearGreedLabel}</span>
+                <b className={REGIME_TONE[data.fearGreedColor] ?? 'w-muted'}>{fearGreed}</b>
+                <span className={REGIME_TONE[data.fearGreedColor] ?? 'w-muted'}>{fearGreedLabel}</span>
               </>
             ) : (
               <span className="w-muted">No data</span>
