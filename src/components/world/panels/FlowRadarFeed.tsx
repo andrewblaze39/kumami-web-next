@@ -5,6 +5,7 @@ import { formatUsd, relativeTime } from './format';
 import { WIcon } from './console-ui';
 import { flowLean, type FlowLean } from '@/lib/market/rules/flowDirections';
 
+import { flowEmptyMessage } from '@/lib/market/rules/flowEmpty';
 type Props = {
   events: ConsolePayload['flowRadar'];
   loading?: boolean;
@@ -78,7 +79,7 @@ export default function FlowRadarFeed({ events, loading }: Props) {
       ) : events.length === 0 ? (
         <div className="w-apanel-b">
           <p className="w-panel-empty">
-            No flow events available. Data will appear as signals are detected.
+            {flowEmptyMessage({ plus: true, eventsInWindow: 0, timeframe: '24H' })}
           </p>
         </div>
       ) : (

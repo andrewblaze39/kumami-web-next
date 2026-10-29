@@ -83,3 +83,12 @@ export function computeOi(inputs: OiInputs): OiResult {
 
   return { verdict, tags: [] };
 }
+
+/**
+ * The "flat" band for the OI panel, as a fraction of the starting value (Rachelle v1.17 Plus §2.7):
+ * it scales with the range, for both OI and price — 24H ±1% · 7D ±2.5% · 30D ±5%. A 1% move over
+ * a month is noise.
+ */
+export function oiFlatBand(range: '24h' | '7d' | '30d'): number {
+  return range === '30d' ? 0.05 : range === '7d' ? 0.025 : 0.01;
+}

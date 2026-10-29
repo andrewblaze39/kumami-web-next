@@ -29,17 +29,12 @@ const PRO_FEATURES: LockedCardFeature[] = [
     desc: 'Track your holdings with live pricing, plus a portfolio risk scan you can re-run anytime.',
     shapeVariant: 2,
   },
+  // Smart Money Tracker and Coin / Token Tracker were cancelled (Rachelle v1.17) — not advertised.
   {
-    tag: 'Coming Soon',
-    title: 'Smart Money Tracker',
-    desc: 'Wallet-level flow across market makers, funds and on-chain whales — in active development.',
+    tag: 'Calendar',
+    title: 'Calendar Pro',
+    desc: 'The month calendar with Pro-only events, airdrop claim days and token unlocks added.',
     shapeVariant: 3,
-  },
-  {
-    tag: 'Coming Soon',
-    title: 'Coin / Token Tracker',
-    desc: 'Deep per-token analytics with custom alerts on the metrics you care about — in active development.',
-    shapeVariant: 4,
   },
   {
     tag: 'Human',
@@ -86,9 +81,7 @@ export default function ProTeaser() {
           </span>
           <h2 className="w-pro-active-title">You&rsquo;re on Kumami Pro</h2>
           <p className="w-pro-active-sub">
-            Full access is already unlocked — open any tab from the sidebar. A few tools (Smart
-            Money Tracker, Coin/Token Tracker) are still in active development and will light up
-            automatically once they ship.
+            Full access is already unlocked — open any tab from the sidebar.
           </p>
           <span className="w-pro-tag w-pro-tag-lg">Kumami PRO</span>
         </div>

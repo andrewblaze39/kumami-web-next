@@ -21,8 +21,8 @@
  *     tabs/CryptoAddressTracker.tsx.
  * Non-premium users keep the existing teaser / whitelist page (ProTeaser).
  *
- * Retired (per the latest mockup, which drops these entirely rather than
- * showing an empty placeholder): Smart Money Tracker, Coin/Token Tracker,
+ * Cancelled (Rachelle v1.17 — will not be built): Smart Money Tracker, Coin/Token Tracker.
+ * Retired (per the latest mockup, which drops it rather than showing an empty placeholder):
  * and the Pro-tier Fear & Greed slot (that composite already lives on its
  * own Plus tab, no Pro-specific version was ever built).
  */

@@ -15,7 +15,7 @@ import { computeLongShort } from '../rules/longshort';
 import { computeCVD, type Direction } from '../rules/cvd';
 import { computePremium } from '../rules/premium';
 import { computeEtf } from '../rules/etf';
-import { computeOi } from '../rules/oi';
+import { computeOi, oiFlatBand } from '../rules/oi';
 import { computeStablecoin } from '../rules/stablecoin';
 import {
   fundingOiWeight, oiAggHistory, liqCoinList, liqAggHistory, globalLongShort,
@@ -282,14 +282,17 @@ export async function makeOnChainPayloadLive(asset: string, range: Range): Promi
   // ---- oi ----------------------------------------------------------------
   try {
     const oiSeries = ohlcToSeries(oiRows, points);
-    const oiDir = oiSeries.length >= 2 ? classifyDir(oiSeries) : 'flat';
-    const r = computeOi({ oiDirection: oiDir, priceDirection: priceDir });
+    // The flat band scales with the range, for OI and price (Rachelle v1.17 Plus §2.7).
+    const band = oiFlatBand(range);
+    const oiDir = oiSeries.length >= 2 ? classifyDir(oiSeries, band) : 'flat';
+    const oiPriceDir = priceSeries.length >= 2 ? classifyDir(priceSeries, band) : priceDir;
+    const r = computeOi({ oiDirection: oiDir, priceDirection: oiPriceDir as Direction });
     const latestOi = latestClose(oiRows);
     panels.oi = panel(r.verdict, `OI $${(latestOi / 1e9).toFixed(1)}B — ${r.verdict.label}`, {
       tags: r.tags,
       series: oiSeries.length ? oiSeries : undefined,
       series2: priceSeries.length ? priceSeries : undefined,
-      extra: { asset: A, range },
+      extra: { asset: A, range, flatBandPct: band * 100 },
     });
   } catch { panels.oi = neutral('Open interest unavailable', { asset: A, range }); }
 

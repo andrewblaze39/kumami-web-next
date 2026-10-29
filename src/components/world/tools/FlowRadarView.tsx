@@ -22,6 +22,7 @@ import { computeFlowBalance } from '@/lib/market/rules/flowBalance';
 import { computeFlowVerdict } from '@/lib/market/rules/flowVerdict';
 import { flowLean } from '@/lib/market/rules/flowDirections';
 
+import { flowEmptyMessage } from '@/lib/market/rules/flowEmpty';
 type Payload = FlowRadarPayload & {
   /** AI rewrite of the band sentence per window (v1.15 Plus §3), present only when the AI answered. */
   aiSentences?: Partial<Record<Timeframe, { verdict: string; text: string }>>;
@@ -211,6 +212,8 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
   const aiText = unfiltered && ai?.verdict === band.verdict.label ? ai.text : null;
 
   const visible = filtered.slice(0, visibleCount);
+  // Events in the window before the user's own filters — tells a quiet market from over-filtering (v1.17 Plus §3).
+  const eventsInWindow = events.filter((e) => now - Date.parse(e.ts) <= windowMs).length;
   const remaining = filtered.length - visible.length;
   const totalUsd = filtered.reduce((sum, e) => sum + e.amountUsd, 0);
 
@@ -397,7 +400,7 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
               </div>
             ) : visible.length === 0 ? (
               <div className="w-apanel-b">
-                <p className="w-panel-empty">No events match these filters right now.</p>
+                <p className="w-panel-empty">{flowEmptyMessage({ plus: !isPremium, eventsInWindow, timeframe })}</p>
               </div>
             ) : (
               <div className="w-radar-list" aria-label="Flow radar events">

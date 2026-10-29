@@ -6,8 +6,7 @@ import { ProShellHead } from './shared';
 
 /**
  * ComingSoon — placeholder panel for Pro tabs whose live data source is still
- * being wired (Smart Money, Coin/Token Tracker, Liquidation Heatmap, Security
- * Scanner, Fear & Greed). Renders the standard panel header plus a branded
+ * being wired (Security Scanner). Renders the standard panel header plus a branded
  * "coming soon" card describing what the tab will do and its planned source.
  */
 export function ComingSoon({

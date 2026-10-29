@@ -187,10 +187,9 @@ const ADV_NAV: NavGroup[] = [
 
 // PRO nav (premium users) — item keys must match ?tab= read by WorldProContent.
 // Grouped to match the reference design's "News & Signals" / "Tools" /
-// "AI Tools" sections. Smart Money Tracker, Coin/Token Tracker, and the
-// Pro-tier Fear & Greed slot were retired (per the latest mockup) — all
-// three were ComingSoon placeholders with zero real content.
-// NOTE: no Watchlist, Flow Radar, Calendar or Settings items here — those are
+// "AI Tools" sections. Smart Money Tracker and Coin/Token Tracker are cancelled
+// (Rachelle v1.17); the Pro-tier Fear & Greed slot was retired.
+// NOTE: no Watchlist, Flow Radar or Settings items here — those are
 // Plus tools. Since 10 Oct 2026 each workspace shows only its own tier, so Pro
 // users open them by switching to the Plus workspace; the Pro-only depth on
 // those pages (Flow Radar Pro, Watchlist Pro) follows the ACCOUNT, not the

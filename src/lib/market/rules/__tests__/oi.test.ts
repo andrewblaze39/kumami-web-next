@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeOi } from '../oi';
+import { computeOi, oiFlatBand } from '../oi';
 
 // Doc lines 859–868 (matrix section), 316–326 (summary).
 // 6-cell OI-direction × price-direction matrix:
@@ -81,5 +81,18 @@ describe('computeOi — tags are always empty (no modifiers in doc)', () => {
       const r = computeOi(cell);
       expect(r.tags).toHaveLength(0);
     }
+  });
+});
+
+// Rachelle v1.17 Plus §2.7: the OI "flat" line scales with the range, for both OI and price.
+describe('oiFlatBand (v1.17: flat scales with the range)', () => {
+  it('24H ±1% · 7D ±2.5% · 30D ±5%', () => {
+    expect(oiFlatBand('24h')).toBe(0.01);
+    expect(oiFlatBand('7d')).toBe(0.025);
+    expect(oiFlatBand('30d')).toBe(0.05);
+  });
+  it('a 3% month move is flat, a 3% day move is not', () => {
+    expect(Math.abs(0.03) <= oiFlatBand('30d')).toBe(true);
+    expect(Math.abs(0.03) <= oiFlatBand('24h')).toBe(false);
   });
 });

@@ -562,7 +562,7 @@ export default function OnChainPage() {
             <div className="w-oc-ph">
               <span className="w-oc-ttl">
                 <WIcon name="flame" /> Open Interest Trend{' '}
-                <OcQ tip="Total leveraged bets in the market. Rising with price = healthy trend. Rising without price = pressure building. Total open perpetual and futures positions aggregated across exchanges." />
+                <OcQ tip="Total leveraged bets in the market. Rising with price = healthy trend. Rising without price = pressure building. Total open perpetual and futures positions aggregated across exchanges. “Flat” = OI or price moved less than ±1% (24H), ±2.5% (7D) or ±5% (30D)." />
                 <span className="w-oc-ph-sub">Leverage in the system</span>
               </span>
             </div>
