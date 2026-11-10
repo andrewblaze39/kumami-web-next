@@ -8204,8 +8204,9 @@
 .world-root .w-mcal-up-title { color: var(--ink); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* v1.18 price-alert toast (AlertNotifier) */
+/* Sonner (AlertNotifier) positions and stacks the toasts; this styles each card. */
 .world-root .w-alert-toast {
-  position: fixed; right: 20px; bottom: 20px; z-index: 80; max-width: 360px;
+  box-sizing: border-box; width: 356px; max-width: calc(100vw - 32px);
   display: flex; flex-direction: column; gap: 4px; padding: 12px 14px;
   background: var(--panel); border: 1px solid var(--accent); border-radius: 12px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45); font-size: 13px; color: var(--muted);
