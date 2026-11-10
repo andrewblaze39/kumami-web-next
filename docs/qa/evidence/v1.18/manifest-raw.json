@@ -158,5 +158,70 @@
     "item": "R05",
     "file": "r05-flow-radar-quiet.jpg",
     "caption": "Flow Radar Plus with no HIGH/MED events in the window (real response replayed without events): \"Live feed 0 events · 1H No major flows in the last hour — market is quiet\"."
+  },
+  {
+    "item": "R23",
+    "file": "r23-basic-sidebar.jpg",
+    "caption": "Basic sidebar, top to bottom: Console · Market Pulse · Flow Radar · Fear & Greed · Calendar · Watchlist · News Portal · My Journey · My Courses · Cryptopedia · AI Labs · Games · Settings. No Home item, no \"Plus\" in any name."
+  },
+  {
+    "item": "R22",
+    "file": "r22-workspace-switch.jpg",
+    "caption": "The workspace switch has two options: Basic / Pro. The badge next to the logo says BASIC."
+  },
+  {
+    "item": "R22",
+    "file": "r22-basic-console.jpg",
+    "caption": "Basic workspace opens on the Console (page title \"Console\", no \"Plus\" badge)."
+  },
+  {
+    "item": "R25",
+    "file": "r25-pro-sidebar.jpg",
+    "caption": "Pro sidebar, top to bottom: Console Pro · Following & Alerts · Market Pulse Pro · Flow Radar Pro · Real-Time News · Alpha Room · Calendar Pro · Kumami Research · AI Portfolio Manager · Crypto Address Tracker · Market Cap Comparison · Watchlist · Security Scanner · Airdrops & Whitelist · Events & Announcements · Settings. Groups: News & Signals, Tools. Market Analysis and Kuma AI Chat are no longer listed."
+  },
+  {
+    "item": "R26",
+    "file": "r26-console-pro.jpg",
+    "caption": "Console Pro (replaces the Daily Digest): Market Conditions, Your assets, Market Pulse Pro (10 coins, real-time), Flow Radar real-time with a coin filter, Calendar Pro, Watchlist with your coins."
+  },
+  {
+    "item": "R26",
+    "file": "r26-console-pro-top.jpg",
+    "caption": "Console Pro header: \"Real-time\" (the Basic Console says \"Live\" and its Flow Radar is 15 minutes behind)."
+  },
+  {
+    "item": "R26",
+    "file": "r26-your-assets-picker.jpg",
+    "caption": "Your assets → Customize: pick up to 5 coins from the 5 anchors and the coins in your Watchlist. Saved to your account."
+  },
+  {
+    "item": "R26",
+    "file": "r26-console-pro-flow.jpg",
+    "caption": "Console Pro Flow Radar: real-time events from every coin, with a coin filter row."
+  },
+  {
+    "item": "R26",
+    "file": "r26-console-pro-calendar-watchlist.jpg",
+    "caption": "Calendar Pro (airdrop days, unlocks, Pro-only events) and Watchlist Pro (anchors, your coins, Also Worth Watching)."
+  },
+  {
+    "item": "R23",
+    "file": "r23-logo-menu-home.jpg",
+    "caption": "Home moved to the logo menu (top of the Company list)."
+  },
+  {
+    "item": "R24",
+    "file": "r24-flow-radar-title.jpg",
+    "caption": "Flow Radar (was \"Flow Radar Plus\"): the page title reads \"Flow Radar\"."
+  },
+  {
+    "item": "R24",
+    "file": "r24-watchlist-title.jpg",
+    "caption": "Watchlist (was \"Watchlist Plus\"): the page title reads \"Watchlist\"."
+  },
+  {
+    "item": "R24",
+    "file": "r24-market-pulse-title.jpg",
+    "caption": "Market Pulse (was \"On-Chain Insights\" / \"Market Structure\"): the page title reads \"Market Pulse\"."
   }
 ]
