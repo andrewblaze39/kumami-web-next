@@ -12,6 +12,12 @@ import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 
+/**
+ * Two workspaces since v1.18 (Rachelle v1.17 "Shell and workspaces"): Basic
+ * (free — the old Basic and Plus merged, internal name 'advanced') and Pro.
+ * 'beginner' stays in the type only so old stored values and links still load;
+ * it is always read as 'advanced'.
+ */
 export type WorldMode = 'beginner' | 'advanced' | 'pro';
 
 interface WorldModeContextType {
@@ -35,15 +41,18 @@ export function useWorldMode() {
 // NOTE: '/world/courses' stays for the course-reader deep links
 // (/world/courses/[phaseId]/…). The bare /world/courses and /world/dashboard
 // pages now redirect to /world/education subtabs.
-const BEGINNER_ROUTES = ['/world/news', '/world/courses', '/world/education', '/world/ailabs', '/world/games'];
 const ADVANCED_ROUTES = [
+  // Learn & community pages (the old Basic workspace)
+  '/world/news', '/world/courses', '/world/education', '/world/ailabs', '/world/games',
+  // Markets (the old Plus workspace)
   '/world/console', '/world/onchain', '/world/flow-radar', '/world/fear-greed',
-  '/world/calendar', '/world/watchlist', '/world/settings',
+  '/world/calendar', '/world/watchlist',
   '/world/intel', '/world/spot-pulse', // retired — redirect into Plus pages
 ];
 const PRO_ROUTES = ['/world/pro'];
 // Shared routes: visible in every mode — visiting them never changes the mode.
-const SHARED_ROUTES = ['/world/home', '/world/about', '/world/blogs', '/world/profile'];
+// Settings is in both sidebars (v1.18), so it keeps the current workspace too.
+const SHARED_ROUTES = ['/world/home', '/world/about', '/world/blogs', '/world/profile', '/world/settings'];
 
 // Match a route prefix on segment boundaries so e.g. '/world/profile'
 // does NOT match the '/world/pro' prefix.
@@ -52,29 +61,28 @@ function matchesRoute(pathname: string, route: string): boolean {
 }
 
 /**
- * Which workspace a page belongs to. Since 10 Oct 2026 each workspace's
- * sidebar shows ONLY its own tier, so the workspace follows the page: opening
- * a Plus page switches to Plus (up or down), opening /world/pro switches to Pro.
+ * Which workspace a page belongs to. Each workspace's sidebar shows ONLY its
+ * own tier, so the workspace follows the page: opening a Basic page switches
+ * to Basic, opening /world/pro switches to Pro.
  * Shared routes and unknown routes return null = keep the current workspace.
  */
 function detectModeFromPath(pathname: string): WorldMode | null {
   if (SHARED_ROUTES.some(r => matchesRoute(pathname, r))) return null;
   if (PRO_ROUTES.some(r => matchesRoute(pathname, r))) return 'pro';
   if (ADVANCED_ROUTES.some(r => matchesRoute(pathname, r))) return 'advanced';
-  if (BEGINNER_ROUTES.some(r => matchesRoute(pathname, r))) return 'beginner';
   // Unknown route: keep the current mode (caller treats null as "no change").
   return null;
 }
 
 function defaultPageForMode(mode: WorldMode): string {
-  // From mockup: ST.sec defaults: beginner→'news', advanced→'intel'/'console', pro→'pro'
-  // setMode default for advanced is 'console' (go(ST.sec[mode]) where ST.sec.advanced defaults to 'intel')
-  // Cross-checking: initial ST.sec = {beginner:'news', advanced:'intel', pro:'pro'}
-  // setMode sets ST.sec.pro='pro' always; for beginner/advanced it preserves continuity.
-  // Default (no continuity): beginner→/world/news, advanced→/world/console (console is the "home" of advanced)
-  if (mode === 'beginner') return '/world/education?tab=journey';
-  if (mode === 'advanced') return '/world/console';
-  return '/world/pro?tab=portfolio';
+  // Basic opens the Console (Rachelle's v1.18 sidebar starts at Console), Pro opens Console Pro.
+  if (mode === 'pro') return '/world/pro?tab=digest';
+  return '/world/console';
+}
+
+/** Old 'beginner' (stored values, links) is the merged Basic workspace now. */
+function normalizeMode(m: WorldMode): WorldMode {
+  return m === 'beginner' ? 'advanced' : m;
 }
 
 // ---------- Provider ----------
@@ -86,10 +94,10 @@ export function WorldModeProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize from localStorage first (before render)
   const [mode, setModeState] = useState<WorldMode>(() => {
-    if (typeof window === 'undefined') return 'beginner';
+    if (typeof window === 'undefined') return 'advanced';
     const stored = localStorage.getItem('kumami_world_mode') as WorldMode | null;
-    if (stored === 'beginner' || stored === 'advanced' || stored === 'pro') return stored;
-    return 'beginner';
+    if (stored === 'beginner' || stored === 'advanced' || stored === 'pro') return normalizeMode(stored);
+    return 'advanced';
   });
 
   const [kumaOpen, setKumaOpen] = useState(false);
@@ -120,7 +128,8 @@ export function WorldModeProvider({ children }: { children: React.ReactNode }) {
   );
 
   const setMode = useCallback(
-    (newMode: WorldMode) => {
+    (requested: WorldMode) => {
+      const newMode = normalizeMode(requested);
       if (newMode === mode) return;
 
       // Each workspace only lists its own tier, so switching workspace goes to

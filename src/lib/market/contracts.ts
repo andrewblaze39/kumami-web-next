@@ -48,9 +48,9 @@ export type ConsolePayload = {
       liq24h: { totalUsd: number; pctVsAvg7d: number } | null;
     };
   };
-  /** Exactly 5 chips: BTC, ETH, SOL, BNB, HYPE */
+  /** Exactly 5 chips: BTC, ETH, SOL, BNB, HYPE (Console Pro's "Your assets" reuses the shape for any coin). */
   regimeChips: {
-    asset: 'BTC' | 'ETH' | 'SOL' | 'BNB' | 'HYPE';
+    asset: string;
     /** null when the price fetch failed for this asset — render "No data", never $0. */
     price: number | null;
     change24h: number | null;

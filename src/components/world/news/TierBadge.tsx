@@ -6,18 +6,14 @@ interface AdvancedBadgeProps {
   articleId?: string;
 }
 
-/** Gold "PLUS" tier badge — optionally deep-links to /world/intel/[id] */
-export function AdvancedBadge({ articleId }: AdvancedBadgeProps) {
-  const inner = <span className="w-tag-badge w-tag-adv">Plus</span>;
-
-  if (articleId) {
-    return (
-      <Link href={`/world/intel/${articleId}`} style={{ textDecoration: 'none' }}>
-        {inner}
-      </Link>
-    );
-  }
-  return inner;
+/**
+ * Former gold "PLUS" tier badge. Since v1.18 Plus is part of the free Basic
+ * workspace (Rachelle v1.17 "Shell and workspaces"), so these articles carry no
+ * tier badge; only PRO-flagged articles keep theirs (the upsell).
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function AdvancedBadge(_props: AdvancedBadgeProps) {
+  return null;
 }
 
 interface ProBadgeProps {

@@ -29,17 +29,17 @@ export default function HomeGateClient() {
 
   // Warm the default post-auth destination.
   useEffect(() => {
-    router.prefetch('/world/news');
+    router.prefetch('/world/console');
   }, [router]);
 
   useEffect(() => {
     if (currentUser) {
       // Honour a stored redirect target (set by the signup/login flows and
-      // WorldProtected) then clear it; fall back to /world/news.
+      // WorldProtected) then clear it; fall back to the Console (Basic starts at Console, v1.18).
       // Validate against open-redirect: only accept safe internal paths.
       const stored = sessionStorage.getItem('redirectAfterSignup');
       sessionStorage.removeItem('redirectAfterSignup');
-      router.replace(isSafeInternalPath(stored) ? stored : '/world/news');
+      router.replace(isSafeInternalPath(stored) ? stored : '/world/console');
     }
   }, [currentUser, router]);
 

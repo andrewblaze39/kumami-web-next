@@ -182,7 +182,7 @@ const ONCHAIN_TOUR: TourStep[] = [
   },
   {
     selector: '[data-tour="oc-spotpulse"]',
-    title: 'Spot Pulse — real money vs leverage',
+    title: 'Market Pulse — real money vs leverage',
     body: 'Each tile compares real spot buying/selling against futures leverage. Green = genuine demand, red = selling into a leveraged rally, amber = speculative and likely to fade.',
   },
   {
@@ -321,9 +321,9 @@ export default function OnChainPage() {
       <div className="w-oc-head">
         <div className="w-oc-head-top">
           <div>
-            <div className="w-ptag">On-Chain Insight</div>
+            <div className="w-ptag">Market Pulse</div>
             <h1>
-              <WIcon name="spark" /> Market Structure
+              <WIcon name="spark" /> Market Pulse
             </h1>
             <p className="w-oc-sub">
               See what&apos;s happening beneath the price — where money is moving, who&apos;s

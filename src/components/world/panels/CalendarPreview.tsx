@@ -17,8 +17,10 @@ import type { CalendarKind } from '@/lib/market/rules/calendarEvents';
 
 const WD = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-export default function CalendarPreview() {
-  const { status, data } = useMarketEndpoint<CalendarPayload>('/api/market/calendar');
+/** view "pro" (Console Pro, v1.18): Calendar Pro's events — Pro-only events, airdrop days, unlocks. */
+export default function CalendarPreview({ view = 'plus' }: { view?: 'plus' | 'pro' }) {
+  const pro = view === 'pro';
+  const { status, data } = useMarketEndpoint<CalendarPayload>(pro ? '/api/market/calendar?view=pro' : '/api/market/calendar');
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const [openedAt] = useState(() => Date.now());
   const events = useMemo(() => data?.events ?? [], [data]);
@@ -34,7 +36,7 @@ export default function CalendarPreview() {
     <section className="w-apanel" aria-label="Calendar" data-tour="calendar-preview">
       <div className="w-apanel-h">
         <span className="w-ttl">
-          <span className="w-ic"><WIcon name="clock" /></span>{' '}Calendar{' '}
+          <span className="w-ic"><WIcon name="clock" /></span>{' '}{pro ? 'Calendar Pro' : 'Calendar'}{' '}
           <span className="w-oc-q" tabIndex={0} title="This month at a glance: a coloured dot for each kind of event on a day. Open the Calendar for details.">?</span>
         </span>
         <span className="w-sub">{status === 'loading' ? 'This month' : `${inMonth} event${inMonth === 1 ? '' : 's'} this month`}</span>
@@ -86,7 +88,7 @@ export default function CalendarPreview() {
 
       <div className="w-apanel-foot">
         <span className="w-fmeta">This month</span>
-        <Link href="/world/calendar">Open Calendar <WIcon name="arrowR" /></Link>
+        <Link href={pro ? '/world/pro?tab=calendar' : '/world/calendar'}>Open {pro ? 'Calendar Pro' : 'Calendar'} <WIcon name="arrowR" /></Link>
       </div>
     </section>
   );

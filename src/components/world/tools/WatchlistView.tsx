@@ -200,9 +200,9 @@ export default function WatchlistView({ variant }: { variant: ToolVariant }) {
     <div className="w-content-inner w-watchlist">
       {/* ── Page head ── */}
       <div className="w-page-head">
-        <div className="w-ptag">{isPremium ? 'Watchlist Pro' : 'Watchlist Plus'}</div>
+        <div className="w-ptag">{isPremium ? 'Watchlist Pro' : 'Watchlist'}</div>
         <h1>
-          <WIcon name="bookmark" /> {isPremium ? 'Watchlist Pro' : 'Watchlist Plus'}
+          <WIcon name="bookmark" /> {isPremium ? 'Watchlist Pro' : 'Watchlist'}
         </h1>
         {isPremium ? (
           <p>

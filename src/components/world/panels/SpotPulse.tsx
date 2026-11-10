@@ -138,7 +138,7 @@ export default function SpotPulse({
     <div className="w-oc-panel">
       <div className="w-oc-ph">
         <span className="w-oc-ttl">
-          <WIcon name="spark" /> {variant === 'pro' ? 'Spot Pulse Pro' : 'Spot Pulse'}{' '}
+          <WIcon name="spark" /> {variant === 'pro' ? 'Market Pulse Pro' : 'Market Pulse'}{' '}
           <span
             className="w-oc-q"
             tabIndex={0}
@@ -172,7 +172,7 @@ export default function SpotPulse({
         {data && <span className="w-muted" style={{ fontSize: 12.5, lineHeight: 1.45 }}>{data.marketSentence}</span>}
         {!loading && !data && (
           <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span className="w-muted" style={{ fontSize: 12.5 }}>Couldn&apos;t load Spot Pulse right now.</span>
+            <span className="w-muted" style={{ fontSize: 12.5 }}>Couldn&apos;t load Market Pulse right now.</span>
             <button type="button" className="w-btn w-btn-ghost w-btn-sm" onClick={market.refetch}>Retry</button>
           </span>
         )}
@@ -185,7 +185,7 @@ export default function SpotPulse({
             {Array.from({ length: 5 }).map((_, i) => <div key={i} className="w-sp-tile w-sp-skeleton" />)}
           </div>
         ) : !data || data.tiles.length === 0 ? (
-          <p className="w-panel-empty">No Spot Pulse data available.</p>
+          <p className="w-panel-empty">No Market Pulse data available.</p>
         ) : (
           <div className="w-sp-grid">
             {data.tiles.map((t) => <Tile key={t.asset} t={t} tf={tf} onSelect={onSelectAsset} />)}
@@ -237,7 +237,7 @@ export default function SpotPulse({
             ) : (
               <span className="w-delay-note" style={{ marginLeft: 'auto' }}>
                 <WIcon name="clock" /> {data.timeframe} window ·{' '}
-                <Link href="/world/pro?tab=spotpulse">Unlock Spot Pulse Pro →</Link>
+                <Link href="/world/pro?tab=spotpulse">Unlock Market Pulse Pro →</Link>
               </span>
             )}
           </div>

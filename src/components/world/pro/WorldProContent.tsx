@@ -7,8 +7,9 @@
  * dashboard: tabs selected via the ?tab= query param (deep links like
  * /world/pro?tab=research work), driven from the LEFT sidebar (see
  * shell/Sidebar.tsx PRO_NAV). Tabs fall into three groups:
- *   - Group A (built here from the reference design, fixture-driven): digest,
- *     followhub, airdrops, realtimenews, research, events.
+ *   - digest: Console Pro (v1.18, replaces the Daily Digest) — the complete Console.
+ *   - Group A (built here from the reference design): followhub, airdrops,
+ *     realtimenews, research, events.
  *   - flowradar / watchlist / spotpulse: the PRO versions of the market tools
  *     (Flow Radar Pro, Watchlist Pro, Spot Pulse Pro) — complete and
  *     real-time; the Plus pages render the cut-down Plus versions of the same
@@ -35,7 +36,7 @@ import ProductTour, { type TourStep } from '@/components/world/ProductTour';
 import ProTeaser from './ProTeaser';
 import { ProStateProvider } from './ProState';
 import { ComingSoon } from './tabs/ComingSoon';
-import { DailyDigest } from './tabs/DailyDigest';
+import { ConsolePro } from './tabs/ConsolePro';
 import { FollowingAlerts } from './tabs/FollowingAlerts';
 import { CalendarView } from '@/components/world/calendar/CalendarView';
 import { Airdrops } from './tabs/Airdrops';
@@ -69,7 +70,7 @@ function isTabKey(v: string | null): v is TabKey {
 function TabContent({ active }: { active: TabKey }) {
   switch (active) {
     case 'digest':
-      return <DailyDigest />;
+      return <ConsolePro />;
     case 'followhub':
       return <FollowingAlerts />;
     case 'airdrops':
@@ -134,7 +135,7 @@ function TabContent({ active }: { active: TabKey }) {
         </div>
       );
     default:
-      return <DailyDigest />;
+      return <ConsolePro />;
   }
 }
 
@@ -148,8 +149,9 @@ const comingSoonTour = (title: string, what: string, source: string): TourStep[]
 
 const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
   digest: [
-    { selector: HEAD, title: 'Daily Digest', body: 'Your morning market recap. Everything important that happened overnight across your Watchlist, Smart Money, and Alpha Room, all in one place.' },
-    { title: 'How to use it', body: 'Each section links to its full tab — click “Open …” to dive into the research, news, events or airdrops behind the summary.' },
+    { selector: HEAD, title: 'Console Pro', body: 'The complete Console: the market regime, your own coins, real-time money flows, the month ahead and your Watchlist — all live.' },
+    { selector: '[data-tour="cpro-assets"]', title: 'Your assets', body: 'Click Customize to pick up to 5 coins — the 5 anchors or any coin in your Watchlist. Each chip uses the same regime read as the Console.' },
+    { title: 'Compared with the Basic Console', body: 'Basic shows the 5 fixed coins and a Flow Radar that is 15 minutes behind. Console Pro is real-time, covers every coin, and adds Calendar Pro and your Watchlist coins.' },
   ],
   followhub: [
     { selector: HEAD, title: 'Following & Alerts', body: "One hub for everything you follow and every alert you've set, across all your tools." },
@@ -157,17 +159,17 @@ const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
     { title: 'Alerts fire live', body: 'A price alert arms at the current price and flips to TRIGGERED the moment it moves past your threshold — powered by the live price feed. Use the ↻ button to re-arm at the new price.' },
   ],
   flowradar: [
-    { title: 'Flow Radar Pro', body: 'Every large whale transfer, exchange flow, liquidation spike and smart-money position across every coin — in real time. Flow Radar Plus shows only the 5 major coins, 15 minutes late.' },
+    { title: 'Flow Radar Pro', body: 'Every large whale transfer, exchange flow, liquidation spike and smart-money position across every coin — in real time. Flow Radar (Basic) shows only the 5 major coins, 15 minutes late.' },
     { title: 'Extra in Pro', body: 'LOW-severity events, the 24h Flow Balance panel (bullish vs bearish dollars), multi-coin filters, and coloured outlines when another Kumami tool confirms an event.' },
   ],
   watchlist: [
-    { title: 'Watchlist Pro', body: 'The 5 market anchors, plus up to 15 coins of your own, plus 5 coins that keep showing up in Flow Radar — each with live signal and status tags.' },
+    { title: 'Watchlist', body: 'The complete Watchlist: the 5 market anchors, plus up to 15 coins of your own, plus 5 coins that keep showing up in Flow Radar — each with live signal and status tags.' },
     { title: 'Also Worth Watching', body: 'The coins most consistently present in Flow Radar over the last 7 days. While 7 days of history are still being collected, it uses the last 24 hours of whale flow.' },
   ],
   spotpulse: [
-    { selector: HEAD, title: 'Spot Pulse Pro', body: "See where actual buying and selling is happening — the 5 anchors plus Watchlist Pro's 5 extra coins, in real time. Compare spot and futures activity to tell whether a move is backed by real demand or speculation." },
+    { selector: HEAD, title: 'Market Pulse Pro', body: "See where actual buying and selling is happening — the 5 anchors plus Watchlist Pro's 5 extra coins, in real time. Compare spot and futures activity to tell whether a move is backed by real demand or speculation." },
     { title: 'Reading the tiles', body: 'Each tile compares spot buying, futures leverage and price for one coin and gives a verdict (e.g. REAL BUYING, SPECULATIVE, DISTRIBUTION). The banner sums up the whole market, and alert cards flag the biggest divergences.' },
-    { title: 'Row 2', body: "The second row is Watchlist Pro's extra coins — the ones Flow Radar keeps flagging. Plus users only see the 5 anchors, as a tile on On-Chain Insights." },
+    { title: 'Row 2', body: "The second row is Watchlist Pro's extra coins — the ones Flow Radar keeps flagging. Basic users only see the 5 anchors, on Market Pulse." },
   ],
   scanner: comingSoonTour('Security Scanner', "Check a token's contract before you trade. Get a quick safety check to spot risks like honeypots and potential rugs.", 'security-data provider'),
   airdrops: [
@@ -175,7 +177,7 @@ const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
     { title: 'Browse & follow', body: 'Switch between the Airdrops and Whitelists tabs, click any card to open its eligibility checklist, deadline and estimated value, then Follow the ones you want to track.' },
   ],
   portfolio: [
-    { title: 'AI Portfolio', body: 'Track your holdings with live pricing. Click "Add Asset" to log a coin, amount and price paid — value and 24h change update automatically from live market data.' },
+    { title: 'AI Portfolio Manager', body: 'Track your holdings with live pricing. Click "Add Asset" to log a coin, amount and price paid — value and 24h change update automatically from live market data.' },
     { title: 'Reading the numbers', body: 'The 24h change under your total balance is a real weighted average of every holding\'s own price move, not a flat estimate.' },
     { title: 'Portfolio risk scan', body: 'Click "Scan my portfolio" for a risk read — concentration, diversification, volatility and liquidity — with a note if your holdings changed since the last scan.' },
   ],
@@ -199,7 +201,7 @@ const PRO_TAB_TOURS: Record<TabKey, TourStep[]> = {
     { title: 'What each call shows', body: 'Every card states a position (long/short/neutral) and asset, when it was made, the reasoning, and a “What this means for you” read.' },
   ],
   calendar: [
-    { title: 'Calendar Pro', body: 'The same month calendar as the Plus Calendar, plus events only for Pro members, airdrop claim days and token unlocks. Click a day to see its events.' },
+    { title: 'Calendar Pro', body: 'The same month calendar as the Basic Calendar, plus events only for Pro members, airdrop claim days and token unlocks. Click a day to see its events.' },
   ],
   events: [
     { selector: HEAD, title: 'Events & Announcements', body: 'Discover events and join live Q&As with project teams.' },

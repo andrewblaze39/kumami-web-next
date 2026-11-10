@@ -24,17 +24,20 @@ function MiniTile({ t }: { t: SpotPulseTile }) {
   );
 }
 
-export default function SpotPulsePreview() {
-  const market = useMarketEndpoint<SpotPulsePayload>('/api/market/spot-pulse?tf=4H&view=plus');
+/** variant "pro" (Console Pro, v1.18): Market Pulse Pro's 10 coins in real time. */
+export default function SpotPulsePreview({ variant = 'plus' }: { variant?: 'plus' | 'pro' }) {
+  const pro = variant === 'pro';
+  const market = useMarketEndpoint<SpotPulsePayload>(`/api/market/spot-pulse?tf=4H&view=${pro ? 'pro' : 'plus'}`);
   const data = market.data;
   const loading = market.status === 'loading' && !data;
+  const shown = pro ? 10 : 5;
 
   return (
-    <section className="w-apanel" aria-label="Spot Pulse" data-tour="spotpulse">
+    <section className="w-apanel" aria-label="Market Pulse" data-tour="spotpulse">
       <div className="w-apanel-h">
         <span className="w-ttl">
           <span className="w-ic"><WIcon name="spark" /></span>
-          {' '}Spot Pulse{' '}
+          {' '}{pro ? 'Market Pulse Pro' : 'Market Pulse'}{' '}
           <span
             className="w-oc-q"
             tabIndex={0}
@@ -44,19 +47,23 @@ export default function SpotPulsePreview() {
           </span>{' '}
           <span className="w-sub">· real money vs leverage</span>
         </span>
-        <Link href="/world/pro?tab=spotpulse" className="w-delay-note">
-          Unlock Spot Pulse Pro →
-        </Link>
+        {pro ? (
+          <span className="w-adv-updated"><span className="w-live-dot" /> Real-time</span>
+        ) : (
+          <Link href="/world/pro?tab=spotpulse" className="w-delay-note">
+            Unlock Market Pulse Pro →
+          </Link>
+        )}
       </div>
 
       <div className="w-apanel-b">
         {loading ? (
           <div className="w-panel-skeleton w-panel-skeleton-list" aria-busy="true" />
         ) : !data || data.tiles.length === 0 ? (
-          <p className="w-panel-empty">No Spot Pulse data available.</p>
+          <p className="w-panel-empty">No Market Pulse data available.</p>
         ) : (
           <div className="w-sp-grid">
-            {data.tiles.slice(0, 5).map((t) => (
+            {data.tiles.slice(0, shown).map((t) => (
               <MiniTile key={t.asset} t={t} />
             ))}
           </div>
@@ -64,9 +71,9 @@ export default function SpotPulsePreview() {
       </div>
 
       <div className="w-apanel-foot">
-        <span className="w-fmeta">{data ? data.marketVerdict : 'Spot vs. futures, five majors'}</span>
-        <Link href="/world/onchain">
-          Open Spot Pulse <WIcon name="arrowR" />
+        <span className="w-fmeta">{data ? data.marketVerdict : pro ? 'Spot vs. futures, 10 coins' : 'Spot vs. futures, five majors'}</span>
+        <Link href={pro ? '/world/pro?tab=spotpulse' : '/world/onchain'}>
+          Open {pro ? 'Market Pulse Pro' : 'Market Pulse'} <WIcon name="arrowR" />
         </Link>
       </div>
     </section>

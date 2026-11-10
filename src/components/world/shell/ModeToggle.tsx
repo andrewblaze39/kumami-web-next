@@ -51,19 +51,13 @@ export default function ModeToggle() {
         aria-label="Switch workspace — changes your whole sidebar and tools"
       >
         <span className="w-knob" ref={knobRef} />
-        <button
-          className={cls('beginner')}
-          onClick={() => setMode('beginner')}
-          title="Basic workspace — learning, news & community tools"
-        >
-          <span>Basic</span>
-        </button>
+        {/* Two workspaces since v1.18: Basic (free — old Basic + Plus merged) and Pro. */}
         <button
           className={cls('advanced')}
           onClick={() => setMode('advanced')}
-          title="Plus workspace — live market console, on-chain data & alerts"
+          title="Basic workspace — markets, news, learning and community, free for everyone"
         >
-          <span>Plus</span>
+          <span>Basic</span>
         </button>
         <button
           className={cls('pro')}

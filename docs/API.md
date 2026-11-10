@@ -207,6 +207,12 @@ Request: `{ "message": "…", "chatRoomId": "kuma_dock" (optional), "source": "k
 ### `POST /kuma/callback?token=…` — n8n only
 n8n posts `{ userId, chatRoomId, aiResponse }` to the `callbackUrl` it was given. `token` is an HMAC (`KUMA_CALLBACK_SECRET`) scoped to that **one user and chat room**, valid for 15 minutes; anything else gets 401. This needed no n8n change: the workflow already calls back `body.callbackUrl`. If the user deleted their account in the meantime → `user_not_found` 404 and nothing is written.
 
+### `GET /me/console-assets` · `PUT /me/console-assets` — Pro user (v1.18)
+Console Pro's "Your assets": the regime chips a Pro user picks. 401 signed out · 403 `pro_required` · PUT 400 `invalid_assets` · PUT 429 `rate_limited` (30 / min).
+- **GET** → `{ assets: string[], pool: string[], chips: RegimeChip[] }`. `pool` = the 5 anchors (BTC, ETH, SOL, BNB, HYPE) then the caller's Watchlist coins. Nothing saved yet → the 5 anchors.
+- **PUT** `{ assets: string[] }` → same shape. 1–5 coins from `pool` (upper-cased, duplicates and unknown coins dropped); saved in `user_prefs/{uid}.consoleAssets`.
+- `RegimeChip` = the Console chip shape (`asset, price, change24h, regime, label, color, confidence`). Anchors come from the cached Console payload; other coins use the same regime engine (ETF signal 0) with the Console's Fear & Greed value, cached 2 min per coin.
+
 ### `GET /me/alerts` · `PUT /me/alerts` — Pro user (v1.18)
 The caller's price alerts (Pro → Following & Alerts, CoinMarketCap-style). 401 signed out · 403 `pro_required` if not Pro · PUT 429 `rate_limited` (30 changes / min).
 - **GET** → `{ alerts: AlertDef[], state: { [id]: AlertState }, skippedLegacy }`. The first call imports alerts saved before v1.18 in `users/{uid}/pro/state` ("price changes by X%" → `move_pct`; sentiment alerts are not carried, counted in `skippedLegacy`).

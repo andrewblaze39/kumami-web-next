@@ -9,6 +9,10 @@ import { flowEmptyMessage } from '@/lib/market/rules/flowEmpty';
 type Props = {
   events: ConsolePayload['flowRadar'];
   loading?: boolean;
+  /** Console Pro (v1.18): real-time Flow Radar Pro events instead of the 15-minute-delayed feed. */
+  realtime?: boolean;
+  /** Console Pro: a coin filter row above the list. */
+  toolbar?: React.ReactNode;
 };
 
 const TYPE_LABEL: Record<FlowEvent['type'], string> = {
@@ -50,13 +54,13 @@ function topTypeLabel(events: ConsolePayload['flowRadar']): string {
   return top;
 }
 
-export default function FlowRadarFeed({ events, loading }: Props) {
+export default function FlowRadarFeed({ events, loading, realtime = false, toolbar }: Props) {
   return (
-    <section className="w-apanel" aria-label="Flow Radar Plus" data-tour="flow">
+    <section className="w-apanel" aria-label="Flow Radar" data-tour="flow">
       <div className="w-apanel-h">
         <span className="w-ttl">
           <span className="w-ic"><WIcon name="flame" /></span>
-          {' '}Flow Radar Plus{' '}
+          {' '}Flow Radar{' '}
           <span
             className="w-oc-q"
             tabIndex={0}
@@ -66,11 +70,16 @@ export default function FlowRadarFeed({ events, loading }: Props) {
           </span>{' '}
           <span className="w-sub">· whale &amp; fund</span>
         </span>
-        {/* The Console is a Plus page: this feed is the Flow Radar Plus snapshot from 15 min ago. */}
-        <span className="w-delay-note" title="Flow Radar Plus is 15 minutes behind — Flow Radar Pro is real-time">
-          <WIcon name="clock" /> Delayed 15m
-        </span>
+        {realtime ? (
+          <span className="w-adv-updated"><span className="w-live-dot" /> Real-time</span>
+        ) : (
+          /* Basic Console: the Flow Radar snapshot from 15 min ago. */
+          <span className="w-delay-note" title="Flow Radar is 15 minutes behind — Flow Radar Pro is real-time">
+            <WIcon name="clock" /> Delayed 15m
+          </span>
+        )}
       </div>
+      {toolbar}
 
       {loading ? (
         <div className="w-apanel-b">
@@ -79,7 +88,7 @@ export default function FlowRadarFeed({ events, loading }: Props) {
       ) : events.length === 0 ? (
         <div className="w-apanel-b">
           <p className="w-panel-empty">
-            {flowEmptyMessage({ plus: true, eventsInWindow: 0, timeframe: '24H' })}
+            {flowEmptyMessage({ plus: !realtime, eventsInWindow: 0, timeframe: '24H' })}
           </p>
         </div>
       ) : (

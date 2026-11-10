@@ -1,8 +1,9 @@
 /**
- * QA — tier-only sidebar (Andrew, 10 Oct 2026): each workspace's sidebar shows
- * ONLY its own tier; the workspace follows the page you're on; switching
- * workspace jumps to that workspace's home page. Home is in every workspace.
- * Also: Pro accounts keep Watchlist Pro sections on the (Plus) Watchlist page.
+ * QA — two workspaces (v1.18, Rachelle's sidebar): Basic (the old Basic and Plus
+ * merged, free) and Pro. Each sidebar shows only its own workspace, in Rachelle's
+ * order and names; the workspace follows the page; switching jumps to that
+ * workspace's first page (Basic → Console, Pro → Console Pro). Home moved to the
+ * logo menu. Settings is in both sidebars and keeps the current workspace.
  */
 import { expect, test, type Page } from '@playwright/test';
 import { AUTH, guard, openPage, snap } from '../helpers';
@@ -10,60 +11,65 @@ import { AUTH, guard, openPage, snap } from '../helpers';
 const sidebar = (page: Page) => page.locator('#w-sidebar');
 const badge = (page: Page) => page.locator('.w-mode-badge');
 const navLink = (page: Page, name: string) => sidebar(page).getByRole('link', { name, exact: true });
+const navOrder = (page: Page) => sidebar(page).locator('nav .w-nav-item span:not(.w-nav-lock)').allInnerTexts();
 
-const PLUS_ITEMS = ['Console', 'On-Chain Insights', 'Flow Radar Plus', 'Fear & Greed', 'Calendar', 'Watchlist Plus', 'Settings'];
-const BASIC_ITEMS = ['News Portal', 'My Journey', 'My Courses', 'Cryptopedia', 'AI Labs', 'Games'];
-const PRO_ITEMS = ['Daily Digest', 'Following & Alerts', 'Flow Radar Pro', 'Watchlist Pro', 'Spot Pulse Pro'];
+const BASIC_ITEMS = [
+  'Console', 'Market Pulse', 'Flow Radar', 'Fear & Greed', 'Calendar', 'Watchlist',
+  'News Portal', 'My Journey', 'My Courses', 'Cryptopedia', 'AI Labs', 'Games', 'Settings',
+];
+const PRO_ITEMS = [
+  'Console Pro', 'Following & Alerts',
+  'Market Pulse Pro', 'Flow Radar Pro', 'Real-Time News', 'Alpha Room', 'Calendar Pro', 'Kumami Research',
+  'AI Portfolio Manager', 'Crypto Address Tracker', 'Market Cap Comparison', 'Watchlist', 'Security Scanner', 'Airdrops & Whitelist',
+  'Events & Announcements', 'Settings',
+];
+const RETIRED = ['Home', 'On-Chain Insights', 'Flow Radar Plus', 'Watchlist Plus', 'Daily Digest', 'Spot Pulse Pro', 'Watchlist Pro', 'AI Portfolio', 'Market Analysis', 'Kuma AI Chat'];
 
-async function expectOnly(page: Page, shown: string[], hidden: string[]) {
-  for (const n of shown) await expect(navLink(page, n), `"${n}" should be in the sidebar`).toBeVisible();
-  for (const n of hidden) await expect(navLink(page, n), `"${n}" should NOT be in the sidebar`).toHaveCount(0);
-  await expect(navLink(page, 'Home')).toBeVisible();
-}
-
-test.describe('Plus account', () => {
+test.describe('Basic workspace (free account)', () => {
   test.use({ storageState: AUTH.plus });
 
-  test('Plus workspace lists only Plus tools', async ({ page }, info) => {
+  test('one Basic sidebar in Rachelle’s order, no tier words, no Home', async ({ page }, info) => {
     const g = guard(page);
     await openPage(page, '/world/console');
-    await expect(badge(page)).toHaveText('PLUS');
-    await expectOnly(page, PLUS_ITEMS, [...BASIC_ITEMS, ...PRO_ITEMS]);
-    await snap(page, info, 'sidebar-plus');
+    await expect(badge(page)).toHaveText('BASIC');
+    expect(await navOrder(page)).toEqual(BASIC_ITEMS);
+    for (const n of RETIRED) await expect(navLink(page, n), `"${n}" should be gone`).toHaveCount(0);
+    await expect(page.getByRole('heading', { level: 1, name: 'Console' })).toBeVisible();
+    await snap(page, info, 'sidebar-basic');
     g.assertClean();
   });
 
-  test('every Plus page puts you in the Plus workspace (Calendar used to show Basic)', async ({ page }) => {
-    for (const p of ['/world/calendar', '/world/flow-radar', '/world/fear-greed', '/world/settings', '/world/watchlist']) {
+  test('every free page puts you in the Basic workspace', async ({ page }) => {
+    for (const p of ['/world/news', '/world/education?tab=journey', '/world/calendar', '/world/flow-radar', '/world/fear-greed', '/world/watchlist', '/world/onchain']) {
       await openPage(page, p);
-      await expect(badge(page), p).toHaveText('PLUS');
+      await expect(badge(page), p).toHaveText('BASIC');
     }
   });
 
-  test('Basic pages switch to the Basic workspace and list only Basic items', async ({ page }, info) => {
+  test('the switch has two workspaces; Basic opens Console', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'mobile: the sidebar is a drawer — covered on desktop');
     await openPage(page, '/world/news');
-    await expect(badge(page)).toHaveText('BASIC');
-    await expectOnly(page, BASIC_ITEMS, [...PLUS_ITEMS, ...PRO_ITEMS]);
-    await snap(page, info, 'sidebar-basic');
+    const sw = page.locator('.w-mode-switch button');
+    await expect(sw).toHaveText(['Basic', 'Pro']);
+    await expect(page.getByRole('button', { name: /^Plus$/ })).toHaveCount(0);
   });
 
-  test('workspace toggle jumps to that workspace and its sidebar', async ({ page, isMobile }) => {
-    test.skip(isMobile, 'mobile: toggle is icon-only and the sidebar is a drawer — covered on desktop');
-    await openPage(page, '/world/calendar');
-    await page.getByRole('button', { name: /^Basic$/ }).click();
-    await expect(page).toHaveURL(/\/world\/education/);
-    await expect(badge(page)).toHaveText('BASIC');
-    await page.getByRole('button', { name: /^Plus$/ }).click();
-    await expect(page).toHaveURL(/\/world\/console/);
-    await expect(badge(page)).toHaveText('PLUS');
-  });
-
-  test('shared pages keep the current workspace', async ({ page, isMobile }) => {
-    test.skip(isMobile, 'mobile: toggle is icon-only and the sidebar is a drawer — covered on desktop');
+  test('Home is in the logo menu and keeps the workspace', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'mobile: the sidebar is a drawer — covered on desktop');
     await openPage(page, '/world/console');
-    await navLink(page, 'Home').click();
+    await page.locator('.w-brand').click();
+    await page.locator('.w-brand-menu').getByRole('link', { name: 'Home' }).click();
     await expect(page).toHaveURL(/\/world\/home/);
-    await expect(badge(page)).toHaveText('PLUS');
+    await expect(badge(page)).toHaveText('BASIC');
+  });
+
+  test('page names drop "Plus"', async ({ page }) => {
+    await openPage(page, '/world/flow-radar');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^\s*Flow Radar\s*$/);
+    await openPage(page, '/world/watchlist');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^\s*Watchlist\s*$/);
+    await openPage(page, '/world/onchain');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Market Pulse/);
   });
 });
 
@@ -86,28 +92,31 @@ test.describe('Sign-up name (qa0, fresh account)', () => {
 test.describe('Pro account', () => {
   test.use({ storageState: AUTH.pro });
 
-  test('Pro workspace lists only Pro tabs', async ({ page }, info) => {
+  test('Pro sidebar in Rachelle’s order and names', async ({ page }, info) => {
     const g = guard(page);
     await openPage(page, '/world/pro?tab=digest');
     await expect(badge(page)).toHaveText('PRO');
-    await expectOnly(page, PRO_ITEMS, [...PLUS_ITEMS, ...BASIC_ITEMS]);
+    expect(await navOrder(page)).toEqual(PRO_ITEMS);
+    await expect(sidebar(page).locator('.w-nav-label-btn')).toHaveText(['News & Signals', 'Tools']);
     await snap(page, info, 'sidebar-pro');
     g.assertClean();
   });
 
-  test('old Pro calendar link lands on the shared Calendar in the Plus workspace', async ({ page }) => {
-    await openPage(page, '/world/pro?tab=digest');
-    await page.goto('/world/pro?tab=calendar');
-    await expect(page).toHaveURL(/\/world\/calendar/, { timeout: 30_000 });
-    await expect(badge(page)).toHaveText('PLUS');
-    await expect(navLink(page, 'Calendar')).toBeVisible();
+  test('Pro opens Console Pro; Settings keeps the Pro workspace', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'mobile: the sidebar is a drawer — covered on desktop');
+    await openPage(page, '/world/console');
+    await page.locator('.w-mode-switch').getByRole('button', { name: /Pro/ }).click();
+    await expect(page).toHaveURL(/\/world\/pro\?tab=digest/);
+    await expect(page.getByRole('heading', { level: 1, name: /Console Pro/ })).toBeVisible();
+    await navLink(page, 'Settings').click();
+    await expect(page).toHaveURL(/\/world\/settings/);
+    await expect(badge(page)).toHaveText('PRO');
   });
 
-  test('Pro account on the PLUS Watchlist sees the Plus version (spec v1.6)', async ({ page }, info) => {
+  test('Pro account on the Basic Watchlist sees the cut-down version (spec v1.6)', async ({ page }, info) => {
     await openPage(page, '/world/watchlist');
-    await expect(badge(page)).toHaveText('PLUS');
-    await expect(page.getByRole('heading', { name: /Watchlist Plus/ })).toBeVisible();
+    await expect(badge(page)).toHaveText('BASIC');
     await expect(page.getByText('Also Worth Watching')).toHaveCount(0);
-    await snap(page, info, 'watchlist-plus-for-pro-account');
+    await snap(page, info, 'watchlist-basic-for-pro-account');
   });
 });

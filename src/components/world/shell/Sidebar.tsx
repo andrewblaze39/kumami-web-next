@@ -7,7 +7,7 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import { useWorldMode } from '@/contexts/WorldModeContext';
 import { useAuth } from '@/contexts/AuthContext';
 
-// ---- Nav configs (from mockup BEGINNER_NAV / ADV_NAV) ----
+// ---- Nav configs (Rachelle's v1.18 sidebar) ----
 
 type NavItem = {
   k: string;
@@ -133,7 +133,22 @@ const Icons = {
   ),
 };
 
-const BEGINNER_NAV: NavGroup[] = [
+// Basic (free) workspace — Rachelle's v1.18 sidebar: the old Basic and Plus
+// workspaces merged into one list, markets first. No "Home" item (Home is in the
+// logo menu); no tier words in the names ("Flow Radar", not "Flow Radar Plus").
+const BASIC_NAV: NavGroup[] = [
+  {
+    grp: 'markets',
+    standalone: true,
+    items: [
+      { k: 'console', label: 'Console', href: '/world/console', icon: Icons.home },
+      { k: 'onchain', label: 'Market Pulse', href: '/world/onchain', icon: Icons.layers },
+      { k: 'flow-radar', label: 'Flow Radar', href: '/world/flow-radar', icon: Icons.bolt },
+      { k: 'fear-greed', label: 'Fear & Greed', href: '/world/fear-greed', icon: Icons.spark },
+      { k: 'calendar', label: 'Calendar', href: '/world/calendar', icon: Icons.clock },
+      { k: 'watchlist', label: 'Watchlist', href: '/world/watchlist', icon: Icons.bookmark },
+    ],
+  },
   {
     grp: 'news',
     standalone: true,
@@ -142,11 +157,11 @@ const BEGINNER_NAV: NavGroup[] = [
     ],
   },
   {
-    grp: 'Education',
+    grp: 'Courses',
     collapsible: true,
     items: [
-      { k: 'edu-journey', label: 'My Journey', href: '/world/education?tab=journey', icon: Icons.book },
-      { k: 'edu-courses', label: 'My Courses', href: '/world/education?tab=courses', icon: Icons.grad },
+      { k: 'edu-journey', label: 'My Journey', href: '/world/education?tab=journey', icon: Icons.grad },
+      { k: 'edu-courses', label: 'My Courses', href: '/world/education?tab=courses', icon: Icons.book },
     ],
   },
   {
@@ -157,50 +172,33 @@ const BEGINNER_NAV: NavGroup[] = [
     ],
   },
   {
-    grp: 'apps',
-    standalone: true,
+    grp: 'Explore',
+    collapsible: true,
     items: [
       { k: 'ailabs', label: 'AI Labs', href: '/world/ailabs', icon: Icons.flask },
       { k: 'games', label: 'Games', href: '/world/games', icon: Icons.game },
     ],
   },
-];
-
-const ADV_NAV: NavGroup[] = [
   {
-    grp: 'Plus',
-    collapsible: true,
+    grp: 'account',
+    standalone: true,
     items: [
-      { k: 'console', label: 'Console', href: '/world/console', icon: Icons.home },
-      { k: 'onchain', label: 'On-Chain Insights', href: '/world/onchain', icon: Icons.layers },
-      { k: 'flow-radar', label: 'Flow Radar Plus', href: '/world/flow-radar', icon: Icons.bolt },
-      { k: 'fear-greed', label: 'Fear & Greed', href: '/world/fear-greed', icon: Icons.spark },
-      { k: 'calendar', label: 'Calendar', href: '/world/calendar', icon: Icons.clock },
-      { k: 'watchlist', label: 'Watchlist Plus', href: '/world/watchlist', icon: Icons.bookmark },
       { k: 'settings', label: 'Settings', href: '/world/settings', icon: Icons.gear },
     ],
   },
 ];
 
-// Education subtabs — no longer rendered as nested subnav; education items
-// are now direct nav items under Learn/Explore groups.
-
 // PRO nav (premium users) — item keys must match ?tab= read by WorldProContent.
-// Grouped to match the reference design's "News & Signals" / "Tools" /
-// "AI Tools" sections. Smart Money Tracker and Coin/Token Tracker are cancelled
-// (Rachelle v1.17); the Pro-tier Fear & Greed slot was retired.
-// NOTE: no Watchlist, Flow Radar or Settings items here — those are
-// Plus tools. Since 10 Oct 2026 each workspace shows only its own tier, so Pro
-// users open them by switching to the Plus workspace; the Pro-only depth on
-// those pages (Flow Radar Pro, Watchlist Pro) follows the ACCOUNT, not the
-// workspace, so it's still there. Calendar Pro (v1.18) is a Pro item: the same
-// calendar UI with the Pro-only events (airdrops, unlocks, "Pro only" team events).
+// Order, names and groups follow Rachelle's v1.18 sidebar. Pro is the complete
+// version of every shared tool (real-time, every coin); Basic has the cut-down
+// one. Market Analysis and Kuma AI Chat are not listed (their links still work;
+// Kuma is in the top bar). Smart Money / Coin Tracker are cancelled (v1.17).
 const PRO_NAV: NavGroup[] = [
   {
     grp: 'pro-top',
     standalone: true,
     items: [
-      { k: 'digest', label: 'Daily Digest', href: '/world/pro?tab=digest', icon: Icons.doc },
+      { k: 'digest', label: 'Console Pro', href: '/world/pro?tab=digest', icon: Icons.layers },
       { k: 'followhub', label: 'Following & Alerts', href: '/world/pro?tab=followhub', icon: Icons.bookmark },
     ],
   },
@@ -208,39 +206,38 @@ const PRO_NAV: NavGroup[] = [
     grp: 'News & Signals',
     collapsible: true,
     items: [
+      { k: 'spotpulse', label: 'Market Pulse Pro', href: '/world/pro?tab=spotpulse', icon: Icons.bolt },
+      { k: 'flowradar', label: 'Flow Radar Pro', href: '/world/pro?tab=flowradar', icon: Icons.bolt },
       { k: 'realtimenews', label: 'Real-Time News', href: '/world/pro?tab=realtimenews', icon: Icons.news },
       { k: 'alpha', label: 'Alpha Room', href: '/world/pro?tab=alpha', icon: Icons.bolt },
+      { k: 'calendar', label: 'Calendar Pro', href: '/world/pro?tab=calendar', icon: Icons.clock },
       { k: 'research', label: 'Kumami Research', href: '/world/pro?tab=research', icon: Icons.doc },
-      { k: 'market', label: 'Market Analysis', href: '/world/pro?tab=market', icon: Icons.doc },
     ],
   },
   {
     grp: 'Tools',
     collapsible: true,
     items: [
-      { k: 'flowradar', label: 'Flow Radar Pro', href: '/world/pro?tab=flowradar', icon: Icons.bolt },
-      { k: 'watchlist', label: 'Watchlist Pro', href: '/world/pro?tab=watchlist', icon: Icons.bookmark },
-      { k: 'spotpulse', label: 'Spot Pulse Pro', href: '/world/pro?tab=spotpulse', icon: Icons.layers },
-      { k: 'scanner', label: 'Security Scanner', href: '/world/pro?tab=scanner', icon: Icons.shield },
-      { k: 'marketcap', label: 'Market Cap Comparison', href: '/world/pro?tab=marketcap', icon: Icons.layers },
-      { k: 'airdrops', label: 'Airdrops & Whitelist', href: '/world/pro?tab=airdrops', icon: Icons.spark },
-      { k: 'calendar', label: 'Calendar Pro', href: '/world/pro?tab=calendar', icon: Icons.clock },
-    ],
-  },
-  {
-    grp: 'AI Tools',
-    collapsible: true,
-    items: [
-      { k: 'portfolio', label: 'AI Portfolio', href: '/world/pro?tab=portfolio', icon: Icons.trophy },
+      { k: 'portfolio', label: 'AI Portfolio Manager', href: '/world/pro?tab=portfolio', icon: Icons.trophy },
       { k: 'addresstracker', label: 'Crypto Address Tracker', href: '/world/pro?tab=addresstracker', icon: Icons.users },
-      { k: 'kumaai', label: 'Kuma AI Chat', href: '/world/pro?tab=kumaai', icon: Icons.spark },
+      { k: 'marketcap', label: 'Market Cap Comparison', href: '/world/pro?tab=marketcap', icon: Icons.trophy },
+      { k: 'watchlist', label: 'Watchlist', href: '/world/pro?tab=watchlist', icon: Icons.bookmark },
+      { k: 'scanner', label: 'Security Scanner', href: '/world/pro?tab=scanner', icon: Icons.shield },
+      { k: 'airdrops', label: 'Airdrops & Whitelist', href: '/world/pro?tab=airdrops', icon: Icons.spark },
     ],
   },
   {
-    grp: 'pro-bottom',
+    grp: 'pro-events',
     standalone: true,
     items: [
       { k: 'events', label: 'Events & Announcements', href: '/world/pro?tab=events', icon: Icons.bell },
+    ],
+  },
+  {
+    grp: 'pro-settings',
+    standalone: true,
+    items: [
+      { k: 'settings', label: 'Settings', href: '/world/settings', icon: Icons.gear },
     ],
   },
 ];
@@ -349,17 +346,18 @@ function NavGroupList({
 // PRO nav items — all link to /world/pro (locked)
 const PRO_NAV_ITEMS = [
   // Locked teaser for non-subscribers — mirrors the real Pro sidebar (PRO_NAV).
-  { label: 'Daily Digest', icon: Icons.doc },
+  { label: 'Console Pro', icon: Icons.layers },
   { label: 'Following & Alerts', icon: Icons.bookmark },
+  { label: 'Market Pulse Pro', icon: Icons.bolt },
   { label: 'Flow Radar Pro', icon: Icons.bolt },
-  { label: 'Watchlist Pro', icon: Icons.bookmark },
-  { label: 'Spot Pulse Pro', icon: Icons.layers },
   { label: 'Real-Time News', icon: Icons.news },
   { label: 'Alpha Room', icon: Icons.bolt },
+  { label: 'Calendar Pro', icon: Icons.clock },
   { label: 'Kumami Research', icon: Icons.doc },
-  { label: 'Airdrops & Whitelist', icon: Icons.spark },
-  { label: 'AI Portfolio', icon: Icons.trophy },
+  { label: 'AI Portfolio Manager', icon: Icons.trophy },
   { label: 'Crypto Address Tracker', icon: Icons.users },
+  { label: 'Watchlist', icon: Icons.bookmark },
+  { label: 'Airdrops & Whitelist', icon: Icons.spark },
   { label: 'Events & Announcements', icon: Icons.bell },
 ];
 
@@ -392,6 +390,8 @@ function ProNavSection({ isPremium, onClose }: { isPremium: boolean; onClose: ()
 
 // Brand dropdown menu links
 const COMPANY_LINKS = [
+  // Home left the sidebar in v1.18 (Rachelle's sidebar starts at Console); it lives here.
+  { label: 'Home', href: '/world/home', icon: Icons.home },
   { label: 'About Kumami', href: '/world/about', icon: Icons.building },
   { label: 'Our Partners', href: '/world/partners', icon: Icons.users },
   { label: 'Blogs', href: '/world/blogs', icon: Icons.pen },
@@ -406,7 +406,6 @@ interface SidebarProps {
 export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
   const { mode } = useWorldMode();
   const { currentUser, userData, logout } = useAuth();
-  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -468,16 +467,12 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
     };
   }, [menuOpen]);
 
-  // Each workspace shows ONLY its own tier (Andrew, 10 Oct 2026 — keeps the
-  // sidebar uncluttered): Basic = BEGINNER_NAV, Plus = ADV_NAV, Pro = PRO_NAV
-  // (via ProNavSection below). Lower-tier pages are reached by switching
-  // workspace with the Basic / Plus / Pro toggle. Home stays in every mode.
-  const primaryNav = mode === 'beginner' ? BEGINNER_NAV : mode === 'advanced' ? ADV_NAV : null;
+  // Each workspace shows ONLY its own tier: Basic = BASIC_NAV, Pro = PRO_NAV
+  // (via ProNavSection below). Switch with the Basic / Pro toggle.
+  const primaryNav = mode === 'pro' ? null : BASIC_NAV;
 
   // Premium predicate — same as WorldProContent's gate: subscribed only.
   const isPremium = userData?.isPremium === true;
-
-  const isActive = (href: string) => pathname.startsWith(href);
 
   // Admin roles — same predicate as the legacy Navbar / AdminOnlyRoute.
   const isAdminRole =
@@ -501,10 +496,10 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
     if (email) return email.slice(0, 2).toUpperCase();
     return 'K';
   })();
-  const modeLabel = mode === 'pro' ? 'Pro' : mode === 'advanced' ? 'Plus' : 'Basic';
+  const modeLabel = mode === 'pro' ? 'Pro' : 'Basic';
 
   return (
-    <aside className={`w-sidebar${mode === 'advanced' ? ' is-adv' : mode === 'pro' ? ' is-pro' : ''}${sidebarOpen ? ' open' : ''}`} id="w-sidebar">
+    <aside className={`w-sidebar${mode === 'pro' ? ' is-pro' : ' is-adv'}${sidebarOpen ? ' open' : ''}`} id="w-sidebar">
 
       {/* ---- Brand / logo + dropdown ---- */}
       <div className="w-brand-wrap">
@@ -526,7 +521,7 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
             />
           </span>
           <span className={`w-mode-badge w-mode-badge-${mode}`}>
-            {mode === 'pro' ? 'PRO' : mode === 'advanced' ? 'PLUS' : 'BASIC'}
+            {mode === 'pro' ? 'PRO' : 'BASIC'}
           </span>
           <svg className="w-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
             <path d="m6 9 6 6 6-6" />
@@ -544,18 +539,6 @@ export default function Sidebar({ sidebarOpen, onClose }: SidebarProps) {
             ))}
           </div>
         )}
-      </div>
-
-      {/* ---- Home (all modes, directly under brand) ---- */}
-      <div className="w-nav-about">
-        <Link
-          href="/world/home"
-          className={`w-nav-item${isActive('/world/home') ? ' active' : ''}`}
-          onClick={onClose}
-        >
-          {Icons.info}
-          <span>Home</span>
-        </Link>
       </div>
 
       {/* ---- Nav items ---- */}

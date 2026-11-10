@@ -85,6 +85,16 @@ async function assetRegime(asset: string, etfScore: -1 | 0 | 1, fg: number) {
   };
 }
 
+/**
+ * Regime chip for any perp coin — Console Pro "Your assets" (v1.18). No spot ETF
+ * outside BTC/ETH, so the ETF signal is 0; `fg` is the Console's Kumami Fear & Greed
+ * value. Same engine and confidence rule as the five Console chips.
+ */
+export async function regimeChipFor(asset: string, fg: number): Promise<ConsolePayload['regimeChips'][number]> {
+  const x = await assetRegime(asset, 0, fg);
+  return { asset, price: x.price, change24h: x.change24h, regime: x.regime, label: x.label, color: x.color, confidence: x.confidence };
+}
+
 export async function makeConsolePayloadLive(): Promise<ConsolePayload> {
   const [fg, btcEtf, ethEtf, glsBtc, liqCoin, liqAggBtc, flowEvents, dominance] = await Promise.all([
     // Kumami's own index, the same cached payload as the Fear & Greed page (v1.17 Plus §1 / §4).

@@ -60,7 +60,7 @@ The website and the Flutter app share it.
 | `watchlist/{id}` | Owner (Address Tracker) | Tracked wallets: `address`, `label`, `chains`, `minUsd`, `muteUntil` |
 
 ### `user_prefs/{uid}`
-Written by the owner. Fields: `mode` (`beginner`·`advanced`·`pro`) and `kumaWidth`.
+Fields: `mode` (`advanced` = Basic · `pro`; an old `beginner` is read as Basic since v1.18) and `kumaWidth`, written by the owner's app; `consoleAssets` (string[], up to 5 coins — Console Pro "Your assets", v1.18), written by the server (`PUT /api/v1/me/console-assets`).
 
 ### Account deletion (spec v1.16 Basic §8)
 `DELETE /api/v1/me` (`src/lib/account/`) removes everything personal and keeps the money records:

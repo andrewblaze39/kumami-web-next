@@ -63,7 +63,7 @@ const PRO_FEATURES: LockedCardFeature[] = [
   {
     tag: 'Breadth',
     title: 'Flow Radar — Pro',
-    desc: 'The same live whale-flow radar Plus gets, expanded to the full tracked universe with every severity unlocked.',
+    desc: 'The same whale-flow radar Basic gets, expanded to the full tracked universe with every severity unlocked.',
     shapeVariant: 4,
   },
 ];

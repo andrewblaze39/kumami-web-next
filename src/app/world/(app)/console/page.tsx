@@ -31,8 +31,8 @@ const CONSOLE_TOUR: TourStep[] = [
   },
   {
     selector: '[data-tour="spotpulse"]',
-    title: 'Spot Pulse',
-    body: 'Where real money is moving right now — spot buying vs. futures leverage, five majors at a glance. Click "Open Spot Pulse" for the full grid and divergence alerts.',
+    title: 'Market Pulse',
+    body: 'Where real money is moving right now — spot buying vs. futures leverage, five majors at a glance. Click "Open Market Pulse" for the full grid and divergence alerts.',
   },
   {
     selector: '[data-tour="flow"]',
@@ -87,12 +87,7 @@ export default function ConsolePage() {
       <div className="w-content-inner w-console">
         <div className="w-adv-head">
           <div>
-            <h1>
-              Market Intelligence{' '}
-              <span className="w-pro-badge">
-                <WIcon name="star" /> Plus
-              </span>
-            </h1>
+            <h1>Console</h1>
             <p>
               Your daily market briefing — overall mood, major assets, and anything urgent, all
               in one glance.
@@ -116,12 +111,7 @@ export default function ConsolePage() {
       {/* Page header */}
       <div className="w-adv-head">
         <div>
-          <h1>
-            Market Intelligence{' '}
-            <span className="w-pro-badge">
-              <WIcon name="star" /> Plus
-            </span>
-          </h1>
+          <h1>Console</h1>
           <p>
             Your daily market briefing — overall mood, major assets, and anything urgent, all in
             one glance.
@@ -159,7 +149,7 @@ export default function ConsolePage() {
       {/* 2. Regime chip row */}
       <RegimeChips chips={data?.regimeChips ?? []} loading={isLoading} />
 
-      {/* 3. Bento row 2 — On-Chain Insights + Flow Radar */}
+      {/* 3. Bento row 2 — Market Pulse + Flow Radar */}
       <div className="w-bento w-r2">
         <SpotPulsePreview />
         <FlowRadarFeed events={data?.flowRadar ?? []} loading={isLoading} />

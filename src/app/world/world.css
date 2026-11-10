@@ -8219,3 +8219,66 @@
 .world-root .w-mc-fearval span.w-bull { color: var(--bull); }
 .world-root .w-mc-fearval span.w-bear { color: var(--bear); }
 .world-root .w-mc-fearval span.w-muted { color: var(--muted); }
+
+/* ---- Console Pro (v1.18): top strip, "Your assets" header + picker, coin filter ---- */
+.world-root .w-cpro-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.world-root .w-cpro-strip-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 13px;
+}
+.world-root .w-cpro-strip-item:hover { border-color: var(--accent); }
+.world-root .w-cpro-strip-item b {
+  flex: none;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.world-root .w-cpro-research b { color: var(--purple); }
+.world-root .w-cpro-alpha b { color: var(--gold); }
+.world-root .w-cpro-strip-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.world-root .w-cpro-strip-when { flex: none; color: var(--muted); font-size: 12px; }
+.world-root .w-cpro-assets-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0 8px;
+}
+.world-root .w-cpro-assets-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.world-root .w-cpro-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.world-root .w-cpro-picker-note { width: 100%; color: var(--muted); font-size: 12.5px; }
+.world-root .w-cpro-picker button:disabled { opacity: 0.45; cursor: not-allowed; }
+.world-root .w-cpro-coins { padding: 0 16px 8px; }

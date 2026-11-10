@@ -17,12 +17,15 @@ import { useMarketEndpoint } from './useMarketEndpoint';
 import { formatPrice, formatChange, verdictColorClass } from './format';
 import { WIcon, CoinBadge } from './console-ui';
 
-export default function WatchlistPreview() {
-  const { status, data } = useMarketEndpoint<WatchlistApiResponse>('/api/market/watchlist');
+/** variant "pro" (Console Pro, v1.18): the anchors plus the user's own Watchlist coins. */
+export default function WatchlistPreview({ variant = 'plus' }: { variant?: 'plus' | 'pro' }) {
+  const pro = variant === 'pro';
+  const { status, data } = useMarketEndpoint<WatchlistApiResponse>(pro ? '/api/market/watchlist?view=pro' : '/api/market/watchlist');
   const loading = status === 'loading';
   // Most notable signal first — "Quiet" assets sink to the bottom so the
   // panel leads with whatever's actually worth a glance right now.
-  const assets = [...(data?.assets ?? [])].sort((a, b) => {
+  // Pro: anchors + your coins + Also Worth Watching (the coins Flow Radar keeps flagging).
+  const assets = [...(data?.assets ?? []), ...(pro ? [...(data?.curatedAssets ?? []), ...(data?.sectionC ?? [])] : [])].sort((a, b) => {
     const aQuiet = a.primarySignal.label === 'Quiet' ? 1 : 0;
     const bQuiet = b.primarySignal.label === 'Quiet' ? 1 : 0;
     return aQuiet - bQuiet;
@@ -80,10 +83,10 @@ export default function WatchlistPreview() {
 
       <div className="w-apanel-foot">
         <span className="w-fmeta">
-          <WIcon name="bookmark" /> Fixed 5-asset roster
+          <WIcon name="bookmark" /> {pro ? 'Anchors, your coins, worth watching' : 'Fixed 5-asset roster'}
         </span>
-        <Link href="/world/watchlist">
-          Open Watchlist <WIcon name="arrowR" />
+        <Link href={pro ? '/world/pro?tab=watchlist' : '/world/watchlist'}>
+          Open {pro ? 'Watchlist Pro' : 'Watchlist'} <WIcon name="arrowR" />
         </Link>
       </div>
     </section>

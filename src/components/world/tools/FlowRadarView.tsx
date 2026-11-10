@@ -48,12 +48,12 @@ const FLOW_RADAR_TOUR: TourStep[] = [
   {
     selector: '[data-tour="fr-assets"]',
     title: 'Filter by asset',
-    body: 'Narrow to one asset, or leave it on All. Plus is scoped to 5 majors; Pro searches and multi-selects across the full tracked universe.',
+    body: 'Narrow to one asset, or leave it on All. Basic is scoped to 5 majors; Pro searches and multi-selects across the full tracked universe.',
   },
   {
     selector: '[data-tour="fr-severity"]',
     title: 'HIGH / MED / LOW severity',
-    body: 'Each event type has its own dollar thresholds for what counts as HIGH vs MED. LOW-severity events are Pro-only — Plus filters them out to keep the feed focused on what matters.',
+    body: 'Each event type has its own dollar thresholds for what counts as HIGH vs MED. LOW-severity events are Pro-only — Basic filters them out to keep the feed focused on what matters.',
   },
   {
     selector: '[data-tour="fr-verdict"]',
@@ -63,7 +63,7 @@ const FLOW_RADAR_TOUR: TourStep[] = [
   {
     selector: '[data-tour="fr-feed"]',
     title: 'Reading a row',
-    body: 'The icon shows bullish (→), bearish (⚡) or neutral (closed positions, two-sided flushes — shown but not counted), the badge shows severity, and the dollar amount is signed to match. A coloured outline appears when another Kumami panel (Spot Pulse, the Console regime, or repeated whale flow) confirms the same read — hover the row to see why.',
+    body: 'The icon shows bullish (→), bearish (⚡) or neutral (closed positions, two-sided flushes — shown but not counted), the badge shows severity, and the dollar amount is signed to match. A coloured outline appears when another Kumami panel (Market Pulse, the Console regime, or repeated whale flow) confirms the same read — hover the row to see why.',
   },
   {
     title: "That's Flow Radar 🎉",
@@ -230,7 +230,7 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
         <div className="w-oc-head-top">
           <div>
             <h1>
-              <WIcon name="flame" /> {isPremium ? 'Flow Radar Pro' : 'Flow Radar Plus'}
+              <WIcon name="flame" /> {isPremium ? 'Flow Radar Pro' : 'Flow Radar'}
             </h1>
             <p className="w-oc-sub">
               {isPremium ? 'Where big money is moving — right now' : 'Where big money is moving — 15 minutes behind (real-time in Flow Radar Pro)'}
@@ -242,7 +242,7 @@ export default function FlowRadarView({ variant }: { variant: ToolVariant }) {
           <div className="w-oc-controls">
             {/* By VERSION, not payload: before data loads (or if it fails) Plus must never claim "Live". */}
             {!isPremium ? (
-              <span className="w-adv-updated" title="Flow Radar Plus is delayed — Flow Radar Pro is real-time">
+              <span className="w-adv-updated" title="Flow Radar is delayed — Flow Radar Pro is real-time">
                 <WIcon name="clock" /> Delayed {data?.delayMinutes ?? 15}m
               </span>
             ) : (
