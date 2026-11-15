@@ -83,7 +83,7 @@ Numbering and naming (Andrew, 22 Oct 2026): the next build version is Rachelle's
 
 ### Step 9 — Share the next build version
 - When the batch from a request version is done (or whenever Andrew decides), the working copy becomes the next build version: Rachelle's number + 1, Release notes complete (Part 1 table + Part 2), file renamed to the new version. Items not built keep `(To be developed)`, each with a short reason.
-- Publish it as a new Google Doc **"Kumami Product Spec vX.Y"** in the shared folder (Claude prepares it; Andrew shares it with Rachelle and the CEO).
+- Publish it as its own Google Doc **"Kumami Product Spec vX.Y"** in the Drive folder "Kumami Product Spec — versions" (Claude uploads it). Andrew copies it into the **live doc** "Kumami Product Spec vX.Y (live)" (same link every version; Ctrl+A / Ctrl+C → Ctrl+A / Ctrl+V), which is what he shares with Rachelle and the CEO. Between versions Claude edits the live doc in place; anything with screenshots goes through a version file, because the Docs edit tool cannot add images. Before overwriting the live doc with our build, Rachelle's request version is saved as "Kumami Product Spec vX.Y (Rachelle's version)" in the same folder. (Andrew, 15 Nov 2026)
 
 ### Step 10 — Release to production (**Andrew only**)
 Andrew merges `dev` → `main` when he chooses. Claude never commits to, merges into, rebases onto or pushes `main`.

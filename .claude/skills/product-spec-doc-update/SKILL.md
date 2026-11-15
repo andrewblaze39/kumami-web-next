@@ -25,9 +25,14 @@ The full process is `docs/DEVELOPMENT_WORKFLOW.md` (orchestrated by
 | **Build version** (v1.14, v1.16, …) | Andrew (this skill prepares it) | Exactly what the website does today. Items not built yet keep `(To be developed)` plus a short reason. |
 | **Request version** (v1.15, …) | Rachelle | The previous build version plus her changes: each changed section's heading ends with `(To be developed)`, and every change is one Release-notes line grouped by product ("Plus · Flow Radar: delay 15 → 30 min"). |
 
-Each version is its **own Google Doc** "Kumami Product Spec vX.Y" in the shared
-Drive folder, never edited after it is shared; the next one takes the next free
-number. Our working copy is `docs/Rachelle Product Specs/Kumami_World_Product_Spec_v1.18.docx`.
+**Google Drive layout (Andrew, 15 Nov 2026):**
+- **Live doc** — "Kumami Product Spec vX.Y (live)" (id `1H-HSa-MSoUg7IN-_77rF_3Wx_VvX7FMYzfOn8yiTKs8`, link never changes). The running document: edit it in place with the Google Docs connector whenever the spec changes (text, tables, small fixes), and rename it when the version changes.
+- **Versions folder** — "Kumami Product Spec — versions" (folder id `1EuGqeRBFX6UVLI4yi0b4XXpoz4l4Rcln`). Each version gets its **own file** there: "Kumami Product Spec vX.Y" for our build versions (upload the working-copy .docx with Drive `create_file`, it converts with all screenshots; files over 10 MB: shrink the images in a scratchpad copy first) and "Kumami Product Spec vX.Y (Rachelle's version)" for hers (copy the live doc before overwriting it). Never edit a version file after it is shared; keep them, don't delete them.
+- **Screenshots:** the Docs edit tool can only insert images from a public URL, so changes with new or moved screenshots go into the version file, and **Andrew copies it into the live doc** (open the version file → Ctrl+A, Ctrl+C → live doc → Ctrl+A, Ctrl+V). Say so when you hand it over. Don't make screenshots public without asking.
+- **Document order:** title → version line → Contents → **Kumami World at a glance** (one-page website summary: landing page → app frame → Basic menu → Pro menu → Admin) → Kumami Basic — Learn & community → Kumami Basic — Markets → Kumami Pro → Roadmap / To be developed → **Release notes at the bottom** (newest first). Keep the one-pager in sync with the sidebar whenever a menu item changes.
+- **No "Plus":** since v1.18 there are two workspaces, Basic (free) and Pro. Markets sections are cited "Markets §n"; don't write "Plus" for the tier or tool names (only the as-built admin wording "Plus and Pro" until Andrew approves "Basic and Pro").
+
+Our working copy is `docs/Rachelle Product Specs/Kumami_World_Product_Spec_v1.18.docx`.
 Downloaded request versions live in `docs/Rachelle Product Specs/versions/`.
 
 Retired 18 Oct 2026: Rachelle's separate `Kumami Website (N).docx` docs and the
@@ -69,13 +74,14 @@ gap report (`rachelle-gap-analysis`). Don't refresh the gap report any more.
 2. Items not built keep `(To be developed)` and get a one-line reason.
 3. `d.set_version(...)` with Rachelle's request version + 1 (rename the file to `Kumami_World_Product_Spec_vX.Y.docx` with `git mv`); turn the `(in progress)` entry into
    the final Release-notes entry: "Built from vX.Y", "Also changed", "Not built yet".
-4. Save, check (step 5 below), commit on `dev`, and give Andrew the .docx to publish as a
-   new Google Doc "Kumami Product Spec vX.Y" (or upload it with the Google Drive
-   connector when he says so). Never overwrite an older version.
+4. Save, check (step 5 below), commit on `dev`, then upload the .docx as "Kumami Product Spec vX.Y"
+   into the versions folder (see Google Drive layout above) and tell Andrew to copy it into the
+   live doc (Ctrl+A / Ctrl+C → Ctrl+A / Ctrl+V); rename the live doc to "Kumami Product Spec vX.Y (live)".
+   Never overwrite an older version file.
 
 ## Document conventions (keep them)
 
-- Title → italic subtitle → **version line** `Version X.Y · D Mon YYYY · reflects the dev branch at commit <sha>` → Contents (TOC field) → **Release notes** (Heading1, newest entry first) → Kumami Basic / Kumami Plus / Kumami Pro (Heading1).
+- Title → italic subtitle → **version line** `Version X.Y · D Mon YYYY · reflects the dev branch at commit <sha>` → Contents (TOC field) → Kumami World at a glance → Kumami Basic — Learn & community / Kumami Basic — Markets / Kumami Pro (Heading1) → Roadmap / To be developed → **Release notes** (Heading1, at the end, newest entry first).
 - Each feature is a Heading2 `N. Name` with Heading3 sub-sections **What it is / Where it is / How the user uses it / How we build it** (Heading4 `Via API` / `Via Admin Dashboard (manual)` / `Known gaps`).
 - Numbering is stable: other sections cross-reference "Pro §18". When a feature is removed, keep its number and retitle it `N. Name (removed)` with a 1–3 sentence note (date, why, where old links go). Don't renumber.
 - Thresholds/verdict matrices go in tables (house style `LightGrid-Accent1`, via `TABLE()`).
