@@ -58,11 +58,12 @@ const WHALE_THRESHOLD_USD = 10_000_000;
 const CALL_TIMEOUT_MS = 8_000;
 const EMPTY_TRANSFERS: AssetTransfersWithMetadataResponse = { transfers: [] };
 const EMPTY_TOKEN_BALANCES: TokenBalancesResponse = { address: '', tokenBalances: [] };
-function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
+function withTimeout<T>(p: Promise<T>, ms: number, fallback: T, onFail?: () => void): Promise<T> {
+  const fail = () => { onFail?.(); return fallback; };
   return Promise.race([
     p,
-    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
-  ]).catch(() => fallback);
+    new Promise<T>((resolve) => setTimeout(() => resolve(fail()), ms)),
+  ]).catch(fail);
 }
 
 function formatTokenBalance(rawHex: string, decimals: number): string {
@@ -96,41 +97,57 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'invalid address' }, { status: 400 });
   }
 
+  // No Alchemy key → no wallet data. Say so instead of showing an empty $0 wallet
+  // (no false fallbacks, Andrew's hard rule).
+  if (!process.env.ALCHEMY_API_KEY_ETH) {
+    return NextResponse.json({ error: 'wallet_data_unavailable' }, { status: 503 });
+  }
+
   try {
     const eth = sdkForChain('eth');
+    let failures = 0;
+    const failed = () => { failures += 1; };
 
     const [summary, tokenResult, outgoing, incoming, firstOut, firstIn] = await Promise.all([
-      withTimeout(getWalletSummary(address, ['eth', 'base', 'arb']), CALL_TIMEOUT_MS, []),
-      withTimeout(eth.core.getTokenBalances(address, { type: TokenBalanceType.DEFAULT_TOKENS }), CALL_TIMEOUT_MS, EMPTY_TOKEN_BALANCES),
+      withTimeout(getWalletSummary(address, ['eth', 'base', 'arb']).then((r) => {
+        if (r.length === 0) throw new Error('every chain failed'); // getWalletSummary drops failed chains
+        return r;
+      }), CALL_TIMEOUT_MS, [], failed),
+      withTimeout(eth.core.getTokenBalances(address, { type: TokenBalanceType.DEFAULT_TOKENS }), CALL_TIMEOUT_MS, EMPTY_TOKEN_BALANCES, failed),
       withTimeout(eth.core.getAssetTransfers({
         fromAddress: address,
         category: [AssetTransfersCategory.EXTERNAL, AssetTransfersCategory.ERC20],
         order: SortingOrder.DESCENDING,
         maxCount: 10,
         withMetadata: true,
-      }), CALL_TIMEOUT_MS, EMPTY_TRANSFERS),
+      }), CALL_TIMEOUT_MS, EMPTY_TRANSFERS, failed),
       withTimeout(eth.core.getAssetTransfers({
         toAddress: address,
         category: [AssetTransfersCategory.EXTERNAL, AssetTransfersCategory.ERC20],
         order: SortingOrder.DESCENDING,
         maxCount: 10,
         withMetadata: true,
-      }), CALL_TIMEOUT_MS, EMPTY_TRANSFERS),
+      }), CALL_TIMEOUT_MS, EMPTY_TRANSFERS, failed),
       withTimeout(eth.core.getAssetTransfers({
         fromAddress: address,
         category: [AssetTransfersCategory.EXTERNAL, AssetTransfersCategory.ERC20],
         order: SortingOrder.ASCENDING,
         maxCount: 1,
         withMetadata: true,
-      }), CALL_TIMEOUT_MS, EMPTY_TRANSFERS),
+      }), CALL_TIMEOUT_MS, EMPTY_TRANSFERS, failed),
       withTimeout(eth.core.getAssetTransfers({
         toAddress: address,
         category: [AssetTransfersCategory.EXTERNAL, AssetTransfersCategory.ERC20],
         order: SortingOrder.ASCENDING,
         maxCount: 1,
         withMetadata: true,
-      }), CALL_TIMEOUT_MS, EMPTY_TRANSFERS),
+      }), CALL_TIMEOUT_MS, EMPTY_TRANSFERS, failed),
     ]);
+
+    // Every lookup failed: the provider is down, not the wallet empty.
+    if (failures === 6) {
+      return NextResponse.json({ error: 'wallet_data_unavailable' }, { status: 503 });
+    }
 
     // --- Holdings (ETH-chain top tokens, priced against CoinGecko's top-100) ---
     const nonZero = (tokenResult.tokenBalances ?? []).filter(

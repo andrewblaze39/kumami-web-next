@@ -1,0 +1,67 @@
+[
+  {
+    "section": "Basic §7",
+    "file": "terms.jpg",
+    "caption": "Terms & Conditions (/terms), public page with the site footer."
+  },
+  {
+    "section": "Basic §8",
+    "file": "account-deletion.jpg",
+    "caption": "Profile → Profile tab: the red “Delete my account” panel under Account Information."
+  },
+  {
+    "section": "Markets §3",
+    "file": "flow-radar-basic.jpg",
+    "caption": "Flow Radar (Basic): the 5 core coins, HIGH and MED events, 15 minutes behind, with the verdict band."
+  },
+  {
+    "section": "Markets §6",
+    "file": "watchlist-basic.jpg",
+    "caption": "Watchlist (Basic): BTC, ETH, SOL, BNB, HYPE with price, 24h change, Signal and Status."
+  },
+  {
+    "section": "Pro §21",
+    "file": "subscribe.jpg",
+    "caption": "Subscribe page: Monthly $19.99 or Yearly $199.99, card or crypto, referral-code box."
+  },
+  {
+    "section": "Pro §22",
+    "file": "referrals.jpg",
+    "caption": "Profile → Referrals: personal code and link, paid referrals, balance and credit history."
+  },
+  {
+    "section": "Pro §12",
+    "file": "pro-fear-greed.jpg",
+    "caption": "Fear & Greed in the Pro sidebar (News & Signals), 15 Nov 2026: the same page as in Basic; the workspace stays Pro."
+  },
+  {
+    "section": "Basic §2 (Pro)",
+    "file": "pro-news-portal.jpg",
+    "caption": "News Portal in the Pro sidebar (News & Signals), 15 Nov 2026: the same page as in Basic; the workspace stays Pro."
+  },
+  {
+    "section": "Pro §5",
+    "file": "market-pulse-pro.jpg",
+    "caption": "Market Pulse Pro: 10 coins, real-time spot vs futures activity."
+  },
+  {
+    "section": "Pro §18",
+    "file": "flow-radar-pro.jpg",
+    "caption": "Flow Radar Pro: real-time, every coin, HIGH / MED / LOW, multi-coin filter, 1H / 4H / 24H / 7D."
+  },
+  {
+    "section": "Pro §19",
+    "file": "watchlist-pro.jpg",
+    "caption": "Watchlist (Pro): A = the 5 core coins, B = your pinned coins, C = Also Worth Watching."
+  },
+  {
+    "section": "Pro §20",
+    "file": "address-tracker.jpg",
+    "caption": "Crypto Address Tracker: a public wallet looked up — value, Whale tag, stats, holdings, recent activity."
+  },
+  {
+    "section": "Pro §21 (Pro)",
+    "file": "subscription-panel.jpg",
+    "caption": "Profile → Subscription (Pro account): plan, status, renewal date and the manage buttons."
+  }
+]

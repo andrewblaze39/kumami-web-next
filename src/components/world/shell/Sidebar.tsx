@@ -208,6 +208,9 @@ const PRO_NAV: NavGroup[] = [
     items: [
       { k: 'spotpulse', label: 'Market Pulse Pro', href: '/world/pro?tab=spotpulse', icon: Icons.bolt },
       { k: 'flowradar', label: 'Flow Radar Pro', href: '/world/pro?tab=flowradar', icon: Icons.bolt },
+      // Same pages as in Basic (Rachelle, 15 Nov 2026): they keep the Pro workspace (shared routes).
+      { k: 'fear-greed', label: 'Fear & Greed', href: '/world/fear-greed', icon: Icons.spark },
+      { k: 'news', label: 'News Portal', href: '/world/news', icon: Icons.news },
       { k: 'realtimenews', label: 'Real-Time News', href: '/world/pro?tab=realtimenews', icon: Icons.news },
       { k: 'alpha', label: 'Alpha Room', href: '/world/pro?tab=alpha', icon: Icons.bolt },
       { k: 'calendar', label: 'Calendar Pro', href: '/world/pro?tab=calendar', icon: Icons.clock },

@@ -11,6 +11,8 @@ const LABELS: Record<string, string> = {
   dashboard: 'Dashboard',
   console: 'Console',
   onchain: 'Market Pulse',
+  'fear-greed': 'Fear & Greed',
+  'flow-radar': 'Flow Radar',
   intel: 'Intelligence',
   watchlist: 'Watchlist',
   settings: 'Settings',

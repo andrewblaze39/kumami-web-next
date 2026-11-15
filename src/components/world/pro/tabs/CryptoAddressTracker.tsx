@@ -72,6 +72,7 @@ export function CryptoAddressTracker() {
       const res = await fetch(`/api/wallet-profile?address=${address}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (res.status === 503) throw new Error('Wallet data is unavailable right now. Please try again later.');
       if (!res.ok) throw new Error('Could not read that wallet — check the address and try again.');
       setProfile(await res.json());
     } catch (err) {

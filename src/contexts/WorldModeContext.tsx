@@ -43,16 +43,21 @@ export function useWorldMode() {
 // pages now redirect to /world/education subtabs.
 const ADVANCED_ROUTES = [
   // Learn & community pages (the old Basic workspace)
-  '/world/news', '/world/courses', '/world/education', '/world/ailabs', '/world/games',
+  '/world/courses', '/world/education', '/world/ailabs', '/world/games',
   // Markets (the old Plus workspace)
-  '/world/console', '/world/onchain', '/world/flow-radar', '/world/fear-greed',
+  '/world/console', '/world/onchain', '/world/flow-radar',
   '/world/calendar', '/world/watchlist',
   '/world/intel', '/world/spot-pulse', // retired — redirect into Plus pages
 ];
 const PRO_ROUTES = ['/world/pro'];
 // Shared routes: visible in every mode — visiting them never changes the mode.
-// Settings is in both sidebars (v1.18), so it keeps the current workspace too.
-const SHARED_ROUTES = ['/world/home', '/world/about', '/world/blogs', '/world/profile', '/world/settings'];
+// Settings, News Portal and Fear & Greed are in both sidebars (v1.18; News and
+// Fear & Greed added to Pro on Rachelle's request, 15 Nov 2026 — the same page,
+// so Pro users don't have to switch to Basic), so they keep the current workspace.
+const SHARED_ROUTES = [
+  '/world/home', '/world/about', '/world/blogs', '/world/profile', '/world/settings',
+  '/world/news', '/world/fear-greed',
+];
 
 // Match a route prefix on segment boundaries so e.g. '/world/profile'
 // does NOT match the '/world/pro' prefix.

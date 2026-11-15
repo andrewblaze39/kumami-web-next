@@ -19,7 +19,7 @@ const BASIC_ITEMS = [
 ];
 const PRO_ITEMS = [
   'Console Pro', 'Following & Alerts',
-  'Market Pulse Pro', 'Flow Radar Pro', 'Real-Time News', 'Alpha Room', 'Calendar Pro', 'Kumami Research',
+  'Market Pulse Pro', 'Flow Radar Pro', 'Fear & Greed', 'News Portal', 'Real-Time News', 'Alpha Room', 'Calendar Pro', 'Kumami Research',
   'AI Portfolio Manager', 'Crypto Address Tracker', 'Market Cap Comparison', 'Watchlist', 'Security Scanner', 'Airdrops & Whitelist',
   'Events & Announcements', 'Settings',
 ];
@@ -40,7 +40,7 @@ test.describe('Basic workspace (free account)', () => {
   });
 
   test('every free page puts you in the Basic workspace', async ({ page }) => {
-    for (const p of ['/world/news', '/world/education?tab=journey', '/world/calendar', '/world/flow-radar', '/world/fear-greed', '/world/watchlist', '/world/onchain']) {
+    for (const p of ['/world/education?tab=journey', '/world/calendar', '/world/flow-radar', '/world/watchlist', '/world/onchain']) {
       await openPage(page, p);
       await expect(badge(page), p).toHaveText('BASIC');
     }
@@ -111,6 +111,20 @@ test.describe('Pro account', () => {
     await navLink(page, 'Settings').click();
     await expect(page).toHaveURL(/\/world\/settings/);
     await expect(badge(page)).toHaveText('PRO');
+  });
+
+  test('News Portal and Fear & Greed open in Pro and keep the Pro workspace (Rachelle, 15 Nov 2026)', async ({ page, isMobile }, info) => {
+    test.skip(isMobile, 'mobile: the sidebar is a drawer — covered on desktop');
+    // Start on a Pro page without market data, so a slow provider can't hold the test up.
+    await openPage(page, '/world/pro?tab=research');
+    for (const [name, url] of [['Fear & Greed', /\/world\/fear-greed/], ['News Portal', /\/world\/news/]] as const) {
+      await navLink(page, name).click();
+      await expect(page).toHaveURL(url);
+      await expect(badge(page), name).toHaveText('PRO');
+      await expect(navLink(page, name)).toHaveClass(/active/);
+      await expect(navLink(page, 'Console Pro')).toBeVisible();
+    }
+    await snap(page, info, 'pro-news-portal');
   });
 
   test('Pro account on the Basic Watchlist sees the cut-down version (spec v1.6)', async ({ page }, info) => {
