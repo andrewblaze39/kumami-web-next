@@ -1,0 +1,1090 @@
+{
+  "summary": {
+    "apiStatus": 200,
+    "eventCount": 91,
+    "oldest": "2026-11-16T22:21:11.000Z",
+    "newest": "2026-11-17T05:07:11.061Z",
+    "sampleKeys": [
+      "id",
+      "type",
+      "asset",
+      "amountUsd",
+      "direction",
+      "severity",
+      "description",
+      "ts"
+    ],
+    "verdicts": {
+      "1H": "Quiet Flow AI read · coming soon 17 events tracked",
+      "4H": "Mixed Flow AI read · coming soon 10 bullish · 21 bearish events",
+      "24H": "Mixed Flow AI read · coming soon 20 bullish · 36 bearish events",
+      "7D": "Mixed Flow AI read · coming soon 20 bullish · 36 bearish events"
+    }
+  },
+  "payload": {
+    "status": 200,
+    "body": {
+      "events": [
+        {
+          "id": "netflow-BTC",
+          "type": "netflow_flip",
+          "asset": "BTC",
+          "amountUsd": 62705672,
+          "direction": "Sell Pressure",
+          "severity": "MED",
+          "description": "BTC netflow flip: buy→sell flip",
+          "ts": "2026-11-17T05:07:11.061Z"
+        },
+        {
+          "id": "netflow-SOL",
+          "type": "netflow_flip",
+          "asset": "SOL",
+          "amountUsd": 8484259,
+          "direction": "Sell Pressure",
+          "severity": "MED",
+          "description": "SOL netflow flip: buy→sell flip",
+          "ts": "2026-11-17T05:07:11.061Z"
+        },
+        {
+          "id": "netflow-ZEC",
+          "type": "netflow_flip",
+          "asset": "ZEC",
+          "amountUsd": 5163755,
+          "direction": "Sell Pressure",
+          "severity": "MED",
+          "description": "ZEC netflow flip: buy→sell flip",
+          "ts": "2026-11-17T05:07:11.061Z"
+        },
+        {
+          "id": "netflow-ETH",
+          "type": "netflow_flip",
+          "asset": "ETH",
+          "amountUsd": 4156021,
+          "direction": "Sell Pressure",
+          "severity": "MED",
+          "description": "ETH netflow flip: buy→sell flip",
+          "ts": "2026-11-17T05:07:11.061Z"
+        },
+        {
+          "id": "netflow-PAXG",
+          "type": "netflow_flip",
+          "asset": "PAXG",
+          "amountUsd": 1944450,
+          "direction": "Sell Pressure",
+          "severity": "MED",
+          "description": "PAXG netflow flip: buy→sell flip",
+          "ts": "2026-11-17T05:07:11.061Z"
+        },
+        {
+          "id": "netflow-LIT",
+          "type": "netflow_flip",
+          "asset": "LIT",
+          "amountUsd": 1432779,
+          "direction": "Sell Pressure",
+          "severity": "MED",
+          "description": "LIT netflow flip: buy→sell flip",
+          "ts": "2026-11-17T05:07:11.061Z"
+        },
+        {
+          "id": "netflow-HYPE",
+          "type": "netflow_flip",
+          "asset": "HYPE",
+          "amountUsd": 1168212,
+          "direction": "Sell Pressure",
+          "severity": "MED",
+          "description": "HYPE netflow flip: buy→sell flip",
+          "ts": "2026-11-17T05:07:11.061Z"
+        },
+        {
+          "id": "netflow-BNB",
+          "type": "netflow_flip",
+          "asset": "BNB",
+          "amountUsd": 1159047,
+          "direction": "Sell Pressure",
+          "severity": "MED",
+          "description": "BNB netflow flip: buy→sell flip",
+          "ts": "2026-11-17T05:07:11.061Z"
+        },
+        {
+          "id": "netflow-XRP",
+          "type": "netflow_flip",
+          "asset": "XRP",
+          "amountUsd": 860181,
+          "direction": "Sell Pressure",
+          "severity": "MED",
+          "description": "XRP netflow flip: buy→sell flip",
+          "ts": "2026-11-17T05:07:11.061Z"
+        },
+        {
+          "id": "netflow-LINK",
+          "type": "netflow_flip",
+          "asset": "LINK",
+          "amountUsd": 856700,
+          "direction": "Sell Pressure",
+          "severity": "MED",
+          "description": "LINK netflow flip: buy→sell flip",
+          "ts": "2026-11-17T05:07:11.061Z"
+        },
+        {
+          "id": "netflow-NEAR",
+          "type": "netflow_flip",
+          "asset": "NEAR",
+          "amountUsd": 756054,
+          "direction": "Sell Pressure",
+          "severity": "MED",
+          "description": "NEAR netflow flip: buy→sell flip",
+          "ts": "2026-11-17T05:07:11.061Z"
+        },
+        {
+          "id": "netflow-XMR",
+          "type": "netflow_flip",
+          "asset": "XMR",
+          "amountUsd": 602702,
+          "direction": "Sell Pressure",
+          "severity": "MED",
+          "description": "XMR netflow flip: buy→sell flip",
+          "ts": "2026-11-17T05:07:11.061Z"
+        },
+        {
+          "id": "hl-0x72774e2f-SOL-1794891661000",
+          "type": "smart_money",
+          "asset": "SOL",
+          "amountUsd": 3087562,
+          "direction": "Position Closed",
+          "severity": "MED",
+          "description": "SOL short closed: $3.1M",
+          "ts": "2026-11-17T05:01:01.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "hl-0x72774e2f-ETH-1794891302000",
+          "type": "smart_money",
+          "asset": "ETH",
+          "amountUsd": 3332181,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "ETH short closed: $3.3M",
+          "ts": "2026-11-17T04:55:02.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "hl-0xad031393-BTC-1794891249000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 1297960,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "BTC long closed: $1.3M",
+          "ts": "2026-11-17T04:54:09.000Z",
+          "side": "long",
+          "action": "close"
+        },
+        {
+          "id": "whale-qK4vrHpiPWsDzUnuxFeynwrFPHazpFuFRUWMcvYrx8aurE8eGxGtCSTBJh84U99j9ZNGB7MP3UmUrzGiU19ptbD",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 30005985,
+          "direction": "Outflow",
+          "severity": "MED",
+          "description": "$30M of USDC withdrawn from an exchange",
+          "ts": "2026-11-17T04:53:44.000Z"
+        },
+        {
+          "id": "whale-c3a8b8e3a3bda5d9a1ab437a2996151e90b5f1d9340868e2ba0b249989cb6864",
+          "type": "whale_transfer",
+          "asset": "USDT",
+          "amountUsd": 19490101,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$19M of USDT deposited to an exchange",
+          "ts": "2026-11-17T04:31:51.000Z"
+        },
+        {
+          "id": "hl-0xfc16f750-BTC-1794889774000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 6504480,
+          "direction": "Long Opened",
+          "severity": "MED",
+          "description": "BTC long opened: $6.5M",
+          "ts": "2026-11-17T04:29:34.000Z",
+          "side": "long",
+          "action": "open",
+          "crossSignal": {
+            "label": "Watchlist confirming",
+            "color": "green"
+          }
+        },
+        {
+          "id": "hl-0x72774e2f-BTC-1794889569000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 4595440,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "BTC short closed: $4.6M",
+          "ts": "2026-11-17T04:26:09.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "whale-0x7f23c29b543716125613dbaf2ded90dc39a8c6019189a33bdd780eb73bf1e7a7",
+          "type": "whale_transfer",
+          "asset": "USDT",
+          "amountUsd": 10808530,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$11M of USDT deposited to an exchange",
+          "ts": "2026-11-17T04:11:11.000Z"
+        },
+        {
+          "id": "hl-0x590f4f4a-ZEC-1794888394000",
+          "type": "smart_money",
+          "asset": "ZEC",
+          "amountUsd": 1312993,
+          "direction": "Short Opened",
+          "severity": "LOW",
+          "description": "ZEC short opened: $1.3M",
+          "ts": "2026-11-17T04:06:34.000Z",
+          "side": "short",
+          "action": "open"
+        },
+        {
+          "id": "hl-0xfc16f750-BTC-1794888138000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 5111695,
+          "direction": "Position Closed",
+          "severity": "MED",
+          "description": "BTC long closed: $5.1M",
+          "ts": "2026-11-17T04:02:18.000Z",
+          "side": "long",
+          "action": "close"
+        },
+        {
+          "id": "whale-0x5b8b918cfc68a7544ce8aead8c5c4fd379b8813fa3a921f949fc92396cda5f9b",
+          "type": "whale_transfer",
+          "asset": "USDT",
+          "amountUsd": 193959211,
+          "direction": "Outflow",
+          "severity": "HIGH",
+          "description": "$194M of USDT withdrawn from an exchange",
+          "ts": "2026-11-17T03:57:23.000Z"
+        },
+        {
+          "id": "whale-0x42339cb9ec2c60c08d18caee7a40a06d288e2acf2c4d83614a022023acddd18d",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 15003030,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$15M of USDC deposited to an exchange",
+          "ts": "2026-11-17T03:53:11.000Z"
+        },
+        {
+          "id": "whale-d39695a237205e9649ffc48a9d2b33267dd3bc72ef0f461eea0ab4210c4024c8",
+          "type": "whale_transfer",
+          "asset": "USDT",
+          "amountUsd": 19992758,
+          "direction": "Outflow",
+          "severity": "MED",
+          "description": "$20M of USDT withdrawn from an exchange",
+          "ts": "2026-11-17T03:48:33.000Z"
+        },
+        {
+          "id": "hl-0x90dbb196-HYPE-1794886642000",
+          "type": "smart_money",
+          "asset": "HYPE",
+          "amountUsd": 6352110,
+          "direction": "Position Closed",
+          "severity": "MED",
+          "description": "HYPE short closed: $6.4M",
+          "ts": "2026-11-17T03:37:22.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "hl-0x90dbb196-PUMP-1794886633000",
+          "type": "smart_money",
+          "asset": "PUMP",
+          "amountUsd": 2108065,
+          "direction": "Position Closed",
+          "severity": "MED",
+          "description": "PUMP short closed: $2.1M",
+          "ts": "2026-11-17T03:37:13.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "whale-0x8ffd953d0d1a8066686164dc4af36b89e8dbafbc6644cbb76d0b3dc3f299b75c",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 15003285,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$15M of USDC deposited to an exchange",
+          "ts": "2026-11-17T03:33:35.000Z"
+        },
+        {
+          "id": "hl-0x039bb804-BTC-1794886096000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 5756417,
+          "direction": "Position Closed",
+          "severity": "MED",
+          "description": "BTC short closed: $5.8M",
+          "ts": "2026-11-17T03:28:16.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "hl-0x396dc3e4-BTC-1794886068000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 4092536,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "BTC short closed: $4.1M",
+          "ts": "2026-11-17T03:27:48.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "hl-0xb6aef9cf-BTC-1794886052000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 1499839,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "BTC short closed: $1.5M",
+          "ts": "2026-11-17T03:27:32.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "hl-0x53d46373-BTC-1794885990000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 1296200,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "BTC long closed: $1.3M",
+          "ts": "2026-11-17T03:26:30.000Z",
+          "side": "long",
+          "action": "close"
+        },
+        {
+          "id": "whale-0x5554a89e30ed4af9ac0d67b3d5e55e47410ad765808afb73ec9f9a67eda220b2",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 10002620,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$10M of USDC deposited to an exchange",
+          "ts": "2026-11-17T03:13:23.000Z"
+        },
+        {
+          "id": "whale-0xb0d9c594a9beef227fcc067e694aac6945bfecf788920db0dffbf11204265141",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 14000142,
+          "direction": "Outflow",
+          "severity": "MED",
+          "description": "$14M of USDC withdrawn from an exchange",
+          "ts": "2026-11-17T03:06:59.000Z"
+        },
+        {
+          "id": "hl-0xe1d39d2b-BTC-1794883681000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 1878416,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "BTC long closed: $1.9M",
+          "ts": "2026-11-17T02:48:01.000Z",
+          "side": "long",
+          "action": "close"
+        },
+        {
+          "id": "whale-0xb1b39afd24399315d096ad8523bcb6f1d48e3a189a892926132ea58d40e848b9",
+          "type": "whale_transfer",
+          "asset": "USDT",
+          "amountUsd": 19992840,
+          "direction": "Outflow",
+          "severity": "MED",
+          "description": "$20M of USDT withdrawn from an exchange",
+          "ts": "2026-11-17T02:45:11.000Z"
+        },
+        {
+          "id": "whale-0x6ddc0d5157b528d5949faba91908c4a29e354618b442406879dfd5b1ed6790bd",
+          "type": "whale_transfer",
+          "asset": "USDT",
+          "amountUsd": 12992154,
+          "direction": "Outflow",
+          "severity": "MED",
+          "description": "$13M of USDT withdrawn from an exchange",
+          "ts": "2026-11-17T02:37:23.000Z"
+        },
+        {
+          "id": "whale-aa894d8894a73ef3b97760c0a1b8c5cfae918ce60242e31887f80ad1b5981301",
+          "type": "whale_transfer",
+          "asset": "USDT",
+          "amountUsd": 22986529,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$23M of USDT deposited to an exchange",
+          "ts": "2026-11-17T02:31:51.000Z"
+        },
+        {
+          "id": "hl-0xd7a2b1f9-BTC-1794882648000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 1567414,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "BTC short closed: $1.6M",
+          "ts": "2026-11-17T02:30:48.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "hl-0x048fb83a-BTC-1794882540000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 1993130,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "BTC long closed: $2.0M",
+          "ts": "2026-11-17T02:29:00.000Z",
+          "side": "long",
+          "action": "close"
+        },
+        {
+          "id": "hl-0xeb56be55-BTC-1794882441000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 1300220,
+          "direction": "Short Opened",
+          "severity": "LOW",
+          "description": "BTC short opened: $1.3M",
+          "ts": "2026-11-17T02:27:21.000Z",
+          "side": "short",
+          "action": "open",
+          "crossSignal": {
+            "label": "Watchlist confirming",
+            "color": "red"
+          }
+        },
+        {
+          "id": "hl-0xf3dcaeb9-BTC-1794882404000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 2605453,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "BTC long closed: $2.6M",
+          "ts": "2026-11-17T02:26:44.000Z",
+          "side": "long",
+          "action": "close"
+        },
+        {
+          "id": "whale-0x57ab5311eefb61695594daa4c1cad8dc6641f1f05e27b89e0ecec7cb87637c30",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 10002085,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$10M of USDC deposited to an exchange",
+          "ts": "2026-11-17T02:24:47.000Z"
+        },
+        {
+          "id": "whale-10b0f5cce2361073005e0129a394ec743a54b6efd4df43060dc0a037a9833f34",
+          "type": "whale_transfer",
+          "asset": "USDT",
+          "amountUsd": 19991858,
+          "direction": "Outflow",
+          "severity": "MED",
+          "description": "$20M of USDT withdrawn from an exchange",
+          "ts": "2026-11-17T02:23:21.000Z"
+        },
+        {
+          "id": "hl-0xa764f11b-ETH-1794881911000",
+          "type": "smart_money",
+          "asset": "ETH",
+          "amountUsd": 2442610,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "ETH short closed: $2.4M",
+          "ts": "2026-11-17T02:18:31.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "whale-0x823018d46d990d61a623fd15cd42ca77ee8e81eed71a5c08fa969acd0e2ccded",
+          "type": "whale_transfer",
+          "asset": "USDT",
+          "amountUsd": 145568730,
+          "direction": "Inflow",
+          "severity": "HIGH",
+          "description": "$146M of USDT deposited to an exchange",
+          "ts": "2026-11-17T02:08:23.000Z"
+        },
+        {
+          "id": "hl-0xd3b02d99-HYPE-1794881260000",
+          "type": "smart_money",
+          "asset": "HYPE",
+          "amountUsd": 1272889,
+          "direction": "Long Opened",
+          "severity": "LOW",
+          "description": "HYPE long opened: $1.3M",
+          "ts": "2026-11-17T02:07:40.000Z",
+          "side": "long",
+          "action": "open"
+        },
+        {
+          "id": "hl-0x3bcae23e-BTC-1794881066000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 2471672,
+          "direction": "Long Opened",
+          "severity": "LOW",
+          "description": "BTC long opened: $2.5M",
+          "ts": "2026-11-17T02:04:26.000Z",
+          "side": "long",
+          "action": "open",
+          "crossSignal": {
+            "label": "Watchlist confirming",
+            "color": "green"
+          }
+        },
+        {
+          "id": "hl-0x67546241-BTC-1794880459000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 3248530,
+          "direction": "Long Opened",
+          "severity": "LOW",
+          "description": "BTC long opened: $3.2M",
+          "ts": "2026-11-17T01:54:19.000Z",
+          "side": "long",
+          "action": "open",
+          "crossSignal": {
+            "label": "Watchlist confirming",
+            "color": "green"
+          }
+        },
+        {
+          "id": "hl-0x90dbb196-NEAR-1794879924000",
+          "type": "smart_money",
+          "asset": "NEAR",
+          "amountUsd": 1579950,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "NEAR short closed: $1.6M",
+          "ts": "2026-11-17T01:45:24.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "whale-0x258e478990d6f5d53c09fbc868535a512d7f420d0b8c99beb2aff22792c00635",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 10002215,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$10M of USDC deposited to an exchange",
+          "ts": "2026-11-17T01:45:23.000Z"
+        },
+        {
+          "id": "hl-0xe90bf24e-SOL-1794879910000",
+          "type": "smart_money",
+          "asset": "SOL",
+          "amountUsd": 1363622,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "SOL short closed: $1.4M",
+          "ts": "2026-11-17T01:45:10.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "hl-0xbd334a55-HYPE-1794879594000",
+          "type": "smart_money",
+          "asset": "HYPE",
+          "amountUsd": 1773295,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "HYPE long closed: $1.8M",
+          "ts": "2026-11-17T01:39:54.000Z",
+          "side": "long",
+          "action": "close"
+        },
+        {
+          "id": "hl-0xeb56be55-BTC-1794879224000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 1310400,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "BTC short closed: $1.3M",
+          "ts": "2026-11-17T01:33:44.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "hl-0xff042b17-BTC-1794878927000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 4454623,
+          "direction": "Short Opened",
+          "severity": "LOW",
+          "description": "BTC short opened: $4.5M",
+          "ts": "2026-11-17T01:28:47.000Z",
+          "side": "short",
+          "action": "open",
+          "crossSignal": {
+            "label": "Watchlist confirming",
+            "color": "red"
+          }
+        },
+        {
+          "id": "hl-0x4c38ac78-BTC-1794878560000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 10147813,
+          "direction": "Long Opened",
+          "severity": "MED",
+          "description": "BTC long opened: $10M",
+          "ts": "2026-11-17T01:22:40.000Z",
+          "side": "long",
+          "action": "open",
+          "crossSignal": {
+            "label": "Watchlist confirming",
+            "color": "green"
+          }
+        },
+        {
+          "id": "whale-710f3a9778cab3de71def936ced648315806067a1d67bb3412dc9a64147de3ea",
+          "type": "whale_transfer",
+          "asset": "BTC",
+          "amountUsd": 10964308,
+          "direction": "Outflow",
+          "severity": "MED",
+          "description": "$11M of BTC withdrawn from an exchange",
+          "ts": "2026-11-17T01:16:51.000Z",
+          "crossSignal": {
+            "label": "Spot Pulse confirming",
+            "color": "green"
+          }
+        },
+        {
+          "id": "hl-0xe90bf24e-BTC-1794878201000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 5328309,
+          "direction": "Position Closed",
+          "severity": "MED",
+          "description": "BTC short closed: $5.3M",
+          "ts": "2026-11-17T01:16:41.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "hl-0xff042b17-BTC-1794877939000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 4320817,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "BTC short closed: $4.3M",
+          "ts": "2026-11-17T01:12:19.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "hl-0x62928a3e-LIT-1794877464000",
+          "type": "smart_money",
+          "asset": "LIT",
+          "amountUsd": 2223199,
+          "direction": "Long Opened",
+          "severity": "MED",
+          "description": "LIT long opened: $2.2M",
+          "ts": "2026-11-17T01:04:24.000Z",
+          "side": "long",
+          "action": "open"
+        },
+        {
+          "id": "hl-0xad031393-BTC-1794877445000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 1955067,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "BTC short closed: $2.0M",
+          "ts": "2026-11-17T01:04:05.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "hl-0x54c5b295-BTC-1794877180000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 19076374,
+          "direction": "Short Opened",
+          "severity": "MED",
+          "description": "BTC short opened: $19M",
+          "ts": "2026-11-17T00:59:40.000Z",
+          "side": "short",
+          "action": "open",
+          "crossSignal": {
+            "label": "Watchlist confirming",
+            "color": "red"
+          }
+        },
+        {
+          "id": "whale-3h9ZdzkY85zg3BekUUXzpp15VCW3ZSpW6HAtTHzi1iUFigvqFmRkAsFHuGoChjA9QbYRZF3HJEgwAdrM2UqgLYS",
+          "type": "whale_transfer",
+          "asset": "USDT",
+          "amountUsd": 44309015,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$44M of USDT deposited to an exchange",
+          "ts": "2026-11-17T00:50:22.000Z"
+        },
+        {
+          "id": "whale-2DAc4t51CLtgMCgccGNW1T4MwDQhcnJDRZkg92rksrJdV59NFMdDvM8dKcN9tn5f7GZAeq2q4RVQtCPtM5uVUzCD",
+          "type": "whale_transfer",
+          "asset": "USDT",
+          "amountUsd": 44309015,
+          "direction": "Outflow",
+          "severity": "MED",
+          "description": "$44M of USDT withdrawn from an exchange",
+          "ts": "2026-11-17T00:50:01.000Z"
+        },
+        {
+          "id": "hl-0x048fb83a-BTC-1794876277000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 2095791,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "BTC short closed: $2.1M",
+          "ts": "2026-11-17T00:44:37.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "hl-0x921a02e7-BTC-1794875950000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 1637825,
+          "direction": "Position Closed",
+          "severity": "LOW",
+          "description": "BTC short closed: $1.6M",
+          "ts": "2026-11-17T00:39:10.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "whale-0x4f43787e2177489efc2476b8e73c69ed1d9342909a78eaf5b9e8495c4504ac54",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 24004560,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$24M of USDC deposited to an exchange",
+          "ts": "2026-11-17T00:36:35.000Z"
+        },
+        {
+          "id": "whale-0x050b1682177a1f20b29680056003367c7be4eb066236baf6a98c444ec6b0c412",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 10001945,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$10M of USDC deposited to an exchange",
+          "ts": "2026-11-17T00:33:23.000Z"
+        },
+        {
+          "id": "hl-0x9321d811-XRP-1794875283000",
+          "type": "smart_money",
+          "asset": "XRP",
+          "amountUsd": 1448325,
+          "direction": "Short Opened",
+          "severity": "LOW",
+          "description": "XRP short opened: $1.4M",
+          "ts": "2026-11-17T00:28:03.000Z",
+          "side": "short",
+          "action": "open"
+        },
+        {
+          "id": "hl-0x6c2c8c6e-BTC-1794875253000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 3013781,
+          "direction": "Short Opened",
+          "severity": "LOW",
+          "description": "BTC short opened: $3.0M",
+          "ts": "2026-11-17T00:27:33.000Z",
+          "side": "short",
+          "action": "open",
+          "crossSignal": {
+            "label": "Watchlist confirming",
+            "color": "red"
+          }
+        },
+        {
+          "id": "hl-0x6c2c8c6e-BTC-1794875086000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 5138174,
+          "direction": "Position Closed",
+          "severity": "MED",
+          "description": "BTC short closed: $5.1M",
+          "ts": "2026-11-17T00:24:46.000Z",
+          "side": "short",
+          "action": "close"
+        },
+        {
+          "id": "hl-0x54c5b295-BTC-1794875062000",
+          "type": "smart_money",
+          "asset": "BTC",
+          "amountUsd": 16788676,
+          "direction": "Position Closed",
+          "severity": "MED",
+          "description": "BTC long closed: $17M",
+          "ts": "2026-11-17T00:24:22.000Z",
+          "side": "long",
+          "action": "close"
+        },
+        {
+          "id": "whale-0x3d55b95225a1da819e14c1050718f7b2328295f273fcb8e5e6061d477015147d",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 30894065,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$31M of USDC deposited to an exchange",
+          "ts": "2026-11-17T00:20:47.000Z"
+        },
+        {
+          "id": "whale-0xba72c87416380821dd7fb0e9a33985b4adf03fb9d7d6252237a4ea54a446a9a9",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 41609692,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$42M of USDC deposited to an exchange",
+          "ts": "2026-11-17T00:17:11.000Z"
+        },
+        {
+          "id": "whale-0x639d7e5f9dd36be9d7ea208bb5fc6de71131ed1a48234f69701add254b1bebe6",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 10007500,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$10M of USDC deposited to an exchange",
+          "ts": "2026-11-17T00:15:47.000Z"
+        },
+        {
+          "id": "whale-0x41a6c250c5f50a905214a0fb56ecd4ee1ca9a5744822815f378deb4bcb59da0f",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 30022500,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$30M of USDC deposited to an exchange",
+          "ts": "2026-11-17T00:15:35.000Z"
+        },
+        {
+          "id": "whale-0x9a119a4dcc65c91cfa5f5c815a32403cd935e7ec0f9e55593c838e53693a507e",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 30210806,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$30M of USDC deposited to an exchange",
+          "ts": "2026-11-17T00:11:35.000Z"
+        },
+        {
+          "id": "whale-66619c183b4ab175d3daf991e794960670b64f82213664d1ba58845f7f782552",
+          "type": "whale_transfer",
+          "asset": "BTC",
+          "amountUsd": 15009631,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$15M of BTC deposited to an exchange",
+          "ts": "2026-11-16T23:35:56.000Z"
+        },
+        {
+          "id": "whale-0x22af968d757745dba83d93572bcea10c6e9bf95cbd5307959b970339eee00c5d",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 13382856,
+          "direction": "Outflow",
+          "severity": "MED",
+          "description": "$13M of USDC withdrawn from an exchange",
+          "ts": "2026-11-16T23:33:47.000Z"
+        },
+        {
+          "id": "whale-8b9040a61fd88b9905d2b6d5114752425680f6c33a0d0048ecac0f8ceb8b4b16",
+          "type": "whale_transfer",
+          "asset": "USDT",
+          "amountUsd": 23526552,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$24M of USDT deposited to an exchange",
+          "ts": "2026-11-16T23:24:09.000Z"
+        },
+        {
+          "id": "whale-0x9a56fab1c2e9d25994f0d3325cad96e87b34b2af66184dc3cad12075054c9849",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 17503446,
+          "direction": "Outflow",
+          "severity": "MED",
+          "description": "$18M of USDC withdrawn from an exchange",
+          "ts": "2026-11-16T23:18:47.000Z"
+        },
+        {
+          "id": "whale-0x71981fb5ef0fa9a9bbfe97ebab529b4a67084767639ff66df6d98a059985c26e",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 18504134,
+          "direction": "Outflow",
+          "severity": "MED",
+          "description": "$19M of USDC withdrawn from an exchange",
+          "ts": "2026-11-16T22:48:47.000Z"
+        },
+        {
+          "id": "whale-0xef6e9ee644f3e4290efb2baed170fd70dc889ece08c90a4754ae9172955968c0",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 13883663,
+          "direction": "Outflow",
+          "severity": "MED",
+          "description": "$14M of USDC withdrawn from an exchange",
+          "ts": "2026-11-16T22:32:35.000Z"
+        },
+        {
+          "id": "whale-2R21Zg6ej8EeDwcPQUZkAeqGXYPjaZEQu1jRQn2Dn3d9xcV3wdhkC5kAQ4hbpsauHNXLYVtxvRF1xcKDjKxDvvH6",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 39205040,
+          "direction": "Outflow",
+          "severity": "MED",
+          "description": "$39M of USDC withdrawn from an exchange",
+          "ts": "2026-11-16T22:31:03.000Z"
+        },
+        {
+          "id": "whale-5GHMqhA3KEcks6dtSrXUMunFNDj7BFhcQj7kmgmrQrdn3RLLVKSyHeMLRkv7xxsnGXYZA5p3Ecv56cWAyx7eVwnE",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 39205021,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$39M of USDC deposited to an exchange",
+          "ts": "2026-11-16T22:29:23.000Z"
+        },
+        {
+          "id": "whale-a6b577c081c6a52b26734443e6e5135ae188231f4745494cf9708e6025daaba7",
+          "type": "whale_transfer",
+          "asset": "BTC",
+          "amountUsd": 13329621,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$13M of BTC deposited to an exchange",
+          "ts": "2026-11-16T22:28:47.000Z"
+        },
+        {
+          "id": "whale-292c6e6815eb623c7af22a601802dad32f4fc374435e95d5d740a5aeced4a4bd",
+          "type": "whale_transfer",
+          "asset": "BTC",
+          "amountUsd": 13068255,
+          "direction": "Outflow",
+          "severity": "MED",
+          "description": "$13M of BTC withdrawn from an exchange",
+          "ts": "2026-11-16T22:28:47.000Z",
+          "crossSignal": {
+            "label": "Spot Pulse confirming",
+            "color": "green"
+          }
+        },
+        {
+          "id": "whale-1c93fDFmHQmDq1rWgSKCSTCVK6j7UCcqNCezJXZP7y9XsKnmnokRNnM7RyFuGMyEbAmsB12iQZtUuWhfp9i7Tzo",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 39204962,
+          "direction": "Outflow",
+          "severity": "MED",
+          "description": "$39M of USDC withdrawn from an exchange",
+          "ts": "2026-11-16T22:26:48.000Z"
+        },
+        {
+          "id": "whale-2JbJ5gh7PdLgHNQF2C3SbQuQZr6CEf6iHgP1TuLag4XwNWhQkpcMmwStPvWoM22RoCoEW3m5aUo6xDM5r9PfFPAR",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 39204962,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$39M of USDC deposited to an exchange",
+          "ts": "2026-11-16T22:26:23.000Z"
+        },
+        {
+          "id": "whale-A3vs2fADUAh4KtMhaYozxgjzsmfyN4RKNLrduCwWUmUGqm2c5SAXSaDMMzYqsz1RkxDc1SBB7r28FAGB7QzEoJw",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 18950266,
+          "direction": "Inflow",
+          "severity": "MED",
+          "description": "$19M of USDC deposited to an exchange",
+          "ts": "2026-11-16T22:22:02.000Z"
+        },
+        {
+          "id": "whale-0xa31028d1a3a2fa1eaee6867c86fb70da7cef2228d9aa5fe788afbcf7cb1f4fdb",
+          "type": "whale_transfer",
+          "asset": "USDC",
+          "amountUsd": 10712838,
+          "direction": "Outflow",
+          "severity": "MED",
+          "description": "$11M of USDC withdrawn from an exchange",
+          "ts": "2026-11-16T22:21:11.000Z"
+        }
+      ],
+      "verdict": {
+        "label": "Mixed Flow",
+        "color": "grey"
+      },
+      "sentence": "Bullish and bearish flow are both active — no clear directional edge right now.",
+      "statLine": "13 bullish · 24 bearish events",
+      "footer": {
+        "eventCount": 91,
+        "totalUsd": 1398900411,
+        "assets": [
+          "BNB",
+          "BTC",
+          "ETH",
+          "HYPE",
+          "LINK",
+          "LIT",
+          "NEAR",
+          "PAXG",
+          "PUMP",
+          "SOL",
+          "USDC",
+          "USDT",
+          "XMR",
+          "XRP",
+          "ZEC"
+        ]
+      },
+      "updatedAt": "2026-11-17T05:07:33.323Z",
+      "aiSentences": {},
+      "aiOn": false,
+      "delayed": false
+    }
+  }
+}
